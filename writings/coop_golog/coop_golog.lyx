@@ -1,0 +1,606 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Cooperative Execution of Golog Programs
+\layout Abstract
+
+The Golog family of programming languages are designed for high-level control
+ of autonomous agents such as mobile robots.
+ Based on the logical formalism of the situation calculus, these languages
+ allow the programmer to define a (potentially non-deterministic) program
+ or plan, from which the agent will determine an appropriate execution strategy.
+ This paper seeks to extend the Golog system by allowing multiple autonomous
+ agents to cooperate in executing a Golog plan.
+\layout Section
+
+Introduction
+\layout Standard
+
+TODO: exciting introduction to the topic
+\layout Section
+
+Background
+\layout Subsection
+
+The Situation Calculus
+\layout Standard
+
+The situation calculus is a first order logic formalism designed for representin
+g and reasoning about dynamically changing worlds, introduced by McCarthy
+ and Hayes 
+\begin_inset LatexCommand \cite{McCHay69sitcalc}
+
+\end_inset 
+
+.
+ While the concepts of the situation calculus remain largely unchanged,
+ the accompanying notation has evolved somewhat since its inception.
+ The notation presented here is that adopted by the originators of the Golog
+ language 
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset 
+
+.
+\layout Standard
+
+A representation of a dynamic world in the situation calculus consists of
+ first order logic statements capturing the following, which will be explained
+ further in later sections:
+\layout Itemize
+
+The actions that can be performed in the world
+\layout Itemize
+
+The fluents that describe the state of the world
+\layout Itemize
+
+Action precondition axioms, one for each action
+\layout Itemize
+
+Successor state axioms, one for each fluent
+\layout Itemize
+
+Axioms describing the initial world situation
+\layout Itemize
+
+The foundational axioms of the situation calculus
+\layout Standard
+
+The foundational axioms support reasoning and induction over situation calculus
+ models.
+ Since they will not be referenced in this paper, they are not repeated
+ here.
+ A detailed treatment may be found in 
+\begin_inset LatexCommand \cite{reiter01kia}
+
+\end_inset 
+
+.
+\layout Standard
+
+To assist in the presentation of this material, a simple robot world will
+ be modelled as a running example.
+ In this world there is a single robot and several inanimate objects.
+ The world is laid out according to a grid so that locations can be specified
+ in terms of 
+\begin_inset Formula $(x,y)$
+\end_inset 
+
+ coordinate points.
+ It is possible for the robot to move around the world, and to pick up and
+ drop items.
+ Some items may be too heavy for the robot to pick up, or fragile so that
+ they break when they are dropped.
+ The robot also has the ability to repair any broken items that it is holding.
+\layout Subsubsection
+
+Situations and Actions
+\layout Standard
+
+A dynamic world in the situation calculus is modelled as progressing through
+ a series of 
+\emph on 
+situations 
+\emph default 
+as a result of various 
+\emph on 
+actions
+\emph default 
+ being performed within the world.
+ A situation corresponds to a particular history of action occurrences.
+ The situation before any actions have been performed is typically denoted
+ 
+\begin_inset Formula $S_{0}$
+\end_inset 
+
+ and referred to as the initial situation.
+ The new situation resulting from the performance of an action is obtained
+ using the function 
+\begin_inset Formula $do$
+\end_inset 
+
+.
+ This function takes a situation and an action as arguments, and returns
+ the situation that results from performing the given action in the given
+ situation.
+ Actions may be parameterised and both actions and situations are first
+ order terms within the language.
+\layout Standard
+
+In the example world, possible action terms would be 
+\begin_inset Formula $move(x,y)$
+\end_inset 
+
+ to model the robot moving to a new location 
+\begin_inset Formula $(x,y)$
+\end_inset 
+
+, and 
+\begin_inset Formula $pickup(o)$
+\end_inset 
+
+ to model the robot picking up an object 
+\begin_inset Formula $o$
+\end_inset 
+
+.
+ The world is initially in situation 
+\begin_inset Formula $S_{0}$
+\end_inset 
+
+.
+ If the robot's first action is to move to location 
+\begin_inset Formula $(2,3)$
+\end_inset 
+
+, the new situation would be 
+\begin_inset Formula $do(move(2,3),S_{0})$
+\end_inset 
+
+.
+ If its next action is the pick up the ball, the new situation would be
+ 
+\begin_inset Formula $do(pickup(Ball),do(move(2,3),S_{0}))$
+\end_inset 
+
+.
+\layout Subsubsection
+
+Fluents
+\layout Standard
+
+Statements whose truth value may change as the result of actions being performed
+ are modelled by 
+\emph on 
+relational fluents
+\emph default 
+, predicates which take a situation as their final argument.
+ It is also possible to define 
+\emph on 
+functional fluents
+\emph default 
+, functions which take a situation as their final argument and return a
+ situation-dependent value.
+ Fluents may be through of as 
+\begin_inset Quotes eld
+\end_inset 
+
+properties of the world
+\begin_inset Quotes erd
+\end_inset 
+
+.
+\layout Standard
+
+In the example world, the fluent 
+\begin_inset Formula $is\_ carrying(o,s)$
+\end_inset 
+
+ could be used to indicate that the robot is carrying a particular object
+ in a particular situation.
+ Assuming the robot initially carries nothing, 
+\begin_inset Formula $is\_ carrying(Ball,S_{0})$
+\end_inset 
+
+ would be false while 
+\begin_inset Formula $is\_ carrying(Ball,do(pickup(Ball),S_{0}))$
+\end_inset 
+
+ would be true.
+ The location of the robot could be modelled using a functional fluent 
+\begin_inset Formula $(x,y)=location(s)$
+\end_inset 
+
+ which returns the location of the robot in a particular situation.
+\layout Subsubsection
+
+Action Preconditions and Effects
+\layout Standard
+
+It may not be possible to perform a given action in a give situation - for
+ example, it is impossible to put down an object unless one is in fact carrying
+ it.
+ These restrictions on the performance of actions are modelled by action
+ precondition axioms of the form 
+\begin_inset Formula $Poss(a,s)$
+\end_inset 
+
+, where 
+\begin_inset Formula $a$
+\end_inset 
+
+ is an action and 
+\begin_inset Formula $s$
+\end_inset 
+
+ a situation.
+ The condition that dropping an object is only possible when one is carrying
+ it would be modelled in the example world by:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(drop(o),s)\leftrightarrow is\_ carrying(o,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+As a more complex example, the following models that the robot can carry
+ only one object at a time, and that some objects are too heavy for the
+ robot to lift (indicated by the predicate 
+\begin_inset Formula $heavy$
+\end_inset 
+
+):
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(pickup(o),s)\leftrightarrow(\forall z\neg is\_ carrying(z,s))\wedge\neg heavy(o)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Given that an action is possible in a situation, one must specify the effects
+ that performing that action would have on the world's fluents.
+ This is done by specifying effect axioms.
+ For example, the fact that picking up an object causes the robot to be
+ carrying it can be modelled as:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(pickup(o),s)\rightarrow is\_ carrying(o,do(pickup(o),s))\]
+
+\end_inset 
+
+
+\layout Standard
+
+It is also possible to specify conditional effects, based on other properties
+ of the objects under consideration.
+ The following models that some objects are fragile (indicated by the predicate
+ 
+\begin_inset Formula $fragile$
+\end_inset 
+
+) and dropping them cases them to be broken (indicated by the fluent 
+\begin_inset Formula $broken$
+\end_inset 
+
+):
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(drop(o),s)\wedge fragile(o)\rightarrow broken(o,do(drop(o),s))\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+The Frame Problem
+\layout Standard
+
+While the model at this stage is suitable for reasoning about the effects
+ of actions, is has a critical weakness - it cannot be used to reason about
+ the 
+\emph on 
+non-effects
+\emph default 
+ of actions.
+ For example, it is not possible to deduce that after picking up an object,
+ the robot's location remains unchanged.
+ This requires a so-called frame axiom of the form:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(pickup(o),s)\wedge location(s)=(x,y)\rightarrow location(do(pickup(o),s))=(x,y)\]
+
+\end_inset 
+
+
+\layout Standard
+
+The need to specify frame axioms has long been recognised as a problem in
+ axiomatizing dynamic worlds (TODO:ref), as there are generally a very large
+ number of such axioms.
+ It is very easy for the designer to leave out a necessary frame axiom,
+ or to forget to modify all appropriate axioms when a change to the world
+ model is made.
+\layout Subsubsection
+
+Successor State Axioms
+\layout Standard
+
+A simple solution to the frame problem (TODO:under what circumstances?)
+ was proposed by Reiter 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
+\end_inset 
+
+ in the form of successor state axioms.
+ It requires that the designer has enumerated as effect axioms all the ways
+ in which the value of a particular fluent can be changed.
+ The effect axioms affecting the value of fluent 
+\begin_inset Formula $F(\overrightarrow{x},s)$
+\end_inset 
+
+ can be written in generalised form as a positive and a negative effect
+ axiom:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(a,s)\wedge\gamma_{F}^{+}(\overrightarrow{x},a,s)\rightarrow F(\overrightarrow{x},do(a,s))\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(a,s)\wedge\gamma_{F}^{-}(\overrightarrow{x},a,s)\rightarrow\neg F(\overrightarrow{x},do(a,s))\]
+
+\end_inset 
+
+
+\layout Standard
+
+Here the formula 
+\begin_inset Formula $\gamma_{F}^{+}$
+\end_inset 
+
+describes the conditions under which action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ can make the fluent 
+\begin_inset Formula $F$
+\end_inset 
+
+ become true in the successor situation 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+.
+ Likewise, 
+\begin_inset Formula $\gamma_{F}^{-}$
+\end_inset 
+
+ describes the conditions under which performing action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ will make fluent 
+\begin_inset Formula $F$
+\end_inset 
+
+ false in the successor situation.
+\layout Standard
+
+Assuming that this pair of axioms describe all the ways in which fluent
+ 
+\begin_inset Formula $F$
+\end_inset 
+
+ can change value, they can be re-written as a single axiom:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(a,s)\rightarrow\left[F(\overrightarrow{x},do(a,s))\leftrightarrow\gamma_{F}^{+}(\overrightarrow{x},a,s)\vee\left(F(\overrightarrow{x},s)\wedge\neg\gamma_{F}^{-}(\overrightarrow{x},a,s)\right)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+In words this states: 
+\begin_inset Quotes eld
+\end_inset 
+
+given that is is possible to perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+, the fluent 
+\begin_inset Formula $F$
+\end_inset 
+
+ would be true in the resulting situation 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ if and only if performing 
+\begin_inset Formula $a$
+\end_inset 
+
+ in 
+\begin_inset Formula $s$
+\end_inset 
+
+ would make it true, or it is true in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ and performing 
+\begin_inset Formula $a$
+\end_inset 
+
+ in 
+\begin_inset Formula $s$
+\end_inset 
+
+ would not make it false.
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+By way of example, the fluent 
+\begin_inset Formula $broken$
+\end_inset 
+
+ introduced above can be given the following successor state axiom:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(a,s)\rightarrow\left[broken(o,do(a,s)\leftrightarrow\right.\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+a=drop(o)\wedge fragile(o)\,\,\vee\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\left.broken(o,s)\wedge a\neq repair(o)\right]\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+The Initial Situation
+\layout Standard
+
+Finally, the designer must specify the properties of the initial situation.
+ This is done simply by making assertions about 
+\begin_inset Formula $S_{0}$
+\end_inset 
+
+.
+ The following statements model that initially, the robot carries nothing,
+ is at location 
+\begin_inset Formula $(0,0)$
+\end_inset 
+
+, and there are no broken objects:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall z\,\neg is\_ carrying(z,S_{0})\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+location(S_{0})=(0,0)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall o\,\neg broken(o,S_{0})\]
+
+\end_inset 
+
+
+\layout Standard
+
+Continuing as shown in these examples, it is possible to obtain a full axiomatis
+ation of a dynamic world in first order logic.
+ This can then be used to reason about how sequences of actions affect propertie
+s of the world.
+\layout Subsection
+
+Golog
+\layout Standard
+
+Golog (short for alGOl in LOGic) is a declarative programming language based
+ on the situation calculus.
+\layout Section
+
+References
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset 
+
+
+\the_end
