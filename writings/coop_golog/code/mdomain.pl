@@ -47,7 +47,11 @@ has_resource(_,_,s0) :- fail.
 %%%%  Simple Test Program  %%%%%%
 
 testprog(D) :-
-    D = conc(seq(acquire_resource(agent1,knife1),release_resource(agent1,knife1)),
-          seq(acquire_resource(agent2,knife2),release_resource(agent2,knife2))).
+    D = conc(seq(acquire_resource(agent1,knife1),
+                 conc(acquire_resource(agent2,knife2),
+                      acquire_resource(agent3,knife3))),
+             conc(acquire_resource(agent1,bowl1),
+                  acquire_resource(agent2,bowl2)))
+    .
 
 

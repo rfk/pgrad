@@ -78,9 +78,9 @@ trans(while(Cond,D),S,Dp,Sp) :-
     Dp = seq(Dr,while(Cond,D)), holds(Cond,S), trans(D,S,Dr,Sp).
 
 trans(conc(D1,D2),S,Dp,Sp) :-
-    trans(D1,S,Ds1,do(C1,S)), trans(D2,S,Ds2,do(C2,S)),
+    trans(D1,S,Dr1,do(C1,S)), trans(D2,S,Dr2,do(C2,S)),
     cact_union(C1,C2,CT), poss(CT,S),
-    Dp = conc(Ds1,Ds2), Sp = do(CT,S)
+    Dp = conc(Dr1,Dr2), Sp = do(CT,S)
     ;
     Dp = conc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
@@ -89,10 +89,7 @@ trans(conc(D1,D2),S,Dp,Sp) :-
 trans(pconc(D1,D2),S,Dp,Sp) :-
     Dp = pconc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
-    Dp = pconc(D1,Dr2), trans(D2,S,Dr2,Sp), \+ trans(D1,S,_,_)
-    ;
-    D1 = seq(C1,Ds1), D2 = seq(C2,Ds2), Dp = pconc(Ds1,Ds2),
-    cact_union(C1,C2,CT), poss(CT,S), Sp = do(CT,S).
+    Dp = pconc(D1,Dr2), trans(D2,S,Dr2,Sp), \+ trans(D1,S,_,_).
 
 trans(cstar(D),S,Dp,Sp) :-
     Dp = conc(Dr,cstar(D)), trans(D,S,Dr,Sp).
