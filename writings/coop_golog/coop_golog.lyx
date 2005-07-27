@@ -708,6 +708,22 @@ Continuous Processes: The domain requires continuous processes such as the
  These processes will not necessarily end under the control of the agent.
 \layout Itemize
 
+Natural Actions: These are predictable actions which occur outside of the
+ agent's control, and which must occur as long as nothing happens to stop
+ them from occuring.
+\layout Itemize
+
+Concurrency: For a multi-agent system two notions of concurrency must be
+ considered - the concurrent execution of several high-level programs, and
+ the concurrent performance of several actions by independent agents.
+\layout Itemize
+
+Time: Some tasks in the cooking domain may require an explicit notion of
+ time.
+ For example, a cake must be baked for 30 minutes before being removed from
+ the oven.
+\layout Itemize
+
 Abilities: Different agents may have different skills and abilities.
  For example, one of the agents may be hyper-sensitive to onion and therefore
  cannot be expected to handle it.
@@ -727,6 +743,222 @@ The work of Cholvy et al
  provides a suitable formalism for representing ability in the situation
  calculus.
  TODO:expand, find proper ref.
+\layout Subsection
+
+Concurrency
+\layout Standard
+
+The notion of concurrently executing multiple high-level programs is given
+ an in-depth treatment in 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ with the development of ConGolog.
+ As discussed above, this adds support for prioritized concurrency and interrupt
+s to the standard Golog semantics by means of interleaving of primitive
+ actions.
+\layout Standard
+
+The work of 
+\begin_inset LatexCommand \cite{lin92sc_conc}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ provides a suitable extension to the situation calculus in which many actions
+ may be performed at a single time.
+ This is particularly important the a multi-agent system in order to expoit
+ the potential for parallel execution provided by multiple agents.
+\layout Standard
+
+In 
+\begin_inset LatexCommand \cite{reiter01kia}
+
+\end_inset 
+
+, Reiter provides a simple Golog planner for an eight-armed agent a blocks
+ world (the OCTOPUS example).
+ This could equivalently have been viewed as a system of eight independent
+ agents and a centralised planner.
+ 
+\layout Standard
+
+However, there appears to be no account of a combination of these two models
+ of concurrency.
+ We provide a simple combination here, by modifying the transition semantics
+ for ConGolog given in 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ to act on concurrent action terms as axiomatised in 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+.
+\layout Standard
+
+Recall that the semantics of a ConGolog program s given in terms of a transition
+ system based on predicates 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ and 
+\begin_inset Formula $Final$
+\end_inset 
+
+.
+ 
+\layout Enumerate
+
+Empty Proram:
+\newline 
+
+\begin_inset Formula \[
+Trans(nil,s,\delta',s')\equiv False\]
+
+\end_inset 
+
+
+\layout Enumerate
+
+(Concurrent) Primitive Actions
+\newline 
+
+\begin_inset Formula \[
+Trans(c,s,\delta',s')\equiv Poss(c[s],s)\wedge\delta'=nil\wedge s'=do(c[s],s)\]
+
+\end_inset 
+
+
+\layout Enumerate
+
+Wait/test actions:
+\newline 
+
+\begin_inset Formula \[
+Trans(\phi?,s,\delta',s')\equiv\phi[s]\wedge\delta'=nil\wedge s'=s\]
+
+\end_inset 
+
+
+\layout Enumerate
+
+Sequence:
+\newline 
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1};\delta_{2},s,\delta',s')\equiv & \exists\gamma\delta'=(\gamma;\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & Final(\delta_{1},s)\wedge Trans(\delta_{2},s,\delta',s')\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Nondeterministic brank:
+\newline 
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}|\delta_{2},s,\delta',s')\equiv & Trans(\delta_{1},s,\delta',s') & \vee\\
+ & Trans(\delta_{2},s,\delta',s)\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Nondeterministic choice of argument:
+\newline 
+
+\begin_inset Formula \[
+Trans(\pi v.\delta,x,\delta',s)\equiv\exists x.Trans(\delta_{x}^{v},s,\delta',s')\]
+
+\end_inset 
+
+
+\layout Enumerate
+
+Iteration:
+\newline 
+
+\begin_inset Formula \[
+Trans(\delta^{*},s,\delta',s')\equiv\exists\gamma.(\delta'=\gamma;\delta^{*})\wedge Trans(\delta,s,\gamma,s')\]
+
+\end_inset 
+
+
+\layout Enumerate
+
+Synchonised Conditional:
+\newline 
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s,\delta',s')\equiv & \phi[s]\wedge Trans(\delta_{1},s,\delta',s') & \vee\\
+ & \neg\phi[s]\wedge Trans(\delta_{2},s,\delta',s')\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Synchronised While:
+\newline 
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv & \exists\gamma.(\delta'=\gamma;\mathbf{while}\phi\mathbf{do}\delta) & \wedge\\
+ & \phi[s]\wedge Trans(\delta,s,\gamma,s')\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Concurrent Execution:
+\newline 
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
+ & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
+ & \right Trans(\delta_{1},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
+ & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\right]\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Prioritised Concurrency:
+\newline 
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}\gg\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma\gg\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & \exists\gamma.\delta'=(\delta_{1}\gg\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\wedge\neg\exists\zeta,s''.Trans(\delta_{1},s,\zeta,s'') & \vee\\
+ & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
+ & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}\gg\gamma_{2}) & \wedge\\
+ & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Enumerate
+
+Concurrent Iteration:
+\newline 
+
+\begin_inset Formula \[
+Trans(\delta^{||},s,\delta',s')\equiv\exists\gamma.\delta'=(\gamma||\delta^{||})\wedge Trans(\delta,s,\gamma,s')\]
+
+\end_inset 
+
+
 \layout Section
 
 References
