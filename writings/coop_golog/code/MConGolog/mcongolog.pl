@@ -148,37 +148,4 @@ sub_list(_,_,[],[]).
 sub_list(X,Y,[T|Ts],[Tr|Trs]) :-
     sub(X,Y,T,Tr), sub_list(X,Y,Ts,Trs).
 
-%%  Implementation for Sets of Concurrent Actions (as lists)
-%%  We assume there is no interaction between the possibility
-%%  predicates, but that agents can only execute one action at a time.
-
-
-is_cact([]).
-is_cact([A|CT]) :-
-    prim_action(A), is_cact(CT).
-
-to_cact(C,C) :-
-    is_cact(C).
-to_cact(A,C) :-
-    prim_action(A), C = [A].
-
-cact_union(C1,C2,CT) :-
-    to_cact(C1,C1A), to_cact(C2,C2A), cact_union_worker(C1A,C2A,CT).
-cact_union_worker([],C2,C2).
-cact_union_worker(C1,[],C1).
-cact_union_worker(C1,[C2|C2t],CT) :-
-    (member(C2,C1) ->
-        cact_union_worker(C1,C2t,CT)
-    ;
-        cact_union_worker([C2|C1],C2t,CT)
-    ).
-
-poss([],_) :- fail.
-poss([A|Ct],S) :-
-    cact_poss([A|Ct],[],S).
-cact_poss([],_,_).
-cact_poss([A|Ct],Agents,S) :-
-    poss(A,S), arg(1,A,Agent), \+ member(Agent,Agents),
-    cact_poss(Ct,[Agent|Agents],S).
- 
 

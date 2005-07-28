@@ -6,6 +6,6 @@
     poss/2.
 
 :- [mcongolog].
-:- [mdomain].
+:- [domain].
 
 

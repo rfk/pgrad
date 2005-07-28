@@ -35,6 +35,16 @@ poss(acquire_resource(_,Res),S) :-
 poss(release_resource(Agt,Res),S) :-
     has_resource(Agt,Res,S).
 
+%%%%%%
+poss([],_) :- fail.
+poss([A|Ct],S) :-
+    cact_poss([A|Ct],[],S).
+cact_poss([],_,_).
+cact_poss([A|Ct],Agents,S) :-
+    poss(A,S), arg(1,A,Agent), \+ member(Agent,Agents),
+    cact_poss(Ct,[Agent|Agents],S).
+
+
 %% Successor State Axioms
 has_resource(Agt,Res,do(C,S)) :-
     member(acquire_resource(Agt,Res),C) 
