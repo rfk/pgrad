@@ -35,15 +35,17 @@ poss(acquire_resource(_,Res),S) :-
 poss(release_resource(Agt,Res),S) :-
     has_resource(Agt,Res,S).
 
-%%%%%%
-poss([],_) :- fail.
-poss([A|Ct],S) :-
-    cact_poss([A|Ct],[],S).
-cact_poss([],_,_).
-cact_poss([A|Ct],Agents,S) :-
-    poss(A,S), arg(1,A,Agent), \+ member(Agent,Agents),
-    cact_poss(Ct,[Agent|Agents],S).
+%% Agents can only do one thing at a time
+conflicts(C,_) :-
+    member(A1,C), actor(A1,Agt),
+    member(A2,C), actor(A2,Agt),
+    A2 \= A1.
 
+%% Two agents cant acquire the same resource
+conflicts(C,_) :-
+    member(acquire_resource(A1,Res),C),
+    member(acquire_resource(A2,Res),C),
+    A1 \= A2.
 
 %% Successor State Axioms
 has_resource(Agt,Res,do(C,S)) :-

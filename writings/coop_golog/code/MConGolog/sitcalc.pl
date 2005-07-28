@@ -11,7 +11,7 @@
 %%    Time in the Situation Calculus") into prolog.  I can take no
 %%    credit for the development of the Situation Calculus axioms,
 %%    only for translating them into this code.
-%%    I am aware of an existing translation in Reiter's book "Knowledge
+%%    I am aware of an existing implementation in Reiter's book "Knowledge
 %%    in Action", but this was not refered to in producing this code.
 %%
 %%    The worlds modelled using this framework must conform to the
@@ -46,10 +46,9 @@
 %%
 %%       * specify the agents in the system using agent/1.
 %%
-%%       * specify the possibility axioms for both primitive and concurrent
-%%         actions using poss/2.  It is the responsibility of the axiomatiser
-%%         to take care of any interaction in the preconditions of possibly
-%%         concurrent actions.
+%%       * specify the possibility axioms for primitive actions using poss/2.
+%%
+%%       * specify conflicting sets of concurrent actions using conflicts/1.
 %%
 %%       * specify the successor state axioms in terms of predicates for
 %%         each fluent.
@@ -110,7 +109,7 @@ actor(Act,Agt) :-
 %%        instead assume it is enforced at a higher level
 %%
 time(A,T) :-
-    prim_action(A), functor(A,Func,Arity), arg(Arity,A,T).
+    prim_action(A), functor(A,_,Arity), arg(Arity,A,T).
 time([A|C],T) :-
     coherent([A|C]), time(A,T).
 
@@ -132,7 +131,7 @@ coherent([Head|Tail]) :-
 %%  This predicte is true only if the occurance time of all actions in
 %%  the list C is equal to the time T.
 %%
-coherent_time_check([],T).
+coherent_time_check([],_).
 coherent_time_check([Head|Tail],T) :-
     time(Head,T), coherent_time_check(Tail,T).
 
@@ -214,12 +213,37 @@ legal_check_nat_occurs([A|Acts],C,S) :-
 %%  action A in situation S.  A may be either a primitve action or a list
 %%  of concurrent actions.
 %%
-%%  The following example definition states that a concurrent action 
-%%  consisting of a single primitive action is possible exactly when
-%%  the primitive action is.
+%%   The domain axiomatiser is required to provide implementations of
+%%   poss/2 for all primitive actions.  Concurrent actions are considered
+%%   possible if each constituent action is possible, and conflicts/2
+%%   does not hold.
 %%
 poss([A],S) :-
     poss(A,S).
+poss([A|C],S) :-
+    poss_all([A|C],S), \+ conflicts([A|C],S).
+
+%%
+%%  poss_all(C,S):  all actions are possible
+%%
+%%  This predicate checks that all primitive actions in concurrent action
+%%  C are possible in situation S.  It is the basic possibility check
+%%  for concurrent actions.
+%%
+poss_all([],_).
+poss_all([A|C],S) :-
+    poss(A,S), poss_all(C,S).
+
+
+%%
+%%  conflicts(C,S):  test for conflicting actions
+%%
+%%  This predicate is true if some of the primitive actions in concurrent
+%%  action C cannot be executed together is situation S.  The clause
+%%  below provides that an empty action never conflicts, other clasues
+%%  must be supplied as appropriate.
+%%
+conflicts([],_) :- fail.
 
 %%
 %%  to_cact(A,C):   convert a primitive to a concurrent action
