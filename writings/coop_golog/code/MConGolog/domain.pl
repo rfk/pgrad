@@ -19,10 +19,10 @@ resource(oven).
 
 
 %% Allow an agent to acquire a resource
-prim_action(acquire_resource(Agt,Res)) :-
+prim_action(acquire_resource(Agt,Res,_)) :-
     agent(Agt), resource(Res).
 %% Allow an agent to release a resource
-prim_action(release_resource(Agt,Res)) :-
+prim_action(release_resource(Agt,Res,_)) :-
     agent(Agt), resource(Res).
 
 %% Indicate the resources posessed by an agent
@@ -30,9 +30,9 @@ prim_fluent(has_resource(Agt,Res)) :-
     agent(Agt), resource(Res).
 
 %% Preconditions require the resource to be available
-poss(acquire_resource(_,Res),S) :-
+poss(acquire_resource(_,Res,_),S) :-
     \+ has_resource(_,Res,S).
-poss(release_resource(Agt,Res),S) :-
+poss(release_resource(Agt,Res,_),S) :-
     has_resource(Agt,Res,S).
 
 %% Agents can only do one thing at a time
@@ -56,14 +56,16 @@ has_resource(Agt,Res,do(C,S)) :-
 %% Initially, no-one has any resources
 has_resource(_,_,s0) :- fail.
 
+start(s0,0).
+
 %%%%  Simple Test Program  %%%%%%
 
 testprog(D) :-
-    D = conc(seq(acquire_resource(agent1,knife1),
-                 conc(acquire_resource(agent2,knife2),
-                      acquire_resource(agent3,knife3))),
-             conc(acquire_resource(agent1,bowl1),
-                  acquire_resource(agent2,bowl2)))
+    D = conc(seq(acquire_resource(agent1,knife1,T1),
+                 conc(acquire_resource(agent2,knife2,T2),
+                      acquire_resource(agent3,knife3,T3))),
+             conc(acquire_resource(agent1,bowl1,T4),
+                  acquire_resource(agent2,bowl2,T5)))
     .
 
 

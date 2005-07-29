@@ -1,18 +1,7 @@
 
-:- discontiguous
-    poss/2,
-    prim_action/1,
-    conflicts/2.
+:- lib(ic).
 
-:- multifile
-    poss/2,
-    prim_action/1,
-    conflicts/2.
-
-:- dynamic
-    poss/2,
-    prim_action/1,
-    conflicts/2.
+:- set_flag(all_dynamic,on).
 
 :- [sitcalc].
 :- [mcongolog].

@@ -56,7 +56,7 @@ trans(test(Cond),S,nil,S) :-
     holds(Cond,S).
 
 trans(seq(D1,D2),S,Dp,Sp) :-
-    Dp = seq(D1r,D2), trans(D1,S,D1r,Sp).
+    trans(D1,S,D1r,Sp), Dp = seq(D1r,D2).
 trans(seq(D1,D2),S,Dp,Sp) :-
     final(D1,S), trans(D2,S,Dp,Sp).
 
@@ -104,7 +104,7 @@ trans*(D,S,Dp,Sp) :-
 %%  Definition of do()
 
 do(D,S,Sp) :-
-    trans*(D,S,Dp,Sp), final(Dp,Sp).
+    trans*(D,S,Dp,Sp), final(Dp,Sp), legal(Sp).
 
 %%  Implementation of holds(Cond,Sit) predicate, with negation-as-failure
 

@@ -19,3 +19,12 @@ The files:   * sitcalc.pl - foundational axioms of the situation calculus
              * domain.pl - axiomatisation of the domain in the calculus
              * main.pl - top-level control file, pulling it all together
 
+The environment:   Development is being done under ECLiPSe prolog, as a
+                   real-values constraint system is required.  I would
+                   love to switch to an open-source system if one is
+                   suitable.
+
+     TODO:  re-ordering of goals is making eclipse do different things,
+            findout why this is and what to do about it...
+
+

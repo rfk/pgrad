@@ -146,7 +146,7 @@ coherent_time_check([Head|Tail],T) :-
 %%  adding an additional clause for start/2.
 %%
 start(S,T) :-
-    S = do(C,_), time(C,T).
+    do(C,_) = S, time(C,T).
 
 
 %%
@@ -158,7 +158,8 @@ start(S,T) :-
 
 precedes(_,s0) :- fail.
 precedes(S1,do(C,S2)) :-
-    poss(C,S2), precedes_eq(S1,S2), start(S2) =< time(C). 
+    poss(C,S2), precedes_eq(S1,S2),
+    start(S2,S2start), time(C,Ctime), S2start $=< Ctime. 
 
 %%
 %%  precedes_eq(S1,S2):  precedes-or-equals
@@ -180,7 +181,7 @@ precedes_eq(S1,S2) :-
 
 legal(s0).
 legal(do(C,S)) :-
-    legal(S), poss(C,S), start(S) =< time(C),
+    legal(S), poss(C,S), start(S,Sstart), time(C,Ctime), Sstart $=< Ctime,
     findall(A,legal_check_poss_nat(A,S),AllNA),
     legal_check_nat_occurs(AllNA,C,S).
 
@@ -202,7 +203,7 @@ legal_check_poss_nat(A,S) :-
 %%
 legal_check_nat_occurs([],_,_).
 legal_check_nat_occurs([A|Acts],C,S) :-
-    ( memberchk(A,C) ; time(C) < time(A) ),
+    ( memberchk(A,C) ; (time(C,Ctime), time(A,Atime), Ctime $< Atime) ),
     legal_check_nat_occurs(Acts,C,S).
 
 
