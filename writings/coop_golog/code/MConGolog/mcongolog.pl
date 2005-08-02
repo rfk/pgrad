@@ -50,7 +50,10 @@ final(cstar(_),_).
 %%  Transition Rules.
 
 trans(C,S,nil,Sp) :-
-    sub(now,S,C,CS), to_cact(CS,CA), poss(CA,S),Sp = do(CA,S).
+    % TODO:  must take into account natural actions
+    %           - include any co-occuring NAs in CA
+    %           - insert any previously occuring NAs into Sp's history
+    sub(now,S,C,CS), to_cact(CS,CA), poss(CA,S), Sp = do(CA,S).
 
 trans(test(Cond),S,nil,S) :-
     holds(Cond,S).
@@ -79,8 +82,8 @@ trans(while(Cond,D),S,Dp,Sp) :-
 
 trans(conc(D1,D2),S,Dp,Sp) :-
     trans(D1,S,Dr1,do(C1,S)), trans(D2,S,Dr2,do(C2,S)),
-    cact_union(C1,C2,CT), poss(CT,S),
-    Dp = conc(Dr1,Dr2), Sp = do(CT,S)
+    cact_union(C1,C2,CT), trans(CT,S,nil,Sp),
+    Dp = conc(Dr1,Dr2)
     ;
     Dp = conc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;

@@ -17,10 +17,10 @@
 %%    The worlds modelled using this framework must conform to the
 %%    following structural rules:
 %%
+%%       * All actions are instantaneous.
+%%
 %%       * All actions occur at a particular time, given as the
 %%         last argument of the term.  Time is a real number.
-%%
-%%       * All actions are instantaneous.
 %%
 %%       * All actions are either "natural actions" or performed
 %%         by an agent.  Natural actions are those for which the
@@ -81,7 +81,7 @@ natural(noop(_)).
 
 
 %%
-%%  actor(Act,Agt):  performin agent for Actions
+%%  actor(Act,Agt):  performing agent for Actions
 %%
 %%  This predicate binds Agt to the agent performing primitive action Act.
 %%  It requires that the action not be natural, and that the agent be the
@@ -159,7 +159,7 @@ start(S,T) :-
 precedes(_,s0) :- fail.
 precedes(S1,do(C,S2)) :-
     poss(C,S2), precedes_eq(S1,S2),
-    start(S2,S2start), time(C,Ctime), S2start $=< Ctime. 
+    start(S2,S2start), time(C,Ctime), S2start $=< Ctime.
 
 %%
 %%  precedes_eq(S1,S2):  precedes-or-equals
@@ -172,39 +172,31 @@ precedes_eq(S1,S2) :-
 
 
 %%
+%%  legal(S1,S2):  checks legality of situation progression
+%%
+%%  This predicate is true if the situation S2 can legally be reached
+%%  from situation S1.  This means that for each transition from S1
+%%  to S2, the performed actions were possible and there are no natural
+%%  actions that could have occured but didnt.
+%%
+legal(S,S).
+legal(S1,do(C,S2)) :-
+    legal(S1,S2),
+    poss(C,S2), start(S2,S2start), time(C,Ctime), S2start $=< Ctime,
+    \+ ( natural(NA), poss(NA,S2), time(NA,NAtime),
+         \+ memberchk(NA,C), NAtime $=< Ctime
+       )
+    .
+
+%%
 %%  legal(S):   checks legality of a situation
 %%
-%%  A situation is considered legal if it properly precedes the situation
-%%  before it, and any natural actions which could possibly have occured
-%%  in the action bringing it about did in fact occur.
+%%  A situation is considered legal if it is legally reachable from the
+%%  initial situation.  The initial situation itself is always legal.
 %%
-
-legal(s0).
-legal(do(C,S)) :-
-    legal(S), poss(C,S), start(S,Sstart), time(C,Ctime), Sstart $=< Ctime,
-    findall(A,legal_check_poss_nat(A,S),AllNA),
-    legal_check_nat_occurs(AllNA,C,S).
-
-%%
-%%  legal_check_poss_nat(A,S):  find possible natural actions in S
-%%
-%%  This predicate checks that A is a natural action which is possible in
-%%  situation S.  It can be used to enumerate all such possible actions.
-%%
-legal_check_poss_nat(A,S) :-
-    natural(A), poss(A,S).
-
-%%
-%%  legal_check_nat_occurs(Acts,C,S):  check occurance of natural actions
-%%
-%%  This predicate checks the list Act of natural actions to ensure that
-%%  each either occurs in the concurrent action C, or occurs at a later
-%%  time than C.
-%%
-legal_check_nat_occurs([],_,_).
-legal_check_nat_occurs([A|Acts],C,S) :-
-    ( memberchk(A,C) ; (time(C,Ctime), time(A,Atime), Ctime $< Atime) ),
-    legal_check_nat_occurs(Acts,C,S).
+legal(s0) :- !.
+legal(S) :-
+    legal(s0,S).
 
 
 %%
@@ -225,7 +217,7 @@ poss([A|C],S) :-
     poss_all([A|C],S), \+ conflicts([A|C],S).
 
 %%
-%%  poss_all(C,S):  all actions are possible
+%%  poss_all(C,S):  all given actions are possible
 %%
 %%  This predicate checks that all primitive actions in concurrent action
 %%  C are possible in situation S.  It is the basic possibility check
@@ -257,6 +249,43 @@ to_cact([],[]).
 to_cact([H|T],[H|T]).
 to_cact(A,C) :-
     prim_action(A), C = [A].
+
+
+%%
+%%  to_pact(Ain,Aout):  convert to a primitive action
+%%
+%%  This predicate allows the term Ain to be converted to a proper
+%%  primitive action Aout.  It provides a syntactic shortcut for the
+%%  specification of primitive actions:
+%%
+%%    * if Ain is already a valid primitive action, it is returned unchanged
+%%    * if adding an additional argument to the end of Ain would make
+%%      it a valid action, this is done and returned
+%%    * if adding an additional argument to both the front and end of Ain
+%%      would make it a valid action, this is done and returned.
+%%
+%%  Basically, this allows the time and agent arguments to be supressed in
+%%  the representation of actions, when they are not of interest.
+%%
+
+to_pact(Ain,Ain) :-
+    prim_action(Ain).
+to_pact(Ain,Aout) :-
+    Ain =.. [Func|Args],
+    append(Args,[_],ArgsOutTest),
+    AoutTest =.. [Func|ArgsOutTest],
+    (prim_action(AoutTest) ->
+        append(Args,[_],ArgsOut),
+        Aout =.. [Func|ArgsOut]
+    ).
+to_pact(Ain,Aout) :-
+    Ain =.. [Func|Args],
+    append([_|Args],[_],ArgsOutTest),
+    AoutTest =.. [Func|ArgsOutTest],
+    (prim_action(AoutTest) ->
+        append([_|Args],[_],ArgsOut),
+        Aout =.. [Func|ArgsOut]
+    ).
 
 %%
 %%  cact_union(C1,C2,CT):   create union of concurrent action sets
