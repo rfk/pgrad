@@ -27,4 +27,20 @@ The environment:   Development is being done under ECLiPSe prolog, as a
      TODO:  re-ordering of goals is making eclipse do different things,
             findout why this is and what to do about it...
 
+    TODO:  least-natural-time-point stuff, will be useful for progressing
+           through a series of natural actions.
+
+    TODO:  your axiomatization of time is not up to snuff.  Need to be
+           more specific about it, esp regarding natural actions.
+
+    TODO: interesting stuff from cc-Golog etc:
+
+        * continuously-changing properties and the waitFor instruction
+        * mentions sGolog and the ability of search() to return conditional
+          plan trees - see also search in Flux
+        * actions which can be executed earlier are prefered in concurrent
+          execution
+        * "Continuous Fluents", also from Pinto, somehow interact with
+          natural actions..?
+
 

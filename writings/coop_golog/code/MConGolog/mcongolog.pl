@@ -53,7 +53,31 @@ trans(C,S,nil,Sp) :-
     % TODO:  must take into account natural actions
     %           - include any co-occuring NAs in CA
     %           - insert any previously occuring NAs into Sp's history
-    sub(now,S,C,CS), to_cact(CS,CA), poss(CA,S), Sp = do(CA,S).
+    %        can do this with lntp??  Implications for constraint solver?
+    sub(now,S,C,CS), to_cact(CS,CA), time(CA,CStime),
+    % If there is a least-natural-time-point for S, then perhaps some
+    % natural actions must occur first.  Otherwise, it is legal to do
+    % the agent-initiated actions.
+    ( lntp(S,LNTP) ->
+        % If natural actions must occur beforehand, recurse
+	( LNTP < CStime ->
+            findall(NA,(natural(NA),time(NA,LNTP),poss(NA,S)),NActs),
+            poss(NActs,S), SNat = do(NActs,S),
+            trans(C,SNat,nil,Sp)
+        ;
+            % If they coincide, add them to the list
+            ( LNTP = CStime ->
+                findall(NA,(natural(NA),time(NA,CStime),poss(NA,S)),NActs),
+                cact_union(CA,NActs,CANat),
+                poss(CANat,S), Sp = do(CANat,S)
+            ;
+            % If they occur after, no problem!
+                poss(CA,S), Sp = do(CA,S).
+            )
+        )
+    ;
+        poss(CA,S), Sp = do(CA,S).
+    ).
 
 trans(test(Cond),S,nil,S) :-
     holds(Cond,S).
@@ -107,6 +131,8 @@ trans*(D,S,Dp,Sp) :-
 %%  Definition of do()
 
 do(D,S,Sp) :-
+    % TODO:  prove that the semantics only generate legal situations,
+    %        remove the need for legal(Sp).
     trans*(D,S,Dp,Sp), final(Dp,Sp), legal(Sp).
 
 %%  Implementation of holds(Cond,Sit) predicate, with negation-as-failure
