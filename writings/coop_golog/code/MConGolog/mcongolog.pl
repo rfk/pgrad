@@ -50,34 +50,34 @@ final(cstar(_),_).
 %%  Transition Rules.
 
 trans(C,S,nil,Sp) :-
-    sub(now,S,C,CS), to_cact(CS,CA), time(CA,CStime),
+    sub(now,S,C,CS), to_cact(CS,CA), start(S,SStart),
     % TODO: what if C contains natural actions??
     % If there is a least-natural-time-point for S, then perhaps some
     % natural actions must occur first.  Otherwise, it is legal to do
     % the agent-initiated actions.
     ( lntp(S,LNTP) ->
       (
-        % If natural actions occur beforehand, recurse
-        ( LNTP $< CStime, 
-          findall(NA,(natural(NA),time(NA,LNTP),poss(NA,S)),NActs),
-          poss(NActs,S), SNat = do(NActs,S),
+        % Get the list of LNTP actions
+        findall(NA,(natural(NA),poss(NA,LNTP,S)),NActs),
+        % Can do the LNTP actions first, then try again
+        ( 
+          poss(NActs,LNTP,S), SNat = do(NActs,LNTP,S),
           trans(C,SNat,nil,Sp)
         )
         ;
-        % If they coincide, add them to the list
-        ( LNTP $= CStime,
-          findall(NA,(natural(NA),time(NA,CStime),poss(NA,S)),NActs),
+        % Can do them at the same time
+        ( 
           cact_union(CA,NActs,CANat),
-          poss(CANat,S), Sp = do(CANat,S)
+          poss(CANat,LNTP,S), Sp = do(CANat,LNTP,S)
         )
         ;
-        % If they occur after, no problem!
-        ( LNTP $> CStime,
-          poss(CA,S), Sp = do(CA,S)
+        % Can do them before the LNTP actions
+        ( 
+          poss(CA,T,S), T $>= SStart, T $< LNTP, Sp = do(CA,T,S)
         )
       )
     ;
-      poss(CA,S), Sp = do(CA,S)
+      poss(CA,T,S), Sp = do(CA,T,S)
     ).
 
 trans(test(Cond),S,nil,S) :-
@@ -106,7 +106,7 @@ trans(while(Cond,D),S,Dp,Sp) :-
     Dp = seq(Dr,while(Cond,D)), holds(Cond,S), trans(D,S,Dr,Sp).
 
 trans(conc(D1,D2),S,Dp,Sp) :-
-    trans(D1,S,Dr1,do(C1,S)), trans(D2,S,Dr2,do(C2,S)),
+    trans(D1,S,Dr1,do(C1,T,S)), trans(D2,S,Dr2,do(C2,T,S)),
     cact_union(C1,C2,CT), trans(CT,S,nil,Sp),
     Dp = conc(Dr1,Dr2)
     ;

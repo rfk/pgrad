@@ -6,11 +6,15 @@
 %%
 %%  Date Created:  28/07/05
 %%
-%%    This implementation is a straight-forward translation of the
-%%    work of Reiter ("Natural Actions, Concurrency and Continuous
-%%    Time in the Situation Calculus") into prolog.  I can take no
-%%    credit for the development of the Situation Calculus axioms,
-%%    only for translating them into this code.
+%%    This implementation is a slight modification of the work
+%%    of Reiter ("Natural Actions, Concurrency and Continuous
+%%    Time in the Situation Calculus"), implemented in prolog.
+%%    In this case, the temporal component is attached to situations
+%%    instead of actions.  So do(A,S) becomes do(A,T,S), poss(A,S)
+%%    becomes poss(A,T,S), etc.  I hypothesis that the resulting
+%%    languages are equiavlently expressive in terms of legal situations,
+%%    but make no attempt at this stage to prove it.
+%%
 %%    I am aware of an existing implementation in Reiter's book "Knowledge
 %%    in Action", but this was not refered to in producing this code.
 %%
@@ -18,9 +22,6 @@
 %%    following structural rules:
 %%
 %%       * All actions are instantaneous.
-%%
-%%       * All actions occur at a particular time, given as the
-%%         last argument of the term.  Time is a real number.
 %%
 %%       * All actions are either "natural actions" or performed
 %%         by an agent.  Natural actions are those for which the
@@ -46,7 +47,7 @@
 %%
 %%       * specify the agents in the system using agent/1.
 %%
-%%       * specify the possibility axioms for primitive actions using poss/2.
+%%       * specify the possibility axioms for primitive actions using poss/3.
 %%
 %%       * specify conflicting sets of concurrent actions using conflicts/1.
 %%
@@ -66,9 +67,9 @@
 %%  and a natural "no-op" action.  As the action as no effect, successor
 %%  state axioms are not necessary.
 %%
-prim_action(noop(A,_)) :-
+prim_action(noop(A)) :-
     agent(A).
-prim_action(noop(_)).
+prim_action(noop).
 
 %%
 %%  natural(A):  specify natural actions
@@ -77,7 +78,7 @@ prim_action(noop(_)).
 %%  that fact.  Actions marked as natural must occur if it is possible for
 %%  them to occur.
 %%
-natural(noop(_)).
+natural(noop).
 
 
 %%
@@ -92,50 +93,6 @@ actor(Act,Agt) :-
 
 
 %%
-%%  time(A,T):  occurance time for actions
-%%
-%%  This predicate binds T to the occurance time of action A.  In the
-%%  foundational axioms of the situation calculus, it is assumed that
-%%  there is one such predicate defined for each primitive action in
-%%  order to extract the time appropriately.  Here, the restriction that
-%%  the time is given by the final argument and the term-introspection
-%%  facilities of prolog are used to determine it without writing these
-%%  predicates.
-%%
-%%  If A is bound to a coherent list of concurrent actions, the time is
-%%  the occurance time of the first action in the list.
-%%
-%%  TODO: for efficiency, one could skip checking for coherency and
-%%        instead assume it is enforced at a higher level
-%%
-time(A,T) :-
-    prim_action(A), functor(A,_,Arity), arg(Arity,A,T).
-time([A|C],T) :-
-    coherent([A|C]), time(A,T).
-
-%%
-%%  coherent(C):  concurrent action C is coherent
-%%
-%%  For actions to be performed concurrently, they must all occur
-%%  at the same time.  In addition, a concurrent action cannot be
-%%  the empty set as this corresponds to doing nothing.  This
-%%  predicate checks these conditions on lists of primitve actions.
-%%
-coherent([]) :- fail.
-coherent([Head|Tail]) :-
-    time(Head,T), coherent_time(Tail,T).
-
-%%
-%%  coherent_time(C,T):  concurrent action is coherrent to given time
-%%
-%%  This predicte is true only if the occurance time of all actions in
-%%  the list C is equal to the time T.
-%%
-coherent_time([],_).
-coherent_time([Head|Tail],T) :-
-    time(Head,T), coherent_time(Tail,T).
-
-%%
 %%  start(S,T):  start time of situation S
 %%
 %%  This predicate binds T to the start time of situation S.  This is
@@ -146,7 +103,8 @@ coherent_time([Head|Tail],T) :-
 %%  adding an additional clause for start/2.
 %%
 start(S,T) :-
-    do(C,_) = S, time(C,T).
+%    do(_,T,Sprev) = S, start(Sprev,Tprev), Tprev $=< T.
+    do(_,T,_) = S.
 
 
 %%
@@ -157,9 +115,9 @@ start(S,T) :-
 %%
 
 precedes(_,s0) :- fail.
-precedes(S1,do(C,S2)) :-
-    poss(C,S2), precedes_eq(S1,S2),
-    start(S2,S2start), time(C,Ctime), S2start $=< Ctime.
+precedes(S1,do(C,T,S2)) :-
+    poss(C,T,S2), precedes_eq(S1,S2),
+    start(S2,S2start), S2start $=< T.
 
 %%
 %%  precedes_eq(S1,S2):  precedes-or-equals
@@ -180,13 +138,10 @@ precedes_eq(S1,S2) :-
 %%  actions that could have occured but didnt.
 %%
 legal(S,S).
-legal(S1,do(C,S2)) :-
+legal(S1,do(C,T,S2)) :-
     legal(S1,S2),
-    poss(C,S2), start(S2,S2start), time(C,Ctime), S2start $=< Ctime,
-    \+ ( natural(NA), poss(NA,S2), time(NA,NAtime),
-         \+ memberchk(NA,C), NAtime $=< Ctime
-       )
-    .
+    poss(C,T,S2), start(S2,S2start), S2start $=< T,
+    \+ ( natural(NA), poss(NA,T2,S2), \+ memberchk(NA,C), T2 $=< T ).
 
 %%
 %%  legal(S):   checks legality of a situation
@@ -200,43 +155,43 @@ legal(S) :-
 
 
 %%
-%%  poss(A,S):   possibility of executing an action
+%%  poss(A,T,S):   possibility of executing an action
 %%
-%%  The predicate poss/2 must be true whenever it is possible to perform
-%%  action A in situation S.  A may be either a primitve action or a list
-%%  of concurrent actions.
+%%  The predicate poss/3 must be true whenever it is possible to perform
+%%  action A in situation S at time T.  A may be either a primitve action or
+%%  a list of concurrent actions.
 %%
 %%   The domain axiomatiser is required to provide implementations of
 %%   poss/2 for all primitive actions.  Concurrent actions are considered
 %%   possible if each constituent action is possible, and conflicts/2
 %%   does not hold.
 %%
-poss([A],S) :-
-    poss(A,S).
-poss([A|C],S) :-
-    poss_all([A|C],S), \+ conflicts([A|C],S).
+poss([A],T,S) :-
+    poss(A,T,S).
+poss([A|C],T,S) :-
+    poss_all([A|C],T,S), \+ conflicts([A|C],T,S).
 
 %%
-%%  poss_all(C,S):  all given actions are possible
+%%  poss_all(C,T,S):  all given actions are possible
 %%
 %%  This predicate checks that all primitive actions in concurrent action
-%%  C are possible in situation S.  It is the basic possibility check
-%%  for concurrent actions.
+%%  C are possible in situation S at time T.  It is the basic possibility
+%%  check for concurrent actions.
 %%
-poss_all([],_).
-poss_all([A|C],S) :-
-    poss(A,S), poss_all(C,S).
+poss_all([],_,_).
+poss_all([A|C],T,S) :-
+    poss(A,T,S), poss_all(C,T,S).
 
 
 %%
-%%  conflicts(C,S):  test for conflicting actions
+%%  conflicts(C,T,S):  test for conflicting actions
 %%
 %%  This predicate is true if some of the primitive actions in concurrent
-%%  action C cannot be executed together is situation S.  The clause
-%%  below provides that an empty action never conflicts, other clasues
-%%  must be supplied as appropriate.
+%%  action C cannot be executed together is situation S at time T.  The
+%%  clause below provides that an empty action never conflicts, other
+%%  clauses must be supplied as appropriate.
 %%
-conflicts([],_) :- fail.
+conflicts([],_,_) :- fail.
 
 %%
 %%  lntp(S,T):   least-natural-time-point for a situation
@@ -247,8 +202,8 @@ conflicts([],_) :- fail.
 %%  at which, given no outside influences, the situation will change.
 %%
 lntp(S,T) :-
-    natural(A), time(A,T), poss(A,S),
-    \+ (natural(A2), time(A2,T2), poss(A2,S), T2 $< T).
+    natural(A), poss(A,T,S), start(S,SStart), SStart $=< T,
+    \+ (natural(A2), poss(A2,T2,S), T2 $< T, A2 \= A).
 
 %%
 %%  to_cact(A,C):   convert a primitive to a concurrent action
@@ -262,42 +217,6 @@ to_cact([H|T],[H|T]).
 to_cact(A,C) :-
     prim_action(A), C = [A].
 
-
-%%
-%%  to_pact(Ain,Aout):  convert to a primitive action
-%%
-%%  This predicate allows the term Ain to be converted to a proper
-%%  primitive action Aout.  It provides a syntactic shortcut for the
-%%  specification of primitive actions:
-%%
-%%    * if Ain is already a valid primitive action, it is returned unchanged
-%%    * if adding an additional argument to the end of Ain would make
-%%      it a valid action, this is done and returned
-%%    * if adding an additional argument to both the front and end of Ain
-%%      would make it a valid action, this is done and returned.
-%%
-%%  Basically, this allows the time and agent arguments to be supressed in
-%%  the representation of actions, when they are not of interest.
-%%
-
-to_pact(Ain,Ain) :-
-    prim_action(Ain).
-to_pact(Ain,Aout) :-
-    Ain =.. [Func|Args],
-    append(Args,[_],ArgsOutTest),
-    AoutTest =.. [Func|ArgsOutTest],
-    (prim_action(AoutTest) ->
-        append(Args,[_],ArgsOut),
-        Aout =.. [Func|ArgsOut]
-    ).
-to_pact(Ain,Aout) :-
-    Ain =.. [Func|Args],
-    append([_|Args],[_],ArgsOutTest),
-    AoutTest =.. [Func|ArgsOutTest],
-    (prim_action(AoutTest) ->
-        append([_|Args],[_],ArgsOut),
-        Aout =.. [Func|ArgsOut]
-    ).
 
 %%
 %%  cact_union(C1,C2,CT):   create union of concurrent action sets
