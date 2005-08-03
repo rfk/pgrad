@@ -123,17 +123,17 @@ time([A|C],T) :-
 %%
 coherent([]) :- fail.
 coherent([Head|Tail]) :-
-    time(Head,T), coherent_time_check(Tail,T).
+    time(Head,T), coherent_time(Tail,T).
 
 %%
-%%  coherent_time_check(C,T):  check occurance times of concurrent actions
+%%  coherent_time(C,T):  concurrent action is coherrent to given time
 %%
 %%  This predicte is true only if the occurance time of all actions in
 %%  the list C is equal to the time T.
 %%
-coherent_time_check([],_).
-coherent_time_check([Head|Tail],T) :-
-    time(Head,T), coherent_time_check(Tail,T).
+coherent_time([],_).
+coherent_time([Head|Tail],T) :-
+    time(Head,T), coherent_time(Tail,T).
 
 %%
 %%  start(S,T):  start time of situation S
@@ -237,6 +237,18 @@ poss_all([A|C],S) :-
 %%  must be supplied as appropriate.
 %%
 conflicts([],_) :- fail.
+
+%%
+%%  lntp(S,T):   least-natural-time-point for a situation
+%%
+%%  This predicate determines the least natural time point (LNTP) T for
+%%  the given situation S.  This is the earliest time at which it is possible
+%%  for a natural action to occur in the situation.  It represents the time
+%%  at which, given no outside influences, the situation will change.
+%%
+lntp(S,T) :-
+    natural(A), time(A,T), poss(A,S),
+    \+ (natural(A2), time(A2,T2), poss(A2,S), T2 $< T).
 
 %%
 %%  to_cact(A,C):   convert a primitive to a concurrent action

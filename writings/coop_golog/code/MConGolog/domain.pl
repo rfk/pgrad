@@ -24,16 +24,30 @@ prim_action(acquire_resource(Agt,Res,_)) :-
 %% Allow an agent to release a resource
 prim_action(release_resource(Agt,Res,_)) :-
     agent(Agt), resource(Res).
+%% Set a timer: set_time(Agt,ID,Duration,Time)
+prim_action(set_timer(Agt,_,_,_)) :-
+    agent(Agt).
+%% A timer goes off - natural action
+prim_action(ring_timer(_,_)).
+natural(ring_timer(_,_)).
 
 %% Indicate the resources posessed by an agent
 prim_fluent(has_resource(Agt,Res)) :-
     agent(Agt), resource(Res).
+%% Indicate the status of a timer: timer_set(ID,Duration)
+prim_fluent(timer_set(_,_)).
 
 %% Preconditions require the resource to be available
 poss(acquire_resource(_,Res,_),S) :-
     \+ has_resource(_,Res,S).
 poss(release_resource(Agt,Res,_),S) :-
     has_resource(Agt,Res,S).
+%% Timers can only be set when not, must ring at specified time
+poss(set_timer(_,ID,_,_),S) :-
+    \+ timer_set(ID,_,S).
+poss(ring_timer(ID,T),S) :-
+    timer_set(ID,Duration,S),
+    start(S,Sstart), T $= Sstart + Duration.
 
 %% Agents can only do one thing at a time
 conflicts(C,_) :-
@@ -49,23 +63,36 @@ conflicts(C,_) :-
 
 %% Successor State Axioms
 has_resource(Agt,Res,do(C,S)) :-
-    member(acquire_resource(Agt,Res),C) 
+    member(acquire_resource(Agt,Res,_),C) 
     ;
-    has_resource(Agt,Res,S), \+ member(release_resource(Agt,Res),C).
+    has_resource(Agt,Res,S), \+ member(release_resource(Agt,Res,_),C).
+
+timer_set(ID,Duration,do(C,S)) :-
+    member(set_timer(_,ID,Duration,_),C)
+    ;
+    timer_set(ID,Duration,S), \+ member(ring_timer(ID,_),C).
 
 %% Initially, no-one has any resources
 has_resource(_,_,s0) :- fail.
+%% No timers are set
+timer_set(_,_,s0) :- fail.
 
 start(s0,0).
 
 %%%%  Simple Test Program  %%%%%%
 
 testprog(D) :-
-    D = conc(seq(acquire_resource(agent1,knife1,T1),
-                 conc(acquire_resource(agent2,knife2,T2),
-                      acquire_resource(agent3,knife3,T3))),
-             conc(acquire_resource(agent1,bowl1,T4),
-                  acquire_resource(agent2,bowl2,T5)))
+    D = conc(seq(acquire_resource(agent1,knife1,_),
+                 conc(acquire_resource(agent2,knife2,_),
+                      acquire_resource(agent3,knife3,_))),
+             conc(acquire_resource(agent1,bowl1,_),
+                  seq(set_timer(agent2,timer1,5,_),
+		      seq(ring_timer(timer1,_),
+		          acquire_resource(agent2,bowl2,T5)))))
+    .
+
+testprog2(D) :-
+    D = seq(set_timer(agent1,timer1,5,0),ring_timer(timer1,_))
     .
 
 

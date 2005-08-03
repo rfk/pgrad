@@ -50,33 +50,34 @@ final(cstar(_),_).
 %%  Transition Rules.
 
 trans(C,S,nil,Sp) :-
-    % TODO:  must take into account natural actions
-    %           - include any co-occuring NAs in CA
-    %           - insert any previously occuring NAs into Sp's history
-    %        can do this with lntp??  Implications for constraint solver?
     sub(now,S,C,CS), to_cact(CS,CA), time(CA,CStime),
+    % TODO: what if C contains natural actions??
     % If there is a least-natural-time-point for S, then perhaps some
     % natural actions must occur first.  Otherwise, it is legal to do
     % the agent-initiated actions.
     ( lntp(S,LNTP) ->
-        % If natural actions must occur beforehand, recurse
-	( LNTP < CStime ->
-            findall(NA,(natural(NA),time(NA,LNTP),poss(NA,S)),NActs),
-            poss(NActs,S), SNat = do(NActs,S),
-            trans(C,SNat,nil,Sp)
-        ;
-            % If they coincide, add them to the list
-            ( LNTP = CStime ->
-                findall(NA,(natural(NA),time(NA,CStime),poss(NA,S)),NActs),
-                cact_union(CA,NActs,CANat),
-                poss(CANat,S), Sp = do(CANat,S)
-            ;
-            % If they occur after, no problem!
-                poss(CA,S), Sp = do(CA,S).
-            )
+      (
+        % If natural actions occur beforehand, recurse
+        ( LNTP $< CStime, 
+          findall(NA,(natural(NA),time(NA,LNTP),poss(NA,S)),NActs),
+          poss(NActs,S), SNat = do(NActs,S),
+          trans(C,SNat,nil,Sp)
         )
+        ;
+        % If they coincide, add them to the list
+        ( LNTP $= CStime,
+          findall(NA,(natural(NA),time(NA,CStime),poss(NA,S)),NActs),
+          cact_union(CA,NActs,CANat),
+          poss(CANat,S), Sp = do(CANat,S)
+        )
+        ;
+        % If they occur after, no problem!
+        ( LNTP $> CStime,
+          poss(CA,S), Sp = do(CA,S)
+        )
+      )
     ;
-        poss(CA,S), Sp = do(CA,S).
+      poss(CA,S), Sp = do(CA,S)
     ).
 
 trans(test(Cond),S,nil,S) :-
