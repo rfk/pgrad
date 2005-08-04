@@ -15,6 +15,14 @@
 %%    languages are equiavlently expressive in terms of legal situations,
 %%    but make no attempt at this stage to prove it.
 %%
+%%    TODO:  Problem!  Cannot *ensure* that an action takes place at
+%%           a certain time from within the Golog program.  Is this
+%%           a severe limitation?
+%%           Possible solution: have a fluent for time of the situation,
+%%           or even use start(now), as a test condition on the execution
+%%           of the action within a synchronised if().  Or, introduce
+%%           a synchronised test-and-do operation...?
+%%
 %%    I am aware of an existing implementation in Reiter's book "Knowledge
 %%    in Action", but this was not refered to in producing this code.
 %%
@@ -103,7 +111,6 @@ actor(Act,Agt) :-
 %%  adding an additional clause for start/2.
 %%
 start(S,T) :-
-%    do(_,T,Sprev) = S, start(Sprev,Tprev), Tprev $=< T.
     do(_,T,_) = S.
 
 
@@ -203,7 +210,10 @@ conflicts([],_,_) :- fail.
 %%
 lntp(S,T) :-
     natural(A), poss(A,T,S), start(S,SStart), SStart $=< T,
-    \+ (natural(A2), poss(A2,T2,S), T2 $< T, A2 \= A).
+    \+ (natural(A2), poss(A2,T2,S),
+        get_min(T,Min1), get_min(T2,Min2),
+        Min2 < Min1)
+    .
 
 %%
 %%  to_cact(A,C):   convert a primitive to a concurrent action

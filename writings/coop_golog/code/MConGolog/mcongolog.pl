@@ -10,6 +10,9 @@
 %%  order to take advantage of the parallelism offered by multi-agent
 %%  systems.
 %%
+%%  TODO:  how about a do_when(t?,a) operator, basically a synchonised
+%%         test-and-execute?
+%%
 
 
 %%  Termination Rules
