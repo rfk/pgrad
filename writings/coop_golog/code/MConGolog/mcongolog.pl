@@ -50,6 +50,9 @@ final(pconc(D1,D2),S) :-
 
 final(cstar(_),_).
 
+final(pcall(PArgs)) :-
+    sub(now,S,PArgs,PArgsS), proc(PArgsS,P), final(P,S).
+
 %%  Transition Rules.
 
 trans(C,S,nil,Sp) :-
@@ -124,6 +127,10 @@ trans(pconc(D1,D2),S,Dp,Sp) :-
 
 trans(cstar(D),S,Dp,Sp) :-
     Dp = conc(Dr,cstar(D)), trans(D,S,Dr,Sp).
+
+trans(pcall(PArgs),S,Dr,Sr) :-
+    sub(now,S,PArgs,PArgsS),
+    proc(PArgsS,P), trans(P,S,Dr,Sr).
 
 
 %%  Transitive Closure of Transition Rules

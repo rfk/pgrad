@@ -20,8 +20,11 @@ task_duration(Agt,chop(_),D) :-
 
 
 %% List the primitive objects and their types.
-%% prim_obj(Obj,Type) is rue when Obj is an object of type
+%% prim_obj(Obj,Type) is true when Obj is an object of type
 %% Type.  This can be used to implement subtypes.
+prim_obj(Obj) :-
+    prim_obj(Obj,_).
+
 prim_obj(Obj,knife) :-
     member(Obj,[knife1,knife2,knife3]).
 prim_obj(Obj,bowl) :-
@@ -34,11 +37,11 @@ prim_obj(Obj,flour) :-  % flour measured in 'units' for simplicity
     member(Obj,[flour1,flour2,flour3,flour4,flour5,flour6,flour7]).
 prim_obj(Obj,egg) :-
     member(Obj,[egg1,egg2,egg3]).
-prim_object(Obj,tomato) :-
+prim_obj(Obj,tomato) :-
     member(Obj,[tomato1,tomato2]).
-prim_object(Obj,lettuce) :-
+prim_obj(Obj,lettuce) :-
     member(Obj,[lettuce1]).
-prim_object(Obj,sugar) :-
+prim_obj(Obj,sugar) :-
     member(Obj,[sugar1,sugar2,sugar3,sugar4,sugar5]).
 
 prim_obj(Obj,container) :-
@@ -53,7 +56,7 @@ prim_obj(Obj,ingredient) :-
 
 %%  Primitive Actions
 
-prim_action(aquire_object(Agt,Obj)) :-
+prim_action(acquire_object(Agt,Obj)) :-
     agent(Agt), prim_obj(Obj).
 prim_action(release_object(Agt,Obj)) :-
     agent(Agt), prim_obj(Obj).
@@ -61,7 +64,6 @@ prim_action(set_timer(Agt,ID,Duration)) :-
     agent(Agt).
 prim_action(ring_timer(ID)).
 natural(ring_timer(_)).
-
 prim_action(place_in(Agt,Conts,Dest)) :-
     agent(Agt), prim_obj(Dest).
 prim_action(transfer(Agt,Source,Dest)) :-
@@ -73,16 +75,62 @@ prim_action(end_task(Agt,Task)) :-
 natural(end_task(_,_)).
 
 
-%%  Possibility Axioms - fake it for time being
-poss(_,_,_).
+%%  Possibility Axioms
+poss(acquire_object(Agt,Obj),_,S) :-
+    \+ has_object(_,Obj,S), \+ doing_task(Agt,_,_,S), \+ used(Obj,S).
+poss(release_object(Agt,Obj),_,S) :-
+    has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
+poss(set_timer(Agt,ID,_),_,S) :-
+    \+ timer_set(ID,_,S), \+ doing_task(Agt,_,_,S).
+poss(ring_timer(ID),T,S) :-
+    timer_set(ID,Dur,S),
+    start(S,SStart), T $= SStart + Dur.
+poss(place_in(Agt,Conts,Dest),_,S) :-
+    has_object(Agt,Conts,S), has_object(Agt,Dest,S),
+    prim_obj(Conts), prim_obj(Dest,container),
+    \+ doing_task(Agt,_,_,S).
+poss(transfer(Agt,Source,Dest),_,S) :-
+    has_object(Agt,Source,S), has_object(Agt,Dest,S),
+    prim_obj(Source,container), prim_obj(Dest,container),
+    \+ doing_task(Agt,_,_,S).
+poss(begin_task(Agt,mix(Obj,_)),_,S) :-
+    has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
+poss(begin_task(Agt,chop(Obj)),_,S) :-
+    has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
+poss(end_task(Agt,Task),T,S) :-
+    doing_task(Agt,Task,Remain,S),
+    start(S,SStart), T $= SStart + Remain.
 
 
+%%  Action conflict axioms
+conflicts(C,_,_) :-
+    member(A1,C), actor(A1,Agt),
+    member(A2,C), actor(A2,Agt),
+    A2 \= A1.
+conflicts(C,_,_) :-
+    member(acquire_object(A1,Res),C),
+    member(acquire_object(A2,Res),C),
+    A1 \= A2.
+    
 %%  Fluents in the domain
 
-has_object(Agt,Res,do(C,_,S)) :-
-    member(aquire_object(Agt,Res),C)
+has_object(Agt,Obj,do(C,T,S)) :-
+    member(acquire_object(Agt,Obj),C)
     ;
-    has_object(Agt,Res,S), \+ member(release_object(Agt,Res),C).
+    has_object(Agt,Obj,S),
+    \+ (
+       member(release_object(Agt,Obj),C)
+       ;
+       used(Obj,do(C,T,S))
+    ).
+
+used(Obj,do(C,_,S)) :-
+    prim_obj(Obj,ingredient),
+    (
+      used(Obj,S)
+      ;
+      member(place_in(_,Obj,_),C)
+    ).
 
 timer_set(ID,Dur,do(C,T,S)) :-
     member(set_timer(_,ID,Dur),C)
@@ -146,9 +194,28 @@ doing_task(Agt,Task,Remain,do(C,T,S)) :-
 start(s0,0).
 
 
+
+proc(doPlaceIn(Agt,Obj,Dest),
+     seq(acquire_object(Agt,Obj),
+         seq(acquire_object(Agt,Dest),
+             seq(place_in(Agt,Obj,Dest),
+                 release_object(Agt,Dest)
+                )
+            )
+        )
+    ).
+
+proc(control,
+     conc(pi(agt,pcall(doPlaceIn(agt,egg1,bowl1))),
+          pi(agt,pcall(doPlaceIn(agt,egg2,bowl2)))
+         )
+    ).
+
+
 testsit(S) :-
-    S1 = do([place_in(thomas,egg1,bowl1)],_,s0),
-    S2 = do([place_in(harriet,flour1,bowl1)],_,S1),
-    S3 = do([begin_task(richard,mix(bowl1,5))],T,S2), T2 $= T + 5,
-    S4 = do([end_task(richard,mix(bowl1,5))],T2,S3),
+    S1 = do([acquire_object(thomas,egg1)],_,s0),
+    S2 = do([acquire_object(thomas,bowl1)],_,S1),
+    S3 = do([place_in(thomas,egg1,bowl1)],_,S2),
+    S4 = do([release_object(thomas,bowl1)],_,S3),
     S = S4.
+
