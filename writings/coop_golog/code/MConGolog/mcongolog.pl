@@ -11,9 +11,17 @@
 %%  systems.
 %%
 %%  TODO:  how about a do_when(t?,a) operator, basically a synchonised
-%%         test-and-execute?
+%%         test-and-execute?  Can interrupts be used for this?
 %%
 
+
+%%  Syntactic operators for MConGolog programs
+:- op(950,xfy,[:]).  % Sequence
+:- op(960,xfy,[|]).  % Nondeterministic choice
+:- op(940,xfy,[>>]). % Prioritised concurrency
+
+ex1(A) :-
+    A = a : b.
 
 %%  Termination Rules
 

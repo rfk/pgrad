@@ -205,6 +205,7 @@ proc(doPlaceIn(Agt,Obj,Dest),
         )
     ).
 
+
 proc(control,
      conc(pi(agt,pcall(doPlaceIn(agt,egg1,bowl1))),
           pi(agt,pcall(doPlaceIn(agt,egg2,bowl2)))
