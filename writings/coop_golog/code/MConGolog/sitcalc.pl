@@ -23,9 +23,6 @@
 %%           of the action within a synchronised if().  Or, introduce
 %%           a synchronised test-and-do operation...?
 %%
-%%    I am aware of an existing implementation in Reiter's book "Knowledge
-%%    in Action", but this was not refered to in producing this code.
-%%
 %%    The worlds modelled using this framework must conform to the
 %%    following structural rules:
 %%
@@ -42,7 +39,6 @@
 %%
 %%       * Concurrently occuring actions are represented as lists of
 %%         primitive action terms.
-%%
 %%
 %%  To implement a domain axiomatisation using this framework, the following
 %%  tasks must be completed:
@@ -65,7 +61,6 @@
 %%       * specify the initial conditions using fluent predicates with the
 %%         situation term set to s0.
 %%
-
 
 %%
 %%  prim_action(A):  define a primitive action
