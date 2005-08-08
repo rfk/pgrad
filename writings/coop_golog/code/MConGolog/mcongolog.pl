@@ -20,10 +20,10 @@
 
 final(nil,_).
 
-final(D1 : D2,S) :-
+final(seq(D1,D2),S) :-
     final(D1,S), final(D2,S).
 
-final(D1 | D2,S) :-
+final(choice(D1,D2),S) :-
     final(D1,S)
     ;
     final(D2,S).
@@ -43,10 +43,10 @@ final(while(Cond,D),S) :-
     ;
     final(D,S).
 
-final(D1 // D2,S) :-
+final(conc(D1,D2),S) :-
     final(D1,S), final(D2,S).
 
-final(D1 >> D2,S) :-
+final(pconc(D1,D2),S) :-
     final(D1,S), final(D2,S).
 
 final(cstar(_),_).
@@ -68,34 +68,36 @@ trans(C,S,nil,Sp) :-
         findall(NA,(natural(NA),poss(NA,LNTP,S)),NActs),
         % Can do the LNTP actions first, then try again
         ( 
-          poss(NActs,LNTP,S), SNat = do(NActs,LNTP,S),
+          poss(NActs,LNTP,S), do(NActs,LNTP,S) = SNat,
           trans(C,SNat,nil,Sp)
         )
         ;
         % Can do them at the same time
         ( 
-          cact_union(CA,NActs,CANat),
-          poss(CANat,LNTP,S), Sp = do(CANat,LNTP,S)
+          union(CA,NActs,CANat),
+          poss(CANat,LNTP,S), do(CANat,LNTP,S) = Sp
         )
         ;
         % Can do them before the LNTP actions
+        % This requires that no actions in the set are natural
         ( 
-          poss(CA,T,S), T $>= SStart, T $< LNTP, Sp = do(CA,T,S)
+          \+ ( member(A,CA), natural(A) ),
+          poss(CA,T,S), T $>= SStart, T $< LNTP, do(CA,T,S) = Sp
         )
       )
     ;
       poss(CA,T,S), Sp = do(CA,T,S)
     ).
 
-trans(?Cond,S,nil,S) :-
+trans(test(Cond),S,nil,S) :-
     holds(Cond,S).
 
-trans(D1 : D2,S,Dp,Sp) :-
+trans(seq(D1,D2),S,Dp,Sp) :-
     trans(D1,S,D1r,Sp), Dp = seq(D1r,D2).
-trans(D1 : D2,S,Dp,Sp) :-
+trans(seq(D1,D2),S,Dp,Sp) :-
     final(D1,S), trans(D2,S,Dp,Sp).
 
-trans(D1 | D2,S,Dp,Sp) :-
+trans(chocie(D1,D2),S,Dp,Sp) :-
     trans(D1,S,Dp,Sp) ; trans(D2,S,Dp,Sp).
 
 trans(pi(V,D),S,Dp,Sp) :-
@@ -112,16 +114,16 @@ trans(if(Cond,D1,D2),S,Dp,Sp) :-
 trans(while(Cond,D),S,Dp,Sp) :-
     Dp = seq(Dr,while(Cond,D)), holds(Cond,S), trans(D,S,Dr,Sp).
 
-trans(D1 // D2,S,Dp,Sp) :-
+trans(conc(D1,D2),S,Dp,Sp) :-
     trans(D1,S,Dr1,do(C1,T,S)), trans(D2,S,Dr2,do(C2,T,S)),
-    cact_union(C1,C2,CT), trans(CT,S,nil,Sp),
+    union(C1,C2,CT), trans(CT,S,nil,Sp),
     Dp = conc(Dr1,Dr2)
     ;
     Dp = conc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
     Dp = conc(D1,Dr2), trans(D2,S,Dr2,Sp).
 
-trans(D1 >> D2,S,Dp,Sp) :-
+trans(pconc(D1,D2),S,Dp,Sp) :-
     Dp = pconc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
     Dp = pconc(D1,Dr2), trans(D2,S,Dr2,Sp), \+ trans(D1,S,_,_).
@@ -132,6 +134,24 @@ trans(cstar(D),S,Dp,Sp) :-
 trans(pcall(PArgs),S,Dr,Sr) :-
     sub(now,S,PArgs,PArgsS),
     proc(PArgsS,P), trans(P,S,Dr,Sr).
+
+
+%%  Syntactic Sugar with Infix Operators
+
+syn_sugar(D1 : D2,seq(D1,D2)).
+syn_sugar(D1 | D2,choice(D1,D2)).
+syn_sugar(D1 // D2,conc(D1,D2)).
+syn_sugar(D1 >> D2,pconc(D1,D2)).
+syn_sugar(?C,test(C)).
+syn_sugar(Proc,pcall(Proc)) :-
+    proc(Proc,_).
+
+trans(D,S,Dp,Sp) :-
+    syn_sugar(D,Ds),
+    trans(Ds,S,Dp,Sp).
+final(D,S) :-
+    syn_sugar(D,Ds),
+    final(Ds,S).
 
 
 %%  Transitive Closure of Transition Rules

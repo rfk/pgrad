@@ -43,4 +43,3 @@ The environment:   Development is being done under ECLiPSe prolog, as a
         * "Continuous Fluents", also from Pinto, somehow interact with
           natural actions..?
 
-

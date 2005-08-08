@@ -21,7 +21,7 @@ task_duration(Agt,chop(_),D) :-
 
 %% List the primitive objects and their types.
 %% prim_obj(Obj,Type) is true when Obj is an object of type
-%% Type.  This can be used to implement subtypes.
+%% Type.
 prim_obj(Obj) :-
     prim_obj(Obj,_).
 
@@ -44,14 +44,18 @@ prim_obj(Obj,lettuce) :-
 prim_obj(Obj,sugar) :-
     member(Obj,[sugar1,sugar2,sugar3,sugar4,sugar5]).
 
-prim_obj(Obj,container) :-
-    prim_obj(Obj,bowl) ; prim_obj(Obj,board) ;
-    prim_obj(Obj,oven).
 
-prim_obj(Obj,ingredient) :-
-    prim_obj(Obj,flour) ; prim_obj(Obj,egg) ;
-    prim_obj(Obj,tomato) ; prim_obj(Obj,lettuce) ;
-    prim_obj(Obj,sugar).
+%%  List object super-types using super_type(subtype,supertype)
+
+super_type(Type,container) :-
+    member(Type,[bowl,board,oven]).
+super_type(Type,ingredient) :-
+    member(Type,[flour,egg,tomato,lettuce,sugar]).
+
+obj_is_type(Obj,Type) :-
+    prim_obj(Obj,Type)
+    ;
+    super_type(SubType,Type), obj_is_type(Obj,SubType).
 
 
 %%  Primitive Actions
@@ -87,11 +91,11 @@ poss(ring_timer(ID),T,S) :-
     start(S,SStart), T $= SStart + Dur.
 poss(place_in(Agt,Conts,Dest),_,S) :-
     has_object(Agt,Conts,S), has_object(Agt,Dest,S),
-    prim_obj(Conts), prim_obj(Dest,container),
+    prim_obj(Conts), obj_is_type(Dest,container),
     \+ doing_task(Agt,_,_,S).
 poss(transfer(Agt,Source,Dest),_,S) :-
     has_object(Agt,Source,S), has_object(Agt,Dest,S),
-    prim_obj(Source,container), prim_obj(Dest,container),
+    obj_is_type(Source,container), obj_is_type(Dest,container),
     \+ doing_task(Agt,_,_,S).
 poss(begin_task(Agt,mix(Obj,_)),_,S) :-
     has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
@@ -125,7 +129,7 @@ has_object(Agt,Obj,do(C,T,S)) :-
     ).
 
 used(Obj,do(C,_,S)) :-
-    prim_obj(Obj,ingredient),
+    prim_obj(Obj), obj_is_type(Obj,ingredient),
     (
       used(Obj,S)
       ;
@@ -201,16 +205,32 @@ proc(doPlaceIn(Agt,Obj,Dest),
      : release_object(Agt,Dest)
     ).
 
+proc(doPlaceTypeIn(Agt,Type,Dest),
+     pi(obj,?obj_is_type(obj,Type) : doPlaceIn(Agt,obj,Dest))
+    ).
+
+proc(makeCakeMix(Dest),
+     doPlaceTypeIn(thomas,egg,Dest)
+     : doPlaceTypeIn(thomas,flour,Dest) 
+     : doPlaceTypeIn(thomas,sugar,Dest) 
+     : acquire_object(thomas,Dest)
+     : begin_task(thomas,mix(Dest,5)) : end_task(thomas,mix(Dest,5))
+    ).
+
 proc(control,
-     pi(agt,pcall(doPlaceIn(agt,egg1,bowl1)))
-     // pi(agt,pcall(doPlaceIn(agt,egg2,bowl2)))
+     acquire_object(thomas,bowl1)
+     : begin_task(thomas,mix(bowl1,5)) : end_task(thomas,mix(bowl1,5))
     ).
 
 
-testsit(S) :-
-    S1 = do([acquire_object(thomas,egg1)],_,s0),
-    S2 = do([acquire_object(thomas,bowl1)],_,S1),
-    S3 = do([place_in(thomas,egg1,bowl1)],_,S2),
-    S4 = do([release_object(thomas,bowl1)],_,S3),
-    S = S4.
 
+testlens(Len1,Len2,Len3,LenP,LenT) :-
+    bagof(S,do(doPlaceTypeIn(thomas,egg,bowl1),s0,S),L1),
+    length(L1,Len1),
+    bagof(S,do(doPlaceTypeIn(thomas,flour,bowl1),s0,S),L2),
+    length(L2,Len2),
+    bagof(S,do(doPlaceTypeIn(thomas,sugar,bowl1),s0,S),L3),
+    length(L3,Len3),
+    LenP is Len1 * Len2 * Len3,
+    bagof(S,do(makeCakeMix(bowl1),s0,S),LT),
+    length(LT,LenT).

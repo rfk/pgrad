@@ -171,7 +171,7 @@ legal(S) :-
 poss([A],T,S) :-
     poss(A,T,S).
 poss([A|C],T,S) :-
-    poss_all([A|C],T,S), \+ conflicts([A|C],T,S).
+    C \= [], poss_all([A|C],T,S), \+ conflicts([A|C],T,S).
 
 %%
 %%  poss_all(C,T,S):  all given actions are possible
@@ -222,27 +222,4 @@ to_cact([H|T],[H|T]).
 to_cact(A,C) :-
     prim_action(A), C = [A].
 
-
-%%
-%%  cact_union(C1,C2,CT):   create union of concurrent action sets
-%%
-%%  This predicate binds CT to the union of the action lists C1 and C2,
-%%  removing any duplicate entries.  Both C1 and C2 may be primitive
-%%  actions.
-%%
-cact_union(C1,C2,CT) :-
-    to_cact(C1,C1A), to_cact(C2,C2A), cact_union_worker(C1A,C2A,CT).
-
-%%  cact_union_worker(C1,C2,CT):   worker for cact_union/3
-%%
-%%  This predicate behaves as cact_union/3, but assumes that C1 and C2
-%%  are proper lists of concurrent actions.
-cact_union_worker([],C2,C2).
-cact_union_worker(C1,[],C1).
-cact_union_worker(C1,[C2|C2t],CT) :-
-    (memberchk(C2,C1) ->
-        cact_union_worker(C1,C2t,CT)
-    ;
-        cact_union_worker([C2|C1],C2t,CT)
-    ).
 
