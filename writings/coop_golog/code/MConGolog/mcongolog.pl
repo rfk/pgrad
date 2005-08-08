@@ -15,22 +15,15 @@
 %%
 
 
-%%  Syntactic operators for MConGolog programs
-:- op(950,xfy,[:]).  % Sequence
-:- op(960,xfy,[|]).  % Nondeterministic choice
-:- op(940,xfy,[>>]). % Prioritised concurrency
-
-ex1(A) :-
-    A = a : b.
 
 %%  Termination Rules
 
 final(nil,_).
 
-final(seq(D1,D2),S) :-
+final(D1 : D2,S) :-
     final(D1,S), final(D2,S).
 
-final(choice(D1,D2),S) :-
+final(D1 | D2,S) :-
     final(D1,S)
     ;
     final(D2,S).
@@ -50,10 +43,10 @@ final(while(Cond,D),S) :-
     ;
     final(D,S).
 
-final(conc(D1,D2),S) :-
+final(D1 // D2,S) :-
     final(D1,S), final(D2,S).
 
-final(pconc(D1,D2),S) :-
+final(D1 >> D2,S) :-
     final(D1,S), final(D2,S).
 
 final(cstar(_),_).
@@ -94,15 +87,15 @@ trans(C,S,nil,Sp) :-
       poss(CA,T,S), Sp = do(CA,T,S)
     ).
 
-trans(test(Cond),S,nil,S) :-
+trans(?Cond,S,nil,S) :-
     holds(Cond,S).
 
-trans(seq(D1,D2),S,Dp,Sp) :-
+trans(D1 : D2,S,Dp,Sp) :-
     trans(D1,S,D1r,Sp), Dp = seq(D1r,D2).
-trans(seq(D1,D2),S,Dp,Sp) :-
+trans(D1 : D2,S,Dp,Sp) :-
     final(D1,S), trans(D2,S,Dp,Sp).
 
-trans(choice(D1,D2),S,Dp,Sp) :-
+trans(D1 | D2,S,Dp,Sp) :-
     trans(D1,S,Dp,Sp) ; trans(D2,S,Dp,Sp).
 
 trans(pi(V,D),S,Dp,Sp) :-
@@ -119,7 +112,7 @@ trans(if(Cond,D1,D2),S,Dp,Sp) :-
 trans(while(Cond,D),S,Dp,Sp) :-
     Dp = seq(Dr,while(Cond,D)), holds(Cond,S), trans(D,S,Dr,Sp).
 
-trans(conc(D1,D2),S,Dp,Sp) :-
+trans(D1 // D2,S,Dp,Sp) :-
     trans(D1,S,Dr1,do(C1,T,S)), trans(D2,S,Dr2,do(C2,T,S)),
     cact_union(C1,C2,CT), trans(CT,S,nil,Sp),
     Dp = conc(Dr1,Dr2)
@@ -128,7 +121,7 @@ trans(conc(D1,D2),S,Dp,Sp) :-
     ;
     Dp = conc(D1,Dr2), trans(D2,S,Dr2,Sp).
 
-trans(pconc(D1,D2),S,Dp,Sp) :-
+trans(D1 >> D2,S,Dp,Sp) :-
     Dp = pconc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
     Dp = pconc(D1,Dr2), trans(D2,S,Dr2,Sp), \+ trans(D1,S,_,_).

@@ -196,20 +196,14 @@ start(s0,0).
 
 
 proc(doPlaceIn(Agt,Obj,Dest),
-     seq(acquire_object(Agt,Obj),
-         seq(acquire_object(Agt,Dest),
-             seq(place_in(Agt,Obj,Dest),
-                 release_object(Agt,Dest)
-                )
-            )
-        )
+     acquire_object(Agt,Obj) // acquire_object(Agt,Dest)
+     : place_in(Agt,Obj,Dest)
+     : release_object(Agt,Dest)
     ).
 
-
 proc(control,
-     conc(pi(agt,pcall(doPlaceIn(agt,egg1,bowl1))),
-          pi(agt,pcall(doPlaceIn(agt,egg2,bowl2)))
-         )
+     pi(agt,pcall(doPlaceIn(agt,egg1,bowl1)))
+     // pi(agt,pcall(doPlaceIn(agt,egg2,bowl2)))
     ).
 
 
