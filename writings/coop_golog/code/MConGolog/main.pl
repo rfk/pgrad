@@ -1,6 +1,12 @@
 
-:- use_package(clpr).
+%  Constraint solving library.  It's possible to solve over both
+%  reals (r) or rationals (q).  Rationals are used for the time being
+%  as it allows the solver to substitue precise values for solved variables.
+%:- use_package(clpr).
+:- use_package(clpq).
 
+
+%  Useful prolog predicates
 :- use_module(library(aggregates)).
 :- use_module(library(iso_misc)).
 :- use_module(library(lists)).
@@ -9,13 +15,11 @@
                  conflicts/3, start/2.
 
 %%  Syntactic operators for MConGolog programs
-%%  Defined here to make get them to work.
 :- op(660,xfy,/).  % Nondeterministic choice
 :- op(650,xfy,:).  % Sequence
 :- op(640,xfy,//). % Concurrent execution
 :- op(640,xfy,>>). % Prioritised concurrency
 :- op(620,fx,?).  % Test
-
 
 :- include(mcongolog).
 :- include(sitcalc).

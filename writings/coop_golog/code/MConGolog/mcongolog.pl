@@ -55,7 +55,7 @@ final(pcall(PArgs),S) :-
 
 %%  Transition Rules.
 
-trans(C,S,nil,Sp) :-
+trans(C,S,Dp,Sp) :-
     sub(now,S,C,CS), to_cact(CS,CA), start(S,SStart),
     % TODO: what if C contains natural actions??
     % If there is a least-natural-time-point for S, then perhaps some
@@ -65,27 +65,32 @@ trans(C,S,nil,Sp) :-
       (
         % Get the list of LNTP actions
         findall(NA,(natural(NA),poss(NA,LNTP,S)),NActs),
-        % Can do the LNTP actions first, then try again
-        ( 
-          poss(NActs,LNTP,S), do(NActs,LNTP,S) = SNat,
-          trans(C,SNat,nil,Sp)
-        )
-        ;
-        % Can do them at the same time
-        ( 
-          union(CA,NActs,CANat),
-          poss(CANat,LNTP,S), do(CANat,LNTP,S) = Sp
-        )
-        ;
-        % Can do them before the LNTP actions
-        % This requires that no actions in the set are natural
-        ( 
-          \+ ( member(A,CA), natural(A) ),
-          poss(CA,T,S), T .>=. SStart, T .<. LNTP, do(CA,T,S) = Sp
+        (
+          % Can do them before the LNTP actions
+          % This requires that no actions in the set are natural
+          ( 
+            \+ ( member(A,CA), natural(A) ),
+            T .>=. SStart, T .<. LNTP, poss(CA,T,S),
+            Sp = do(CA,T,S), Dp = nil
+          )
+          ;
+          % Can do the LNTP actions first, leaving program unaltered
+          % TODO: this poss() call should always be true, right?
+          ( 
+            poss(NActs,LNTP,S),
+            Sp = do(NActs,LNTP,S), Dp = C
+          )
+          ;
+          % Can do them at the same time
+          ( 
+            union(CA,NActs,CANat),
+            poss(CANat,LNTP,S),
+            Sp = do(CANat,LNTP,S), Dp = nil
+          )
         )
       )
     ;
-      poss(CA,T,S), Sp = do(CA,T,S)
+      poss(CA,T,S), Sp = do(CA,T,S), Dp = nil
     ).
 
 trans(test(Cond),S,nil,S) :-
@@ -96,7 +101,7 @@ trans(seq(D1,D2),S,Dp,Sp) :-
 trans(seq(D1,D2),S,Dp,Sp) :-
     final(D1,S), trans(D2,S,Dp,Sp).
 
-trans(chocie(D1,D2),S,Dp,Sp) :-
+trans(choice(D1,D2),S,Dp,Sp) :-
     trans(D1,S,Dp,Sp) ; trans(D2,S,Dp,Sp).
 
 trans(pi(V,D),S,Dp,Sp) :-
@@ -164,7 +169,9 @@ trans*(D,S,Dp,Sp) :-
 do(D,S,Sp) :-
     % TODO:  prove that the semantics only generate legal situations,
     %        remove the need for legal(Sp).
-    trans*(D,S,Dp,Sp), final(Dp,Sp), legal(Sp).
+    trans*(D,S,Dp,Sp),
+    %nl, display(Sp), nl, get_code(_),
+    final(Dp,Sp), legal(Sp).
 
 %%  Implementation of holds(Cond,Sit) predicate, with negation-as-failure
 

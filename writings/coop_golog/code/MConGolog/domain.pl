@@ -209,17 +209,49 @@ proc(doPlaceTypeIn(Agt,Type,Dest),
      pi(obj,?obj_is_type(obj,Type) : doPlaceIn(Agt,obj,Dest))
     ).
 
+proc(doTransfer(Agt,Source,Dest),
+     acquire_object(Agt,Source) // acquire_object(Agt,Dest)
+     : transfer(Agt,Source,Dest)
+     : release_object(Agt,Source) // release_object(Agt,Dest)
+    ).
+
 proc(makeCakeMix(Dest),
      pi(agt,doPlaceTypeIn(agt,egg,Dest))
      : pi(agt,doPlaceTypeIn(agt,flour,Dest))
      : pi(agt,doPlaceTypeIn(agt,sugar,Dest))
      : pi(agt, acquire_object(agt,Dest)
                : begin_task(agt,mix(Dest,5))
-               : end_task(agt,mix(Dest,5)))
+               : end_task(agt,mix(Dest,5))
+               : release_object(agt,Dest))
     ).
 
+proc(makeCake(Dest),
+     makeCakeMix(Dest)
+     : pi(myOven, ?obj_is_type(myOven,oven)
+                  : pi(agt, doPlaceIn(agt,Dest,myOven)
+                            : set_timer(agt,cakeTimer,35)
+                      )
+                  : ring_timer(cakeTimer)
+                  : pi(agt,pi(myBoard, ?obj_is_type(myBoard,board)
+                                       : doTransfer(agt,myOven,myBoard)
+                      ))
+         )
+    ).
+
+
 proc(control,
-     makeCakeMix(bowl1)
+     makeCake(bowl1) // makeCake(bowl2)
+    ).
+
+
+proc(timerTest,
+     set_timer(thomas,timer1,5)
+     : set_timer(richard,timer2,7)
+     : ring_timer(timer2)
+    ).
+
+proc(concTest,
+     doPlaceTypeIn(thomas,egg,bowl1) // doPlaceTypeIn(richard,egg,bowl2)
     ).
 
 

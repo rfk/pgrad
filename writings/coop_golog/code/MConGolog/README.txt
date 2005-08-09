@@ -19,16 +19,10 @@ The files:   * sitcalc.pl - foundational axioms of the situation calculus
              * domain.pl - axiomatisation of the domain in the calculus
              * main.pl - top-level control file, pulling it all together
 
-The environment:   Development is being done under ECLiPSe prolog, as a
-                   real-values constraint system is required.  I would
-                   love to switch to an open-source system if one is
-                   suitable.
-
-     TODO:  re-ordering of goals is making eclipse do different things,
-            findout why this is and what to do about it...
-
-    TODO:  least-natural-time-point stuff, will be useful for progressing
-           through a series of natural actions.
+The environment:   Development is being done under Ciao prolog, as it
+                   is open source and provides a real-valued constraint
+                   solver.  It also has interesting abilities wrt distributed
+                   execution which may be used at a later stage.
 
     TODO:  your axiomatization of time is not up to snuff.  Need to be
            more specific about it, esp regarding natural actions.
@@ -42,4 +36,7 @@ The environment:   Development is being done under ECLiPSe prolog, as a
           execution
         * "Continuous Fluents", also from Pinto, somehow interact with
           natural actions..?
+
+    TODO:  pi(D1//D2) is stuffing up the order of selection of solutions,
+           making concurrent choices appear last.  Can we fix this?
 
