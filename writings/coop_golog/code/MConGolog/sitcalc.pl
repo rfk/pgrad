@@ -62,6 +62,7 @@
 %%         situation term set to s0.
 %%
 
+
 %%
 %%  prim_action(A):  define a primitive action
 %%
@@ -119,7 +120,7 @@ start(S,T) :-
 precedes(_,s0) :- fail.
 precedes(S1,do(C,T,S2)) :-
     poss(C,T,S2), precedes_eq(S1,S2),
-    start(S2,S2start), S2start $=< T.
+    start(S2,S2start), S2start .=<. T.
 
 %%
 %%  precedes_eq(S1,S2):  precedes-or-equals
@@ -142,8 +143,8 @@ precedes_eq(S1,S2) :-
 legal(S,S).
 legal(S1,do(C,T,S2)) :-
     legal(S1,S2),
-    poss(C,T,S2), start(S2,S2start), S2start $=< T,
-    \+ ( natural(NA), poss(NA,T2,S2), \+ memberchk(NA,C), T2 $=< T ).
+    poss(C,T,S2), start(S2,S2start), S2start .=<. T,
+    \+ ( natural(NA), poss(NA,T2,S2), \+ member(NA,C), T2 .=<. T ).
 
 %%
 %%  legal(S):   checks legality of a situation
@@ -204,10 +205,10 @@ conflicts([],_,_) :- fail.
 %%  at which, given no outside influences, the situation will change.
 %%
 lntp(S,T) :-
-    natural(A), poss(A,T,S), start(S,SStart), SStart $=< T,
+    natural(A), poss(A,T,S), start(S,SStart), SStart .=<. T,
     \+ (natural(A2), poss(A2,T2,S),
-        get_min(T,Min1), get_min(T2,Min2),
-        Min2 < Min1)
+        %get_min(T,Min1), get_min(T2,Min2),
+        T2 .<. T)
     .
 
 %%

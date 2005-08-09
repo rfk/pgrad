@@ -88,7 +88,7 @@ poss(set_timer(Agt,ID,_),_,S) :-
     \+ timer_set(ID,_,S), \+ doing_task(Agt,_,_,S).
 poss(ring_timer(ID),T,S) :-
     timer_set(ID,Dur,S),
-    start(S,SStart), T $= SStart + Dur.
+    start(S,SStart), T .=. SStart + Dur.
 poss(place_in(Agt,Conts,Dest),_,S) :-
     has_object(Agt,Conts,S), has_object(Agt,Dest,S),
     prim_obj(Conts), obj_is_type(Dest,container),
@@ -103,7 +103,7 @@ poss(begin_task(Agt,chop(Obj)),_,S) :-
     has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
 poss(end_task(Agt,Task),T,S) :-
     doing_task(Agt,Task,Remain,S),
-    start(S,SStart), T $= SStart + Remain.
+    start(S,SStart), T .=. SStart + Remain.
 
 
 %%  Action conflict axioms
@@ -139,7 +139,7 @@ used(Obj,do(C,_,S)) :-
 timer_set(ID,Dur,do(C,T,S)) :-
     member(set_timer(_,ID,Dur),C)
     ;
-    timer_set(ID,OldDur,S), start(S,SStart), Dur $= OldDur-(T-SStart),
+    timer_set(ID,OldDur,S), start(S,SStart), Dur .=. OldDur-(T-SStart),
     \+ member(ring_timer(ID),C).
 
 contents(Obj,Conts,do(C,T,S)) :-
@@ -159,13 +159,13 @@ contents(Obj,Conts,do(C,T,S)) :-
       ;
       doing_task(_,mix(Obj,_),_,do(C,T,S)), contents(Obj,OldConts,S),
       (  OldConts = mixed(MixConts,OldP) ->
-             NewP $= OldP+(T-SStart), Conts = mixed(MixConts,NewP)
+             NewP .=. OldP+(T-SStart), Conts = mixed(MixConts,NewP)
          ;
              Conts = mixed(OldConts,0)
       )
       ;
       member(end_task(_,mix(Obj,_)),C), contents(Obj,mixed(MixConts,OldP),S),
-      NewP $= OldP+(T-SStart), Conts = mixed(MixConts,NewP)
+      NewP .=. OldP+(T-SStart), Conts = mixed(MixConts,NewP)
       ;
       member(end_task(_,chop(Obj)),C), contents(Obj,OldConts,S),
       Conts = chopped(OldConts)
@@ -192,7 +192,7 @@ doing_task(Agt,Task,Remain,do(C,T,S)) :-
     member(begin_task(Agt,Task),C), task_duration(Agt,Task,Remain)
     ;
     doing_task(Agt,Task,OldRem,S), start(S,SStart),
-    OldRem $= Remain-(T-SStart), \+ member(end_task(Agt,Task),C).
+    OldRem .=. Remain-(T-SStart), \+ member(end_task(Agt,Task),C).
     
 
 start(s0,0).
@@ -223,14 +223,3 @@ proc(control,
     ).
 
 
-
-testlens(Len1,Len2,Len3,LenP,LenT) :-
-    bagof(S,do(doPlaceTypeIn(thomas,egg,bowl1),s0,S),L1),
-    length(L1,Len1),
-    bagof(S,do(doPlaceTypeIn(thomas,flour,bowl1),s0,S),L2),
-    length(L2,Len2),
-    bagof(S,do(doPlaceTypeIn(thomas,sugar,bowl1),s0,S),L3),
-    length(L3,Len3),
-    LenP is Len1 * Len2 * Len3,
-    bagof(S,do(makeCakeMix(bowl1),s0,S),LT),
-    length(LT,LenT).

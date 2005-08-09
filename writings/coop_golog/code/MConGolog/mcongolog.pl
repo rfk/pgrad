@@ -15,7 +15,6 @@
 %%
 
 
-
 %%  Termination Rules
 
 final(nil,_).
@@ -51,7 +50,7 @@ final(pconc(D1,D2),S) :-
 
 final(cstar(_),_).
 
-final(pcall(PArgs)) :-
+final(pcall(PArgs),S) :-
     sub(now,S,PArgs,PArgsS), proc(PArgsS,P), final(P,S).
 
 %%  Transition Rules.
@@ -82,7 +81,7 @@ trans(C,S,nil,Sp) :-
         % This requires that no actions in the set are natural
         ( 
           \+ ( member(A,CA), natural(A) ),
-          poss(CA,T,S), T $>= SStart, T $< LNTP, do(CA,T,S) = Sp
+          poss(CA,T,S), T .>=. SStart, T .<. LNTP, do(CA,T,S) = Sp
         )
       )
     ;
@@ -139,7 +138,7 @@ trans(pcall(PArgs),S,Dr,Sr) :-
 %%  Syntactic Sugar with Infix Operators
 
 syn_sugar(D1 : D2,seq(D1,D2)).
-syn_sugar(D1 | D2,choice(D1,D2)).
+syn_sugar(D1 / D2,choice(D1,D2)).
 syn_sugar(D1 // D2,conc(D1,D2)).
 syn_sugar(D1 >> D2,pconc(D1,D2)).
 syn_sugar(?C,test(C)).
@@ -190,11 +189,12 @@ holds(neg(all(V,C)),S) :-
 holds(neg(some(V,C)),S) :-
     \+ holds(some(V,C),S).
 holds(P_Xs,S) :-
-    P_Xs \= and(_,_),P_Xs \= or(_,_), P_Xs \= neg(_), P_Xs \= all(_,_),
+    P_Xs \= and(_,_), P_Xs \= or(_,_), P_Xs \= neg(_), P_Xs \= all(_,_),
     P_Xs \= some(_,_), sub(now,S,P_Xs,P_XsS), P_XsS.
 holds(neg(P_Xs),S) :-
-    P_Xs \= and(_,_),P_Xs \= or(_,_), P_Xs \= neg(_), P_Xs \= all(_,_),
+    P_Xs \= and(_,_), P_Xs \= or(_,_), P_Xs \= neg(_), P_Xs \= all(_,_),
     P_Xs \= some(_,_), sub(now,S,P_Xs,P_XsS), \+ P_XsS.
+    
 
 %%  Substitution of terms
 
