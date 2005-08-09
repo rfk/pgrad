@@ -210,16 +210,16 @@ proc(doPlaceTypeIn(Agt,Type,Dest),
     ).
 
 proc(makeCakeMix(Dest),
-     doPlaceTypeIn(thomas,egg,Dest)
-     : doPlaceTypeIn(thomas,flour,Dest) 
-     : doPlaceTypeIn(thomas,sugar,Dest) 
-     : acquire_object(thomas,Dest)
-     : begin_task(thomas,mix(Dest,5)) : end_task(thomas,mix(Dest,5))
+     pi(agt,doPlaceTypeIn(agt,egg,Dest))
+     : pi(agt,doPlaceTypeIn(agt,flour,Dest))
+     : pi(agt,doPlaceTypeIn(agt,sugar,Dest))
+     : pi(agt, acquire_object(agt,Dest)
+               : begin_task(agt,mix(Dest,5))
+               : end_task(agt,mix(Dest,5)))
     ).
 
 proc(control,
-     acquire_object(thomas,bowl1)
-     : begin_task(thomas,mix(bowl1,5)) : end_task(thomas,mix(bowl1,5))
+     makeCakeMix(bowl1)
     ).
 
 
