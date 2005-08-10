@@ -3,7 +3,7 @@
 %% List the agents in the system
 agent(thomas).
 agent(richard).
-agent(harriet).
+%agent(harriet).
 
 
 %% List the tasks that can be done
@@ -34,7 +34,7 @@ prim_obj(Obj,board) :-
 prim_obj(Obj,oven) :-
     member(Obj,[oven1]).
 prim_obj(Obj,flour) :-  % flour measured in 'units' for simplicity
-    member(Obj,[flour1,flour2,flour3,flour4,flour5,flour6,flour7]).
+    member(Obj,[flour1,flour2]).
 prim_obj(Obj,egg) :-
     member(Obj,[egg1,egg2,egg3]).
 prim_obj(Obj,tomato) :-
@@ -42,7 +42,7 @@ prim_obj(Obj,tomato) :-
 prim_obj(Obj,lettuce) :-
     member(Obj,[lettuce1]).
 prim_obj(Obj,sugar) :-
-    member(Obj,[sugar1,sugar2,sugar3,sugar4,sugar5]).
+    member(Obj,[sugar1,sugar2]).
 
 
 %%  List object super-types using super_type(subtype,supertype)
@@ -107,10 +107,15 @@ poss(end_task(Agt,Task),T,S) :-
 
 
 %%  Action conflict axioms
+%%  Agents can only do one thing at a time, but may acquire
+%%  several objects at the same time.  This is mainly an efficiency
+%%  thing, it allows all objects required for a complex procedure to
+%%  be acquired in a single action and getting stuck.
 conflicts(C,_,_) :-
     member(A1,C), actor(A1,Agt),
     member(A2,C), actor(A2,Agt),
-    A2 \= A1.
+    A2 \= A1,
+    ( \+ functor(A1,acquire_object,_) ; \+ functor(A2,acquire_object,_) ).
 conflicts(C,_,_) :-
     member(acquire_object(A1,Res),C),
     member(acquire_object(A2,Res),C),
@@ -195,18 +200,25 @@ doing_task(Agt,Task,Remain,do(C,T,S)) :-
     OldRem .=. Remain-(T-SStart), \+ member(end_task(Agt,Task),C).
     
 
+history_length(N,do(_,_,S)) :-
+    history_length(N1,S),
+    N is N1 + 1.
+history_length(0,s0).
+
+%%  Intial Conditions
 start(s0,0).
 
 
 
 proc(doPlaceIn(Agt,Obj,Dest),
-     acquire_object(Agt,Obj) // acquire_object(Agt,Dest)
+     [acquire_object(Agt,Obj),acquire_object(Agt,Dest)]
      : place_in(Agt,Obj,Dest)
      : release_object(Agt,Dest)
     ).
 
 proc(doPlaceTypeIn(Agt,Type,Dest),
-     pi(obj,?obj_is_type(obj,Type) : doPlaceIn(Agt,obj,Dest))
+     pi(obj,?and(obj_is_type(obj,Type),neg(used(obj,now)))
+            : doPlaceIn(Agt,obj,Dest))
     ).
 
 proc(doTransfer(Agt,Source,Dest),
@@ -216,13 +228,13 @@ proc(doTransfer(Agt,Source,Dest),
     ).
 
 proc(makeCakeMix(Dest),
-     pi(agt,doPlaceTypeIn(agt,egg,Dest))
-     : pi(agt,doPlaceTypeIn(agt,flour,Dest))
-     : pi(agt,doPlaceTypeIn(agt,sugar,Dest))
-     : pi(agt, acquire_object(agt,Dest)
-               : begin_task(agt,mix(Dest,5))
-               : end_task(agt,mix(Dest,5))
-               : release_object(agt,Dest))
+     pi(agt,?agent(agt) : doPlaceTypeIn(agt,egg,Dest))
+     : pi(agt,?agent(agt) : doPlaceTypeIn(agt,flour,Dest))
+     : pi(agt,?agent(agt) : doPlaceTypeIn(agt,sugar,Dest))
+     : pi(agt, ?agent(agt) : acquire_object(agt,Dest)
+                           : begin_task(agt,mix(Dest,5))
+                           : end_task(agt,mix(Dest,5))
+                           : release_object(agt,Dest))
     ).
 
 proc(makeCake(Dest),
@@ -244,14 +256,19 @@ proc(control,
     ).
 
 
+%%  Tests the operation of the LNTP condition
 proc(timerTest,
      set_timer(thomas,timer1,5)
      : set_timer(richard,timer2,7)
      : ring_timer(timer2)
     ).
 
+%%  Tests the operation of concurrency with nondeterminism
+%%  The test of history_length prunes solutions that dont make
+%%  full use of the concurrency (there are LOTS!).
 proc(concTest,
      doPlaceTypeIn(thomas,egg,bowl1) // doPlaceTypeIn(richard,egg,bowl2)
+     : ?history_length(4,now)
     ).
 
 

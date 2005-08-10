@@ -57,7 +57,7 @@ final(pcall(PArgs),S) :-
 
 trans(C,S,Dp,Sp) :-
     sub(now,S,C,CS), to_cact(CS,CA), start(S,SStart),
-    % TODO: what if C contains natural actions??
+    % TODO: Should a C containing LNTP actions be allowed after LNTP?
     % If there is a least-natural-time-point for S, then perhaps some
     % natural actions must occur first.  Otherwise, it is legal to do
     % the agent-initiated actions.
@@ -74,18 +74,18 @@ trans(C,S,Dp,Sp) :-
             Sp = do(CA,T,S), Dp = nil
           )
           ;
-          % Can do the LNTP actions first, leaving program unaltered
-          % TODO: this poss() call should always be true, right?
-          ( 
-            poss(NActs,LNTP,S),
-            Sp = do(NActs,LNTP,S), Dp = C
-          )
-          ;
           % Can do them at the same time
           ( 
             union(CA,NActs,CANat),
             poss(CANat,LNTP,S),
             Sp = do(CANat,LNTP,S), Dp = nil
+          )
+          ;
+          % Can do the LNTP actions first, leaving program unaltered
+          % TODO: this poss() call should always be true, right?
+          ( 
+            poss(NActs,LNTP,S),
+            Sp = do(NActs,LNTP,S), Dp = C
           )
         )
       )
@@ -119,7 +119,14 @@ trans(while(Cond,D),S,Dp,Sp) :-
     Dp = seq(Dr,while(Cond,D)), holds(Cond,S), trans(D,S,Dr,Sp).
 
 trans(conc(D1,D2),S,Dp,Sp) :-
-    trans(D1,S,Dr1,do(C1,T,S)), trans(D2,S,Dr2,do(C2,T,S)),
+    trans*(D1,S,Dr1,do(C1,T,S)),
+    trans*(D2,S,Dr2,do(C2,T,S)),
+    % TODO:  discuss best semantics for concurrent execution union
+    %        For the moment, I'm going with a split between natural
+    %        and agent-initiated actions.  Natural actions can be
+    %        shared between concurrently execution programs, but
+    %        agent-initiated actions cannot.
+    \+ ( member(A,C1), member(A,C2), actor(A,_) ),
     union(C1,C2,CT), trans(CT,S,nil,Sp),
     Dp = conc(Dr1,Dr2)
     ;
@@ -170,8 +177,20 @@ do(D,S,Sp) :-
     % TODO:  prove that the semantics only generate legal situations,
     %        remove the need for legal(Sp).
     trans*(D,S,Dp,Sp),
-    %nl, display(Sp), nl, get_code(_),
-    final(Dp,Sp), legal(Sp).
+    %nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
+    final(Dp,Sp),
+    ( legal(Sp) ->
+          show_action_history(Sp)
+      ;
+          display('ILLEGAL SITUATION PRODUCED!!')
+    ).
+
+
+show_action_history(s0) :-
+    nl.
+show_action_history(do(C,T,S)) :-
+    show_action_history(S),
+    display('do '), display(C), display(' at '), display(T), nl.
 
 %%  Implementation of holds(Cond,Sit) predicate, with negation-as-failure
 

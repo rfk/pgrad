@@ -26,3 +26,8 @@
 :- include(domain).
 
 
+main(_) :-
+    do(control,s0,S), display(S).
+
+main :-
+    main(_).
