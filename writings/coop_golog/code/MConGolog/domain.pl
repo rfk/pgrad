@@ -80,8 +80,11 @@ natural(end_task(_,_)).
 
 
 %%  Possibility Axioms
+%%  "Acquire" is more like a lock on an object, it can be done with
+%%  no affect is the agent already has that object.
 poss(acquire_object(Agt,Obj),_,S) :-
-    \+ has_object(_,Obj,S), \+ doing_task(Agt,_,_,S), \+ used(Obj,S).
+    ( \+ has_object(_,Obj,S) ; has_object(Agt,Obj,S) ),
+    \+ doing_task(Agt,_,_,S), \+ used(Obj,S).
 poss(release_object(Agt,Obj),_,S) :-
     has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
 poss(set_timer(Agt,ID,_),_,S) :-
@@ -107,15 +110,10 @@ poss(end_task(Agt,Task),T,S) :-
 
 
 %%  Action conflict axioms
-%%  Agents can only do one thing at a time, but may acquire
-%%  several objects at the same time.  This is mainly an efficiency
-%%  thing, it allows all objects required for a complex procedure to
-%%  be acquired in a single action and getting stuck.
 conflicts(C,_,_) :-
     member(A1,C), actor(A1,Agt),
     member(A2,C), actor(A2,Agt),
-    A2 \= A1,
-    ( \+ functor(A1,acquire_object,_) ; \+ functor(A2,acquire_object,_) ).
+    A2 \= A1.
 conflicts(C,_,_) :-
     member(acquire_object(A1,Res),C),
     member(acquire_object(A2,Res),C),
@@ -209,20 +207,24 @@ history_length(0,s0).
 start(s0,0).
 
 
+proc(ensureHas(Agt,Obj),
+     if(has_object(Agt,Obj,now),nil,acquire_object(Agt,Obj))
+    ).
 
 proc(doPlaceIn(Agt,Obj,Dest),
-     [acquire_object(Agt,Obj),acquire_object(Agt,Dest)]
+     ensureHas(Agt,Obj) // ensureHas(Agt,Dest)
      : place_in(Agt,Obj,Dest)
      : release_object(Agt,Dest)
     ).
 
 proc(doPlaceTypeIn(Agt,Type,Dest),
-     pi(obj,?and(obj_is_type(obj,Type),neg(used(obj,now)))
+     pi(obj,?obj_is_type(obj,Type)
+            : acquire_object(Agt,obj)
             : doPlaceIn(Agt,obj,Dest))
     ).
 
 proc(doTransfer(Agt,Source,Dest),
-     acquire_object(Agt,Source) // acquire_object(Agt,Dest)
+     ensureHas(Agt,Source) // ensureHas(Agt,Dest)
      : transfer(Agt,Source,Dest)
      : release_object(Agt,Source) // release_object(Agt,Dest)
     ).
@@ -271,4 +273,10 @@ proc(concTest,
      : ?history_length(4,now)
     ).
 
-
+proc(piTest,
+     acquire_object(thomas,egg1)
+     : pi(obj, ?and(obj_is_type(obj,egg),neg(has_object(_,obj,now)))
+               : acquire_object(richard,board1)
+               : acquire_object(richard,obj)
+         )
+    ).

@@ -169,7 +169,8 @@ final(D,S) :-
 
 trans*(D,S,D,S).
 trans*(D,S,Dp,Sp) :-
-    trans(D,S,Dr,Sr), trans*(Dr,Sr,Dp,Sp).
+    trans(D,S,Dr,Sr),
+    trans*(Dr,Sr,Dp,Sp).
 
 %%  Definition of do()
 
@@ -177,7 +178,7 @@ do(D,S,Sp) :-
     % TODO:  prove that the semantics only generate legal situations,
     %        remove the need for legal(Sp).
     trans*(D,S,Dp,Sp),
-    %nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
+    nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
     final(Dp,Sp),
     ( legal(Sp) ->
           show_action_history(Sp)
@@ -191,6 +192,26 @@ show_action_history(s0) :-
 show_action_history(do(C,T,S)) :-
     show_action_history(S),
     display('do '), display(C), display(' at '), display(T), nl.
+
+
+step(D,S,Dp,Sp) :-
+    Sp = do(C,T,S), 
+    trans*(D,S,Dp,Sp).
+
+
+ol_do(D,S) :-
+    ( step(D,S,Dr,Sr) ->
+        Sr = do(C,T,S),
+        display('do '), display(C), display(' at '), display(T), nl,
+        ( final(Dr,Sr) ->
+            display('SUCCEEDED!')
+        ;
+            ol_do(Dr,do(C,T,S))
+        )
+    ;
+        display('FAILED!')
+    ).
+    
 
 %%  Implementation of holds(Cond,Sit) predicate, with negation-as-failure
 

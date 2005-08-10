@@ -37,6 +37,18 @@ The environment:   Development is being done under Ciao prolog, as it
         * "Continuous Fluents", also from Pinto, somehow interact with
           natural actions..?
 
-    TODO:  pi(D1//D2) is stuffing up the order of selection of solutions,
-           making concurrent choices appear last.  Can we fix this?
+    TODO: It would be useful to have some way of pruning the search
+          tree, e.g. when a program gets stuck early due to a bad
+          choice but must wait for a concurrent program to be
+          searched to exhaustion...
+           
+
+    TODO:  Note that pi() is also synchronised
+
+    TODO:  Talk about allowing tests in concurrent action terms,
+           only transition when the test is true.  Like a primitive
+           blocking mechanism akin to if(test,act,false) but simpler.
+           
+           
+
 
