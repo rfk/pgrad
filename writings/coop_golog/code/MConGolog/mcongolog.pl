@@ -10,9 +10,6 @@
 %%  order to take advantage of the parallelism offered by multi-agent
 %%  systems.
 %%
-%%  TODO:  how about a do_when(t?,a) operator, basically a synchonised
-%%         test-and-execute?  Can interrupts be used for this?
-%%
 
 
 %%  Termination Rules
@@ -178,7 +175,7 @@ do(D,S,Sp) :-
     % TODO:  prove that the semantics only generate legal situations,
     %        remove the need for legal(Sp).
     trans*(D,S,Dp,Sp),
-    nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
+    %nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
     final(Dp,Sp),
     ( legal(Sp) ->
           show_action_history(Sp)
@@ -199,19 +196,33 @@ step(D,S,Dp,Sp) :-
     trans*(D,S,Dp,Sp).
 
 
+%%
+%%  Execute the program in an on-line manner, i.e. no backtracking
+%%  over the performance of actions.  Each action is performed at the
+%%  minimum allowable time.
+%%
+%%  TODO: be clever here with a notion of 'current time' and perform
+%%        each action at the current time or later...
+%%
 ol_do(D,S) :-
     ( step(D,S,Dr,Sr) ->
         Sr = do(C,T,S),
-        display('do '), display(C), display(' at '), display(T), nl,
+        ( inf(T,MinT) ->
+            true
+        ;
+            start(S,SStart), MinT is SStart + 1
+        ),
+        display('do '), display(C), display(' at '), display(MinT), nl,
         ( final(Dr,Sr) ->
             display('SUCCEEDED!')
         ;
-            ol_do(Dr,do(C,T,S))
+            ol_do(Dr,do(C,MinT,S))
         )
     ;
         display('FAILED!')
     ).
-    
+
+
 
 %%  Implementation of holds(Cond,Sit) predicate, with negation-as-failure
 

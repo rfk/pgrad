@@ -280,3 +280,4 @@ proc(piTest,
                : acquire_object(richard,obj)
          )
     ).
+

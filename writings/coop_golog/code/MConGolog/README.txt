@@ -49,6 +49,7 @@ The environment:   Development is being done under Ciao prolog, as it
            only transition when the test is true.  Like a primitive
            blocking mechanism akin to if(test,act,false) but simpler.
            
+    TODO:  produce formal proof that trans() generates only legal situations
            
 
 

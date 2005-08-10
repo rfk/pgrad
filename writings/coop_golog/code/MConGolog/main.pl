@@ -11,6 +11,10 @@
 :- use_module(library(iso_misc)).
 :- use_module(library(lists)).
 
+:- use_module(library('clpq/solver_q')).
+:- use_module(library('clpq/eval_q')).
+:- use_package(library('clpqr-common/simplex')).
+
 :- discontiguous trans/4, final/2, prim_action/1, natural/1, poss/3,
                  conflicts/3, start/2.
 
