@@ -1,15 +1,66 @@
+%%
+%%  domain.pl:  Axiomatisation of the "Cooking Agents" domain for MConGolog
+%%
+%%  Author:  Ryan Kelly (rfk)
+%%
+%%  Date Created:  28/07/05
+%%
+%%    This file contains an axiomatisation of the "Cooking Agents" domain
+%%    in the Concurrent, Temporal Situation Calculus with Natural Actions.
+%%
+%%    The domain consists of several agents and inanimate objects of
+%%    different types (indicated by prim_object/2) which in turn may
+%%    be part of super-types (indicated by super_type/2).
+%%
+%%    Agents may acquire objects, place them inside/on container objects,
+%%    and transfer the contents of one container object to another.  There
+%%    are also an unlimited supply of timers in the world which may be
+%%    set to ring at a specified time in the future.
+%%
+%%    The agents may also perform several continuous tasks, which have
+%%    durations and may span several situations.  Agents may only perform
+%%    one task at a time.
+%%
+%%    Depending on the tasks being performed, the contents of container
+%%    objects may evolve from one situation to another.  For example,
+%%    if the task mix(bowl1,5) is being performed (mix the contents of
+%%    bowl1 for five minutees) then the contents might evolve from
+%%    [egg1,flour1,sugar1] to mixed([egg1,flour1,sugar1],5).
+%%
 
 
-%% List the agents in the system
+%%  
+%%  agent(Agt):  specify agents in the system
+%%
+%%  This predicate is true when Agt is the name of an agent in the world.
+%%
 agent(thomas).
 agent(richard).
-%agent(harriet).
+agent(harriet).
 
 
-%% List the tasks that can be done
-task(mix(Container,Duration)).
-task(chop(Conatainer)).
+%% 
+%%  task(T):  specify the tasks that can be performed
+%%
+%%  This predicate is true when T is a task that the agents in the system
+%%  can perform.  Tasks are typically parameterised in terms of the
+%%  objects on which they operate.
+%%
 
+%%  mix(Cont,Dur):  mix the contents of container Cont for duration Dur
+task(mix(Cont,_)) :- 
+    obj_is_type(Cont,container).
+
+%%  chop(Cont):  chop the contents of container Cont
+task(chop(Conatainer)) :-
+    obj_is_type(Cont,container).
+
+%%
+%%  task_diration(Agt,Task,Dur):  specify duration of tasks
+%%
+%%  This predicate is true when Dur is the time taken by agent Agt
+%%  to perform the task Task.
+%%
 task_duration(_,mix(_,D),D).
 task_duration(Agt,chop(_),D) :-
     (Agt = richard ->
@@ -19,9 +70,18 @@ task_duration(Agt,chop(_),D) :-
     ).
 
 
-%% List the primitive objects and their types.
-%% prim_obj(Obj,Type) is true when Obj is an object of type
-%% Type.
+%%
+%%  prim_obj(Obj,Type):  specify primitive objects in the world
+%%
+%%  This predicate is true when Obj is the name of a primitive object
+%%  in the world, of type Type.
+%%
+%%  prim_obj(Obj):  shortcut to check object names
+%%
+%%  This predicate is true if Obj is the name of a primite object,
+%%  regardless of its type.
+%%
+
 prim_obj(Obj) :-
     prim_obj(Obj,_).
 
@@ -33,94 +93,186 @@ prim_obj(Obj,board) :-
     member(Obj,[board1,board2]).
 prim_obj(Obj,oven) :-
     member(Obj,[oven1]).
-prim_obj(Obj,flour) :-  % flour measured in 'units' for simplicity
+prim_obj(Obj,flour) :-     % flour measured in 'units' for simplicity
     member(Obj,[flour1,flour2]).
+prim_obj(Obj,sugar) :-     % same for the sugar
+    member(Obj,[sugar1,sugar2]).
 prim_obj(Obj,egg) :-
     member(Obj,[egg1,egg2,egg3]).
 prim_obj(Obj,tomato) :-
     member(Obj,[tomato1,tomato2]).
 prim_obj(Obj,lettuce) :-
     member(Obj,[lettuce1]).
-prim_obj(Obj,sugar) :-
-    member(Obj,[sugar1,sugar2]).
 
 
-%%  List object super-types using super_type(subtype,supertype)
-
+%%
+%%  super_type(SubType,SuperType):  specify type hierarchy
+%%
+%%  This predicate is true when all objects of type SubType are
+%%  also of type SuperType.
+%%  
 super_type(Type,container) :-
     member(Type,[bowl,board,oven]).
 super_type(Type,ingredient) :-
     member(Type,[flour,egg,tomato,lettuce,sugar]).
 
+%%
+%%  obj_is_type(Obj,Type):  check object types
+%%
+%%  This predicate is true when the object named Obj is of type
+%%  Type according to the hierarchy of super-types.
+%%
 obj_is_type(Obj,Type) :-
     prim_obj(Obj,Type)
     ;
     super_type(SubType,Type), obj_is_type(Obj,SubType).
 
 
-%%  Primitive Actions
+%%
+%%  prim_action(Act):  specify primitive actions
+%%
+%%  This predicate is true when Act is the name of a primitive action
+%%  in the world.  Actions are typically parameterised in terms of the
+%%  objects they act on.  See the details of the MConGolog situation
+%%  calculus for further information.
+%%
 
+%%  acquire_object(Agt,Obj):  agent acquires control of an object
 prim_action(acquire_object(Agt,Obj)) :-
     agent(Agt), prim_obj(Obj).
+
+%%  release_object(Agt,Obj):  agent releases an object it has acquired
 prim_action(release_object(Agt,Obj)) :-
     agent(Agt), prim_obj(Obj).
-prim_action(set_timer(Agt,ID,Duration)) :-
+
+%%  set_timer(Agt,ID,Dur):  agent sets timer with name ID to ring Dur
+%%  minutes in the future
+prim_action(set_timer(Agt,_,_)) :-
     agent(Agt).
-prim_action(ring_timer(ID)).
+
+%%  ring_timer(ID):  timer with name ID rings, a natural action
+prim_action(ring_timer(_)).
 natural(ring_timer(_)).
+
+%%  place_in(Agt,Conts,Dest):  agent places object Conts in container Dest
 prim_action(place_in(Agt,Conts,Dest)) :-
-    agent(Agt), prim_obj(Dest).
+    agent(Agt), prim_obj(Conts), obj_is_type(Dest,container).
+
+%%  transfer(Agt,Source,Dest):  agent transfers contents of container Source
+%%  to container Dest
 prim_action(transfer(Agt,Source,Dest)) :-
-    agent(Agt), prim_obj(Source), prim_obj(Dest).
+    agent(Agt), obj_is_type(Source,container),
+    obj_is_type(Dest,container).
+
+%%  begin_task(Agt,Task):  agent starts performing task Task
 prim_action(begin_task(Agt,Task)) :-
     agent(Agt), task(Task).
+
+%%  end_task(Agt,Task):  agent finishes performing task, a natural action
 prim_action(end_task(Agt,Task)) :-
     agent(Agt), task(Task).
 natural(end_task(_,_)).
 
 
-%%  Possibility Axioms
-%%  "Acquire" is more like a lock on an object, it can be done with
-%%  no affect is the agent already has that object.
+%%
+%%  poss(A,T,S):  possibility of performing an action
+%%
+%%  This predicate is true when it is possible to perform action
+%%  A at time T in situation S.
+%%
+
+%%  Agents can only acquire an object if no agent already has it,
+%%  they arent doing a task, and the object hasnt been used.
 poss(acquire_object(Agt,Obj),_,S) :-
-    ( \+ has_object(_,Obj,S) ; has_object(Agt,Obj,S) ),
-    \+ doing_task(Agt,_,_,S), \+ used(Obj,S).
+    \+ has_object(_,Obj,S), \+ doing_task(Agt,_,_,S), \+ used(Obj,S).
+
+%%  Agents may only release objects that they have, when they arent
+%%  currently performing a task
 poss(release_object(Agt,Obj),_,S) :-
     has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
+
+%%  Agents may set a timer as long as it hasnt already been set, and
+%%  they arent currently performing a task
 poss(set_timer(Agt,ID,_),_,S) :-
     \+ timer_set(ID,_,S), \+ doing_task(Agt,_,_,S).
+
+%%  It is only possible for a timer to ring once its remaining time
+%%  has precisely elapsed
 poss(ring_timer(ID),T,S) :-
     timer_set(ID,Dur,S),
     start(S,SStart), T .=. SStart + Dur.
+
+%%  Agents may place an object in a container provided they have possession
+%%  of both, and arent currently doing a task
 poss(place_in(Agt,Conts,Dest),_,S) :-
     has_object(Agt,Conts,S), has_object(Agt,Dest,S),
-    prim_obj(Conts), obj_is_type(Dest,container),
     \+ doing_task(Agt,_,_,S).
+
+%%  Agents may transfer contents from one container to another as long
+%%  as they have possession of both, and arent doing a task
 poss(transfer(Agt,Source,Dest),_,S) :-
     has_object(Agt,Source,S), has_object(Agt,Dest,S),
-    obj_is_type(Source,container), obj_is_type(Dest,container),
     \+ doing_task(Agt,_,_,S).
+
+%%  Agents may begin the mix() task as long as they arent doing another
+%%  task, and have possession of the container to be mixed in
 poss(begin_task(Agt,mix(Obj,_)),_,S) :-
     has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
+
+%%  Agents may begin the chop() task as long as they arent doing another
+%%  task, and have possession of the container whose contents to chop
 poss(begin_task(Agt,chop(Obj)),_,S) :-
     has_object(Agt,Obj,S), \+ doing_task(Agt,_,_,S).
+
+%%  Agents may end a task only when precisely the remaining amount of
+%%  time has elapsed
 poss(end_task(Agt,Task),T,S) :-
     doing_task(Agt,Task,Remain,S),
     start(S,SStart), T .=. SStart + Remain.
 
 
-%%  Action conflict axioms
+%%
+%%  conflicts(C,T,S):  concurrent actions conflict
+%%
+%%  This predicate must be true when concurrent actions in C conflict
+%%  and cannot be performed at time T in situation S.
+%%
+
+%%  Agents cannot do more than one action at a time
 conflicts(C,_,_) :-
     member(A1,C), actor(A1,Agt),
     member(A2,C), actor(A2,Agt),
     A2 \= A1.
+
+%%  Two agents cannot acquire the same object
 conflicts(C,_,_) :-
     member(acquire_object(A1,Res),C),
     member(acquire_object(A2,Res),C),
     A1 \= A2.
     
-%%  Fluents in the domain
+%%
+%%  Fluents in the Domain
+%%
+%%  The fluents are specified in terms of their successor state axioms,
+%%  of the form "a fluent is true if it became true, or was previously
+%%  true did not become false".
+%%
+%%    fluent_holds(Args,do(A,T,S)) :-
+%%        fluent_becomes_true(Args,do(A,T,S))
+%%        ;
+%%        (
+%%          fluent_holds(Args,S),
+%%          \+ fluent_becomes_false(Args,do(A,T,S))
+%%        )
+%%
 
+%%
+%%  has_object(Agt,Obj,S):  agent has an object
+%%
+%%  This fluent is true when agent Agt has possession of the object Obj
+%%  in situation S.  It can become true by acquiring the object, and
+%%  false by releasing the object or if it has become used.
+%%
 has_object(Agt,Obj,do(C,T,S)) :-
     member(acquire_object(Agt,Obj),C)
     ;
@@ -131,6 +283,13 @@ has_object(Agt,Obj,do(C,T,S)) :-
        used(Obj,do(C,T,S))
     ).
 
+%%
+%%  used(Obj,S):  object is used in situation S
+%%
+%%  This fluent is true when an object has been used - for example,
+%%  an ingredient has been placed in a container.  Once an object has
+%%  been used, it cannot be used again.
+%%
 used(Obj,do(C,_,S)) :-
     prim_obj(Obj), obj_is_type(Obj,ingredient),
     (
@@ -139,6 +298,13 @@ used(Obj,do(C,_,S)) :-
       member(place_in(_,Obj,_),C)
     ).
 
+%%
+%%  timer_set(ID,Dur,S):  timer is set in situation S
+%%
+%%  This fluent indicates that the timer named ID is set to ring in Dur
+%%  minutes in situation S.  It becomes true as a result of a set_timer()
+%%  action, TODO more here.
+%%
 timer_set(ID,Dur,do(C,T,S)) :-
     member(set_timer(_,ID,Dur),C)
     ;
