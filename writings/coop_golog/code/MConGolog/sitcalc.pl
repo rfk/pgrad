@@ -8,20 +8,13 @@
 %%
 %%    This implementation is a slight modification of the work
 %%    of Reiter ("Natural Actions, Concurrency and Continuous
-%%    Time in the Situation Calculus"), implemented in prolog.
+%%    Time in the Situation Calculus"), implemented in CIAO prolog.
 %%    In this case, the temporal component is attached to situations
 %%    instead of actions.  So do(A,S) becomes do(A,T,S), poss(A,S)
 %%    becomes poss(A,T,S), etc.  I hypothesis that the resulting
 %%    languages are equiavlently expressive in terms of legal situations,
 %%    but make no attempt at this stage to prove it.
 %%
-%%    TODO:  Problem!  Cannot *ensure* that an action takes place at
-%%           a certain time from within the Golog program.  Is this
-%%           a severe limitation?
-%%           Possible solution: have a fluent for time of the situation,
-%%           or even use start(now), as a test condition on the execution
-%%           of the action within a synchronised if().  Or, introduce
-%%           a synchronised test-and-do operation...?
 %%
 %%    The worlds modelled using this framework must conform to the
 %%    following structural rules:
@@ -35,7 +28,7 @@
 %%       * For actions which are not natural, the first argument of
 %%         the term must indicate the agent which performs that action.
 %%
-%%       * There is a unique initial situation denoted by the term s0.
+%%       * There is a unique initial situation denoted by the atom s0.
 %%
 %%       * Concurrently occuring actions are represented as lists of
 %%         primitive action terms.
@@ -53,7 +46,7 @@
 %%
 %%       * specify the possibility axioms for primitive actions using poss/3.
 %%
-%%       * specify conflicting sets of concurrent actions using conflicts/1.
+%%       * specify conflicting sets of concurrent actions using conflicts/3.
 %%
 %%       * specify the successor state axioms in terms of predicates for
 %%         each fluent.
@@ -86,14 +79,14 @@ natural(noop).
 
 
 %%
-%%  actor(Act,Agt):  performing agent for Actions
+%%  actor(Actn,Agt):  performing agent for Actions
 %%
-%%  This predicate binds Agt to the agent performing primitive action Act.
+%%  This predicate binds Agt to the agent performing primitive action Actn.
 %%  It requires that the action not be natural, and that the agent be the
 %%  first argument to the action term.
 %%
-actor(Act,Agt) :-
-    prim_action(Act), \+ natural(Act), arg(1,Act,Agt).
+actor(Actn,Agt) :-
+    prim_action(Actn), \+ natural(Actn), arg(1,Actn,Agt).
 
 
 %%
@@ -116,7 +109,6 @@ start(S,T) :-
 %%  This predicate is true when S2 is reachable from S1 by some finite
 %%  sequence of actions.  Note that no situation precedes s0, by definition.
 %%
-
 precedes(_,s0) :- fail.
 precedes(S1,do(C,T,S2)) :-
     poss(C,T,S2), precedes_eq(S1,S2),
@@ -125,7 +117,7 @@ precedes(S1,do(C,T,S2)) :-
 %%
 %%  precedes_eq(S1,S2):  precedes-or-equals
 %%
-%%  This predicate is to precedes/2 as <= is to < - it allows for the
+%%  This predicate is to precedes/2 as <= is to <, it allows for the
 %%  two arguments to be equal.
 %%
 precedes_eq(S1,S2) :-
@@ -162,12 +154,12 @@ legal(S) :-
 %%
 %%  The predicate poss/3 must be true whenever it is possible to perform
 %%  action A in situation S at time T.  A may be either a primitve action or
-%%  a list of concurrent actions.
+%%  a list of actions to be performed concurrently.
 %%
-%%   The domain axiomatiser is required to provide implementations of
-%%   poss/2 for all primitive actions.  Concurrent actions are considered
-%%   possible if each constituent action is possible, and conflicts/2
-%%   does not hold.
+%%  The domain axiomatiser is required to provide implementations of
+%%  poss/3 for all primitive actions.  Concurrent actions are considered
+%%  possible if each constituent action is possible, and conflicts/3
+%%  does not hold.
 %%
 poss([A],T,S) :-
     poss(A,T,S).
@@ -189,7 +181,7 @@ poss_all([A|C],T,S) :-
 %%
 %%  conflicts(C,T,S):  test for conflicting actions
 %%
-%%  This predicate is true if some of the primitive actions in concurrent
+%%  This predicate must be true if some of the primitive actions in concurrent
 %%  action C cannot be executed together is situation S at time T.  The
 %%  clause below provides that an empty action never conflicts, other
 %%  clauses must be supplied as appropriate.
@@ -206,15 +198,12 @@ conflicts([],_,_) :- fail.
 %%
 lntp(S,T) :-
     natural(A), poss(A,T,S), start(S,SStart), SStart .=<. T,
-    \+ (natural(A2), poss(A2,T2,S),
-        %get_min(T,Min1), get_min(T2,Min2),
-        T2 .<. T)
-    .
+    \+ (natural(A2), poss(A2,T2,S), T2 .<. T).
 
 %%
 %%  to_cact(A,C):   convert a primitive to a concurrent action
 %%
-%%  This predicate can be used as a "caste" operator to turn a primitve
+%%  This predicate can be used as a "cast" operator to turn a primitve
 %%  action A into concurrent action C by wrapping it in a list.  If A
 %%  is already a concurrent action, it is simply unified with C.
 %%
