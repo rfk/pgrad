@@ -299,6 +299,9 @@ trans(D,S,Dp,Sp) :-
     trans(Ds,S,Dp,Sp).
 
 
+%%  TODO:  a search() operator similar to IndiGolog.
+
+
 %%
 %%  syn_sugar(Din,Dout):  syntactic sugar for programs
 %%
