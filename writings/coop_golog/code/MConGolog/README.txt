@@ -41,6 +41,7 @@ The environment:   Development is being done under Ciao prolog, as it
           tree, e.g. when a program gets stuck early due to a bad
           choice but must wait for a concurrent program to be
           searched to exhaustion...
+          Research DTGolog perhaps for some ideas on this.
            
 
     TODO:  Note that pi() is also synchronised

@@ -400,6 +400,24 @@ trans*(D,S,Dp,Sp) :-
     trans(D,S,Dr,Sr),
     trans*(Dr,Sr,Dp,Sp).
 
+
+%%
+%%  step(D,S,Dp,Sp):  single-step a program
+%%
+%%  This predicate takes a program D and a situation S in which to execute it,
+%%  and returns a new situation Sp and remaining program Dp such that the
+%%  execution of D has progressed by a single action.  It may be used
+%%  repeatedly to find a possible next action to perform for a given program.
+%%
+step(D,S,Dp,Sp) :-
+    %%  Naive implementation is simply:  trans*(D,S,Dp,do(C,T,S))
+    %%  This implementation is more efficient as it does not generate
+    %%  transitions that go beyond one action from S (which will always fail).
+    Sp = do(_,_,S), trans(D,S,Dp,Sp)
+    ;
+    trans(D,S,Dr,S), step(Dr,S,Dp,Sp).
+
+
 %%
 %%  do(D,S,Sp):  offline execution of MConGolog Programs
 %%
@@ -432,23 +450,6 @@ show_action_history(s0) :-
 show_action_history(do(C,T,S)) :-
     show_action_history(S),
     display('do '), display(C), display(' at '), display(T), nl.
-
-
-%%
-%%  step(D,S,Dp,Sp):  single-step a program
-%%
-%%  This predicate takes a program D and a situation S in which to execute it,
-%%  and returns a new situation Sp and remaining program Dp such that the
-%%  execution of D has progressed by a single action.  It may be used
-%%  repeatedly to find a possible next action to perform for a given program.
-%%
-step(D,S,Dp,Sp) :-
-    %%  Naive implementation is simply:  trans*(D,S,Dp,do(C,T,S))
-    %%  This implementation is more efficient as it does not generate
-    %%  transitions that go beyond one action from S (which will always fail).
-    Sp = do(C,_,S), trans(D,S,Dp,Sp)
-    ;
-    trans(D,S,Dr,S), step(Dr,S,Dp,Sp).
 
 
 %%

@@ -36,7 +36,7 @@
 %%
 agent(thomas).
 agent(richard).
-%agent(harriet).
+agent(harriet).
 
 
 %% 
@@ -52,7 +52,7 @@ task(mix(Cont,_)) :-
     obj_is_type(Cont,container).
 
 %%  chop(Cont):  chop the contents of container Cont
-task(chop(Conatainer)) :-
+task(chop(Cont)) :-
     obj_is_type(Cont,container).
 
 %%
@@ -94,15 +94,17 @@ prim_obj(Obj,board) :-
 prim_obj(Obj,oven) :-
     member(Obj,[oven1]).
 prim_obj(Obj,flour) :-     % flour measured in 'units' for simplicity
-    member(Obj,[flour1,flour2]).
+    member(Obj,[flour1,flour2,flour3,flour4,flour5]).
 prim_obj(Obj,sugar) :-     % same for the sugar
-    member(Obj,[sugar1,sugar2]).
+    member(Obj,[sugar1,sugar2,sugar3,sugar4,sugar5,sugar6]).
 prim_obj(Obj,egg) :-
     member(Obj,[egg1,egg2,egg3]).
 prim_obj(Obj,tomato) :-
     member(Obj,[tomato1,tomato2]).
 prim_obj(Obj,lettuce) :-
     member(Obj,[lettuce1]).
+prim_obj(Obj,carrot) :-
+    member(Obj,[carrot1,carrot2,carrot3]).
 
 
 %%
@@ -303,7 +305,8 @@ used(Obj,do(C,_,S)) :-
 %%
 %%  This fluent indicates that the timer named ID is set to ring in Dur
 %%  minutes in situation S.  It becomes true as a result of a set_timer()
-%%  action, TODO more here.
+%%  action, and is updated from situation to situation to reflect
+%%  the amount of time remaining.
 %%
 timer_set(ID,Dur,do(C,T,S)) :-
     member(set_timer(_,ID,Dur),C)
@@ -311,14 +314,25 @@ timer_set(ID,Dur,do(C,T,S)) :-
     timer_set(ID,OldDur,S), start(S,SStart), Dur .=. OldDur-(T-SStart),
     \+ member(ring_timer(ID),C).
 
+%%
+%%  contents(Obj,Conts,S):  object contents in a situation
+%%
+%%  This fluent indicates that object Obj contains the contents Conts
+%%  in situation S.  It can become true, become false, and change value
+%%  in a variety of ways, each of which is documented with its
+%%  implementation.
+%%
 contents(Obj,Conts,do(C,T,S)) :-
     start(S,SStart),
     ((
-      %% All the ways it can become true
+      %% --- All the ways it can become true
+      %% It was previously empty, and contents were placed or transfered in
       (member(place_in(_,Conts,Obj),C)
          ; member(transfer(_,Obj2,Obj),C), contents(Obj2,Conts,S)),
       \+ contents(Obj,_,S)
       ;
+      %% It previously had contents, and more contents were placed or
+      %% transfered in.  Contents is then a list.
       (member(place_in(_,NewConts,Obj),C)
          ; member(transfer(_,Obj2,Obj),C), contents(Obj2,NewConts,S)),
       contents(Obj,OldConts,S),
@@ -326,6 +340,9 @@ contents(Obj,Conts,do(C,T,S)) :-
       ( NewConts = [_|_] -> NewContsL = NewConts ; NewContsL = [NewConts]),
       union(OldContsL,NewContsL,Conts)
       ;
+      %% An agent is mixing the contents.  If they were previously
+      %% unmixed, they are encased in a mixed(conts,time) indicator.
+      %% If they were previously mixed, the mixing time is increased.
       doing_task(_,mix(Obj,_),_,do(C,T,S)), contents(Obj,OldConts,S),
       (  OldConts = mixed(MixConts,OldP) ->
              NewP .=. OldP+(T-SStart), Conts = mixed(MixConts,NewP)
@@ -333,30 +350,75 @@ contents(Obj,Conts,do(C,T,S)) :-
              Conts = mixed(OldConts,0)
       )
       ;
+      %% An agent just completed mixing the contents.  The mixing time
+      %% must be modified to take its final value.
       member(end_task(_,mix(Obj,_)),C), contents(Obj,mixed(MixConts,OldP),S),
       NewP .=. OldP+(T-SStart), Conts = mixed(MixConts,NewP)
       ;
+      %% An agent just completed chopping the contents.  They are
+      %% encased in a chopped() indicator.
       member(end_task(_,chop(Obj)),C), contents(Obj,OldConts,S),
       Conts = chopped(OldConts)
+      ;
+      %% If the container is in an oven, its contents are baked.
+      %% If they are not encapsulated in a baked() indicator then do
+      %% so, otherwise update the baking time.
+      \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+      contents(Oven,Obj,do(C,T,S)), contents(Obj,OldConts,S),
+      (  OldConts = baked(BakedConts,OldP) ->
+             NewP .=. OldP+(T-SStart), Conts = baked(BakedConts,NewP)
+         ;
+             Conts = baked(OldConts,0)
+      )
+      ;
+      %% If the container was just taken out of the oven, updated
+      %% the content to reflect the total baking time.
+      \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+      contents(Oven,Obj,S), member(transfer(_,Oven,_),C),
+      contents(Obj,baked(BakedConts,OldP),S),
+      NewP .=. OldP+(T-SStart), Conts = baked(BakedConts,NewP)
     )
     ;
     %% Or it was true, and didnt become false...
     contents(Obj,Conts,S), \+ (
-        %% All the ways it can become false
+        %% --- All the ways it can become false
+        %% The contents were transfered out
         member(transfer(_,Obj,_),C)
         ;
+        %% New contents were transfered in
         member(transfer(_,Obj2,Obj),C), contents(Obj2,_,S)
         ;
+        %% New contents were placed in
         member(place_in(_,_,Obj),C)
         ;
+        %% The contents are being mixed, hence will change
         doing_task(_,mix(Obj,_),_,do(C,T,S))
         ;
+        %% The contents just finished being mixed, hence will change
         member(end_task(_,mix(Obj,_)),C)
         ;
+        %% The contents just finished being chopped, hence will change
         member(end_task(_,chop(Obj)),C)
+        ;
+        %% The object is in an oven, hence will change
+        \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+        contents(Oven,Obj,do(C,T,S))
+        ;
+        %% The object was just taken out of an oven, hence will change
+        \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+        contents(Oven,Obj,S), member(transfer(_,Oven,_),C)
     )).
 
 
+%%
+%%  doing_task(Agt,Task,Remain,S):  agent is performing a task
+%%
+%%  This fluent is true when agent Agt is performing task Task in situation
+%%  S, and has Remain minutes left before it is completed.  It becomes
+%%  true when an agent begins a task, becomes false when an agent
+%%  completes a task, and its value is updated from situation to situation
+%%  to reflect the remianing time till completion.
+%%
 doing_task(Agt,Task,Remain,do(C,T,S)) :-
     member(begin_task(Agt,Task),C), task_duration(Agt,Task,Remain)
     ;
@@ -364,37 +426,71 @@ doing_task(Agt,Task,Remain,do(C,T,S)) :-
     OldRem .=. Remain-(T-SStart), \+ member(end_task(Agt,Task),C).
     
 
+%%
+%%  history_length(N,S):  length of the action histoy in a situation
+%%
+%%  This simple fluent encodes in N the number of actions that have
+%%  taken place in the history of situation S.  It is used to make this
+%%  information easily available to agents.
+%%
 history_length(N,do(_,_,S)) :-
     history_length(N1,S),
     N is N1 + 1.
 history_length(0,s0).
 
-%%  Intial Conditions
+%%
+%%  Intial Conditions for the domain
+%%
+%%  The initial conditions are specified by additional clauses for
+%%  each fluent, with the situation term set to the atom s0.  For
+%%  the most part no fluents hold in the initial situation, so 
+%%  there arent many clauses here.
+%%
+
 start(s0,0).
 
 
+
+%%
+%%  MConGolog procedures
+%%
+%%  The following are a collection of useful procedures in the domain,
+%%  from which larger programs can be built.
+%%
+
+
+%%  Ensure that the agent has control of an object
 proc(ensureHas(Agt,Obj),
      if(has_object(Agt,Obj,now),nil,acquire_object(Agt,Obj))
     ).
 
+%%  Carry out the necessary sequence of actions to place one object
+%%  inside another, releasing the destination container when done.
 proc(doPlaceIn(Agt,Obj,Dest),
      ensureHas(Agt,Obj) // ensureHas(Agt,Dest)
      : place_in(Agt,Obj,Dest)
      : release_object(Agt,Dest)
     ).
 
+%%  Nondeterministically select an object of a given type, gain control
+%%  of it, and place it inside a container object.
 proc(doPlaceTypeIn(Agt,Type,Dest),
      pi(obj,?obj_is_type(obj,Type)
             : acquire_object(Agt,obj)
             : doPlaceIn(Agt,obj,Dest))
     ).
 
+%%  Carry out the necessary actions to transfer the contents of one
+%%  container to another, relasing both when finished.
 proc(doTransfer(Agt,Source,Dest),
      ensureHas(Agt,Source) // ensureHas(Agt,Dest)
      : transfer(Agt,Source,Dest)
      : release_object(Agt,Source) // release_object(Agt,Dest)
     ).
 
+%%  Make a simple cake mixture in the specified container.
+%%  The agents to perform the various steps are selected
+%%  nondeterministically.
 proc(makeCakeMix(Dest),
      pi(agt,?agent(agt) : doPlaceTypeIn(agt,egg,Dest))
      : pi(agt,?agent(agt) : doPlaceTypeIn(agt,flour,Dest))
@@ -405,6 +501,8 @@ proc(makeCakeMix(Dest),
                            : release_object(agt,Dest))
     ).
 
+%%  Make a cake in the specified container.  This involves
+%%  making cake mix in the container, then baking it in an oven.
 proc(makeCake(Dest),
      makeCakeMix(Dest)
      : pi(myOven, ?obj_is_type(myOven,oven)
@@ -419,8 +517,56 @@ proc(makeCake(Dest),
     ).
 
 
+%%  Chop the given item then place it in the given container.
+%%  Releases control of the container when done.  An empty chopping
+%%  board is selected nondeterministically.
+proc(doChopInto(Agt,Obj,Dest),
+     ensureHas(Agt,Obj)
+     : pi(myBoard, ?obj_is_type(myBoard,board)
+                   : ?neg(contents(myBoard,_,now))
+                   : ensureHas(Agt,myBoard)
+                   : place_in(Agt,Obj,myBoard)
+                   : begin_task(Agt,chop(myBoard))
+                   : end_task(Agt,chop(myBoard))
+                   : ensureHas(Agt,Dest)
+                   : transfer(Agt,myBoard,Dest)
+                   : release_object(Agt,myBoard) // release_object(Agt,Dest)
+         )
+    ).
+
+
+%%  Make a salad in the specified container.  This involves selecting
+%%  appropriate vegetables, chopping them, placing them in the container,
+%%  and mixing briefly.
+proc(makeSalad(Dest),
+       pi(agt,pi(obj, ?obj_is_type(obj,lettuce)
+                      : acquire_object(agt,obj)
+                      : doChopInto(agt,obj,Dest)
+                )
+         )
+       //
+       pi(agt,pi(obj, ?obj_is_type(obj,tomato)
+                      : acquire_object(agt,obj)
+                      : doChopInto(agt,obj,Dest)
+                )
+         )
+      //
+      pi(agt,pi(obj, ?obj_is_type(obj,carrot)
+                      : acquire_object(agt,obj)
+                      : doChopInto(agt,obj,Dest)
+                )
+        )
+    : pi(agt, ensureHas(agt,Dest)
+              : begin_task(agt,mix(Dest,1))
+              : end_task(agt,mix(Dest,1))
+              : release_object(agt,Dest)
+        )
+    ).
+
+
+%%  Main control program - prepare a nice meal
 proc(control,
-     makeCake(bowl1) // makeCake(bowl2)
+     makeSalad(bowl1) // makeCake(bowl2)
     ).
 
 
@@ -439,6 +585,7 @@ proc(concTest,
      : ?history_length(4,now)
     ).
 
+%%  Test the operation of nondeterministic argument selection
 proc(piTest,
      acquire_object(thomas,egg1)
      : pi(obj, ?and(obj_is_type(obj,egg),neg(has_object(_,obj,now)))
