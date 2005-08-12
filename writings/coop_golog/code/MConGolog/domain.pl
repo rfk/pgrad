@@ -594,3 +594,30 @@ proc(piTest,
          )
     ).
 
+%%  Basic planning capability, from Reiter's KIA planning chapter
+proc(wsbfp(N,Goal),
+      plans(0,N,Goal)
+    ).
+
+proc(plans(M,N,Goal),
+     ?(M =< N)
+     : ( ( actionSequence(M) : ?(Goal) )
+       / ( pi(m2, ?(m2 is M + 1) : plans(m2,N,Goal)) )
+       )
+    ).
+
+proc(actionSequence(N),
+     ?(N = 0)
+     / ?(N > 0)
+       : pi(act, ?prim_action(act)
+                 : act
+                 : pi(n2, ?(n2 is N - 1)
+                          : actionSequence(n2)
+                     )
+           )
+    ).
+
+proc(doPlan,
+     wsbfp(3,has_object(thomas,egg1,now))
+    ).
+
