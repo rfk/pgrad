@@ -30,8 +30,9 @@
 :- include(domain).
 
 
-main(_) :-
-    do(control,s0,S), display(S).
-
-main :-
-    main(_).
+main(Args) :-
+    ( length(Args,0) ->
+        nl, ol_do(control,s0), nl
+    ;
+        nl, display('ERROR: No arguments can be given'), nl
+    ).

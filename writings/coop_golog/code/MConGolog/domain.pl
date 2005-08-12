@@ -36,7 +36,7 @@
 %%
 agent(thomas).
 agent(richard).
-agent(harriet).
+%agent(harriet).
 
 
 %% 

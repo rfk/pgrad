@@ -246,12 +246,12 @@ trans(while(Cond,D),S,Dp,Sp) :-
 %%      executed concurrently with the first program
 %%    * Find a concurrent action that will transition the first program
 %%      and a concurrent action that will transition the second program,
-%%      and perform both concurrently.  The remaining program if the
+%%      and perform both concurrently.  The remaining program is the
 %%      concurrent execution of the remainders of the individual programs
 %%
 trans(conc(D1,D2),S,Dp,Sp) :-
-    trans*(D1,S,Dr1,do(C1,T,S)),
-    trans*(D2,S,Dr2,do(C2,T,S)),
+    step(D1,S,Dr1,do(C1,T,S)),
+    step(D2,S,Dr2,do(C2,T,S)),
     % TODO:  discuss best semantics for concurrent execution union
     %        For the moment, I'm going with a split between natural
     %        and agent-initiated actions.  Natural actions can be
@@ -267,7 +267,8 @@ trans(conc(D1,D2),S,Dp,Sp) :-
     ;
     Dp = conc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
-    Dp = conc(D1,Dr2), trans(D2,S,Dr2,Sp).
+    Dp = conc(D1,Dr2), trans(D2,S,Dr2,Sp)
+    .
 
 %%  Prioritised concurrent execution may transition by transitioning the
 %%  first program, leaving its remainder to be executed in pconc with
@@ -442,8 +443,12 @@ show_action_history(do(C,T,S)) :-
 %%  repeatedly to find a possible next action to perform for a given program.
 %%
 step(D,S,Dp,Sp) :-
-    Sp = do(C,T,S), 
-    trans*(D,S,Dp,Sp).
+    %%  Naive implementation is simply:  trans*(D,S,Dp,do(C,T,S))
+    %%  This implementation is more efficient as it does not generate
+    %%  transitions that go beyond one action from S (which will always fail).
+    Sp = do(C,_,S), trans(D,S,Dp,Sp)
+    ;
+    trans(D,S,Dr,S), step(Dr,S,Dp,Sp).
 
 
 %%
