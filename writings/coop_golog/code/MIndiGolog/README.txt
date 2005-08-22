@@ -1,21 +1,21 @@
 
 
-The plan:  Create a ConGolog system to plan for multiple agents in the
+The plan:  Create an IndiGolog system to plan for multiple agents in the
            concurrent, temporal situation calculus with natural actions.
            It will use Prolog's theorem proving to perform regression
            and thus will inherit the closed-world assumption.
 
-           The working name for this language is MConGolog as it will
-           inherit the syntax of ConGolog but extend it for the new
+           The working name for this language is MIndiGolog as it will
+           inherit the syntax of IndiGolog but extend it for the new
            calculus.
 
            Testing will be based on the "Cooking Agents" domain, where
            several agents cooperate to prepare a meal by executing
-           recipies specified as MConGolog programs.
+           recipies specified as MIndiGolog programs.
 
 
 The files:   * sitcalc.pl - foundational axioms of the situation calculus
-             * mcongolog.pl - semantics and solver for MConGolog programs
+             * mcongolog.pl - semantics and solver for MIndiGolog programs
              * domain.pl - axiomatisation of the domain in the calculus
              * main.pl - top-level control file, pulling it all together
 

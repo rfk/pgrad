@@ -1,5 +1,5 @@
 %%
-%%  domain.pl:  Axiomatisation of the "Cooking Agents" domain for MConGolog
+%%  domain.pl:  Axiomatisation of the "Cooking Agents" domain for MIndiGolog
 %%
 %%  Author:  Ryan Kelly (rfk)
 %%
@@ -135,7 +135,7 @@ obj_is_type(Obj,Type) :-
 %%
 %%  This predicate is true when Act is the name of a primitive action
 %%  in the world.  Actions are typically parameterised in terms of the
-%%  objects they act on.  See the details of the MConGolog situation
+%%  objects they act on.  See the details of the MIndiGolog situation
 %%  calculus for further information.
 %%
 
@@ -452,7 +452,7 @@ start(s0,0).
 
 
 %%
-%%  MConGolog procedures
+%%  MIndiGolog procedures
 %%
 %%  The following are a collection of useful procedures in the domain,
 %%  from which larger programs can be built.

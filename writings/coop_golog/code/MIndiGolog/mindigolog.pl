@@ -1,5 +1,5 @@
 %%
-%%  mcongolog.pl:  ConGolog for multiple agents in the Concurrent, Temporal
+%%  mcongolog.pl:  IndiGolog for multiple agents in the Concurrent, Temporal
 %%                 Situation Calculus with Natural Actions
 %%
 %%  Author:  Ryan Kelly (rfk)
@@ -18,7 +18,7 @@
 %%
 %%    TODO:  document how programs are formed
 %%
-%%    The execution of an MConGolog program is defined by a transition
+%%    The execution of an MIndiGolog program is defined by a transition
 %%    semantics based on single-stepping and termination checking. For
 %%    a program D and a situation S, the program may be partially
 %%    executed to result in a new situation Sp and remaining program Dp
@@ -37,7 +37,7 @@
 %%    history of Sp.  This predicate will backtrack over possible transitions
 %%    until a legal execution is found, and will determine more legal
 %%    executions when it is backtracked.  This provides offline execution
-%%    (planning) for MConGolog programs.
+%%    (planning) for MIndiGolog programs.
 %%
 %%    The predicate ol_do(D,S) executes the program D in an on-line manner,
 %%    beginning in situation S.  This means that it will not backtrack over
@@ -305,7 +305,7 @@ trans(D,S,Dp,Sp) :-
 %%
 %%  syn_sugar(Din,Dout):  syntactic sugar for programs
 %%
-%%  This predicate is used to make writing MConGolog programs easer,
+%%  This predicate is used to make writing MIndiGolog programs easer,
 %%  by providing a level of syntax transformation into the canonical
 %%  program form.  If Din is a program containing an element of this
 %%  sugar, Dout is unified with the canonicalised version.
@@ -330,7 +330,7 @@ syn_sugar(Proc,pcall(Proc)) :-
 %%  holds(Cond,S):  check whether a condition holds in a situation
 %%
 %%  This predicate is used to evaluate reified condition terms from
-%%  MConGolog programs.  It recursively reduces the formula to equivalent
+%%  MIndiGolog programs.  It recursively reduces the formula to equivalent
 %%  forms which can be tested directly by the prolog theorem prover,
 %%  and hence includes the standard prolog negation-as-failure semantics.
 %%  
@@ -422,7 +422,7 @@ step(D,S,Dp,Sp) :-
 
 
 %%
-%%  do(D,S,Sp):  offline execution of MConGolog Programs
+%%  do(D,S,Sp):  offline execution of MIndiGolog Programs
 %%
 %%  This predicate takes a program D and starting situation S, and
 %%  finds a new situation Sp which can be legally reached by executing

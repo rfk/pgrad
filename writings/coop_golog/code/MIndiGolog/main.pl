@@ -1,21 +1,21 @@
 %%
-%%  main.pl:  Top-level prolog file for MConGolog
+%%  main.pl:  Top-level prolog file for MIndiGolog
 %%
 %%  Author:  Ryan Kelly (rfk)
 %%
 %%  Date Created:  28/07/05
 %%
-%%    This file is the entry-point for an MConGolog program consistint
+%%    This file is the entry-point for an MIndiGolog program consistint
 %%    of the following files:
 %%
 %%      * Axioms of the Concurrent, Temporal Situation Calculus with
 %%        Natural Actions, from sitcalc.pl
-%%      * The MConGolog semantics, from mcongolog.pl
+%%      * The MIndiGolog semantics, from mcongolog.pl
 %%      * A domain axiomatisation, from domain.pl
 %%
 %%    It imports the necessary prolog libraries and performs other
 %%    initialisation tasks.  It also provides the predicate main/1
-%%    which may be called to execute the MConGolog procedure named
+%%    which may be called to execute the MIndiGolog procedure named
 %%    'control' in an off-line fashion.
 %%
 
@@ -50,9 +50,9 @@
                  conflicts/3, start/2.
 
 %%
-%%  Provide Syntactic operators for MConGolog programs
+%%  Provide Syntactic operators for MIndiGolog programs
 %%
-%%  These operators form the "syntactic sugar" for MConGolog programs
+%%  These operators form the "syntactic sugar" for MIndiGolog programs
 %%
 :- op(660,xfy,/).  % Nondeterministic choice
 :- op(650,xfy,:).  % Sequence
@@ -72,7 +72,7 @@
 %%  main(Args):  main entry-point for program execution
 %%
 %%  This predicate is designed as the entry-point for the program,
-%%  it calls the MConGolog procedure "control" in an off-line manner.
+%%  it calls the MIndiGolog procedure "control" in an off-line manner.
 %%
 main(Args) :-
     ( length(Args,0) ->
