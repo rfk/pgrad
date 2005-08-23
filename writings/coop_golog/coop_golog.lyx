@@ -90,31 +90,35 @@ Running Example: The Cooking Agents
 \layout Standard
 
 In order to explore the cooperative execution of Golog programs in a concrete
- way, a running example is introduced and expounded throughout this paper.
- It consists of a number of agents cooperating to cook dinner.
- 
-\layout Standard
+ way, a running example is introduced and investigated throughout this paper:
+ the 
+\begin_inset Quotes eld
+\end_inset 
 
-The task will be as follows: have the agents cooperate to produce a salad,
- steak, roast potatoes and a cake by executing Golog programs representing
- the recipies for each component of the meal.
- They should make good use of the fact that there are multiple agents available
- to reduce the overall preparation time through multitasking.
+Cooking Agents
+\begin_inset Quotes erd
+\end_inset 
+
+ domain.
+ In this domain, several robotic chefs inhabit a kitchen, which they share
+ with ananimate objects such as various ingredients and utensils.
+ The agents must cooperate to produce a meal consisting of several dishes.
 \layout Standard
 
 This example is particularly suitable because the domain has explicit need
  for task specification in the form of recipies.
- For example, there may be Golog procedure describing how to prepare a salad
- and another describing how to bake a cake.
+ For example, there may be a Golog procedure describing how to prepare a
+ salad and another describing how to bake a cake.
  These are obviously task descriptions seperate from the behavioral control
  of any individual agent, and therefore amenable to cooperative execution.
 \layout Standard
 
-The example domain also embodies several simplifications which should make
- things easier for this initial investigation.
+The example domain also embodies several simplifications which make things
+ easier for this initial investigation.
  Without difficulty it may be idealised as being completely deterministic
  and fully observable.
- The agents are also in close proximity allowing full and reliable communication.
+ The agents are also in close proximity allowing complete and reliable communica
+tion.
 \layout Section
 
 Background
@@ -174,490 +178,6 @@ The foundational axioms support reasoning and induction over situation calculus
 \end_inset 
 
 .
-\layout Standard
-
-To assist in the presentation of this material, a simple robot world will
- be modelled as a running example.
- In this world there is a single robot and several inanimate objects.
- The world is laid out according to a grid so that locations can be specified
- in terms of 
-\begin_inset Formula $(x,y)$
-\end_inset 
-
- coordinate points.
- It is possible for the robot to move around the world, and to pick up and
- drop items.
- Some items may be too heavy for the robot to pick up, or fragile so that
- they break when they are dropped.
- The robot also has the ability to repair any broken items that it is holding.
-\layout Subsubsection
-
-Situations and Actions
-\layout Standard
-
-A dynamic world in the situation calculus is modelled as progressing through
- a series of 
-\emph on 
-situations 
-\emph default 
-as a result of various 
-\emph on 
-actions
-\emph default 
- being performed within the world.
- A situation corresponds to a particular history of action occurrences.
- The situation before any actions have been performed is typically denoted
- 
-\begin_inset Formula $S_{0}$
-\end_inset 
-
- and referred to as the initial situation.
- The new situation resulting from the performance of an action is obtained
- using the function 
-\begin_inset Formula $do$
-\end_inset 
-
-.
- This function takes a situation and an action as arguments, and returns
- the situation that results from performing the given action in the given
- situation.
- Actions may be parameterised and both actions and situations are first
- order terms within the language.
-\layout Standard
-
-In the example world, possible action terms would be 
-\begin_inset Formula $move(x,y)$
-\end_inset 
-
- to model the robot moving to a new location 
-\begin_inset Formula $(x,y)$
-\end_inset 
-
-, and 
-\begin_inset Formula $pickup(o)$
-\end_inset 
-
- to model the robot picking up an object 
-\begin_inset Formula $o$
-\end_inset 
-
-.
- The world is initially in situation 
-\begin_inset Formula $S_{0}$
-\end_inset 
-
-.
- If the robot's first action is to move to location 
-\begin_inset Formula $(2,3)$
-\end_inset 
-
-, the new situation would be 
-\begin_inset Formula $do(move(2,3),S_{0})$
-\end_inset 
-
-.
- If its next action is the pick up the ball, the new situation would be
- 
-\begin_inset Formula $do(pickup(Ball),do(move(2,3),S_{0}))$
-\end_inset 
-
-.
-\layout Subsubsection
-
-Fluents
-\layout Standard
-
-Statements whose truth value may change as the result of actions being performed
- are modelled by 
-\emph on 
-relational fluents
-\emph default 
-, predicates which take a situation as their final argument.
- It is also possible to define 
-\emph on 
-functional fluents
-\emph default 
-, functions which take a situation as their final argument and return a
- situation-dependent value.
- Fluents may be through of as 
-\begin_inset Quotes eld
-\end_inset 
-
-properties of the world
-\begin_inset Quotes erd
-\end_inset 
-
-.
-\layout Standard
-
-In the example world, the fluent 
-\begin_inset Formula $is\_ carrying(o,s)$
-\end_inset 
-
- could be used to indicate that the robot is carrying a particular object
- in a particular situation.
- Assuming the robot initially carries nothing, 
-\begin_inset Formula $is\_ carrying(Ball,S_{0})$
-\end_inset 
-
- would be false while 
-\begin_inset Formula $is\_ carrying(Ball,do(pickup(Ball),S_{0}))$
-\end_inset 
-
- would be true.
- The location of the robot could be modelled using a functional fluent 
-\begin_inset Formula $(x,y)=location(s)$
-\end_inset 
-
- which returns the location of the robot in a particular situation.
-\layout Subsubsection
-
-Action Preconditions and Effects
-\layout Standard
-
-It may not be possible to perform a given action in a give situation - for
- example, it is impossible to put down an object unless one is in fact carrying
- it.
- These restrictions on the performance of actions are modelled by action
- precondition axioms of the form 
-\begin_inset Formula $Poss(a,s)$
-\end_inset 
-
-, where 
-\begin_inset Formula $a$
-\end_inset 
-
- is an action and 
-\begin_inset Formula $s$
-\end_inset 
-
- a situation.
- The condition that dropping an object is only possible when one is carrying
- it would be modelled in the example world by:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(drop(o),s)\leftrightarrow is\_ carrying(o,s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-As a more complex example, the following models that the robot can carry
- only one object at a time, and that some objects are too heavy for the
- robot to lift (indicated by the predicate 
-\begin_inset Formula $heavy$
-\end_inset 
-
-):
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(pickup(o),s)\leftrightarrow(\forall z\neg is\_ carrying(z,s))\wedge\neg heavy(o)\]
-
-\end_inset 
-
-
-\layout Standard
-
-Given that an action is possible in a situation, one must specify the effects
- that performing that action would have on the world's fluents.
- This is done by specifying effect axioms.
- For example, the fact that picking up an object causes the robot to be
- carrying it can be modelled as:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(pickup(o),s)\rightarrow is\_ carrying(o,do(pickup(o),s))\]
-
-\end_inset 
-
-
-\layout Standard
-
-It is also possible to specify conditional effects, based on other properties
- of the objects under consideration.
- The following models that some objects are fragile (indicated by the predicate
- 
-\begin_inset Formula $fragile$
-\end_inset 
-
-) and dropping them cases them to be broken (indicated by the fluent 
-\begin_inset Formula $broken$
-\end_inset 
-
-):
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(drop(o),s)\wedge fragile(o)\rightarrow broken(o,do(drop(o),s))\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-The Frame Problem
-\layout Standard
-
-While the model at this stage is suitable for reasoning about the effects
- of actions, is has a critical weakness - it cannot be used to reason about
- the 
-\emph on 
-non-effects
-\emph default 
- of actions.
- For example, it is not possible to deduce that after picking up an object,
- the robot's location remains unchanged.
- This requires a so-called frame axiom of the form:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(pickup(o),s)\wedge location(s)=(x,y)\rightarrow location(do(pickup(o),s))=(x,y)\]
-
-\end_inset 
-
-
-\layout Standard
-
-The need to specify frame axioms has long been recognised as a problem in
- axiomatizing dynamic worlds (TODO:ref), as there are generally a very large
- number of such axioms.
- It is very easy for the designer to leave out a necessary frame axiom,
- or to forget to modify all appropriate axioms when a change to the world
- model is made.
-\layout Subsubsection
-
-Successor State Axioms
-\layout Standard
-
-A simple solution to the frame problem (TODO:under what circumstances?)
- was proposed by Reiter 
-\begin_inset LatexCommand \cite{reiter91frameprob}
-
-\end_inset 
-
- in the form of successor state axioms.
- It requires that the designer has enumerated as effect axioms all the ways
- in which the value of a particular fluent can be changed.
- The effect axioms affecting the value of fluent 
-\begin_inset Formula $F(\overrightarrow{x},s)$
-\end_inset 
-
- can be written in generalised form as a positive and a negative effect
- axiom:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(a,s)\wedge\gamma_{F}^{+}(\overrightarrow{x},a,s)\rightarrow F(\overrightarrow{x},do(a,s))\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(a,s)\wedge\gamma_{F}^{-}(\overrightarrow{x},a,s)\rightarrow\neg F(\overrightarrow{x},do(a,s))\]
-
-\end_inset 
-
-
-\layout Standard
-
-Here the formula 
-\begin_inset Formula $\gamma_{F}^{+}$
-\end_inset 
-
-describes the conditions under which action 
-\begin_inset Formula $a$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
-\end_inset 
-
- can make the fluent 
-\begin_inset Formula $F$
-\end_inset 
-
- become true in the successor situation 
-\begin_inset Formula $do(a,s)$
-\end_inset 
-
-.
- Likewise, 
-\begin_inset Formula $\gamma_{F}^{-}$
-\end_inset 
-
- describes the conditions under which performing action 
-\begin_inset Formula $a$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
-\end_inset 
-
- will make fluent 
-\begin_inset Formula $F$
-\end_inset 
-
- false in the successor situation.
-\layout Standard
-
-Assuming that this pair of axioms describe all the ways in which fluent
- 
-\begin_inset Formula $F$
-\end_inset 
-
- can change value, they can be re-written as a single axiom:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(a,s)\rightarrow\left[F(\overrightarrow{x},do(a,s))\leftrightarrow\gamma_{F}^{+}(\overrightarrow{x},a,s)\vee\left(F(\overrightarrow{x},s)\wedge\neg\gamma_{F}^{-}(\overrightarrow{x},a,s)\right)\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-In words this states: 
-\begin_inset Quotes eld
-\end_inset 
-
-given that is is possible to perform action 
-\begin_inset Formula $a$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
-\end_inset 
-
-, the fluent 
-\begin_inset Formula $F$
-\end_inset 
-
- would be true in the resulting situation 
-\begin_inset Formula $do(a,s)$
-\end_inset 
-
- if and only if performing 
-\begin_inset Formula $a$
-\end_inset 
-
- in 
-\begin_inset Formula $s$
-\end_inset 
-
- would make it true, or it is true in situation 
-\begin_inset Formula $s$
-\end_inset 
-
- and performing 
-\begin_inset Formula $a$
-\end_inset 
-
- in 
-\begin_inset Formula $s$
-\end_inset 
-
- would not make it false.
-\begin_inset Quotes erd
-\end_inset 
-
-
-\layout Standard
-
-By way of example, the fluent 
-\begin_inset Formula $broken$
-\end_inset 
-
- introduced above can be given the following successor state axiom:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(a,s)\rightarrow\left[broken(o,do(a,s)\leftrightarrow\right.\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-a=drop(o)\wedge fragile(o)\,\,\vee\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\left.broken(o,s)\wedge a\neq repair(o)\right]\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-The Initial Situation
-\layout Standard
-
-Finally, the designer must specify the properties of the initial situation.
- This is done simply by making assertions about 
-\begin_inset Formula $S_{0}$
-\end_inset 
-
-.
- The following statements model that initially, the robot carries nothing,
- is at location 
-\begin_inset Formula $(0,0)$
-\end_inset 
-
-, and there are no broken objects:
-\layout Standard
-
-
-\begin_inset Formula \[
-\forall z\,\neg is\_ carrying(z,S_{0})\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-location(S_{0})=(0,0)\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\forall o\,\neg broken(o,S_{0})\]
-
-\end_inset 
-
-
-\layout Standard
-
-Continuing as shown in these examples, it is possible to obtain a full axiomatis
-ation of a dynamic world in first order logic.
- This can then be used to reason about how sequences of actions affect propertie
-s of the world.
 \layout Subsection
 
 Golog
@@ -685,27 +205,19 @@ Domain Axiomatisation
 As described above, the first task in implementing a Golog-based system
  is to produce an appropriate axiomatisation of the domain in the Situation
  Calculus.
- Ideally this will be done in a principled way which can be easily applied
- to other domains.
  For the cooking agents example, there are a number of factors which make
  the axiomatisation challenging: 
 \layout Itemize
 
-Consumables: The agents should have access to a limitless supply of consumables
- such as lettuce, flour and eggs.
- However, each individual instance of a consumable needs to be a first-order
- object and thus have a unique name.
-\layout Itemize
-
-Resources: The agents will face conention for resources such as the oven,
+Resources: The agents will be required to utilise consumable resourses such
+ as ingredients.
+ They will also face conention for physical resources such as the oven,
  mixing bowls and chopping boards.
- There should be a principled way to represent these limited resources and
- the acquisition/relase of them within the Situation Calculus.
 \layout Itemize
 
 Continuous Processes: The domain requires continuous processes such as the
- setting of a timer to control the baking time of a cake.
- These processes will not necessarily end under the control of the agent.
+ progress of a timer which is set to time the baking of a cake.
+ These processes will not necessarily end under the control of an agent.
 \layout Itemize
 
 Natural Actions: These are predictable actions which occur outside of the
@@ -804,8 +316,8 @@ However, there appears to be no account of a combination of these two models
 .
 \layout Standard
 
-Recall that the semantics of a ConGolog program s given in terms of a transition
- system based on predicates 
+Recall that the semantics of a ConGolog program is given in terms of a transitio
+n system based on predicates 
 \begin_inset Formula $Trans$
 \end_inset 
 
@@ -957,7 +469,6 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
-
  
 
 \end_inset 
@@ -979,12 +490,102 @@ planning_concurrent_golog
 Time
 \layout Standard
 
-Concurrent, Temporal sitcalc similar to Reiter (KiA), but with temporal
- component attached to situations as in 
+There have been several efforts to incorporate a temporal component into
+ the situation calculus.
+ Pinto 
+\begin_inset LatexCommand \cite{pinto94temporal}
+
+\end_inset 
+
+ introduced the functions 
+\begin_inset Formula $start(s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $end(s,a)$
+\end_inset 
+
+ which range over the real numbers and give the starting and ending time
+ of a situation respectively.
+ This was primarily designed for reasoning about the within a sequence of
+ 
 \begin_inset Quotes eld
 \end_inset 
 
-concurrent_flux
+actual situations
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ Reiter 
+\begin_inset LatexCommand \cite{reiter01kia,reiter96sc_nat_conc}
+
+\end_inset 
+
+ simplified this scheme by including within each action an explicit temporal
+ argument indicating the time at which it was performed.
+ While this is useful when specifying precise times for actions, it requires
+ additional clauses to ensure that concurrently executed actions all occur
+ at the same time.
+\layout Standard
+
+In work on the related Fluent Calculus, Martin 
+\begin_inset LatexCommand \cite{martin03conc_flux}
+
+\end_inset 
+
+ attaches the explicit occurance time not to actions but to situations,
+ an approach which was also adopted for this paper.
+ The successor situation predicate 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ becomes 
+\begin_inset Formula $do(a,t,s)$
+\end_inset 
+
+, to indicate 
+\begin_inset Quotes eld
+\end_inset 
+
+perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+ at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ Likewise, the possibility predicate 
+\begin_inset Formula $poss(a,s)$
+\end_inset 
+
+ becomes 
+\begin_inset Formula $poss(a,t,s)$
+\end_inset 
+
+, meaning 
+\begin_inset Quotes eld
+\end_inset 
+
+it is possible to perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+ at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+
 \begin_inset Quotes erd
 \end_inset 
 
@@ -992,42 +593,6 @@ concurrent_flux
 \layout Subsection
 
 The Domain
-\layout Standard
-
-The domain contains objects of types ingredient, container and utensil.
- Examples include eggs and flour, ovens and chopping boards, knives and
- spoons.
- Containers can contain ingredients or other containers in various states.
- E.g.
- a bowl might contain [egg1,egg2,flour1] then after mixing contain mixed(egg1,eg
-g2,flour1).
- If we put it in the oven, it might then contain baked(mixed(egg1,egg2,flour1),1
-80,30).
- An agent can acquire an object (bring under its exclusive control) if no-one
- else has aquired it.
-\layout Standard
-
-Fluents:
-\layout Itemize
-
-has_resource(Agent,Resource) indicating control over the named resource.
-\layout Itemize
-
-timer_set(ID,Duration) indicating a timer is running with Duration time
- remaining
-\layout Itemize
-
-contents(Container,Contents) indicating the contents of a container.
- Contents is a resource term as described above.
-\layout Itemize
-
-doing_task(Agent,Task,Params) indicating an agent is occupied with some
- task, e.g.
- chopping, mixing.
- We assume they can only do one task at a time.
-\layout Standard
-
-How does contents(Container,Contents) change?
 \layout Section
 
 References
@@ -1241,7 +806,6 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
-
  
 
 \end_inset 
