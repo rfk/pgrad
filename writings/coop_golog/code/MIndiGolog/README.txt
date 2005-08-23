@@ -51,6 +51,8 @@ The environment:   Development is being done under Ciao prolog, as it
            blocking mechanism akin to if(test,act,false) but simpler.
            
     TODO:  produce formal proof that trans() generates only legal situations
+           Possibly use results from "Plannig with Natural Actions in the
+           Situation Calculus" to help out.
            
 
 
