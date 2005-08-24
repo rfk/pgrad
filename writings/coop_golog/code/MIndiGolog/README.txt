@@ -15,7 +15,7 @@ The plan:  Create an IndiGolog system to plan for multiple agents in the
 
 
 The files:   * sitcalc.pl - foundational axioms of the situation calculus
-             * mcongolog.pl - semantics and solver for MIndiGolog programs
+             * mindigolog.pl - semantics and solver for MIndiGolog programs
              * domain.pl - axiomatisation of the domain in the calculus
              * main.pl - top-level control file, pulling it all together
 
@@ -53,6 +53,10 @@ The environment:   Development is being done under Ciao prolog, as it
     TODO:  produce formal proof that trans() generates only legal situations
            Possibly use results from "Plannig with Natural Actions in the
            Situation Calculus" to help out.
+
+    TODO:  Grrr, TConGolog beat us to the new // semantics.  Reference them.
+
+    TODO:  finish axiomatisation of oven usage
            
 
 

@@ -10,7 +10,7 @@
 %%
 %%      * Axioms of the Concurrent, Temporal Situation Calculus with
 %%        Natural Actions, from sitcalc.pl
-%%      * The MIndiGolog semantics, from mcongolog.pl
+%%      * The MIndiGolog semantics, from mindigolo.pl
 %%      * A domain axiomatisation, from domain.pl
 %%
 %%    It imports the necessary prolog libraries and performs other
@@ -63,7 +63,7 @@
 %%
 %%  Include the relevant definitions
 %%
-:- include(mcongolog).
+:- include(mindigolog).
 :- include(sitcalc).
 :- include(domain).
 

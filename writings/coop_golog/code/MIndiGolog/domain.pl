@@ -578,11 +578,8 @@ proc(timerTest,
     ).
 
 %%  Tests the operation of concurrency with nondeterminism
-%%  The test of history_length prunes solutions that dont make
-%%  full use of the concurrency (there are LOTS!).
 proc(concTest,
      doPlaceTypeIn(thomas,egg,bowl1) // doPlaceTypeIn(richard,egg,bowl2)
-     : ?history_length(4,now)
     ).
 
 %%  Test the operation of nondeterministic argument selection

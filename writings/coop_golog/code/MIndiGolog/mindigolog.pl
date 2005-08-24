@@ -1,6 +1,6 @@
 %%
-%%  mcongolog.pl:  IndiGolog for multiple agents in the Concurrent, Temporal
-%%                 Situation Calculus with Natural Actions
+%%  mindigolog.pl:  IndiGolog for multiple agents in the Concurrent, Temporal
+%%                  Situation Calculus with Natural Actions
 %%
 %%  Author:  Ryan Kelly (rfk)
 %%
@@ -123,6 +123,11 @@ final(cstar(_),_).
 %%  substituted appropriately, may terminate.
 final(pcall(PArgs),S) :-
     sub(now,S,PArgs,PArgsS), proc(PArgsS,P), final(P,S).
+
+%%  An offline search can terminate if the program to be searched can
+%%  terminate.
+final(search(D),S) :-
+    final(D,S).
 
 %%  A program is also final if it contains syntactic sugar, and is equivalent
 %%  to a program that is final.
@@ -288,9 +293,13 @@ trans(cstar(D),S,Dp,Sp) :-
 
 %%  A proceduce call may transition if the body program, with arguments
 %%  substituted in, may transition.
-trans(pcall(PArgs),S,Dr,Sr) :-
+trans(pcall(PArgs),S,Dp,Sp) :-
     sub(now,S,PArgs,PArgsS),
-    proc(PArgsS,P), trans(P,S,Dr,Sr).
+    proc(PArgsS,P), trans(P,S,Dp,Sp).
+
+%%  TODO:  a search() operator similar to IndiGolog.
+%trans(search(D),S,Dp,Sp) :-
+%    do(D,S,S2),
 
 %%  A program may also transition if it contains syntactic sugar, and is
 %%  equivalent to a program that may transition.
@@ -298,8 +307,6 @@ trans(D,S,Dp,Sp) :-
     syn_sugar(D,Ds),
     trans(Ds,S,Dp,Sp).
 
-
-%%  TODO:  a search() operator similar to IndiGolog.
 
 
 %%
