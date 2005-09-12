@@ -35,6 +35,12 @@
 :- use_module(library('clpq/eval_q')).
 :- use_package(library('clpqr-common/simplex')).
 
+%%
+%%  Load Teams Functionality
+%%
+%%  The teams package allows a query to be executed by distributed agents.
+%%
+:- use_package(library(teams)).
 
 %%
 %%  Load useful prolog predicates

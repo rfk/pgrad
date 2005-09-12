@@ -255,8 +255,7 @@ trans(while(Cond,D),S,Dp,Sp) :-
 %%      concurrent execution of the remainders of the individual programs
 %%
 trans(conc(D1,D2),S,Dp,Sp) :-
-    step(D1,S,Dr1,do(C1,T,S)),
-    step(D2,S,Dr2,do(C2,T,S)),
+    step(D1,S,Dr1,do(C1,T,S)) , step(D2,S,Dr2,do(C2,T,S)),
     % TODO:  discuss best semantics for concurrent execution union
     %        For the moment, I'm going with a split between natural
     %        and agent-initiated actions.  Natural actions can be
