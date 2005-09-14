@@ -47,10 +47,28 @@ Give semantics as combinations of previous work
 \layout Itemize
 
 Prove interesting things about semantics, e.g.
- only generates executable situations
+ only generates executable situations - step up from 
+\begin_inset Quotes eld
+\end_inset 
+
+Planning with Natural Actions in the Situation Calculus
+\begin_inset Quotes erd
+\end_inset 
+
+
 \layout Itemize
 
 Make simple suggestions on how to execute using distrubted system
+\layout Itemize
+
+TODO: discuss LNTPC, needed for proof of generating legal situations
+\layout Itemize
+
+TODO: 
+\begin_inset Formula $lntp(s,t)\rightarrow start(s)\leq t$
+\end_inset 
+
+
 \layout Section
 
 Introduction
@@ -663,7 +681,6 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
-
  
 
 \end_inset 
@@ -783,10 +800,10 @@ An important concept when dealing with natural actions it the least natural
 \layout Standard
 
 
-\begin_inset Formula \begin{eqnarray*}
-lntp(s,t) & \equiv & \exists a[\end{eqnarray*}
-
-natural(a)\wedge Poss(a,t,s)]\wedge
+\begin_inset Formula \[
+\begin{array}{ccc}
+lntp(s,t) & \equiv & \exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
+ &  & \forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\end{array}\]
 
 \end_inset 
 
@@ -836,44 +853,87 @@ The following gives a transition semantics for MConGolog by defining the
 \end_inset 
 
  for each of the basic program constructs.
-\layout Enumerate
+\layout Subsubsection
 
 Empty Proram:
-\newline 
+\layout Standard
+
+An empty program is represented by the literal 
+\begin_inset Formula $nil$
+\end_inset 
+
+.
+ There are no transitions from an empty program and such a program is always
+ final.
+\layout Standard
+
 
 \begin_inset Formula \[
 Trans(nil,s,\delta',s')\equiv False\]
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(nil,s)\equiv True\]
 
 \end_inset 
 
 
+\layout Subsubsection
+
+(Concurrent) Primitive Actions 
+\layout Standard
+
+A single action term represents a valid program, which can never be a final
+ configuration.
+ The possible transitions for such a program depend on whether the accompanying
+ situation has a least natural time point.
+ If not, the only legal transition is to perform the action at some time
+ 
+\begin_inset Formula $t$
+\end_inset 
+
+ greater than or equal to the start of the situation.
+ If there is an LNTP, a legal transition can be produced in one of three
+ ways:
 \layout Enumerate
 
-(Concurrent) Primitive Actions
-\newline 
+Perform the action at some time 
+\begin_inset Formula $t$
+\end_inset 
+
+ before the LNTP, leaving an empty program and new situation
+\layout Enumerate
+
+Perform the action at the LNTP 
+\begin_inset Formula $t_{n}$
+\end_inset 
+
+, concurrently with the natural actions which must occur at that time, leaving
+ an empty program and new situation
+\layout Enumerate
+
+Allow the natural actions to occur at the LNTP, producing a new situation
+ and leaving the program unchanged
+\layout Standard
+
 
 \begin_inset Formula \[
-Trans(c,s,\delta',s')\equiv Poss(c[s],s)\wedge\delta'=nil\wedge s'=do(c[s],s)\]
+\begin{array}{ccc}
+Trans(c,s,\delta',s')\equiv & \exists t_{n}.\left[lntp(s,t_{n})\wedge\right.\\
+ & \exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\\
+ & s'=do(c,t,s)\wedge\delta'=nil\\
+ &  & \vee\\
+ & \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
+ & \left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right. & \vee\\
+ & \left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right]\\
+ &  & \vee\\
+ & \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
+ & \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
 
 \end_inset 
 
-
-\begin_inset Formula \begin{eqnarray*}
-Trans(c,s,\delta',s') & \equiv & (\exists t_{n}).\left[lntp(s,t_{n})\wedge\right\\\
- &  & some\end{eqnarray*}
-
-\end_inset 
-
-
-\newline 
  
 \newline 
 
@@ -883,29 +943,29 @@ Final(c,s)\equiv False\]
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Wait/test actions:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \[
 Trans(\phi?,s,\delta',s')\equiv\phi[s]\wedge\delta'=nil\wedge s'=s\]
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\phi?,s)\equiv False\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Sequence:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \begin{eqnarray*}
 Trans(\delta_{1};\delta_{2},s,\delta',s')\equiv & \exists\gamma\delta'=(\gamma;\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
@@ -913,19 +973,18 @@ Trans(\delta_{1};\delta_{2},s,\delta',s')\equiv & \exists\gamma\delta'=(\gamma;\
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\delta_{1};\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
-Nondeterministic brank:
-\newline 
+Nondeterministic branch:
+\layout Standard
+
 
 \begin_inset Formula \begin{eqnarray*}
 Trans(\delta_{1}|\delta_{2},s,\delta',s')\equiv & Trans(\delta_{1},s,\delta',s') & \vee\\
@@ -933,19 +992,18 @@ Trans(\delta_{1}|\delta_{2},s,\delta',s')\equiv & Trans(\delta_{1},s,\delta',s')
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\delta_{1}|\delta_{2},s)\equiv Final(\delta_{1},s)\vee Final(\delta_{2},s)\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Nondeterministic choice of argument:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \[
 Trans(\pi v.\delta,x,\delta',s)\equiv\exists x.Trans(\delta_{x}^{v},s,\delta',s')\]
@@ -959,31 +1017,29 @@ Final(\pi v.\delta,s)\equiv\exists x.Final(\delta_{x}^{v},s)\]
 \end_inset 
 
 
-\newline 
-
-\layout Enumerate
+\layout Subsubsection
 
 Iteration:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \[
 Trans(\delta^{*},s,\delta',s')\equiv\exists\gamma.(\delta'=\gamma;\delta^{*})\wedge Trans(\delta,s,\gamma,s')\]
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\delta^{*},s)\equiv True\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Synchonised Conditional:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \begin{eqnarray*}
 Trans(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s,\delta',s')\equiv & \phi[s]\wedge Trans(\delta_{1},s,\delta',s') & \vee\\
@@ -991,9 +1047,7 @@ Trans(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s,\delta',s'
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \begin{eqnarray*}
 Final(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s)\equiv & \phi[s]\wedge Final(\delta_{1},s) & \vee\\
  & \neg\phi[s]\wedge Final(\delta_{1},s)\end{eqnarray*}
@@ -1001,10 +1055,11 @@ Final(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s)\equiv & \
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Synchronised While:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \begin{eqnarray*}
 Trans(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv & \exists\gamma.(\delta'=\gamma;\mathbf{while}\phi\mathbf{do}\delta) & \wedge\\
@@ -1012,44 +1067,41 @@ Trans(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv & \exists\gamma.(\
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv\neg\phi[s]\wedge Final(\delta,s)\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Concurrent Execution:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \begin{eqnarray*}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
  & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
- & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
- & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
- & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
-
+ & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
+ & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
+ & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
  
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\delta_{1}||\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Prioritised Concurrency:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \begin{eqnarray*}
 Trans(\delta_{1}\gg\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma\gg\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
@@ -1057,30 +1109,308 @@ Trans(\delta_{1}\gg\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamm
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\delta_{1}\gg\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
 
 \end_inset 
 
 
-\layout Enumerate
+\layout Subsubsection
 
 Concurrent Iteration:
-\newline 
+\layout Standard
+
 
 \begin_inset Formula \[
 Trans(\delta^{||},s,\delta',s')\equiv\exists\gamma.\delta'=(\gamma||\delta^{||})\wedge Trans(\delta,s,\gamma,s')\]
 
 \end_inset 
 
-
-\newline 
-
+ 
 \begin_inset Formula \[
 Final(\delta^{||},s)\equiv True\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Properties of the Semantics
+\layout Standard
+
+From the formal semantics presented above, it is possible to prove useful
+ properties of the proposed language.
+ In particular, we seek to prove that if a program starts in a legal situation,
+ all executions of the program will produce legal situations.
+\layout Standard
+
+To show this, first notice that only two transition rules directly modify
+ the situation term - execution of a primitive action, and concurrent execution.
+ All other rules modify the situation term by further use of the 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ predicate.
+ Thus, it suffices to show that these two rules will only produce legal
+ situations.
+ Recall the definition of 
+\begin_inset Formula $legal(s)$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{cc}
+legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
+ & start(s)\leq t\wedge\\
+ & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
+ & \left[a\in c\vee t<t_{a}\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Consider first the case of 
+\begin_inset Formula $Trans(\delta_{1}||\delta_{2},s,\delta',s')$
+\end_inset 
+
+.
+ The only part of interested is the conjunction which directly produces
+ a modified situation 
+\begin_inset Formula $s'=do(c_{1}\cup c_{2},t,s)$
+\end_inset 
+
+.
+ Assuming that 
+\begin_inset Formula $s$
+\end_inset 
+
+ is a legal situation, we seek to prove that 
+\begin_inset Formula $s'$
+\end_inset 
+
+ must be legal.
+ Assuming that all other instances of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ produce legal situations, 
+\begin_inset Formula $Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))$
+\end_inset 
+
+ and 
+\begin_inset Formula $Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))$
+\end_inset 
+
+ will produce legal situations 
+\begin_inset Formula $do(c_{1},t,s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $do(c_{2},t,s)$
+\end_inset 
+
+.
+\layout Standard
+
+From 
+\begin_inset Formula $legal(do(c_{1},t,s))$
+\end_inset 
+
+ it can be inferred that:
+\layout Standard
+
+
+\begin_inset Formula \[
+legal(s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+start(s)\leq t\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\vee t<t_{a}\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+This implies that:
+\layout Standard
+
+
+\begin_inset Formula \[
+(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\cup c_{2}\vee t<t_{a}\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+The definition of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ further requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c_{1}\cup c_{2},t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Thus all four conjuncts necessary prove 
+\begin_inset Formula $legal(do(c_{1}\cup c_{2},t,s))$
+\end_inset 
+
+ are true, and this rule generates only legal situations.
+\layout Standard
+
+Turning attention to the 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ rule for primitive actions there are four disjuncts to consider, each of
+ which may produce a new situation term.
+ The first requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists t.\left[t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+From this it is immediately clear that:
+\layout Standard
+
+
+\begin_inset Formula \[
+start(s)\leq t\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c,t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Using the definition of 
+\begin_inset Formula $lntp(s,t_{n})$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\exists a\left[natural(a)\wedge Poss(a,t_{n},s)\right]\wedge\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Since 
+\begin_inset Formula $t<t_{n}$
+\end_inset 
+
+, this gives:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow a\in c\vee t\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Assuming 
+\begin_inset Formula $legal(s)$
+\end_inset 
+
+, these conjuncts are sufficient to establish 
+\begin_inset Formula $legal(do(c,t,s))$
+\end_inset 
+
+.
+ The next disjunct requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge Poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Using this along with the definition of LNTP, it is clear that:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c\cup cn,t_{n},s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+start(s)\leq t_{n}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\]
 
 \end_inset 
 
