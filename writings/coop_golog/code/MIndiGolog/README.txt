@@ -54,8 +54,6 @@ The environment:   Development is being done under Ciao prolog, as it
            Possibly use results from "Plannig with Natural Actions in the
            Situation Calculus" to help out.
 
-    TODO:  Grrr, TConGolog beat us to the new // semantics.  Reference them.
-
     TODO:  finish axiomatisation of oven usage
            
 

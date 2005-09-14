@@ -37,6 +37,22 @@ The Golog family of programming languages are designed for high-level control
  agents to cooperate in executing a Golog plan.
 \layout Section
 
+TASKS
+\layout Itemize
+
+Motivate the use of Golog in multiagent teams
+\layout Itemize
+
+Give semantics as combinations of previous work
+\layout Itemize
+
+Prove interesting things about semantics, e.g.
+ only generates executable situations
+\layout Itemize
+
+Make simple suggestions on how to execute using distrubted system
+\layout Section
+
 Introduction
 \layout Standard
 
@@ -84,6 +100,34 @@ problem
  agents may cooperate in order to execute a single Golog program that specified
  what is to be achieved.
  Exploring this idea is the purpose of this paper.
+\layout Standard
+
+The growing use of Golog shows that, as suggested in 
+\begin_inset LatexCommand \cite{lesperance2000_igl_ext}
+
+\end_inset 
+
+, 
+\emph on 
+high-level program execution
+\emph default 
+ is emerging as a practical alternative to traditional plan synthesis.
+ Rather than a planner finding a legal sequence of actions leading from
+ an initial state to a state in which some goals are achieved, the task
+ is instead to find a sequence of actions which constitute a legal execution
+ of some high-level program.
+ As the amount of non-determinism is controlled by the programmer, this
+ task can range from simply executing a fully-deterministic program to synthesis
+ing actions from a completely non-deterministic program, a task equivalent
+ to traditional planning.
+ Indeed, in 
+\begin_inset LatexCommand \cite{Finzi00}
+
+\end_inset 
+
+ Finzi et.
+ al.
+ show that an effective planning system can be build using Golog.
 \layout Subsection
 
 Running Example: The Cooking Agents
@@ -101,7 +145,7 @@ Cooking Agents
 
  domain.
  In this domain, several robotic chefs inhabit a kitchen, which they share
- with ananimate objects such as various ingredients and utensils.
+ with inanimate objects such as various ingredients, appliances and utensils.
  The agents must cooperate to produce a meal consisting of several dishes.
 \layout Standard
 
@@ -119,6 +163,7 @@ The example domain also embodies several simplifications which make things
  and fully observable.
  The agents are also in close proximity allowing complete and reliable communica
 tion.
+ The details of this example domain will be developed through the paper.
 \layout Section
 
 Background
@@ -146,8 +191,7 @@ g and reasoning about dynamically changing worlds, introduced by McCarthy
 \layout Standard
 
 A representation of a dynamic world in the situation calculus consists of
- first order logic statements capturing the following, which will be explained
- further in later sections:
+ first order logic statements capturing the following:
 \layout Itemize
 
 The actions that can be performed in the world
@@ -168,16 +212,50 @@ Axioms describing the initial world situation
 The foundational axioms of the situation calculus
 \layout Standard
 
-The foundational axioms support reasoning and induction over situation calculus
- models.
- Since they will not be referenced in this paper, they are not repeated
- here.
+Only an overview of these concepts is presented here.
  A detailed treatment may be found in 
 \begin_inset LatexCommand \cite{reiter01kia}
 
 \end_inset 
 
 .
+\layout Standard
+
+Actions are literals in the logic representing the ways in which the world
+ can be changed.
+ If an action does not occur, the world does not change.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+state of the world
+\begin_inset Quotes erd
+\end_inset 
+
+ is represented as a situation, which is the history of actions that have
+ been performed so far, with the initial situation represented by the term
+ 
+\begin_inset Formula $S_{0}$
+\end_inset 
+
+.
+ Terms representing other situations are constructed using the function
+ 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ which gives the situation resulting from performing action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+\layout Standard
+
+TODO: finish this
 \layout Subsection
 
 Golog
@@ -191,7 +269,7 @@ Golog (short for alGOl in LOGic) is a declarative programming language based
 \end_inset 
 
 .
- It combines the primitive actions frm the situation calculus description
+ It combines the primitive actions from the situation calculus description
  of the world into high-level programming constructs such as while-loops,
  if-then-else clauses, and nondeterministic choice.
 \layout Standard
@@ -257,6 +335,128 @@ The work of Cholvy et al
  TODO:expand, find proper ref.
 \layout Subsection
 
+Time
+\layout Standard
+
+There have been several efforts to incorporate a temporal component into
+ the situation calculus.
+ Pinto 
+\begin_inset LatexCommand \cite{pinto94temporal}
+
+\end_inset 
+
+ introduced the functions 
+\begin_inset Formula $start(s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $end(s,a)$
+\end_inset 
+
+ which range over the real numbers and give the starting and ending time
+ of a situation respectively.
+ This was primarily designed for reasoning about the within a sequence of
+ 
+\begin_inset Quotes eld
+\end_inset 
+
+actual situations
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ Reiter 
+\begin_inset LatexCommand \cite{reiter01kia,reiter96sc_nat_conc}
+
+\end_inset 
+
+ simplified this scheme by including within each action an explicit temporal
+ argument indicating the time at which it was performed.
+ While this is useful when specifying precise times for actions, it requires
+ additional clauses to ensure that concurrently executed actions all occur
+ at the same time.
+\layout Standard
+
+In work on the related Fluent Calculus, Martin 
+\begin_inset LatexCommand \cite{martin03conc_flux}
+
+\end_inset 
+
+ attaches the explicit occurance time not to actions but to situations,
+ an approach which was also adopted for this paper.
+ The successor situation predicate 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ becomes 
+\begin_inset Formula $do(a,t,s)$
+\end_inset 
+
+, to indicate 
+\begin_inset Quotes eld
+\end_inset 
+
+perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+ at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ Likewise, the possibility predicate 
+\begin_inset Formula $poss(a,s)$
+\end_inset 
+
+ becomes 
+\begin_inset Formula $poss(a,t,s)$
+\end_inset 
+
+, meaning 
+\begin_inset Quotes eld
+\end_inset 
+
+it is possible to perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+ at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ The function 
+\begin_inset Formula $start(s)$
+\end_inset 
+
+ is added which gives the start time of a situation:
+\layout Standard
+
+
+\begin_inset Formula \[
+start(do(a,t,s))=t\]
+
+\end_inset 
+
+
+\layout Standard
+
+Note that the start time of the initial situation need not be defined.
+\layout Subsection
+
 Concurrency
 \layout Standard
 
@@ -267,9 +467,9 @@ The notion of concurrently executing multiple high-level programs is given
 \end_inset 
 
  with the development of ConGolog.
- As discussed above, this adds support for prioritized concurrency and interrupt
-s to the standard Golog semantics by means of interleaving of primitive
- actions.
+ This work adds support for prioritized concurrency and interrupts to the
+ standard Golog semantics by means of interleaving of primitive actions,
+ an approach which will be used in this paper.
 \layout Standard
 
 The work of 
@@ -282,38 +482,32 @@ The work of
 
 \end_inset 
 
- provides a suitable extension to the situation calculus in which many actions
- may be performed at a single time.
- This is particularly important the a multi-agent system in order to expoit
+ provides a suitable extension to the situation calculus in which many primitive
+ actions may be performed at a single time.
+ This is particularly important for a multi-agent system in order to expoit
  the potential for parallel execution provided by multiple agents.
+ Here the basic action terms are replaced with sets of actions, TODO explain
+ how it affects the predicates.
 \layout Standard
 
-In 
-\begin_inset LatexCommand \cite{reiter01kia}
+These two approaches were first combined by Baier and Pinto 
+\begin_inset LatexCommand \cite{pinto99tcongolog}
 
 \end_inset 
 
-, Reiter provides a simple Golog planner for an eight-armed agent a blocks
- world (the OCTOPUS example).
- This could equivalently have been viewed as a system of eight independent
- agents and a centralised planner.
- 
-\layout Standard
-
-However, there appears to be no account of a combination of these two models
- of concurrency.
- We provide a simple combination here, by modifying the transition semantics
- for ConGolog given in 
+ to give the language TConGolog, by modifying the transition semantics for
+ ConGolog given in 
 \begin_inset LatexCommand \cite{giacomo00congolog}
 
 \end_inset 
 
- to act on concurrent action terms as axiomatised in 
+ to act on sets of concurrent action terms as axiomatised in 
 \begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
 \end_inset 
 
 .
+ Theirs is equivalent to the approach taken below.
 \layout Standard
 
 Recall that the semantics of a ConGolog program is given in terms of a transitio
@@ -469,6 +663,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
+
  
 
 \end_inset 
@@ -476,137 +671,159 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
 
 \layout Standard
 
-(TODO: also reference 
-\begin_inset Quotes eld
+This is equivalent to the semantics given in 
+\begin_inset LatexCommand \cite{pinto99tcongolog}
+
 \end_inset 
 
-planning_concurrent_golog
-\begin_inset Quotes erd
-\end_inset 
-
- which does a similar thing using the Do() macro semantics).
-\layout Subsection
-
-Time
+.
 \layout Standard
 
-There have been several efforts to incorporate a temporal component into
- the situation calculus.
- Pinto 
+TODO: precondition interaction and the conflicts() predicate
+\layout Subsection
+
+Natural Actions
+\layout Standard
+
+Natural actions are a special class of exogenous actions, those actions
+ which occur outsite of the agent's control.
+ Introduced to the situation calculus by Pinto 
 \begin_inset LatexCommand \cite{pinto94temporal}
 
 \end_inset 
 
- introduced the functions 
-\begin_inset Formula $start(s)$
-\end_inset 
-
- and 
-\begin_inset Formula $end(s,a)$
-\end_inset 
-
- which range over the real numbers and give the starting and ending time
- of a situation respectively.
- This was primarily designed for reasoning about the within a sequence of
- 
-\begin_inset Quotes eld
-\end_inset 
-
-actual situations
-\begin_inset Quotes erd
-\end_inset 
-
-.
- Reiter 
-\begin_inset LatexCommand \cite{reiter01kia,reiter96sc_nat_conc}
+ and expanded by Reiter 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc,reiter01kia}
 
 \end_inset 
 
- simplified this scheme by including within each action an explicit temporal
- argument indicating the time at which it was performed.
- While this is useful when specifying precise times for actions, it requires
- additional clauses to ensure that concurrently executed actions all occur
- at the same time.
+, they are classified according to the following requirement: natural actions
+ are exogenous actions which must occur that their predicted times, provided
+ no earlier actions prevent them from occuring.
+ For example, the action of a ball bouncing when it reaches the ground is
+ a natural action, which may be prevented by catching the ball.
 \layout Standard
 
-In work on the related Fluent Calculus, Martin 
+We adopt the methodology of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+, suitably modified for our alternate alternate encoding of time (again,
+ this is similar to the approach of 
 \begin_inset LatexCommand \cite{martin03conc_flux}
 
 \end_inset 
 
- attaches the explicit occurance time not to actions but to situations,
- an approach which was also adopted for this paper.
- The successor situation predicate 
-\begin_inset Formula $do(a,s)$
+).
+ Each natural action is indicated by the predicate 
+\begin_inset Formula $natural(a)$
 \end_inset 
 
- becomes 
-\begin_inset Formula $do(a,t,s)$
-\end_inset 
-
-, to indicate 
-\begin_inset Quotes eld
-\end_inset 
-
-perform action 
+, which is true precisely when 
 \begin_inset Formula $a$
 \end_inset 
 
- at time 
-\begin_inset Formula $t$
+ is a natural action.
+ The times at which natural actions may occur are specified by the 
+\begin_inset Formula $Poss$
 \end_inset 
 
- in situation 
-\begin_inset Formula $s$
+ predicate, as with agent-initiated actions:
+\layout Standard
+
+TODO: example here
+\layout Standard
+
+To enforce the requirement that natural actions must occur provided nothing
+ prevents them, a predicate 
+\begin_inset Formula $legal(s)$
 \end_inset 
 
-.
- Likewise, the possibility predicate 
-\begin_inset Formula $poss(a,s)$
-\end_inset 
+ is introduced which is true only for situations which respect this requirement:
+\layout Standard
 
- becomes 
-\begin_inset Formula $poss(a,t,s)$
-\end_inset 
 
-, meaning 
-\begin_inset Quotes eld
-\end_inset 
+\begin_inset Formula \[
+legal(S_{0})\equiv True\]
 
-it is possible to perform action 
-\begin_inset Formula $a$
-\end_inset 
-
- at time 
-\begin_inset Formula $t$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
 \end_inset 
 
 
-\begin_inset Quotes erd
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{cc}
+legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
+ & start(s)\leq t\wedge\\
+ & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
+ & \left[a\in c\vee t<t_{a}\right]\end{array}\]
+
 \end_inset 
 
-.
+
+\layout Standard
+
+When utilising natural actions within a Golog program, all legal program
+ executions must result in situations for which the 
+\begin_inset Formula $legal$
+\end_inset 
+
+ predicate is true.
+ It will be shown that this can be enforced in the semantics of the language,
+ avoiding the need to check it explicitly.
+ TODO: this implicitly assumes no interaction among natural actions.
+\layout Standard
+
+An important concept when dealing with natural actions it the least natural
+ time point (LNTP) of a situation.
+ This is defined as the earliest time at which a natural action may occur
+ in a situation:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+lntp(s,t) & \equiv & \exists a[\end{eqnarray*}
+
+natural(a)\wedge Poss(a,t,s)]\wedge
+
+\end_inset 
+
+
+\layout Standard
+
+Note that the LNTP need not exist for a given situation.
+ It is straightforward to extend the proof of Lemma 3 in 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ to this notation,giving the result that:
+\layout Standard
+
+
+\begin_inset Formula \[
+natural(a)\wedge legal(do(c,t,s))\wedge a\in c\rightarrow lntp(s,t)\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Continuous Processes
 \layout Subsection
 
 The Domain
 \layout Section
 
-References
+Transition Semantics
 \layout Standard
 
+In this section, the transition semantics for MIndiGolog are presented.
+\layout Subsection
 
-\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
-
-\end_inset 
-
-
-\layout Section
-\start_of_appendix 
-MConGolog Transition Semantics
+MIndiGolog Transition Semantics
 \layout Standard
 
 The following gives a transition semantics for MConGolog by defining the
@@ -649,6 +866,15 @@ Trans(c,s,\delta',s')\equiv Poss(c[s],s)\wedge\delta'=nil\wedge s'=do(c[s],s)\]
 \end_inset 
 
 
+\begin_inset Formula \begin{eqnarray*}
+Trans(c,s,\delta',s') & \equiv & (\exists t_{n}).\left[lntp(s,t_{n})\wedge\right\\\
+ &  & some\end{eqnarray*}
+
+\end_inset 
+
+
+\newline 
+ 
 \newline 
 
 \begin_inset Formula \[
@@ -806,6 +1032,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
+
  
 
 \end_inset 
@@ -854,6 +1081,17 @@ Trans(\delta^{||},s,\delta',s')\equiv\exists\gamma.\delta'=(\gamma||\delta^{||})
 
 \begin_inset Formula \[
 Final(\delta^{||},s)\equiv True\]
+
+\end_inset 
+
+
+\layout Section
+
+References
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
 
 \end_inset 
 
