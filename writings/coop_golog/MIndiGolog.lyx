@@ -25,16 +25,36 @@
 
 \layout Title
 
-Cooperative Execution of Golog Programs
+MIndiGolog: A Programming Language for Multi-Agent Teams
+\layout Author
+
+Ryan Kelly
 \layout Abstract
 
 The Golog family of programming languages are designed for high-level control
  of autonomous agents such as mobile robots.
  Based on the logical formalism of the situation calculus, these languages
- allow the programmer to define a (potentially non-deterministic) program
- or plan, from which the agent will determine an appropriate execution strategy.
- This paper seeks to extend the Golog system by allowing multiple autonomous
- agents to cooperate in executing a Golog plan.
+ allow the programmer to define a non-deterministic program from which the
+ agent will determine an appropriate execution strategy.
+ They thus subsume the traditional task of action planning into the general
+ task of high-level program execution.
+ Until now, the focus has been on programming for individual agents.
+\layout Abstract
+
+This paper seeks to extend the Golog paradigm to the case of multi-agent
+ teams, where several autonomous agents cooperate to carry out a shared
+ task.
+ TODO: more here.
+\layout Abstract
+
+The major contributions of this paper are: to motivate high-level program
+ execution as a problem-solving paradigm for multi-agent teams, and to combine
+ previous extensions to the Golog language into a semantics suitable for
+ use in a multi-agent setting.
+ The result is MIndiGolog, a Golog dialect incorporating multiple agents,
+ true concurrency, an explicit temporal component, and natural actions.
+ We also make some preliminary suggestions as to how this may be used as
+ a practical programming language for multi-agent teams.
 \layout Section
 
 TASKS
@@ -69,9 +89,31 @@ TODO:
 \end_inset 
 
 
+\layout Itemize
+
+TODO: Distinction between 
+\begin_inset Quotes eld
+\end_inset 
+
+Multi-Agent Planning
+\begin_inset Quotes erd
+\end_inset 
+
+ and 
+\begin_inset Quotes eld
+\end_inset 
+
+Team Planning
+\begin_inset Quotes erd
+\end_inset 
+
+
 \layout Section
 
 Introduction
+\layout Subsection
+
+Golog
 \layout Standard
 
 The programming language Golog 
@@ -82,42 +124,51 @@ The programming language Golog
  and its derivatives have found a wide range of applications in agent-oriented
  systems, from museum tour-guide robots (TODO:ref), mail delivery, TODO:more
  here to the RoboCup robotic soccer competition.
- It has proven to be a flexible programming language with the right mix
- of high-level programming constructs and domain abstraction...TODO:talk it
- up some more.
+ It has proven to be a flexible programming language with a good combination
+ of high-level programming constructs and domain abstraction.
+ Testimony to its success are the many enhacements to the language providing
+ facilities such as concurrent execution and interrupts 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+, probability and decision-theory [TODO], online execution 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
+
+\end_inset 
+
+ and TODO: more.
 \layout Standard
 
-In all of these situations, Golog is used as a programming language to define
- the behavior of a single agent.
- Viewed in a slightly different way, however, a Golog procedure can be viewed
- not as a program but as a plan - a specification of tasks to be performed
- and the constaints between them.
- TODO:hmm...more here.
+At its most basic level, a Golog program consists two components:
+\layout Itemize
+
+an axiomatisation of a dynamic domain in the Situation Calculus, a first-order
+ logic formalism for describing dynamic worlds 
+\begin_inset LatexCommand \cite{McCHay69sitcalc}
+
+\end_inset 
+
+
+\layout Itemize
+
+a program consisting of actions from the domain, connected using various
+ programming constructs such as loops, if-then-else, and nondeterministic
+ choice
 \layout Standard
 
-While Golog has been utilised in multi-agent settings, the Golog programs
- themselves are typically designed to be executed by a single agent.
- For example, in the ECASL system of TODO:ref, the behavior of multiple
- interacting agents may be specified, but each agent's behavior is given
- by an individual Golog program.
-\layout Standard
+It is then the task of the agent to find a deterministic insantiation of
+ the program which will produce a sequence of legal actions - that is, that
+ can actually be carried out in the world.
+ Such a sequence of actions is called a 
+\begin_inset Quotes eld
+\end_inset 
 
-In all these cases, Golog programs are written to specify a 
-\emph on 
-solution
-\emph default 
-, to set out what the agent is to achieve.
- But a Golog program may also be viewed as a specification of a task, what
- the programmer wants achieved.
- In this view, the Golog program specifies a 
-\emph on 
-problem
-\emph default 
- which the agent(s) are to solve.
- Viewed in this way, it is not difficult to imagine that several independent
- agents may cooperate in order to execute a single Golog program that specified
- what is to be achieved.
- Exploring this idea is the purpose of this paper.
+legal execution
+\begin_inset Quotes erd
+\end_inset 
+
+ of the Golog program.
 \layout Standard
 
 The growing use of Golog shows that, as suggested in 
@@ -146,14 +197,48 @@ ing actions from a completely non-deterministic program, a task equivalent
  Finzi et.
  al.
  show that an effective planning system can be build using Golog.
-\layout Subsection
-
-Running Example: The Cooking Agents
 \layout Standard
 
-In order to explore the cooperative execution of Golog programs in a concrete
- way, a running example is introduced and investigated throughout this paper:
- the 
+TODO: IndiGolog and the additional benefits of online execution
+\layout Subsection
+
+Golog and Multiple Agents
+\layout Standard
+
+Most work to date utilising Golog is focused on modelling/implementing single
+ agent systems.
+ A Golog program is written to describe the desired behavior of a single
+ agent, which then determines an appropriate legal execution and performs
+ it.
+ In most cases where Golog has been applied in a multi-agent setting, this
+ approach is still followed - each agent it given a Golog program defining
+ its own behaviour, and various communication actions allow the agents to
+ interact.
+ This is the case for the modelling systems CASL and ECASL 
+\begin_inset LatexCommand \cite{lesperance05ecasl}
+
+\end_inset 
+
+.
+ TODO: find more examples.
+\layout Standard
+
+Notable among these projects is the work of [TODO] on Readygolog, used in
+ the implementation of a RoboCup team.
+ The Golog programs used in this case-study are fully multi-agent plans,
+ with actions from different agents interleaved in a single program.
+ However, the deliberation is still carried out by a single agent, who simply
+ reasons about the actions of other agents and assumes that the actions
+ they perform can be percived.
+ In contrast, the aim of this paper is to produce a language which can be
+ cooperatively executed by a team of agents.
+\layout Subsection
+
+Example: The Cooking Agents
+\layout Standard
+
+In order to explore multi-agent Golog programs in a concrete way, a running
+ example is introduced and investigated throughout this paper: the 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -171,8 +256,18 @@ This example is particularly suitable because the domain has explicit need
  for task specification in the form of recipies.
  For example, there may be a Golog procedure describing how to prepare a
  salad and another describing how to bake a cake.
- These are obviously task descriptions seperate from the behavioral control
- of any individual agent, and therefore amenable to cooperative execution.
+ The agents must cooperate to execute these high-level task descriptions.
+ It also highlights the advantages of high-level execution over traditional
+ planning - the agents can be given procedural recipies rather than having
+ the goal of 
+\begin_inset Quotes eld
+\end_inset 
+
+produce a cake
+\begin_inset Quotes erd
+\end_inset 
+
+ and needing to synthesise a plan to achieve it.
 \layout Standard
 
 The example domain also embodies several simplifications which make things
@@ -239,8 +334,12 @@ Only an overview of these concepts is presented here.
 .
 \layout Standard
 
-Actions are literals in the logic representing the ways in which the world
- can be changed.
+
+\emph on 
+Actions
+\emph default 
+ are literals in the logic representing the ways in which the world can
+ be changed, are are taken to be instantaneous.
  If an action does not occur, the world does not change.
  The 
 \begin_inset Quotes eld
@@ -250,9 +349,12 @@ state of the world
 \begin_inset Quotes erd
 \end_inset 
 
- is represented as a situation, which is the history of actions that have
- been performed so far, with the initial situation represented by the term
- 
+ is represented as a 
+\emph on 
+situation
+\emph default 
+, which is the history of actions that have been performed so far, with
+ the initial situation represented by the term 
 \begin_inset Formula $S_{0}$
 \end_inset 
 
@@ -273,7 +375,101 @@ state of the world
 .
 \layout Standard
 
-TODO: finish this
+In this paper, all actions have as their first argument the name of the
+ agent performing them.
+ For example, the agent 
+\begin_inset Formula $Thomas$
+\end_inset 
+
+ may perform the action of placing an egg in a bowl, represented as:
+\layout Standard
+
+
+\begin_inset Formula \[
+place\_ in(Thomas,Egg,Bowl)\]
+
+\end_inset 
+
+
+\layout Standard
+
+If this is the first action performed in the world, the new situation becomes:
+\layout Standard
+
+
+\begin_inset Formula \[
+do(place\_ in(Thomas,Egg,Bowl),S_{0})\]
+
+\end_inset 
+
+
+\layout Standard
+
+Properties of the world are described by 
+\emph on 
+fluents
+\emph default 
+, which are functions or predicates taking a situation as their final argument.
+ For example, the fact that agent 
+\begin_inset Formula $Richard$
+\end_inset 
+
+ has possession of a knife in some situation 
+\begin_inset Formula $S$
+\end_inset 
+
+ might be represented as:
+\layout Standard
+
+
+\begin_inset Formula \[
+has\_ object(Richard,Knife,S)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Action precondition axioms are given in terms of 
+\emph on 
+possibility predicates
+\emph default 
+, which specify when it is possible for a given action to be performed.
+ For example, to state that an agent may only place an object in a bowl
+ when they have possession of that bowl, the following possibility fluent
+ could be used:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall agt,obj,s.\left[Poss(place\_ in(agt,obj,Bowl),s)\leftrightarrow has\_ object(agt,Bowl,s)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+The truth values of fluents are specified in two parts.
+ First, one must define what is true of the initial situation, such as the
+ following statement that no agents possess any objects initially:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall agt.\left[\neg\exists obj.\left(has\_ object(agt,obj,S_{0})\right)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+TODO: good demo of successor state axioms
+\layout Standard
+
+This basic form of the situation calculus has been extended to incorporate
+ ideas such as an explicit representation of time, continuously running
+ tasks, and natural actions.
+ These extensions will be incorporated throughout the paper.
 \layout Subsection
 
 Golog
@@ -290,9 +486,115 @@ Golog (short for alGOl in LOGic) is a declarative programming language based
  It combines the primitive actions from the situation calculus description
  of the world into high-level programming constructs such as while-loops,
  if-then-else clauses, and nondeterministic choice.
+ There are two popular methods for defining its semantics.
+ The first, due to 
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset 
+
+, is to define a macro 
+\begin_inset Formula $Do(\delta,s,s')$
+\end_inset 
+
+ which states that the Golog program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ has an execution that begins in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ and ends in situation 
+\begin_inset Formula $s'$
+\end_inset 
+
+.
+ This macro is defined for each of the language constructs and expands into
+ a formula in the situation calculus.
+ Executing the program corresponds to proving that 
+\begin_inset Formula $\exists s.\left[Do(\delta,S_{0},s')\right]$
+\end_inset 
+
+ and then executing the actions in 
+\begin_inset Formula $s$
+\end_inset 
+
+.
 \layout Standard
 
-TODO:oh so much more here!
+The second method was introduced with the language ConGolog 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ and is designed to allow for non-terminatin programs and concurrency.
+ Two predicates 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ and 
+\begin_inset Formula $Final$
+\end_inset 
+
+ are defined for each program construct.
+ Intuitively, is true only when program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ can cause the world to move from situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ to situation 
+\begin_inset Formula $s'$
+\end_inset 
+
+, after which 
+\begin_inset Formula $\delta'$
+\end_inset 
+
+ remains to be executed.
+ It thus specifies single-steps of computation of the program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+.
+ 
+\begin_inset Formula $Final(\delta,s)$
+\end_inset 
+
+ is true when program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ may legally terminate its execution in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ Execution then consist of proving that 
+\begin_inset Formula $\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]$
+\end_inset 
+
+, where 
+\begin_inset Formula $Trans*$
+\end_inset 
+
+ is the transitive closure of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+.
+\layout Standard
+
+By its nature, the macro approach results in offline execution of the program
+ - an entire legal execution is found before being passed of for execution
+ in the world.
+ Since the solution based on transition semantics supports both incremental
+ execution and non-terminating processes, it is preferred for this application.
+\layout Standard
+
+TODO: Some basic examples
 \layout Section
 
 Domain Axiomatisation
@@ -1424,7 +1726,7 @@ The last of which yields:
 
 
 \begin_inset Formula \[
-\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow c\in c\cup cn\vee t_{n}\leq t_{a}\]
+\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow c\in c\cup cn\vee t_{n}\leq t_{a}\right]\]
 
 \end_inset 
 
