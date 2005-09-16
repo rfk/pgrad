@@ -199,6 +199,20 @@ ing actions from a completely non-deterministic program, a task equivalent
  show that an effective planning system can be build using Golog.
 \layout Standard
 
+The expected benefits of this new approach include:
+\layout Itemize
+
+Explicit control over the amount of non-determinism, possibly avoiding exponenti
+al growth in difficulty as problem size increases
+\layout Itemize
+
+Ability to encode specific procedural knowledge about the domain
+\layout Itemize
+
+Ability to formally prove properties of the solutions which will be determined,
+ such as safey and liveness conditions
+\layout Standard
+
 TODO: IndiGolog and the additional benefits of online execution
 \layout Subsection
 
@@ -613,14 +627,17 @@ Resources: The agents will be required to utilise consumable resourses such
  mixing bowls and chopping boards.
 \layout Itemize
 
-Continuous Processes: The domain requires continuous processes such as the
- progress of a timer which is set to time the baking of a cake.
- These processes will not necessarily end under the control of an agent.
+Continuous Processes: Agents are required to perform actions with some finite
+ duration, but the ontology of the situation calculus allows only for instantane
+ous actions.
+ An appropriate representation must be given.
 \layout Itemize
 
 Natural Actions: These are predictable actions which occur outside of the
  agent's control, and which must occur as long as nothing happens to stop
  them from occuring.
+ For example, if an agent sets a timer then it will ring at the appropriate
+ time without intervention from any agent.
 \layout Itemize
 
 Concurrency: For a multi-agent system two notions of concurrency must be
@@ -628,8 +645,8 @@ Concurrency: For a multi-agent system two notions of concurrency must be
  the concurrent performance of several actions by independent agents.
 \layout Itemize
 
-Time: Some tasks in the cooking domain may require an explicit notion of
- time.
+Explicit Time: Some tasks in the cooking domain may require an explicit
+ notion of time.
  For example, a cake must be baked for 30 minutes before being removed from
  the oven.
 \layout Itemize
@@ -639,7 +656,9 @@ Abilities: Different agents may have different skills and abilities.
  cannot be expected to handle it.
 \layout Standard
 
-These will be systematically addressed in the following sections.
+Many of these notions have been independently addressed in the situation
+ calculus.
+ They will be systematically addressed and combined in the following sections.
 \layout Subsection
 
 Abilities
@@ -675,8 +694,7 @@ There have been several efforts to incorporate a temporal component into
 
  which range over the real numbers and give the starting and ending time
  of a situation respectively.
- This was primarily designed for reasoning about the within a sequence of
- 
+ This was primarily designed for reasoning within a sequence of 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -730,11 +748,11 @@ perform action
 
 .
  Likewise, the possibility predicate 
-\begin_inset Formula $poss(a,s)$
+\begin_inset Formula $Poss(a,s)$
 \end_inset 
 
  becomes 
-\begin_inset Formula $poss(a,t,s)$
+\begin_inset Formula $Poss(a,t,s)$
 \end_inset 
 
 , meaning 
@@ -762,7 +780,7 @@ it is possible to perform action
 \begin_inset Formula $start(s)$
 \end_inset 
 
- is added which gives the start time of a situation:
+ is added which gives the starting time of a situation:
 \layout Standard
 
 
@@ -774,7 +792,8 @@ start(do(a,t,s))=t\]
 
 \layout Standard
 
-Note that the start time of the initial situation need not be defined.
+Note that the start time of the initial situation is arbitrary, and may
+ be defined as required according to the specific application.
 \layout Subsection
 
 Concurrency
@@ -804,13 +823,58 @@ The work of
 
  provides a suitable extension to the situation calculus in which many primitive
  actions may be performed at a single time.
- This is particularly important for a multi-agent system in order to expoit
+ This is particularly important for a multi-agent system in order to exploit
  the potential for parallel execution provided by multiple agents.
- Here the basic action terms are replaced with sets of actions, TODO explain
- how it affects the predicates.
+ Here the basic action terms are replaced with sets of actions to be performed
+ concurrently.
+ All predicates that take an action are modified to accept sets of actions
+ instead:
 \layout Standard
 
-These two approaches were first combined by Baier and Pinto 
+
+\begin_inset Formula \[
+do(\{ a_{1},a_{2}\},t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+TODO: define other predicates as well
+\layout Standard
+
+The approach to time used in 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ requires a predicate 
+\begin_inset Formula $coherent(c)$
+\end_inset 
+
+ to be defined, which is true when the concurrent action 
+\begin_inset Formula $c$
+\end_inset 
+
+ contains at least one action and all actions occur at the same time.
+ Since time in this paper is attached to situations rather than actions,
+ this property is automatically satisfied.
+ To ensure that program executions do not include empty sets of actions,
+ one need only ensure that it is never possible to perform such an empty
+ set:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s,t.\left[Poss(\{\},t,s)\equiv False\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+These two concepts of concurrency were first combined by Baier and Pinto
+ 
 \begin_inset LatexCommand \cite{pinto99tcongolog}
 
 \end_inset 
@@ -980,9 +1044,9 @@ The following modified
 \begin_inset Formula \begin{eqnarray*}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
  & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
- & \exists c_{1},c_{2},\gamma_{1},\gamma_{2}.Trans(\delta_{1},s,\gamma_{1},do(c_{1},s)) & \wedge\\
- & Trans(\delta_{2},s,\gamma_{2},do(c_{2},s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
- & Poss((c_{1}\cup c_{2})[s],s)\wedge s'=do((c_{1}\cup c_{2})[s],s)\end{eqnarray*}
+ & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
+ & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
+ & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
 
  
 
@@ -1049,10 +1113,42 @@ We adopt the methodology of
 \begin_inset Formula $Poss$
 \end_inset 
 
- predicate, as with agent-initiated actions:
+ predicate, as with agent-initiated actions.
+ For example, suppose that the following fluent represents the fact that
+ a timer identified by 
+\begin_inset Formula $ID$
+\end_inset 
+
+ is set to ring in 10 minutes in the situation 
+\begin_inset Formula $S$
+\end_inset 
+
+:
 \layout Standard
 
-TODO: example here
+
+\begin_inset Formula \[
+timer\_ set(ID,10,S)\]
+
+\end_inset 
+
+
+\layout Standard
+
+The possibility predicate for the 
+\begin_inset Formula $ring\_ timer(ID)$
+\end_inset 
+
+ action could then be given as:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(ring\_ timer(ID),t,s)\equiv\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]\]
+
+\end_inset 
+
+
 \layout Standard
 
 To enforce the requirement that natural actions must occur provided nothing
@@ -1086,14 +1182,16 @@ legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
 \layout Standard
 
 When utilising natural actions within a Golog program, all legal program
- executions must result in situations for which the 
+ executions should result in situations for which the 
 \begin_inset Formula $legal$
 \end_inset 
 
  predicate is true.
  It will be shown that this can be enforced in the semantics of the language,
  avoiding the need to check it explicitly.
- TODO: this implicitly assumes no interaction among natural actions.
+\layout Standard
+
+TODO: this implicitly assumes no interaction among natural actions.
 \layout Standard
 
 An important concept when dealing with natural actions it the least natural
@@ -1132,9 +1230,61 @@ natural(a)\wedge legal(do(c,t,s))\wedge a\in c\rightarrow lntp(s,t)\]
 \layout Subsection
 
 Continuous Processes
+\layout Standard
+
+TODO find a ref for this
+\layout Standard
+
+The standard way to represent continuous processes in the Situation Calculus
+ is by assocating them with a fluent, which is true precisely when the process
+ is being performed.
+ This is accompanied by two actions, one indicating the start of the process
+ and one indicating when it stops.
+ This can be encoded in a general way using the fluent 
+\begin_inset Formula $doing\_ task(agt,tsk,s)$
+\end_inset 
+
+ to indicate that agent 
+\begin_inset Formula $agt$
+\end_inset 
+
+ is in the process of doing task 
+\begin_inset Formula $tsk$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ It is accompanied by two actions 
+\begin_inset Formula $begin\_ task(agt,tsk)$
+\end_inset 
+
+ and 
+\begin_inset Formula $end\_ task(agt,tsk)$
+\end_inset 
+
+.
+ The successor state axiom for this fluent must ensure that it becomes true
+ when 
+\begin_inset Formula $begin\_ task$
+\end_inset 
+
+ is performed, and ceases to be true when 
+\begin_inset Formula $end\_ task$
+\end_inset 
+
+ is performed.
+\layout Standard
+
+TODO: show the full axiom and possibility predicates
 \layout Subsection
 
 The Domain
+\layout Standard
+
+TODO: explain how the example domain is encoded in the sitcalc
 \layout Section
 
 Transition Semantics
@@ -1738,6 +1888,9 @@ Again, all conjuncts necessary to prove
 \end_inset 
 
  are true.
+\layout Standard
+
+TODO: finish this proof and clean it up *a lot*
 \layout Section
 
 References
