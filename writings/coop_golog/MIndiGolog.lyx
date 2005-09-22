@@ -31,30 +31,68 @@ MIndiGolog: A Programming Language for Multi-Agent Teams
 Ryan Kelly
 \layout Abstract
 
-The Golog family of programming languages are designed for high-level control
- of autonomous agents such as mobile robots.
- Based on the logical formalism of the situation calculus, these languages
- allow the programmer to define a non-deterministic program from which the
- agent will determine an appropriate execution strategy.
- They thus subsume the traditional task of action planning into the general
- task of high-level program execution.
- Until now, the focus has been on programming for individual agents.
-\layout Abstract
+Research into applications involving multiple autonomous agents may be divided
+ two subfields - 
+\begin_inset Quotes eld
+\end_inset 
 
-This paper seeks to extend the Golog paradigm to the case of multi-agent
- teams, where several autonomous agents cooperate to carry out a shared
- task.
- TODO: more here.
+multi-agent systems
+\begin_inset Quotes erd
+\end_inset 
+
+ in which agent behaviors are loosley coupled and agents may by-and-large
+ act independently, and 
+\begin_inset Quotes eld
+\end_inset 
+
+multi-agent teams
+\begin_inset Quotes erd
+\end_inset 
+
+ in which the agents depend intimately on one another for the accomplishment
+ of a shared goal.
+ (TODO: find a reference for this taxonomy) From a programming viewpoint,
+ multi-agent systems are typically constructed by specifying the behavior
+ of individual agents and using communication primitives to design interaction
+ and cooperation between agents.
+ This may be considered a bottom-up approach.
+ For tightly-coupled multi-agent teams, it may be more convenient to take
+ a top-down approach: consider the team to be a single 
+\begin_inset Quotes eld
+\end_inset 
+
+super-agent
+\begin_inset Quotes erd
+\end_inset 
+
+ with distributed reasoning and acting abilities, and design a single multi-agen
+t program to encode its behavior.
+ This program would then be distributed to all members of the team, who
+ must carry it out in a robust fashion.
+ This paper takes the first steps towards creating such a language, based
+ on the agent programming language Golog.
 \layout Abstract
 
 The major contributions of this paper are: to motivate high-level program
- execution as a problem-solving paradigm for multi-agent teams, and to combine
+ execution as a problem-solving paradigm for multi-agent teams, to combine
  previous extensions to the Golog language into a semantics suitable for
- use in a multi-agent setting.
- The result is MIndiGolog, a Golog dialect incorporating multiple agents,
- true concurrency, an explicit temporal component, and natural actions.
- We also make some preliminary suggestions as to how this may be used as
- a practical programming language for multi-agent teams.
+ use in a multi-agent setting, and to make some preliminary suggestions
+ as to how this may be used as a practical programming language for multi-agent
+ teams..
+ The result is MIndiGolog, a Golog dialect incorporating: TODO: limitations
+ of current approaches?
+\layout Itemize
+
+Multiple agents
+\layout Itemize
+
+Concurrent execution of actions
+\layout Itemize
+
+An explicity representation of time
+\layout Itemize
+
+Natural actions
 \layout Section
 
 TASKS
@@ -110,10 +148,47 @@ Team Planning
 
 \layout Itemize
 
-TODO: the CASL team want to achieve something similar, eventually
+TODO: better term than 
+\begin_inset Quotes eld
+\end_inset 
+
+multi-agent systems
+\begin_inset Quotes erd
+\end_inset 
+
+ for the loosley coupled case, perhaps 
+\begin_inset Quotes eld
+\end_inset 
+
+open
+\begin_inset Quotes erd
+\end_inset 
+
+ or something...find a good reference!
+\layout Itemize
+
+TODO: mention FLUX somewhere?
+\layout Itemize
+
+TODO: why is explicit temporal component so important?
+\layout Itemize
+
+TODO: dont reference KIA textbook, use journal papers instead
 \layout Section
 
 Introduction
+\layout Subsection
+
+Multi-Agent Teams
+\layout Standard
+
+TODO: need some references, other approaches, problems with them...
+\layout Standard
+
+SharedPlans? Joint Intentions? TEAMCORE? Heaps of others here...
+\layout Standard
+
+Idea of Roles - reduce communication? Make programming easier?
 \layout Subsection
 
 Golog
@@ -125,22 +200,21 @@ The programming language Golog
 \end_inset 
 
  and its derivatives have found a wide range of applications in agent-oriented
- systems, from museum tour-guide robots (TODO:ref), mail delivery, TODO:more
- here to the RoboCup robotic soccer competition.
- It has proven to be a flexible programming language with a good combination
- of high-level programming constructs and domain abstraction.
- Testimony to its success are the many enhacements to the language providing
- facilities such as concurrent execution and interrupts 
+ systems, from museum tour-guide robots (TODO:ref) and mail delivery (TODO:ref)
+ to the RoboCup robotic soccer competition.
+ Testimony to its success are the many enhacements to the language such
+ as ConGolog 
 \begin_inset LatexCommand \cite{giacomo00congolog}
 
 \end_inset 
 
-, probability and decision-theory [TODO], online execution 
+ to provide concurrent execution of programs, DTGolog [TODO] to provide
+ probability and decision-theory, and IndiGolog 
 \begin_inset LatexCommand \cite{giacomo99indigolog}
 
 \end_inset 
 
- and TODO: more.
+ to provide online execution.
 \layout Standard
 
 At its most basic level, a Golog program consists two components:
@@ -212,43 +286,66 @@ al growth in difficulty as problem size increases
 Ability to encode specific procedural knowledge about the domain
 \layout Itemize
 
-Ability to formally prove properties of the solutions which will be determined,
+Ability to formally prove properties of the legal executions of the program,
  such as safey and liveness conditions
 \layout Standard
 
-TODO: IndiGolog and the additional benefits of online execution
+A potential drawback of this approach is that a complete legal execution
+ must be determined before any actions are carried out - otherwise, actions
+ committed to by the agent could lead to situations where no legal execution
+ is possible.
+ Programs are thus executed offline.
+ This is addressed in the language IndiGolog where an explicit search operator
+ is introduced - a legal execution is determined offline for programs inside
+ a search operator, while outside a search operator the program is executed
+ online, with nondeterministic choices being executed as random choices.
+ 
+\layout Standard
+
+TODO: benefits for sensing?
 \layout Subsection
 
 Golog and Multiple Agents
 \layout Standard
 
-Most work to date utilising Golog is focused on modelling/implementing single
- agent systems.
- A Golog program is written to describe the desired behavior of a single
- agent, which then determines an appropriate legal execution and performs
- it.
- In most cases where Golog has been applied in a multi-agent setting, this
- approach is still followed - each agent it given a Golog program defining
- its own behaviour, and various communication actions allow the agents to
- interact.
- This is the case for the modelling systems CASL and ECASL 
+Golog has often focused on the modelling/implementation of single agent
+ systems where a Golog program is written to describe the desired behavior
+ of the agent, which then determines an appropriate legal execution and
+ performs it.
+ This approach has been successfully extended to a multi-agent setting -
+ each agent is given a Golog program defining its behaviour, and various
+ communication actions allow the agents to interact.
+ This is the bottom-up approach discussed above.
+ TODO: find some basic examples.
+\layout Standard
+
+The utility of Golog for modelling multi-agent systems is shown by the Cognitive
+ Agent Specification Language 
 \begin_inset LatexCommand \cite{lesperance05ecasl}
 
 \end_inset 
 
-.
- TODO: find more examples.
+, which uses ConGolog to describe the behavior of agents and validation
+ software to prove various properties about the behavior of the resulting
+ multi-agent system.
+ While primarily designed for modelling multi-agent systems, its authors
+ propose that the animation of such models into real-world implementations
+ would be advantageous, an idea similar in spirit to this paper.
+ However, the use of standard ConGolog may limit the kinds of domains which
+ can be modelled, as will be discussed in the following sections.
 \layout Standard
 
-Notable among these projects is the work of [TODO] on Readygolog, used in
- the implementation of a RoboCup team.
+Another recent approach is Readygolog [TODO], which has been used in the
+ implementation of a RoboCup team.
  The Golog programs used in this case-study are fully multi-agent plans,
  with actions from different agents interleaved in a single program.
- However, the deliberation is still carried out by a single agent, who simply
- reasons about the actions of other agents and assumes that the actions
- they perform can be percived.
+ They thus embody the top-down approach suggested in this paper.
+ However, the planning and deliberation is still carried out by a single
+ agent, who simply reasons about the actions of other agents and assumes
+ that the actions they perform can be percived.
  In contrast, the aim of this paper is to produce a language which can be
  cooperatively executed by a team of agents.
+ TODO: what do they add? What are the limitations.
 \layout Subsection
 
 Example: The Cooking Agents
@@ -269,22 +366,25 @@ Cooking Agents
  The agents must cooperate to produce a meal consisting of several dishes.
 \layout Standard
 
-This example is particularly suitable because the domain has explicit need
- for task specification in the form of recipies.
- For example, there may be a Golog procedure describing how to prepare a
- salad and another describing how to bake a cake.
- The agents must cooperate to execute these high-level task descriptions.
- It also highlights the advantages of high-level execution over traditional
- planning - the agents can be given procedural recipies rather than having
- the goal of 
-\begin_inset Quotes eld
-\end_inset 
+This example is particularly suitable because tightly-coupled cooperation
+ will be of benefit, rather than assigning specific tasks to specific agents
+ and potentially leaving some agents idle.
+ It contains several challenges common to a wide variety of multi-agent
+ settings:
+\layout Itemize
 
-produce a cake
-\begin_inset Quotes erd
-\end_inset 
+Contention for shared resources, such as utensils and the oven
+\layout Itemize
 
- and needing to synthesise a plan to achieve it.
+Explicit time and time constraints, such as a cake needing to be baked for
+ an hour or the entree needing to be ready 15 minutes before the main course
+\layout Itemize
+
+Scheduling constraints and conflicts, such as a board using for chopping
+ meat being unusable for chopping salad
+\layout Itemize
+
+Large amount of procedural knowledge in the form of recipies
 \layout Standard
 
 The example domain also embodies several simplifications which make things
@@ -652,29 +752,11 @@ Explicit Time: Some tasks in the cooking domain may require an explicit
  notion of time.
  For example, a cake must be baked for 30 minutes before being removed from
  the oven.
-\layout Itemize
-
-Abilities: Different agents may have different skills and abilities.
- For example, one of the agents may be hyper-sensitive to onion and therefore
- cannot be expected to handle it.
 \layout Standard
 
-Many of these notions have been independently addressed in the situation
- calculus.
+Many of these notions have been independently addressed in Golog and the
+ situation calculus.
  They will be systematically addressed and combined in the following sections.
-\layout Subsection
-
-Abilities
-\layout Standard
-
-The work of Cholvy et al 
-\begin_inset LatexCommand \cite{cholvy04sitcalc_ability}
-
-\end_inset 
-
- provides a suitable formalism for representing ability in the situation
- calculus.
- TODO:expand, find proper ref.
 \layout Subsection
 
 Time
@@ -894,7 +976,8 @@ These two concepts of concurrency were first combined by Baier and Pinto
 \end_inset 
 
 .
- Theirs is equivalent to the approach taken below.
+ Theirs is equivalent to the approach taken below, without the additional
+ temporal component.
 \layout Standard
 
 Recall that the semantics of a ConGolog program is given in terms of a transitio
@@ -1050,6 +1133,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
+
  
 
 \end_inset 
@@ -1293,6 +1377,9 @@ Transition Semantics
 \layout Standard
 
 In this section, the transition semantics for MIndiGolog are presented.
+\layout Standard
+
+TODO: highlight the bits that are new
 \layout Subsection
 
 MIndiGolog Transition Semantics
@@ -1541,6 +1628,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
  & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
+
  
 
 \end_inset 
@@ -1900,7 +1988,7 @@ Execution Model
 TODO: make some suggestions!
 \layout Standard
 
-TODO: Independent Execution? DCOP+ADOPT?
+TODO: Independent Execution? DCOP+ADOPT? Distributed CIAO?
 \layout Section
 
 Discussion
