@@ -31,6 +31,7 @@
 %%  constraints to be solved, reducing them to a ground instantiation.
 %%
 :- use_package(clpq).
+:- use_package(hlc).
 :- use_module(library('clpq/solver_q')).
 :- use_module(library('clpq/eval_q')).
 :- use_package(library('clpqr-common/simplex')).
