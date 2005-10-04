@@ -44,16 +44,16 @@ declare
   end
 
   proc {LNTP S T}
-    local A Others in
+    local A FindOthers in
       {IsNatural A} {Poss A T S} ({SitStart S}=<T)=true
-      Others=proc{$}
+      FindOthers=proc{$}
                local A2 T2 in
                  {IsNatural A2}
                  {Poss A2 T2 S}
                  (T2<T)=true
                end
              end
-      {NegAsFail Others}
+      {NegAsFail FindOthers}
     end
   end
 
@@ -92,18 +92,19 @@ declare
   proc {Trans D S Dp Sp}
     local D1 D2 in
       choice  D=nil fail
-      []      {ToCAct D D1} {SubInProg now S D1 D2}
-              choice T LntpS in {LNTP S LntpS}
-                                /* TODO: during and after LNTP */
+      []      T in {ToCAct D D1} {SubInProg now S D1 D2}
+              {Poss D2 T S} Sp=res(D2 T S) Dp=nil
+              /* choice T LntpS in {LNTP S LntpS}
+                                %% TODO: during and after LNTP
                                 (T>{SitStart S})=true
                                 (T<LntpS)=true {Poss D2 T S}
                                 Sp=res(D2 T S) Dp=nil
               []     T in {Poss D2 T S} (T>={SitStart S})=true
                           Sp=res(D2 T S) Dp=nil
-              end
+              end*/
       []      Cond in D=test(Cond) {Holds.yes Cond S} Sp=S Dp=nil
       []      D=seq(D1 D2) choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
-                           []     {Final D1 S} {Trans D1 S Dp Sp}
+                           []     {Final D1 S} {Trans D2 S Dp Sp}
                            end
       []      D=pick(D1 D2) choice {Trans D1 S Dp Sp}
                               [] {Trans D2 S Dp Sp}
@@ -132,11 +133,31 @@ declare
     end
   end
 
+  proc {TransStar D S Dp Sp}
+    choice  Dp=D Sp=S
+    []      Dr Sr in {Trans D S Dr Sr} {TransStar Dr Sr Dp Sp}
+    end
+  end
+
+  proc {Step D S Dp Sp}
+    choice Sp=res(_ _ S) {Trans D S Dp Sp}
+    []     Dr in {Trans D S Dr S} {Step Dr S Dp Sp}
+    end
+  end
+
+  proc {Do D S Sp}
+    local Dp in
+      {TransStar D S Dp Sp}
+      {Final Dp Sp}
+    end
+  end
+
   proc {Proc D2 B}
     fail
   end
 
   proc {SubInProg Term Value D1 D2}
+    %%  TODO: term substitution
     D1=D2
   end
 
@@ -211,7 +232,8 @@ declare
   end
 
   proc {Poss A T S}
-    choice Agt Obj in A=acquire_object(Agt Obj)
+    choice (A\=nil)=true {PossAll A T S}  % TODO: conflicts/3
+    []     Agt Obj in A=acquire_object(Agt Obj)
                       {Holds.no has_object(_ Obj) S}
                       {Holds.no doing_task(Agt _ _) S}
                       {Holds.no used(Obj) S}
@@ -247,7 +269,7 @@ declare
                       {FProc.init F}
                []     {FProc.plus F S}
                []     Sp in S=res(_ _ Sp) {Holds.yes F Sp}
-                      {NegAsFail proc {$} {FProc.minus F S} end }
+                      {NegAsFail proc {$} {FProc.minus F S} end}
                end
              end
            end
@@ -321,12 +343,16 @@ declare
     )
   )
 
-in
-  local Control Dp Sp Ans in 
 
-    Control=seq(acquire_object(thomas egg1) acquire_object(thomas bowl1))
-    {Search.base.one {proc {$ E} {Holds.yes has_object(thomas egg1) s0} end} Ans}
+in
+  local Ans Sit Prog in 
+
+    {Browse 'Starting'}
     {Browse Ans}
+    Sit=res([acquire_object(thomas knife1) acquire_object(richard knife2)] _ s0)
+    Prog=seq(acquire_object(thomas knife1) acquire_object(richard knife2))
+    %%Ans={Search.base.one proc {$ E} {Do Prog s0 E} end}
+    {Explorer.object script(proc {$ E} {Do Prog s0 E} end)}
 
   end
   
