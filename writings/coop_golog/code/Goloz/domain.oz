@@ -1,6 +1,8 @@
 
 declare
 
+  [RI] = {Module.link['x-oz://contrib/RI']}
+
   proc {IsMember Elem List}
     choice List=nil fail
     []     List=Elem|_
@@ -27,7 +29,7 @@ declare
   proc {Preceeds S1 S2}
     choice S2=s0 fail
     []     C T Sp in S2=res(C T Sp) {Poss C T Sp}
-           {PreceedsEq S1 Sp} ({SitStart Sp}=<T)=true
+           {PreceedsEq S1 Sp} {RI.lessEq {SitStart Sp} T}
     end
   end
 
@@ -45,12 +47,12 @@ declare
 
   proc {LNTP S T}
     local A FindOthers in
-      {IsNatural A} {Poss A T S} ({SitStart S}=<T)=true
+      {IsNatural A} {Poss A T S} {RI.lessEq {SitStart S} T}
       FindOthers=proc{$}
                local A2 T2 in
                  {IsNatural A2}
                  {Poss A2 T2 S}
-                 (T2<T)=true
+                 {RI.greater T T2}
                end
              end
       {NegAsFail FindOthers}
@@ -92,16 +94,16 @@ declare
   proc {Trans D S Dp Sp}
     local D1 D2 in
       choice  D=nil fail
-      []      T in {ToCAct D D1} {SubInProg now S D1 D2}
-              {Poss D2 T S} Sp=res(D2 T S) Dp=nil
-              /* choice T LntpS in {LNTP S LntpS}
+      []      {ToCAct D D1} {SubInProg now S D1 D2}
+              choice T LntpS in {LNTP S LntpS} {RI.var.decl T}
                                 %% TODO: during and after LNTP
-                                (T>{SitStart S})=true
-                                (T<LntpS)=true {Poss D2 T S}
+                                {RI.greater T {SitStart T}}
+                                {RI.greater LntpS T} {Poss D2 T S}
                                 Sp=res(D2 T S) Dp=nil
-              []     T in {Poss D2 T S} (T>={SitStart S})=true
+              []     T in {RI.var.decl T} {Poss D2 T S}
+                          {RI.lessEq {SitStart S} T}
                           Sp=res(D2 T S) Dp=nil
-              end*/
+              end
       []      Cond in D=test(Cond) {Holds.yes Cond S} Sp=S Dp=nil
       []      D=seq(D1 D2) choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
                            []     {Final D1 S} {Trans D2 S Dp Sp}
@@ -110,7 +112,7 @@ declare
                               [] {Trans D2 S Dp Sp}
                               end
       []      V in D=pi(V D1) {SubInProg V _ D1 D2} {Trans D2 S Dp Sp}
-      []      D=start(D1) {Trans D S D2 Sp} Dp=seq(D2 star(D1))
+      []      D=star(D1) {Trans D S D2 Sp} Dp=seq(D2 star(D1))
       []      Cond in D=ifte(Cond D1 D2) choice {Holds.yes Cond S}
                                                 {Trans D1 S Dp Sp}
                                          []     {Holds.no Cond S}
@@ -350,9 +352,9 @@ in
     {Browse 'Starting'}
     {Browse Ans}
     Sit=res([acquire_object(thomas knife1) acquire_object(richard knife2)] _ s0)
-    Prog=seq(acquire_object(thomas knife1) acquire_object(richard knife2))
-    %%Ans={Search.base.one proc {$ E} {Do Prog s0 E} end}
-    {Explorer.object script(proc {$ E} {Do Prog s0 E} end)}
+    Prog=acquire_object(thomas knife1)
+    %%Ans={Search.base.one proc {$ E} {LNTP Sit E} end}
+    {Explorer.object script(proc {$ E} {Trans Prog s0 _ E} end)}
 
   end
   
