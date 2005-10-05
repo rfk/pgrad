@@ -46,11 +46,11 @@ crdata{1-59593-057-4/05/0004}
 \layout Standard
 
 \backslash 
-title{MIndiGolog: A Programming Language for Multi-Agent Teams}
+title{High-Level Program Execution for Multi-Agent Teams}
 \layout Standard
 
 \backslash 
-numberofauthors{2}
+numberofauthors{1}
 \layout Standard
 
 \backslash 
@@ -58,13 +58,7 @@ author{
 \backslash 
 alignauthor Ryan Kelly
 \backslash 
-titlenote{Studentship}
-\backslash 
-
-\backslash 
- 
-\backslash 
-affaddr{The University of Melbourne}
+titlenote{Currently a postgraduate student at the University of Melbourne} and Adrian Pearce
 \backslash 
 
 \backslash 
@@ -76,51 +70,23 @@ affaddr{Department of Computer Science and Software Engineering}
 \backslash 
  
 \backslash 
-affaddr{TODO: address here}
-\backslash 
-
-\backslash 
- 
-\backslash 
-affaddr{TODO: and here}
-\backslash 
-
-\backslash 
- 
-\backslash 
-email{rfk@cs.mu.oz.au}     
-\backslash 
-alignauthor Adrian Pearce
-\backslash 
-
-\backslash 
- 
-\backslash 
 affaddr{The University of Melbourne}
 \backslash 
 
 \backslash 
  
 \backslash 
-affaddr{Department of Computer Science and Software Engineering}
+affaddr{Parkville, Victoria, 3052, Australia}
 \backslash 
 
 \backslash 
  
 \backslash 
-affaddr{TODO: address here}
+email{
 \backslash 
-
+{rfk, pearce
 \backslash 
- 
-\backslash 
-affaddr{TODO: and here}
-\backslash 
-
-\backslash 
- 
-\backslash 
-email{pearce@cs.mu.oz.au} }
+}@cs.mu.oz.au} }
 \layout Standard
 
 \backslash 
@@ -132,7 +98,29 @@ maketitle
 
 \layout Abstract
 
-So my abstract goes here then
+The concept of high-level program execution has arisen in recent years as
+ a practical alternative to traditional planning.
+ Rather than planning a sequence of actions to achieve some goal state,
+ the agent determines a sequence of actions that form a legal execution
+ of a nondeterministic program.
+ This approach allows the programmer a fine degree of control over the amount
+ of nondeterminsm in the system.
+\layout Abstract
+
+When a team of agents must cooperate closely in order to achieve some shared
+ goal, they can often be conceptualised as a single agent with distributed
+ sensing, reasoning and acting capabilities.
+ Behaviors and goals are naturally ascribed to the team rather than to individua
+l members.
+ This suggests that high-level program execution may also provide an attractive
+ alternative to team planning.
+\layout Abstract
+
+In this paper, we robustly combine several extensions to the agent programming
+ language Golog to allow it to represent programs for multiagent teams.
+ We demonstrate both its effectiveness as a centralised multiagent planner
+ and a method for distributed execution.
+ TODO: what else?
 \layout Abstract
 
 
@@ -142,17 +130,13 @@ status Collapsed
 \layout Standard
 
 \backslash 
-category{B.2.4}{Arithmetic and Logic Structures}{High-Speed Arithmetic} 
+category{I.2.11}{Artificial Intelligence}{Distributed Artificial Intelligence}[Multiagent systems] 
 \backslash 
-category{B.7.1}{Integrated Circuits}{Types and Design Styles}[algorithms implemented into hardware]
+category{I.2.8}{Artificial Intelligence}{Problem Solving, Control Methods, and Search} 
 \layout Standard
 
 \backslash 
-terms{Algorithms, Performance, Design}
-\layout Standard
-
-\backslash 
-keywords{Carry Propagate Addition, Ling Adder, Reed Adder, Carry-Skip Adder, Hybrid Adder, Pseudo-Complements, Domino Logic, Conditional Sum Adder}
+keywords{Agent programming languages, Cooperative distributed problem solving in agent systems, Multi-agent planning}
 \layout Standard
 
 \end_inset 
@@ -163,25 +147,2404 @@ keywords{Carry Propagate Addition, Ling Adder, Reed Adder, Carry-Skip Adder, Hyb
 Introduction
 \layout Standard
 
-This is the introduction to the paper.
+As described in 
+\begin_inset LatexCommand \cite{lesperance2000_igl_ext,Levesque98beyondplanning}
+
+\end_inset 
+
+, 
+\emph on 
+high-level program execution
+\emph default 
+ is emerging as a practical alternative to traditional plan synthesis.
+ By 
+\begin_inset Quotes eld
+\end_inset 
+
+high-level program
+\begin_inset Quotes erd
+\end_inset 
+
+ is meant a program whose primitive operations are domain-specific actions,
+ and which may be incompletely specified due to nondeterministic constructs.
+ Rather than a planner finding a sequence of actions leading from an initial
+ state to a state in which some goals are achieved, the task is instead
+ to find a sequence of actions which constitute an instance of this program.
+ This task can range from executing a fully-specified program to synthesising
+ an action sequence from a completely nondeterministic program.
+ It thus subsumes both deterministic agent programming and traditional planning.
+\layout Standard
+
+The primary advantage of this approach is 
+\emph on 
+controlled nondeterminism
+\emph default 
+, allowing some aspects of the program to remain unspecified while avoiding
+ an exponential increase in planning difficulty for large programs.
+\layout Standard
+
+This method of agent control is epitomised by the programming language Golog
+ 
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset 
+
+, which has found a wide range of applications in systems from museum tour-guide
+ robots and mail delivery 
+\begin_inset LatexCommand \cite{Levesque98beyondplanning}
+
+\end_inset 
+
+ to the RoboCup robotic soccer competition 
+\begin_inset LatexCommand \cite{Ferrein2005readylog}
+
+\end_inset 
+
+.
+ Testimony to its success are the many enhacements to the language such
+ as ConGolog 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ to provide concurrent execution of programs, DTGolog 
+\begin_inset LatexCommand \cite{boutilier00dtgolog}
+
+\end_inset 
+
+ to provide probability and decision-theory, and IndiGolog 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
+
+\end_inset 
+
+ to provide online execution.
+\layout Standard
+
+At its most basic level, a Golog program consists two components:
+\layout Itemize
+
+an axiomatisation of a the agent domain in the situation calculus, a first-order
+ logic formalism for describing dynamic worlds 
+\begin_inset LatexCommand \cite{McCHay69sitcalc}
+
+\end_inset 
+
+
+\layout Itemize
+
+a program consisting of actions from the domain connected using programming
+ constructs such as loops, if-then-else, and nondeterministic choice
+\layout Standard
+
+It is then the task of the agent to find a deterministic insantiation of
+ the program which will produce a sequence of legal actions - that is, that
+ can actually be carried out in the world.
+ Such a sequence of actions is called a 
+\begin_inset Quotes eld
+\end_inset 
+
+legal execution
+\begin_inset Quotes erd
+\end_inset 
+
+ of the Golog program.
+\layout Standard
+
+A potential drawback of this approach is that a complete legal execution
+ must be determined before any actions are carried out - otherwise, actions
+ committed to by the agent could lead to situations where no legal execution
+ is possible.
+ Programs are thus executed offline.
+ This is addressed in the language IndiGolog where an explicit search operator
+ is introduced - a legal execution is determined offline for programs inside
+ a search operator, while outside a search operator the program is executed
+ online, with nondeterministic choices being executed as random choices.
+ 
+\layout Itemize
+
+Ability to formally prove properties of the legal executions of the program,
+ such as safey and liveness conditions
+\layout Standard
+
+TODO: benefits for sensing?
+\layout Standard
+
+TODO:Indeed, in 
+\begin_inset LatexCommand \cite{Finzi00}
+
+\end_inset 
+
+ Finzi et.
+ al.
+ show that an effective planning system can be build in this manner.
+\layout Standard
+
+Systems involving multiple autonomous agents can typically be classified
+ into two subtypes
+\begin_inset LatexCommand \cite{durfee05ma_plan_coordination}
+
+\end_inset 
+
+ - 
+\begin_inset Quotes eld
+\end_inset 
+
+open multiagent systems
+\begin_inset Quotes erd
+\end_inset 
+
+ in which agent behaviors are loosley coupled and agents may largely act
+ independently, and 
+\begin_inset Quotes eld
+\end_inset 
+
+multiagent teams
+\begin_inset Quotes erd
+\end_inset 
+
+ in which the agents depend intimately on one another for the accomplishment
+ of a shared task.
+ From a programming viewpoint, open multiagent systems are typically constructed
+ by specifying the behavior and goals of individual agents and using communicati
+on primitives to design interaction and cooperation between agents.
+ For tightly-coupled teams it may be more convenient to consider the team
+ as a single 
+\begin_inset Quotes eld
+\end_inset 
+
+super-agent
+\begin_inset Quotes erd
+\end_inset 
+
+ with distributed reasoning and acting abilities, and ascribe behaviors
+ and goals to the team as a whole.
+\layout Standard
+
+The major contributions of this paper are: to motivate high-level program
+ execution as a problem-solving paradigm for multi-agent teams, to combine
+ previous extensions to the Golog language into a semantics suitable for
+ use in a multi-agent setting, and to make some preliminary suggestions
+ as to how this may be used as a practical programming language for multi-agent
+ teams..
+ The result is MIndiGolog, a Golog dialect incorporating: TODO: limitations
+ of current approaches?
+\layout Standard
+
+In order to explore multi-agent Golog programs in a concrete way, a running
+ example is introduced and investigated throughout this paper: the 
+\begin_inset Quotes eld
+\end_inset 
+
+Cooking Agents
+\begin_inset Quotes erd
+\end_inset 
+
+ domain.
+ In this domain, several robotic chefs inhabit a kitchen, which they share
+ with inanimate objects such as various ingredients, appliances and utensils.
+ The agents must cooperate to produce a meal consisting of several dishes.
+\layout Standard
+
+This example is particularly suitable because tightly-coupled cooperation
+ will be of benefit, rather than assigning specific tasks to specific agents
+ and potentially leaving some agents idle.
+ It contains several challenges common to a wide variety of multi-agent
+ settings:
+\layout Itemize
+
+Contention for shared resources, such as utensils and the oven
+\layout Itemize
+
+Explicit time and time constraints, such as a cake needing to be baked for
+ an hour or the entree needing to be ready 15 minutes before the main course
+\layout Itemize
+
+Scheduling constraints and conflicts, such as a board using for chopping
+ meat being unusable for chopping salad
+\layout Itemize
+
+Large amount of procedural knowledge in the form of recipies
+\layout Standard
+
+The example domain also embodies several simplifications which make things
+ easier for this initial investigation.
+ Without difficulty it may be idealised as being completely deterministic
+ and fully observable.
+ The agents are also in close proximity allowing complete and reliable communica
+tion.
+ The details of this example domain will be developed through the paper.
+\layout Standard
+
+The remainder of this paper is structures as follows: TODO
 \layout Section
 
 Background
+\layout Subsection
+
+The Situation Calculus
+\layout Standard
+
+The situation calculus is a first order logic formalism for representing
+ and reasoning about dynamic worlds, introduced by McCarthy and Hayes 
+\begin_inset LatexCommand \cite{McCHay69sitcalc}
+
+\end_inset 
+
+.
+ While the concepts of the situation calculus remain largely unchanged,
+ the accompanying notation has evolved somewhat since its inception.
+ The notation presented here is that of 
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset 
+
+.
+\layout Standard
+
+A representation of a dynamic world in the situation calculus consists of
+ first order logic statements capturing the following:
+\layout Itemize
+
+Actions that can be performed in the world
+\layout Itemize
+
+Fluents that describe the state of the world
+\layout Itemize
+
+Action precondition axioms, one for each action
+\layout Itemize
+
+Successor state axioms, one for each fluent
+\layout Itemize
+
+Axioms describing the initial world situation
+\layout Itemize
+
+The foundational axioms of the situation calculus
+\layout Standard
+
+Only an overview of these concepts is presented here.
+ A detailed treatment may be found in 
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset 
+
+.
+\layout Standard
+
+
+\emph on 
+Actions
+\emph default 
+ are literals in the logic representing the ways in which the world can
+ be changed, and are taken to be instantaneous.
+ If an action does not occur, the world does not change.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+state of the world
+\begin_inset Quotes erd
+\end_inset 
+
+ is represented as a 
+\emph on 
+situation
+\emph default 
+, which is the history of actions that have been performed so far, with
+ the initial situation represented by the term 
+\begin_inset Formula $S_{0}$
+\end_inset 
+
+.
+ Terms representing other situations are constructed using the function
+ 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ which gives the situation resulting from performing action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+\layout Standard
+
+In this paper, all actions have as their first argument the name of the
+ agent performing them.
+ For example, the agent 
+\begin_inset Formula $Thomas$
+\end_inset 
+
+ may perform the action of placing an egg in a bowl, represented as:
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+Throughout this paper, the convention that uppercase names refer to instances
+ and lowercase names refer to universally quantified variables is used (TODO:
+ reword this)
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+place\_ in(Thomas,Egg,Bowl)\]
+
+\end_inset 
+
+
+\layout Standard
+
+If this is the first action performed in the world, the new situation becomes:
+\layout Standard
+
+
+\begin_inset Formula \[
+do(place\_ in(Thomas,Egg,Bowl),S_{0})\]
+
+\end_inset 
+
+
+\layout Standard
+
+Properties of the world are described by 
+\emph on 
+fluents
+\emph default 
+, which are functions or predicates taking a situation as their final argument.
+ For example, the fact that agent 
+\begin_inset Formula $Richard$
+\end_inset 
+
+ has possession of a knife in some situation 
+\begin_inset Formula $S$
+\end_inset 
+
+ might be represented as:
+\layout Standard
+
+
+\begin_inset Formula \[
+has\_ object(Richard,Knife,S)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Action precondition axioms are given in terms of 
+\emph on 
+possibility predicates
+\emph default 
+, which specify when it is possible for a given action to be performed.
+ To state that an agent may only place an object in a bowl when they have
+ possession of that bowl, the following possibility fluent could be used:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall agt,obj,s.\left[Poss(place\_ in(agt,obj,Bowl),s)\leftrightarrow has\_ object(agt,Bowl,s)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+The truth values of fluents are specified in two parts.
+ First, one must define what is true of the initial situation, such as the
+ following statement that no agents possess any objects initially:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall agt.\left[\neg\exists obj.\left(has\_ object(agt,obj,S_{0})\right)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+TODO: good demo of successor state axioms
+\layout Standard
+
+This basic form of the situation calculus has been extended to incorporate
+ ideas such as an explicit representation of time, continuously running
+ tasks, and natural actions.
+ These extensions will be incorporated throughout the paper.
+\layout Subsection
+
+Golog
+\layout Standard
+
+Golog is a declarative programming language based on the situation calculus,
+ developed by Levesque et.
+ al 
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset 
+
+.
+ It combines the primitive actions from the situation calculus with high-level
+ programming constructs such as while-loops, if-then-else clauses, and nondeterm
+inistic choice.
+ Its semantics can be defined either as macros in the situation calculus
+ which are expanded to given first-order logic formulae, or in terms of
+ transitions from one program state to another.
+ As the transition semantics offer the ability to represent long-running
+ processes and perform online execution, they are used in this paper.
+\layout Standard
+
+The transition semantics were introduced with the language ConGolog 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ in order to allow concurrent execution of several program by interleaving
+ their transition steps.
+ Two predicates 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ and 
+\begin_inset Formula $Final$
+\end_inset 
+
+ are defined for each program construct.
+ Intuitively, 
+\begin_inset Formula $Trans(\delta,s,\delta',s')$
+\end_inset 
+
+ is true precisely when executing part of program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ can cause the world to move from situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ to situation 
+\begin_inset Formula $s'$
+\end_inset 
+
+, after which 
+\begin_inset Formula $\delta'$
+\end_inset 
+
+ remains to be executed.
+ It thus specifies single-steps of computation of the program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+.
+ 
+\begin_inset Formula $Final(\delta,s)$
+\end_inset 
+
+ is true when program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ may legally terminate its execution in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ Finding a legal execution then consist of proving that 
+\begin_inset Formula $\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]$
+\end_inset 
+
+, where 
+\begin_inset Formula $Trans*$
+\end_inset 
+
+ is the transitive closure of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+.
+\layout Standard
+
+The extension IndiGolog 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
+
+\end_inset 
+
+ introduced the ability to execute a program online.
+ Rather than searching over the entire for a legal execution, IndiGolog
+ searches only far enough to find a single action to execute.
+ It introduces a search operator to allow full planning over subsections
+ of the program.
+\layout Standard
+
+Table TODO introduces the Golog operators.
+ A transition semantics for these in the context of multiagent teams is
+ developed in the following sections.
+\layout Standard
+
+
+\begin_inset Float table
+wide false
+collapsed false
+
+\layout Caption
+
+Golog Operators
+\layout Standard
+\align center 
+
+\begin_inset  Tabular
+<lyxtabular version="3" rows="16" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Operator
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Meaning
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $nil$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Empty program
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $a$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Execute primitive action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in the world
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\phi?$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Proceed only if condition 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ is true
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\delta_{1};\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Execute program 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+followed by 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\delta_{1}|\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Execute either 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ or 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\pi(x)\delta(x)$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Nondet.
+ select arguments for program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\delta*$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Execute 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ zero or more times
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2}\mathbf{end}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Execute 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ if 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ holds, 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ otherwise
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\mathbf{while}\phi\mathbf{do}\delta\mathbf{end}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Execute 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ while 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ holds
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\delta_{1}||\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Concurrently execute 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+and 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\delta_{1}\gg\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Conc.
+ execute 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ proiritised over 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\delta^{||}$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Conc.
+ execute 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ zero or more times
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+
+\begin_inset Formula $\Sigma\delta$
+\end_inset 
+
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+Find and perform legal execution of 
+\begin_inset Formula $\delta$
+\end_inset 
+
+
+\end_inset 
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+TODO: interrupts?
+\end_inset 
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+\end_inset 
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\layout Standard
+
+TODO: procedure definition and call
+\end_inset 
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset 
+
+
+\end_inset 
+
+
 \layout Section
 
-MIndiGolog
+Language Features
+\layout Standard
+
+A multiagent setting poses several challenges for the situation calculus
+ and Golog.
+ It must allow the programmer to represent the following characteristics
+ of the system, each of which are described using examples from the Cooking
+ Agents domain:
+\layout Itemize
+
+Time: Some tasks in the cooking domain may require an explicit notion of
+ time.
+ For example, a cake must be baked for 30 minutes before being removed from
+ the oven.
+\layout Itemize
+
+Concurrency: Several agents are capable of acting at the same time, meaning
+ several primitve actions can occur simultaneously.
+ They must also be able to perform tasks concurrently, such as preparing
+ several parts of a meal at once.
+\layout Itemize
+
+Shared Resources: The agents will face conention for limited physical resources
+ such as the oven, mixing bowls and chopping boards.
+\layout Itemize
+
+Continuous Processes: Agents are required to perform actions with some finite
+ duration, such as mixing ingredients for a specified time.
+\layout Itemize
+
+Natural Actions: These are predictable actions which occur outside of the
+ agent's control.
+ If an agent sets a timer then it will ring at the appropriate time without
+ intervention from any agent.
+\layout Standard
+
+Many of these concepts have been independently addressed in Golog and the
+ situation calculus.
+ They will be systematically addressed and combined in the following sections.
+\layout Subsection
+
+Time
+\layout Standard
+
+There have been several efforts to incorporate a temporal component into
+ the situation calculus.
+ Pinto 
+\begin_inset LatexCommand \cite{pinto94temporal}
+
+\end_inset 
+
+ introduced the functions 
+\begin_inset Formula $start(s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $end(s,a)$
+\end_inset 
+
+ which range over the real numbers and give the starting and ending time
+ of a situation respectively.
+ Reiter 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ simplified this scheme by including within each action an explicit temporal
+ argument indicating the time at which it was performed.
+ While this is useful when specifying precise times for action occurances,
+ it adds complexity when actions are performed concurrently.
+\layout Standard
+
+In work on the related Fluent Calculus, Martin 
+\begin_inset LatexCommand \cite{martin03conc_flux}
+
+\end_inset 
+
+ attaches the explicit occurance time not to actions but to situations,
+ an approach which was also adopted for this paper.
+ The successor situation function 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ becomes 
+\begin_inset Formula $do(a,t,s)$
+\end_inset 
+
+, to indicate 
+\begin_inset Quotes eld
+\end_inset 
+
+action 
+\begin_inset Formula $a$
+\end_inset 
+
+ performed at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ Likewise, the possibility predicate 
+\begin_inset Formula $Poss(a,s)$
+\end_inset 
+
+ becomes 
+\begin_inset Formula $Poss(a,t,s)$
+\end_inset 
+
+, meaning 
+\begin_inset Quotes eld
+\end_inset 
+
+it is possible to perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+ at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ The function 
+\begin_inset Formula $start(s)$
+\end_inset 
+
+ is added which gives the starting time of a situation:
+\layout Standard
+
+
+\begin_inset Formula \[
+start(do(a,t,s))=t\]
+
+\end_inset 
+
+
+\layout Standard
+
+Note that the start time of the initial situation is arbitrary, and may
+ be defined as required according to the specific application.
+ For the Cooking Agents domain it has been set to zero.
+\layout Subsection
+
+Concurrency
+\layout Standard
+
+Concurrency is one of the defining attributes of multiagent systems.
+ In the context of the situation calculus and Golog, it refers to two distinct
+ ideas - the possibility of having several primitive actions performed at
+ the same instance, and the possibility of simultaneously executing several
+ high-level programs.
+\layout Standard
+
+The notion of concurrently executing multiple high-level programs is given
+ an in-depth treatment in 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ with the development of ConGolog.
+ This work adds support for prioritized concurrency and interrupts to the
+ standard Golog semantics by means of interleaving of primitive actions,
+ an approach which will be used in this paper.
+\layout Standard
+
+The work of 
+\begin_inset LatexCommand \cite{lin92sc_conc}
+
+\end_inset 
+
+ and 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ provides a suitable extension to the situation calculus to allow many primitive
+ actions to occur at the same time.
+ The primitive action terms are replaced with sets of actions to be performed
+ concurrently.
+ All predicates that take an action are modified to accept sets of actions
+ instead:
+\layout Standard
+
+
+\begin_inset Formula \[
+do(\{ a_{1},a_{2},...\},t,s)\]
+
+\end_inset 
+
+
+\begin_inset Formula \[
+Poss(\{ a_{1},a_{2},...\},t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Throughout the remainder of the paper, the variables 
+\begin_inset Formula $c$
+\end_inset 
+
+, 
+\begin_inset Formula $c_{1}$
+\end_inset 
+
+, etc will be used to refer to sets of concurrently performed actions.
+ 
+\layout Standard
+
+The approach to time used in 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ requires a predicate 
+\begin_inset Formula $coherent(c)$
+\end_inset 
+
+ to be defined, which is true when the concurrent action 
+\begin_inset Formula $c$
+\end_inset 
+
+ contains at least one action and all actions occur at the same time.
+ Since time in this paper is attached to situations rather than actions,
+ this property is automatically satisfied.
+ To ensure that program executions do not include empty sets of actions,
+ one need only ensure that it is never possible to perform such an empty
+ set:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s,t.\left[Poss(\{\},t,s)\equiv False\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+These two concepts of concurrency were combined by Baier and Pinto 
+\begin_inset LatexCommand \cite{pinto99tcongolog}
+
+\end_inset 
+
+ by modifying the transition semantics for ConGolog to act on sets of concurrent
+ action terms.
+ An equivalent approach taken below, incorporating the additional extensions
+ made above.
+\layout Standard
+
+Recall that the semantics of a ConGolog program is given in terms of a transitio
+n system based on predicates 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ and 
+\begin_inset Formula $Final$
+\end_inset 
+
+.
+ In the simplest implementation, those instances of the transition predicates
+ which operate at the level of primitive actions could be modified to accept
+ sets of concurrent actions, and they would operate appropriately over the
+ domain axiomatisation of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+.
+ However, the fact that several primitive actions can occur simultaneously
+ means that the definition of 
+\begin_inset Quotes eld
+\end_inset 
+
+concurrent processes
+\begin_inset Quotes erd
+\end_inset 
+
+ found in ConGolog can be extended.
+\layout Standard
+
+The concurrency operator 
+\begin_inset Formula $(\delta_{1}||\delta_{2})$
+\end_inset 
+
+ is intended to mean 
+\begin_inset Quotes eld
+\end_inset 
+
+execute programs 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+and 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ concurrently
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ In the original single-step transition semantics, this is operationalised
+ as:
+\layout Quotation
+
+
+\begin_inset Quotes eld
+\end_inset 
+
+...you single step 
+\begin_inset Formula $(\delta_{1}||\delta_{2})$
+\end_inset 
+
+ by single stepping either 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ or 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ and leaving the other process unchanged.
+\begin_inset Quotes erd
+\end_inset 
+
+
+\layout Standard
+
+This is characterised by the predicate:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Standard
+
+When multiple actions can occur concurrently, this notion of interleaving
+ is insufficient.
+ It may be possible to simultaneously single step both 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ by executing actions concurrently.
+ Thus, there are three options for single stepping the concurrency operator:
+\layout Itemize
+
+Single step 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ and execute the remainder concurrently with 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+
+\layout Itemize
+
+Single step 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ and execute the remainder concurrently with 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+
+\layout Itemize
+
+Single step both 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ and execute the remainders of both concurrently
+\layout Standard
+
+The following modified 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ predicate captures this extended notion of concurrent execution:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
+ & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
+ & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
+ & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
+
+ 
+
+\end_inset 
+
+
+\layout Standard
+
+The ability to perform actions concurrently leads to complications in the
+ possibility axioms.
+ While the actions 
+\begin_inset Formula $acquire(Thomas,Bowl)$
+\end_inset 
+
+ and 
+\begin_inset Formula $acquire(Richard,Bowl)$
+\end_inset 
+
+ may individual be possible in a situation, the concurrent action 
+\begin_inset Formula $\{ acquire(Thomas,Bowl),acquire(Richard,Bowl)\}$
+\end_inset 
+
+ should clearly not be.
+ This is know as the precondition interaction problem and is an area of
+ ongoing research.
+\layout Standard
+
+For the purposes of this domain, precondition interaction is addressed by
+ introducing a predicate 
+\begin_inset Formula $Conflicts(c,t,s)$
+\end_inset 
+
+ which is true when the concurrent actions in 
+\begin_inset Formula $c$
+\end_inset 
+
+ are in conflict and cannot be performed together.
+ The possibility axiom for concurrent actions is then:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c,t,s)\leftrightarrow\forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\wedge\neg Conflicts(c,t,s)\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Shared Resources
+\layout Standard
+
+TODO
+\layout Subsection
+
+Continuous Processes
+\layout Standard
+
+TODO find a ref for this
+\layout Standard
+
+The standard way to represent continuous processes in the Situation Calculus
+ is by assocating them with a fluent, which is true precisely when the process
+ is being performed.
+ This is accompanied by two actions, one indicating the start of the process
+ and one indicating when it stops.
+ This can be encoded in a general way using the fluent 
+\begin_inset Formula $doing\_ task(agt,tsk,s)$
+\end_inset 
+
+ to indicate that agent 
+\begin_inset Formula $agt$
+\end_inset 
+
+ is in the process of doing task 
+\begin_inset Formula $tsk$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ It is accompanied by two actions 
+\begin_inset Formula $begin\_ task(agt,tsk)$
+\end_inset 
+
+ and 
+\begin_inset Formula $end\_ task(agt,tsk)$
+\end_inset 
+
+.
+ The successor state axiom for this fluent must ensure that it becomes true
+ when 
+\begin_inset Formula $begin\_ task$
+\end_inset 
+
+ is performed, and ceases to be true when 
+\begin_inset Formula $end\_ task$
+\end_inset 
+
+ is performed.
+\layout Standard
+
+TODO: show the full axiom and possibility predicates
+\layout Subsection
+
+Natural Actions
+\layout Standard
+
+Natural actions are a special class of exogenous actions, those actions
+ which occur outsite of the agent's control.
+ Introduced to the situation calculus by Pinto 
+\begin_inset LatexCommand \cite{pinto94temporal}
+
+\end_inset 
+
+ and expanded by Reiter 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc,reiter01kia}
+
+\end_inset 
+
+, they are classified according to the following requirement: natural actions
+ are exogenous actions which must occur at their predicted times, provided
+ no earlier actions prevent them from occuring.
+ For example, the action of a ball bouncing when it reaches the ground is
+ a natural action, which may be prevented by catching the ball.
+\layout Standard
+
+The methodology of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ is adopted, suitably modified for the additional extensions of this paper.
+ Natural actions are indicated by the predicate 
+\begin_inset Formula $natural(a)$
+\end_inset 
+
+, which is true precisely when 
+\begin_inset Formula $a$
+\end_inset 
+
+ is a natural action.
+ The times at which natural actions may occur are specified by the 
+\begin_inset Formula $Poss$
+\end_inset 
+
+ predicate, as with agent-initiated actions.
+ For example, suppose that the following fluent represents the fact that
+ a timer identified by 
+\begin_inset Formula $ID$
+\end_inset 
+
+ is set to ring in 10 minutes in the situation 
+\begin_inset Formula $S$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+timer\_ set(ID,10,S)\]
+
+\end_inset 
+
+
+\layout Standard
+
+The possibility predicate for the 
+\begin_inset Formula $ring\_ timer(ID)$
+\end_inset 
+
+ action could then be given as:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(ring\_ timer(ID),t,s)\equiv\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+To enforce the requirement that natural actions must occur provided nothing
+ prevents them, a predicate 
+\begin_inset Formula $legal(s)$
+\end_inset 
+
+ is introduced which is true only for situations which respect this requirement:
+\layout Standard
+
+
+\begin_inset Formula \[
+legal(S_{0})\equiv True\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{cc}
+legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
+ & start(s)\leq t\wedge\\
+ & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
+ & \left[a\in c\vee t<t_{a}\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+When utilising natural actions within a Golog program, all legal program
+ executions should result in situations for which the 
+\begin_inset Formula $legal$
+\end_inset 
+
+ predicate is true.
+ It will be shown that this can be enforced in the semantics of the language,
+ avoiding the need to check it explicitly.
+\layout Standard
+
+TODO: this implicitly assumes no interaction among natural actions.
+\layout Standard
+
+An important concept when dealing with natural actions it the least natural
+ time point (LNTP) of a situation.
+ This is defined as the earliest time at which a natural action may occur
+ in a situation:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{ccc}
+lntp(s,t) & \equiv & \exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
+ &  & \forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Note that the LNTP need not exist for a given situation.
+ It is straightforward to extend the proof of Lemma 3 in 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ to this notation,giving the result that:
+\layout Standard
+
+
+\begin_inset Formula \[
+natural(a)\wedge legal(do(c,t,s))\wedge a\in c\rightarrow lntp(s,t)\]
+
+\end_inset 
+
+
+\layout Subsection
+
+The Domain
+\layout Standard
+
+TODO: explain how the example domain is encoded in the sitcalc
 \layout Section
 
-Distributed Execution
+Langauge Semantics
+\layout Standard
+
+The extensions to the situation calculus and Golog described above allow
+ it to represent and reason about multiagent systems.
+ This section defines the formal semantics of the language in the tradition
+ of 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+, and demonstrates some useful properties.
+\layout Subsection
+
+MIndiGolog Transition Semantics
+\layout Standard
+
+The following gives a transition semantics for MConGolog by defining the
+ operators 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ and 
+\begin_inset Formula $Final$
+\end_inset 
+
+ for each of the basic program constructs.
+\layout Subsubsection
+
+Empty Proram:
+\layout Standard
+
+An empty program is represented by the literal 
+\begin_inset Formula $nil$
+\end_inset 
+
+.
+ There are no transitions from an empty program and such a program is always
+ final.
+\layout Standard
+
+
+\begin_inset Formula \[
+Trans(nil,s,\delta',s')\equiv False\]
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(nil,s)\equiv True\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+(Concurrent) Primitive Actions 
+\layout Standard
+
+A single action term represents a valid program, which can never be a final
+ configuration.
+ The possible transitions for such a program depend on whether the accompanying
+ situation has a least natural time point.
+ If not, the only legal transition is to perform the action at some time
+ 
+\begin_inset Formula $t$
+\end_inset 
+
+ greater than or equal to the start of the situation.
+ If there is an LNTP, a legal transition can be produced in one of three
+ ways:
+\layout Enumerate
+
+Perform the action at some time 
+\begin_inset Formula $t$
+\end_inset 
+
+ before the LNTP, leaving an empty program and new situation
+\layout Enumerate
+
+Perform the action at the LNTP 
+\begin_inset Formula $t_{n}$
+\end_inset 
+
+, concurrently with the natural actions which must occur at that time, leaving
+ an empty program and new situation
+\layout Enumerate
+
+Allow the natural actions to occur at the LNTP, producing a new situation
+ and leaving the program unchanged
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{ccc}
+Trans(c,s,\delta',s')\equiv & \exists t_{n}.\left[lntp(s,t_{n})\wedge\right.\\
+ & \exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\\
+ & s'=do(c,t,s)\wedge\delta'=nil\\
+ &  & \vee\\
+ & \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
+ & \left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right. & \vee\\
+ & \left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right]\\
+ &  & \vee\\
+ & \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
+ & \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
+
+\end_inset 
+
+ 
+\newline 
+
+\begin_inset Formula \[
+Final(c,s)\equiv False\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Wait/test actions:
+\layout Standard
+
+
+\begin_inset Formula \[
+Trans(\phi?,s,\delta',s')\equiv\phi[s]\wedge\delta'=nil\wedge s'=s\]
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\phi?,s)\equiv False\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Sequence:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1};\delta_{2},s,\delta',s')\equiv & \exists\gamma\delta'=(\gamma;\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & Final(\delta_{1},s)\wedge Trans(\delta_{2},s,\delta',s')\end{eqnarray*}
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\delta_{1};\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Nondeterministic branch:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}|\delta_{2},s,\delta',s')\equiv & Trans(\delta_{1},s,\delta',s') & \vee\\
+ & Trans(\delta_{2},s,\delta',s)\end{eqnarray*}
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\delta_{1}|\delta_{2},s)\equiv Final(\delta_{1},s)\vee Final(\delta_{2},s)\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Nondeterministic choice of argument:
+\layout Standard
+
+
+\begin_inset Formula \[
+Trans(\pi v.\delta,x,\delta',s)\equiv\exists x.Trans(\delta_{x}^{v},s,\delta',s')\]
+
+\end_inset 
+
+
+\begin_inset Formula \[
+Final(\pi v.\delta,s)\equiv\exists x.Final(\delta_{x}^{v},s)\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Iteration:
+\layout Standard
+
+
+\begin_inset Formula \[
+Trans(\delta^{*},s,\delta',s')\equiv\exists\gamma.(\delta'=\gamma;\delta^{*})\wedge Trans(\delta,s,\gamma,s')\]
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\delta^{*},s)\equiv True\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Synchonised Conditional:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s,\delta',s')\equiv & \phi[s]\wedge Trans(\delta_{1},s,\delta',s') & \vee\\
+ & \neg\phi[s]\wedge Trans(\delta_{2},s,\delta',s')\end{eqnarray*}
+
+\end_inset 
+
+ 
+\begin_inset Formula \begin{eqnarray*}
+Final(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s)\equiv & \phi[s]\wedge Final(\delta_{1},s) & \vee\\
+ & \neg\phi[s]\wedge Final(\delta_{1},s)\end{eqnarray*}
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Synchronised While:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv & \exists\gamma.(\delta'=\gamma;\mathbf{while}\phi\mathbf{do}\delta) & \wedge\\
+ & \phi[s]\wedge Trans(\delta,s,\gamma,s')\end{eqnarray*}
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv\neg\phi[s]\wedge Final(\delta,s)\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Concurrent Execution:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
+ & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
+ & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
+ & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
+
+ 
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\delta_{1}||\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Prioritised Concurrency:
+\layout Standard
+
+
+\begin_inset Formula \begin{eqnarray*}
+Trans(\delta_{1}\gg\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma\gg\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
+ & \exists\gamma.\delta'=(\delta_{1}\gg\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\wedge\neg\exists\zeta,s''.Trans(\delta_{1},s,\zeta,s'')\end{eqnarray*}
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\delta_{1}\gg\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+Concurrent Iteration:
+\layout Standard
+
+
+\begin_inset Formula \[
+Trans(\delta^{||},s,\delta',s')\equiv\exists\gamma.\delta'=(\gamma||\delta^{||})\wedge Trans(\delta,s,\gamma,s')\]
+
+\end_inset 
+
+ 
+\begin_inset Formula \[
+Final(\delta^{||},s)\equiv True\]
+
+\end_inset 
+
+
+\layout Subsubsection
+
+TODO: search
+\layout Subsubsection
+
+TODO: procedures
+\layout Subsection
+
+Properties of the Semantics
+\layout Standard
+
+From the formal semantics presented above, it is possible to prove useful
+ properties of the proposed language.
+ In particular, we seek to prove that if a program starts in a legal situation,
+ all executions of the program will produce legal situations.
+\layout Standard
+
+To show this, first notice that only two transition rules directly modify
+ the situation term - execution of a primitive action, and concurrent execution.
+ All other rules modify the situation term by further use of the 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ predicate.
+ Thus, it suffices to show that these two rules will only produce legal
+ situations.
+ Recall the definition of 
+\begin_inset Formula $legal(s)$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{cc}
+legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
+ & start(s)\leq t\wedge\\
+ & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
+ & \left[a\in c\vee t<t_{a}\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Consider first the case of 
+\begin_inset Formula $Trans(\delta_{1}||\delta_{2},s,\delta',s')$
+\end_inset 
+
+.
+ The only part of interested is the conjunction which directly produces
+ a modified situation 
+\begin_inset Formula $s'=do(c_{1}\cup c_{2},t,s)$
+\end_inset 
+
+.
+ Assuming that 
+\begin_inset Formula $s$
+\end_inset 
+
+ is a legal situation, we seek to prove that 
+\begin_inset Formula $s'$
+\end_inset 
+
+ must be legal.
+ Assuming that all other instances of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ produce legal situations, 
+\begin_inset Formula $Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))$
+\end_inset 
+
+ and 
+\begin_inset Formula $Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))$
+\end_inset 
+
+ will produce legal situations 
+\begin_inset Formula $do(c_{1},t,s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $do(c_{2},t,s)$
+\end_inset 
+
+.
+\layout Standard
+
+From 
+\begin_inset Formula $legal(do(c_{1},t,s))$
+\end_inset 
+
+ it can be inferred that:
+\layout Standard
+
+
+\begin_inset Formula \[
+legal(s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+start(s)\leq t\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\vee t<t_{a}\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+This implies that:
+\layout Standard
+
+
+\begin_inset Formula \[
+(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\cup c_{2}\vee t<t_{a}\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+The definition of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ further requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c_{1}\cup c_{2},t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Thus all four conjuncts necessary prove 
+\begin_inset Formula $legal(do(c_{1}\cup c_{2},t,s))$
+\end_inset 
+
+ are true, and this rule generates only legal situations.
+\layout Standard
+
+Turning attention to the 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ rule for primitive actions there are four disjuncts to consider, each of
+ which may produce a new situation term.
+ The first requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists t.\left[t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+From this it is immediately clear that:
+\layout Standard
+
+
+\begin_inset Formula \[
+start(s)\leq t\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c,t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Using the definition of 
+\begin_inset Formula $lntp(s,t_{n})$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\exists a\left[natural(a)\wedge Poss(a,t_{n},s)\right]\wedge\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Since 
+\begin_inset Formula $t<t_{n}$
+\end_inset 
+
+, this gives:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow a\in c\vee t\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Assuming 
+\begin_inset Formula $legal(s)$
+\end_inset 
+
+, these conjuncts are sufficient to establish 
+\begin_inset Formula $legal(do(c,t,s))$
+\end_inset 
+
+.
+ The next disjunct requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge Poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Using this along with the definition of LNTP, it is clear that:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c\cup cn,t_{n},s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+start(s)\leq t_{n}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\,\,\wedge\,\, natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+The last of which yields:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow c\in c\cup cn\vee t_{n}\leq t_{a}\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Again, all conjuncts necessary to prove 
+\begin_inset Formula $legal(do(c\cup cn,t_{n},s))$
+\end_inset 
+
+ are true.
+\layout Standard
+
+TODO: finish this proof and clean it up *a lot*
+\layout Section
+
+Language Execution
+\layout Standard
+
+An advantage of having language semantics specified in first-order logic
+ is that implementing an interpreter is straighforward, using a logic programmin
+g language such as Prolog.
+ If the above semantics are translated to prolog in the style of 
+\begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
+
+\end_inset 
+
+, the result is a multi-agent planner.
+\layout Standard
+
+TODO: a short demo here?
+\layout Standard
+
+While this could be used to implement central control for a multi-agent
+ team, it fails to make use of the distributed reasoning abilities of the
+ teams.
+ It would be preferable to have all agents involved in the reasoning process,
+ particularly for expensive operations such as search.
+\layout Standard
+
+A preliminary implementation of this idea can be made in the language Mozart
+ (TODO), which suports logical programming in a similar manner to prolog.
+ Unlike prolog, it does not embed a particular search strategy but allows
+ the programmer to select the most appropriate.
+ In particular, it provides a parallel search strategy that takes advantage
+ of networked machines to speed up the search 
+\begin_inset LatexCommand \cite{schulte00oz_parallel}
+
+\end_inset 
+
+.
+\layout Standard
+
+For online execution, the amount of reasoning performed before a step is
+ found is typically small and would not justify the communication overhead
+ of a distributed search.
+ Planning, however, stands to benefit immensely.
+ The following is a basic algorithm implemented in Mozart to blaby blah
+ TODO:
+\layout Enumerate
+
+Select one agent to be manager for the distributed search
+\layout Enumerate
+
+Define a function 
+\begin_inset Formula $TimeBound(\delta)$
+\end_inset 
+
+ which sets an upper bound on the time taken for any agent to select a next
+ step from program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+.
+\layout Enumerate
+
+Define a constant 
+\begin_inset Formula $CommBound$
+\end_inset 
+
+ which sets an upper bound on the time taken for a communication to travel
+ between agents.
+\layout Enumerate
+
+To execute 
+\begin_inset Formula $\Sigma\delta$
+\end_inset 
+
+, the manager initiates a distributed search ending at time 
+\begin_inset Formula $t_{p}$
+\end_inset 
+
+ with plan 
+\begin_inset Formula $\delta_{p}$
+\end_inset 
+
+, which are then communication to the other agents.
+\layout Enumerate
+
+To execute all other programs, agents reason individually about the next
+ step to take (using a deterministic reasoning procedure)...blahby blah TODO.
 \layout Section
 
 Discussion
+\layout Itemize
+
+alternate prediction schemes e.g.
+ extra Golog programs (in readylog?)
+\layout Itemize
+
+DTGolog e.g.
+ find shortest plan
+\layout Itemize
+
+Unpredicatable exogenous actions
+\layout Itemize
+
+Sensing, belief, etc
 \layout Section
 
 Conclusions and Future Work
-\layout Section
-
-Acknowledgments
 \layout Standard
 
 
