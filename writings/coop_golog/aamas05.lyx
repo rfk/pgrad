@@ -118,9 +118,9 @@ l members.
 
 In this paper, we robustly combine several extensions to the agent programming
  language Golog to allow it to represent programs for multiagent teams.
- We demonstrate both its effectiveness as a centralised multiagent planner
- and a method for distributed execution.
- TODO: what else?
+ A preliminary implementation is described and we demonstrate both its effective
+ness as a centralised multiagent planner and a method for distributed execution.
+ 
 \layout Abstract
 
 
@@ -170,117 +170,47 @@ high-level program
  Rather than a planner finding a sequence of actions leading from an initial
  state to a state in which some goals are achieved, the task is instead
  to find a sequence of actions which constitute an instance of this program.
- This task can range from executing a fully-specified program to synthesising
- an action sequence from a completely nondeterministic program.
- It thus subsumes both deterministic agent programming and traditional planning.
 \layout Standard
 
-The primary advantage of this approach is 
+This task can range from executing a fully-specified program to synthesising
+ an action sequence from a completely nondeterministic program.
+ It thus subsumes both deterministic agent programming and traditional planning
+ (for an example, see 
+\begin_inset LatexCommand \cite{Finzi00}
+
+\end_inset 
+
+).
+ The primary advantage of this approach is 
 \emph on 
 controlled nondeterminism
 \emph default 
 , allowing some aspects of the program to remain unspecified while avoiding
  an exponential increase in planning difficulty for large programs.
-\layout Standard
-
-This method of agent control is epitomised by the programming language Golog
- 
+ This method of agent control is epitomised by the programming language
+ Golog 
 \begin_inset LatexCommand \cite{levesque97golog}
 
 \end_inset 
 
-, which has found a wide range of applications in systems from museum tour-guide
- robots and mail delivery 
-\begin_inset LatexCommand \cite{Levesque98beyondplanning}
-
-\end_inset 
-
- to the RoboCup robotic soccer competition 
-\begin_inset LatexCommand \cite{Ferrein2005readylog}
-
-\end_inset 
-
-.
- Testimony to its success are the many enhacements to the language such
- as ConGolog 
-\begin_inset LatexCommand \cite{giacomo00congolog}
-
-\end_inset 
-
- to provide concurrent execution of programs, DTGolog 
-\begin_inset LatexCommand \cite{boutilier00dtgolog}
-
-\end_inset 
-
- to provide probability and decision-theory, and IndiGolog 
-\begin_inset LatexCommand \cite{giacomo99indigolog}
-
-\end_inset 
-
- to provide online execution.
-\layout Standard
-
-At its most basic level, a Golog program consists two components:
+ which has provided the following benefits for single-agent programming:
 \layout Itemize
 
-an axiomatisation of a the agent domain in the situation calculus, a first-order
- logic formalism for describing dynamic worlds 
-\begin_inset LatexCommand \cite{McCHay69sitcalc}
-
-\end_inset 
-
-
+Ability to control the amount of nondeterminism
 \layout Itemize
 
-a program consisting of actions from the domain connected using programming
- constructs such as loops, if-then-else, and nondeterministic choice
-\layout Standard
-
-It is then the task of the agent to find a deterministic insantiation of
- the program which will produce a sequence of legal actions - that is, that
- can actually be carried out in the world.
- Such a sequence of actions is called a 
-\begin_inset Quotes eld
-\end_inset 
-
-legal execution
-\begin_inset Quotes erd
-\end_inset 
-
- of the Golog program.
-\layout Standard
-
-A potential drawback of this approach is that a complete legal execution
- must be determined before any actions are carried out - otherwise, actions
- committed to by the agent could lead to situations where no legal execution
- is possible.
- Programs are thus executed offline.
- This is addressed in the language IndiGolog where an explicit search operator
- is introduced - a legal execution is determined offline for programs inside
- a search operator, while outside a search operator the program is executed
- online, with nondeterministic choices being executed as random choices.
- 
+Programs can incorporate sophisticated symbolic reasoning about the world
 \layout Itemize
 
-Ability to formally prove properties of the legal executions of the program,
- such as safey and liveness conditions
+Formal verification of program properties, in some cases using automated
+ tools
+\layout Itemize
+
+Straightforward implementation of an interpreter
 \layout Standard
 
-TODO: benefits for sensing?
-\layout Standard
-
-TODO:Indeed, in 
-\begin_inset LatexCommand \cite{Finzi00}
-
-\end_inset 
-
- Finzi et.
- al.
- show that an effective planning system can be build in this manner.
-\layout Standard
-
-Systems involving multiple autonomous agents can typically be classified
- into two subtypes
+Systems involving multiple autonomous agents can be classified into two
+ subtypes
 \begin_inset LatexCommand \cite{durfee05ma_plan_coordination}
 
 \end_inset 
@@ -293,8 +223,7 @@ open multiagent systems
 \begin_inset Quotes erd
 \end_inset 
 
- in which agent behaviors are loosley coupled and agents may largely act
- independently, and 
+ in which agent behaviors are loosley coupled, and 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -307,31 +236,84 @@ multiagent teams
  From a programming viewpoint, open multiagent systems are typically constructed
  by specifying the behavior and goals of individual agents and using communicati
 on primitives to design interaction and cooperation between agents.
- For tightly-coupled teams it may be more convenient to consider the team
- as a single 
-\begin_inset Quotes eld
-\end_inset 
+ This approach can also be taken with multiagent teams.
+\layout Standard
 
-super-agent
-\begin_inset Quotes erd
-\end_inset 
-
- with distributed reasoning and acting abilities, and ascribe behaviors
- and goals to the team as a whole.
+For tightly-coupled teams it may be more convenient to conceptualise the
+ team as a single agent with distributed sensing, reasoning and acting abilities
+, and ascribe behaviors and goals to the team as a whole.
+ This suggests that high-level program execution may also provide an attractive
+ alternative to team planning, providing the benefits described above to
+ applications involving multiagent teams.
+ It is this idea that we pursue in this paper.
 \layout Standard
 
 The major contributions of this paper are: to motivate high-level program
- execution as a problem-solving paradigm for multi-agent teams, to combine
- previous extensions to the Golog language into a semantics suitable for
- use in a multi-agent setting, and to make some preliminary suggestions
- as to how this may be used as a practical programming language for multi-agent
- teams..
- The result is MIndiGolog, a Golog dialect incorporating: TODO: limitations
- of current approaches?
+ execution as a problem-solving paradigm for multi-agent teams, to robustly
+ combine several extensions to the Golog language into a semantics suitable
+ for describing multiagent teams, to describe a preliminary implementation
+ of this lanaguage and to demonstrate its effectiveness both as a centralised
+ multiagent planner and a method for distributed execution.
 \layout Standard
 
-In order to explore multi-agent Golog programs in a concrete way, a running
- example is introduced and investigated throughout this paper: the 
+The remainder of this paper is structured as follows.
+ Section 
+\begin_inset LatexCommand \ref{sec:Background}
+
+\end_inset 
+
+ describes Golog and its underlying formalism situation calculus, and introduces
+ a running example to be used throughout the paper.
+ In section 
+\begin_inset LatexCommand \ref{sec:Language-Features}
+
+\end_inset 
+
+ we present and combine extensions to Golog which offer capabilities useful
+ for describing multiagent teams, while section 
+\begin_inset LatexCommand \ref{sec:Langauge-Semantics}
+
+\end_inset 
+
+ details the formal semantics and demonstrates that it has several important
+ properties.
+ Section 
+\begin_inset LatexCommand \ref{sec:Language-Execution}
+
+\end_inset 
+
+ describes the preliminary implementation with examples of its operation.
+ Finally, section 
+\begin_inset LatexCommand \ref{sec:Discussion}
+
+\end_inset 
+
+ places this work in the wider context of Golog and mulitagent systems while
+ section 
+\begin_inset LatexCommand \ref{sec:Conclusions-and-Future}
+
+\end_inset 
+
+ presents our conclusions and ideas for future research.
+ 
+\layout Section
+
+Background
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Background}
+
+\end_inset 
+
+
+\layout Subsection
+
+Example: The Cooking Agents
+\layout Standard
+
+In order to explore this topic in a concrete way, a running example is introduce
+d and investigated throughout the paper: the 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -340,7 +322,7 @@ Cooking Agents
 \end_inset 
 
  domain.
- In this domain, several robotic chefs inhabit a kitchen, which they share
+ In this domain, several robotic chefs inhabit a kitchen which they share
  with inanimate objects such as various ingredients, appliances and utensils.
  The agents must cooperate to produce a meal consisting of several dishes.
 \layout Standard
@@ -359,26 +341,18 @@ Explicit time and time constraints, such as a cake needing to be baked for
  an hour or the entree needing to be ready 15 minutes before the main course
 \layout Itemize
 
-Scheduling constraints and conflicts, such as a board using for chopping
+Scheduling constraints and conflicts, such as a board used for chopping
  meat being unusable for chopping salad
 \layout Itemize
 
 Large amount of procedural knowledge in the form of recipies
 \layout Standard
 
-The example domain also embodies several simplifications which make things
- easier for this initial investigation.
- Without difficulty it may be idealised as being completely deterministic
- and fully observable.
+The domain also embodies several assumptions which reduce the complexity
+ of this initial investigation.
+ It may be idealised as being completely deterministic and fully observable.
  The agents are also in close proximity allowing complete and reliable communica
 tion.
- The details of this example domain will be developed through the paper.
-\layout Standard
-
-The remainder of this paper is structures as follows: TODO
-\layout Section
-
-Background
 \layout Subsection
 
 The Situation Calculus
@@ -402,7 +376,7 @@ The situation calculus is a first order logic formalism for representing
 \layout Standard
 
 A representation of a dynamic world in the situation calculus consists of
- first order logic statements capturing the following:
+ first-order logic statements capturing the following:
 \layout Itemize
 
 Actions that can be performed in the world
@@ -438,7 +412,6 @@ Actions
 \emph default 
  are literals in the logic representing the ways in which the world can
  be changed, and are taken to be instantaneous.
- If an action does not occur, the world does not change.
  The 
 \begin_inset Quotes eld
 \end_inset 
@@ -583,18 +556,88 @@ This basic form of the situation calculus has been extended to incorporate
 Golog
 \layout Standard
 
-Golog is a declarative programming language based on the situation calculus,
- developed by Levesque et.
+Golog is a declarative agent programming language based on the situation
+ calculus, developed by Levesque et.
  al 
 \begin_inset LatexCommand \cite{levesque97golog}
 
 \end_inset 
 
 .
- It combines the primitive actions from the situation calculus with high-level
- programming constructs such as while-loops, if-then-else clauses, and nondeterm
-inistic choice.
- Its semantics can be defined either as macros in the situation calculus
+ It combines the primitive actions from the situation calculus with programming
+ constructs such as while-loops, if-then-else clauses, and nondeterministic
+ choice.
+ Testimonry to its success are its wide range of applications (see, for
+ example, 
+\begin_inset LatexCommand \cite{Levesque98beyondplanning,Ferrein2005readylog}
+
+\end_inset 
+
+ ) and many extensions to provide additional functionality (such as 
+\begin_inset LatexCommand \cite{giacomo00congolog,boutilier00dtgolog,giacomo99indigolog}
+
+\end_inset 
+
+).
+\layout Standard
+
+At its most basic level, a Golog program consists two components:
+\layout Itemize
+
+an axiomatisation of the agent domain in the situation calculus, a first-order
+ logic formalism for describing dynamic worlds
+\layout Itemize
+
+a program consisting of actions from the domain connected using the various
+ programming constructs
+\layout Standard
+
+It is then the task of the agent to find a deterministic insantiation of
+ the program which will produce a sequence of legal actions - that is, that
+ can actually be carried out in the world.
+ Such a sequence of actions is called a 
+\begin_inset Quotes eld
+\end_inset 
+
+legal execution
+\begin_inset Quotes erd
+\end_inset 
+
+ of the Golog program.
+\layout Standard
+
+A potential drawback of this approach is that a complete legal execution
+ must be determined before any actions are carried out.
+ This method is execution if referred to as offline execution.
+ The language extension IndiGolog 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
+
+\end_inset 
+
+ adds an explicit search operator - a full legal execution is determined
+ offline for programs inside a search operator, while outside a search operator
+ nondeterministic choices are made arbitrarily without looking ahead.
+ This is referred to as online execution.
+ 
+\layout Standard
+
+Golog offers the following additional advantages as a high-level programming
+ language for agents:
+\layout Itemize
+
+Programs can incorporate sophisticated reasoning about the world, as a full
+ symbolic representation is maintained
+\layout Itemize
+
+Its logical semantics allow program properties to be formally verified,
+ and admit the possibility of automated verification tools
+\layout Itemize
+
+Straightforward implementation of an interpreter using logic programming
+ languages such as Prolog
+\layout Standard
+
+Its semantics can be defined either as macros in the situation calculus
  which are expanded to given first-order logic formulae, or in terms of
  transitions from one program state to another.
  As the transition semantics offer the ability to represent long-running
@@ -671,19 +714,12 @@ The transition semantics were introduced with the language ConGolog
 .
 \layout Standard
 
-The extension IndiGolog 
-\begin_inset LatexCommand \cite{giacomo99indigolog}
+Table 
+\begin_inset LatexCommand \ref{tbl:Golog-Operators}
 
 \end_inset 
 
- introduced the ability to execute a program online.
- Rather than searching over the entire for a legal execution, IndiGolog
- searches only far enough to find a single action to execute.
- It introduces a search operator to allow full planning over subsections
- of the program.
-\layout Standard
-
-Table TODO introduces the Golog operators.
+ introduces the Golog operators.
  A transition semantics for these in the context of multiagent teams is
  developed in the following sections.
 \layout Standard
@@ -696,6 +732,11 @@ collapsed false
 \layout Caption
 
 Golog Operators
+\begin_inset LatexCommand \label{tbl:Golog-Operators}
+
+\end_inset 
+
+
 \layout Standard
 \align center 
 
@@ -762,7 +803,7 @@ Empty program
 
 \layout Standard
 
-Execute primitive action 
+Execute action 
 \begin_inset Formula $a$
 \end_inset 
 
@@ -1132,6 +1173,14 @@ TODO: procedure definition and call
 \layout Section
 
 Language Features
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Language-Features}
+
+\end_inset 
+
+
 \layout Standard
 
 A multiagent setting poses several challenges for the situation calculus
@@ -1823,6 +1872,14 @@ TODO: explain how the example domain is encoded in the sitcalc
 Langauge Semantics
 \layout Standard
 
+
+\begin_inset LatexCommand \label{sec:Langauge-Semantics}
+
+\end_inset 
+
+
+\layout Standard
+
 The extensions to the situation calculus and Golog described above allow
  it to represent and reason about multiagent systems.
  This section defines the formal semantics of the language in the tradition
@@ -2443,6 +2500,14 @@ TODO: finish this proof and clean it up *a lot*
 Language Execution
 \layout Standard
 
+
+\begin_inset LatexCommand \label{sec:Language-Execution}
+
+\end_inset 
+
+
+\layout Standard
+
 An advantage of having language semantics specified in first-order logic
  is that implementing an interpreter is straighforward, using a logic programmin
 g language such as Prolog.
@@ -2528,6 +2593,14 @@ To execute all other programs, agents reason individually about the next
 \layout Section
 
 Discussion
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Discussion}
+
+\end_inset 
+
+
 \layout Itemize
 
 alternate prediction schemes e.g.
@@ -2539,12 +2612,24 @@ DTGolog e.g.
 \layout Itemize
 
 Unpredicatable exogenous actions
-\layout Itemize
-
-Sensing, belief, etc
 \layout Section
 
 Conclusions and Future Work
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Conclusions-and-Future}
+
+\end_inset 
+
+
+\layout Itemize
+
+Sensing, belief, etc
+\layout Itemize
+
+TODO: concurrent stepping, dont allow same primitive action from both subprogram
+s, unless it's natural
 \layout Standard
 
 

@@ -1,7 +1,20 @@
 
 declare
 
-  [RI] = {Module.link['x-oz://contrib/RI']}
+  [RI] = {Module.link ['/opt/mozart/cache/x-ozlib/ri/RI.ozf']}
+
+  proc {ToRIVar Val RIVal}
+    if {RI.isRI Val} then
+      Val=RIVal
+    else
+      if {IsDet Val} then
+        RIVal={RI.var.exp Val}
+      else
+        %%  TODO: is this the right thing to do?
+        RIVal=Val
+      end
+    end
+  end
 
   proc {IsMember Elem List}
     choice List=nil fail
@@ -46,17 +59,18 @@ declare
   end
 
   proc {LNTP S T}
-    local A FindOthers in
-      {IsNatural A} {Poss A T S} {RI.lessEq {SitStart S} T}
+     A FindOthers RIT RIStart
+  in
+      {ToRIVar T RIT} {ToRIVar {SitStart S} RIStart}
+      {IsNatural A} {Poss A T S} {RI.lessEq RIStart RIT}
       FindOthers=proc{$}
                local A2 T2 in
                  {IsNatural A2}
                  {Poss A2 T2 S}
-                 {RI.greater T T2}
+                 {RI.greater RIT T2}
                end
              end
       {NegAsFail FindOthers}
-    end
   end
 
   proc {ToCAct A C}
@@ -68,71 +82,96 @@ declare
   end
 
   proc {Final D S}
-    local D1 D2 in
-      choice D=nil
-      []     D=seq(D1 D2) {Final D1 S} {Final D2 S}
-      []     D=pick(D1 D2) choice {Final D1 S} [] {Final D2 S} end
-      []     V in D=pi(V D1) {SubInProg V _ D1 D2} {Final D2 S}
-      []     D=start(_)
-      []     Cond in D=ifte(Cond D1 D2)
+      case D of nil then skip
+      []   seq(D1 D2) then {Final D1 S} {Final D2 S}
+      []   pick(D1 D2) then choice {Final D1 S} [] {Final D2 S} end
+      []   pi(V D1) then local D2 in {SubInProg V _ D1 D2} {Final D2 S} end
+      []   start(_) then skip
+      []   ifte(Cond D1 D2) then
                      choice {Holds.yes Cond S} {Final D1 S}
                      []     {Holds.no Cond S} {Final D2 S}
                      end
-      []     Cond in D=wloop(Cond D1)
+      []   wloop(Cond D1) then
                      choice {Holds.no Cond S}
                      []     {Final D1 S}
                      end
-      []     D=conc(D1 D2) {Final D1 S} {Final D2 S}
-      []     D=pconc(D1 D2) {Final D1 S} {Final D2 S}
-      []     D=cstar(_)
-      []     D3 in D=pcall(D1) {SubInProg now S D1 D2}
-                   {Proc D2 D3} {Final D3 S}
+      []   conc(D1 D2) then {Final D1 S} {Final D2 S}
+      []   pconc(D1 D2) then {Final D1 S} {Final D2 S}
+      []   cstar(_) then skip
+      []   pcall(D1) then local D2 D3 in {SubInProg now S D1 D2}
+                   {Proc D2 D3} {Final D3 S} end
+      else fail
       end
-    end
   end
 
   proc {Trans D S Dp Sp}
-    local D1 D2 in
-      choice  D=nil fail
-      []      {ToCAct D D1} {SubInProg now S D1 D2}
-              choice T LntpS in {LNTP S LntpS} {RI.var.decl T}
-                                %% TODO: during and after LNTP
-                                {RI.greater T {SitStart T}}
-                                {RI.greater LntpS T} {Poss D2 T S}
-                                Sp=res(D2 T S) Dp=nil
-              []     T in {RI.var.decl T} {Poss D2 T S}
-                          {RI.lessEq {SitStart S} T}
-                          Sp=res(D2 T S) Dp=nil
-              end
-      []      Cond in D=test(Cond) {Holds.yes Cond S} Sp=S Dp=nil
-      []      D=seq(D1 D2) choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
+      case D of nil then fail
+      []   test(Cond) then {Holds.yes Cond S} Sp=S Dp=nil
+      []   seq(D1 D2) then choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
                            []     {Final D1 S} {Trans D2 S Dp Sp}
                            end
-      []      D=pick(D1 D2) choice {Trans D1 S Dp Sp}
-                              [] {Trans D2 S Dp Sp}
-                              end
-      []      V in D=pi(V D1) {SubInProg V _ D1 D2} {Trans D2 S Dp Sp}
-      []      D=star(D1) {Trans D S D2 Sp} Dp=seq(D2 star(D1))
-      []      Cond in D=ifte(Cond D1 D2) choice {Holds.yes Cond S}
-                                                {Trans D1 S Dp Sp}
-                                         []     {Holds.no Cond S}
-                                                {Trans D2 S Dp Sp}
-                                         end
-      []      Cond in D=wloop(Cond D1) {Holds.yes Cond S} {Trans D1 S D2 Sp}
-                      Dp=seq(D2 wloop(Cond D1))
-      []      D=conc(D1 D2) choice D1r in {Trans D1 S D1r Sp} Dp=conc(D1r D2)
-                            []     D2r in {Trans D2 S D2r Sp} Dp=conc(D1 D2r)
-                            /* TODO: concurrent stepping of both */
+      []   pick(D1 D2) then choice {Trans D1 S Dp Sp}
+                            [] {Trans D2 S Dp Sp}
                             end
-      []      D=pconc(D1 D2) choice D1r in {Trans D1 S D1r Sp} Dp=pconc(D1r D2)
+      []   pi(V D1) then local D2 in {SubInProg V _ D1 D2}
+                                     {Trans D2 S Dp Sp} end
+      []   star(D1) then local D2 in {Trans D S D2 Sp} Dp=seq(D2 star(D1)) end
+      []   ifte(Cond D1 D2) then choice {Holds.yes Cond S}
+                                        {Trans D1 S Dp Sp}
+                                 []     {Holds.no Cond S}
+                                        {Trans D2 S Dp Sp}
+                                 end
+      []   wloop(Cond D1) then local D2 in {Holds.yes Cond S} {Trans D1 S D2 Sp}
+                               Dp=seq(D2 wloop(Cond D1)) end
+      []   conc(D1 D2) then choice D1r D2r C1 C2 CT T in
+                                       {Step D1 S D1r res(C1 T S)}
+                                       {Step D2 S D2r res(C2 T S)}
+                                       {NegAsFail proc {$} A in
+                                                      {IsMember A C1}
+                                                      {IsMember A C2}
+                                                      {GetActor A _}
+                                                  end}
+                                       {Union C1 C2 CT} {Poss CT T S}
+                                       Sp=res(CT T S) Dp=conc(D1r D2r)
+                            []     D1r in {Trans D1 S D1r Sp} Dp=conc(D1r D2)
+                            []     D2r in {Trans D2 S D2r Sp} Dp=conc(D1 D2r)
+                            end
+      []   pconc(D1 D2) then choice D1r in {Trans D1 S D1r Sp} Dp=pconc(D1r D2)
                              []     D2r in {Trans D2 S D2r Sp} Dp=pconc(D1 D2r)
                                     {NegAsFail proc {$} {Trans D1 S _ _} end}
                              end
-      []      D=cstar(D1) {Trans D1 S D2 Sp} Dp=conc(D2 cstar(D1))
-      []      Body in D=pcall(D1) {SubInProg now S D1 D2} {Proc D2 Body}
-                      {Trans Body S Dp Sp}
+      []   cstar(D1) then local D2 in {Trans D1 S D2 Sp}
+                          Dp=conc(D2 cstar(D1)) end
+      []   pcall(D1) then local Body D2 in
+                          {SubInProg now S D1 D2} {Proc D2 Body}
+                          {Trans Body S Dp Sp} end
+      else local D1 D2 T in
+              {ToCAct D D1} {SubInProg now S D1 D2}
+              {RI.lessEq {ToRIVar {SitStart S}} T}
+              choice LntpS in {LNTP S LntpS}
+                     choice %% Can do before LNTP actions
+                            {RI.greaterEq T {ToRIVar {SitStart S}}}
+                            {RI.less T {ToRIVar LntpS}} {Poss D2 T S}
+                            Sp=res(D2 T S) Dp=nil
+                     []     FindNAct NActs in
+                                       FindNAct = proc {$ A}
+                                         {IsNatural A} {Poss A LntpS S}
+                                       end
+                            NActs={Search.base.all FindNAct} (NActs\=nil)=true
+                            choice %% Can do with LNTP actions
+                                   CANat in CANat={Union D2 NActs}
+                                   {Poss CANat LntpS S}
+                                   Sp=res(CANat LntpS S) Dp=nil
+                            []     %% Can do LNTP actions first
+                                   {Poss NActs LntpS S}
+                                   Sp=res(NActs LntpS S) Dp=D
+                            end
+                     end
+              []     {Poss D2 T S} Sp=res(D2 T S) Dp=nil
+                          
+              end
+           end
       end
-    end
   end
 
   proc {TransStar D S Dp Sp}
@@ -159,8 +198,40 @@ declare
   end
 
   proc {SubInProg Term Value D1 D2}
-    %%  TODO: term substitution
-    D1=D2
+    if {IsFree D1} then
+      D2=D1
+    else
+      if D1==Term then
+        D2=Value
+      else
+        if {IsRecord D1} then
+          {SubInProg_Record Term Value D1 D2}
+        else
+          D2=D1
+        end
+      end
+    end
+  end
+
+  proc {SubInProg_Record Term Value R1 R2}
+    Fields={Arity R1}
+  in
+    {Record.clone R1 R2}
+    {ForAll Fields proc {$ F}
+                     R2.F={SubInProg Term Value R1.F}
+                   end}
+  end
+
+  proc {Union L1 L2 LF}
+    case L1 of nil then LF=L2
+    []   H|T then local LI in LI={Union T L2}
+                  if {Member H L1} then
+                    LF=LI
+                  else
+                    LF=H|LI
+                  end
+                 end
+    end
   end
 
   proc {IsAgent Agt}
@@ -234,6 +305,10 @@ declare
   end
 
   proc {Poss A T S}
+    local Start in
+      Start={ToRIVar {SitStart S}}
+      {RI.lessEq Start T}
+    end
     choice (A\=nil)=true {PossAll A T S}  % TODO: conflicts/3
     []     Agt Obj in A=acquire_object(Agt Obj)
                       {Holds.no has_object(_ Obj) S}
@@ -242,6 +317,11 @@ declare
     []     Agt Obj in A=release_object(Agt Obj)
                       {Holds.yes has_object(Agt Obj) S}
                       {Holds.no doing_task(Agt _ _) S}
+    []     Agt ID in A=set_timer(Agt ID _)
+                     {Holds.no timer_set(ID _) S}
+                     {Holds.no doing_task(Agt _ _) S}
+    []     ID RIStart in A=ring_timer(ID)
+                         {Holds.yes timer_set(ID T) S}
     end
   end
 
@@ -270,6 +350,9 @@ declare
                choice S=s0
                       {FProc.init F}
                []     {FProc.plus F S}
+               []     fail
+               []     fail
+               []     fail
                []     Sp in S=res(_ _ Sp) {Holds.yes F Sp}
                       {NegAsFail proc {$} {FProc.minus F S} end}
                end
@@ -323,18 +406,18 @@ declare
 
     timer_set:  fluent(
 
-      plus: proc{$ timer_set(ID Dur) S}
-              local C T Sp in
+      plus: proc{$ timer_set(ID RingTime) S}
+              local C T Sp Dur RIDur RIStart RIRT in
                 S=res(C T Sp)
-                choice {IsMember set_timer(_ ID Dur) C}
-                []     OldDur in {Holds.yes timer_set(ID OldDur) Sp}
-                       Dur=OldDur-(T-{SitStart Sp})
-                       {NegAsFail proc {$} {IsMember ring_timer(ID) C} end}
-                end
+                {IsMember set_timer(_ ID Dur) C}
+                RIDur={ToRIVar Dur}
+                RIRT={ToRIVar RingTime}
+                RIStart={ToRIVar {SitStart S}}
+                {RI.plus RIDur RIStart RIRT}
               end
             end
 
-      minus: proc{$ timer_set(ID Dur) S}
+      minus: proc{$ timer_set(ID RingTime) S}
                local C in 
                  S=res(C _ _)
                  {IsMember ring_timer(ID) C}
@@ -351,10 +434,11 @@ in
 
     {Browse 'Starting'}
     {Browse Ans}
-    Sit=res([acquire_object(thomas knife1) acquire_object(richard knife2)] _ s0)
-    Prog=acquire_object(thomas knife1)
-    %%Ans={Search.base.one proc {$ E} {LNTP Sit E} end}
-    {Explorer.object script(proc {$ E} {Trans Prog s0 _ E} end)}
+    Sit=res([set_timer(thomas timer1 10)] 1 res([set_timer(richard timer2 5)] 0 s0))
+    Prog=seq(ring_timer(timer2) seq(test(timer_set(now)) ring_timer(timer1)))
+    %%Ans={Search.base.one proc {$ E} {Poss acquire_object(thomas knife1) E Sit} end}
+    %%{Explorer.object script(proc {$ E} {Do Prog Sit E} end)}
+    {Browse {SubInProg now _ Prog}}
 
   end
   
