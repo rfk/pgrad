@@ -167,7 +167,8 @@ declare
                                    Sp=res(NActs LntpS S) Dp=D
                             end
                      end
-              []     {Poss D2 T S} Sp=res(D2 T S) Dp=nil
+              []     {NegAsFail proc {$} {LNTP S _} end}
+                     {Poss D2 T S} Sp=res(D2 T S) Dp=nil
                           
               end
            end
@@ -350,9 +351,6 @@ declare
                choice S=s0
                       {FProc.init F}
                []     {FProc.plus F S}
-               []     fail
-               []     fail
-               []     fail
                []     Sp in S=res(_ _ Sp) {Holds.yes F Sp}
                       {NegAsFail proc {$} {FProc.minus F S} end}
                end
@@ -432,15 +430,12 @@ declare
 in
   local Ans Sit Prog in 
 
-    {Browse 'Starting'}
-    {Browse Ans}
+   {Browse Ans}
     Sit=res([set_timer(thomas timer1 10)] 1 res([set_timer(richard timer2 5)] 0 s0))
-    Prog=seq(ring_timer(timer2) seq(test(timer_set(now)) ring_timer(timer1)))
-    %%Ans={Search.base.one proc {$ E} {Poss acquire_object(thomas knife1) E Sit} end}
-    %%{Explorer.object script(proc {$ E} {Do Prog Sit E} end)}
-    {Browse {SubInProg now _ Prog}}
+    Prog=seq(ring_timer(timer2) pick(seq(test(timer_set(timer1 10)) acquire_object(richard knife1)) seq(test(timer_set(timer1 11)) acquire_object(thomas knife1))))
+    Ans={Search.base.all proc {$ E} Dp Sp in {TransStar Prog Sit Dp Sp} E=s(Dp Sp) end}
 
   end
-  
+
 
 
