@@ -118,8 +118,8 @@ l members.
 
 In this paper, we robustly combine several extensions to the agent programming
  language Golog to allow it to represent programs for multiagent teams.
- A preliminary implementation is described and we demonstrate both its effective
-ness as a centralised multiagent planner and a method for distributed execution.
+ An implementation is described and we demonstrate both its effectiveness
+ as a centralised multiagent planner and a method for distributed execution.
  
 \layout Abstract
 
@@ -174,26 +174,20 @@ high-level program
 
 This task can range from executing a fully-specified program to synthesising
  an action sequence from a completely nondeterministic program.
- It thus subsumes both deterministic agent programming and traditional planning
- (for an example, see 
-\begin_inset LatexCommand \cite{Finzi00}
-
-\end_inset 
-
-).
+ It thus subsumes both deterministic agent programming and traditional planning.
  The primary advantage of this approach is 
 \emph on 
 controlled nondeterminism
 \emph default 
 , allowing some aspects of the program to remain unspecified while avoiding
  an exponential increase in planning difficulty for large programs.
- This method of agent control is epitomised by the programming language
- Golog 
+ This method of agent control is epitomised by the Golog 
 \begin_inset LatexCommand \cite{levesque97golog}
 
 \end_inset 
 
- which has provided the following benefits for single-agent programming:
+ family of programming languages, which have provided the following benefits
+ for single-agent programming:
 \layout Itemize
 
 Ability to control the amount of nondeterminism
@@ -204,9 +198,6 @@ Programs can incorporate sophisticated symbolic reasoning about the world
 
 Formal verification of program properties, in some cases using automated
  tools
-\layout Itemize
-
-Straightforward implementation of an interpreter
 \layout Standard
 
 Systems involving multiple autonomous agents can be classified into two
@@ -248,12 +239,12 @@ For tightly-coupled teams it may be more convenient to conceptualise the
  It is this idea that we pursue in this paper.
 \layout Standard
 
-The major contributions of this paper are: to motivate high-level program
- execution as a problem-solving paradigm for multi-agent teams, to robustly
- combine several extensions to the Golog language into a semantics suitable
- for describing multiagent teams, to describe a preliminary implementation
- of this lanaguage and to demonstrate its effectiveness both as a centralised
- multiagent planner and a method for distributed execution.
+The contributions of this paper are: to motivate high-level program execution
+ as a problem-solving paradigm for multi-agent teams, to robustly combine
+ several extensions to the Golog language into a semantics suitable for
+ describing multiagent teams, to describe a concrete implementation of this
+ lanaguage and to demonstrate its effectiveness both as a centralised multiagent
+ planner and a method for distributed execution.
 \layout Standard
 
 The remainder of this paper is structured as follows.
@@ -262,8 +253,9 @@ The remainder of this paper is structured as follows.
 
 \end_inset 
 
- describes Golog and its underlying formalism situation calculus, and introduces
- a running example to be used throughout the paper.
+ describes the Golog familty of languages and their underlying formalism
+ the situation calculus, and introduces a running example to be used throughout
+ the paper.
  In section 
 \begin_inset LatexCommand \ref{sec:Language-Features}
 
@@ -288,8 +280,8 @@ The remainder of this paper is structured as follows.
 
 \end_inset 
 
- places this work in the wider context of Golog and mulitagent systems while
- section 
+ places this work in the wider context of mulitagent systems and existing
+ Golog implementations (such as ConGolog and IndiGolog) while section 
 \begin_inset LatexCommand \ref{sec:Conclusions-and-Future}
 
 \end_inset 
@@ -621,22 +613,6 @@ A potential drawback of this approach is that a complete legal execution
  
 \layout Standard
 
-Golog offers the following additional advantages as a high-level programming
- language for agents:
-\layout Itemize
-
-Programs can incorporate sophisticated reasoning about the world, as a full
- symbolic representation is maintained
-\layout Itemize
-
-Its logical semantics allow program properties to be formally verified,
- and admit the possibility of automated verification tools
-\layout Itemize
-
-Straightforward implementation of an interpreter using logic programming
- languages such as Prolog
-\layout Standard
-
 Its semantics can be defined either as macros in the situation calculus
  which are expanded to given first-order logic formulae, or in terms of
  transitions from one program state to another.
@@ -699,6 +675,7 @@ The transition semantics were introduced with the language ConGolog
 \end_inset 
 
 .
+ TODO: quick example, it's important concept.
  Finding a legal execution then consist of proving that 
 \begin_inset Formula $\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]$
 \end_inset 
@@ -1190,28 +1167,48 @@ A multiagent setting poses several challenges for the situation calculus
  Agents domain:
 \layout Itemize
 
-Time: Some tasks in the cooking domain may require an explicit notion of
- time.
+
+\series bold 
+Time
+\series default 
+: Some tasks in the cooking domain may require an explicit notion of time.
  For example, a cake must be baked for 30 minutes before being removed from
  the oven.
+ Exlicit time also makes coordination between agents easier, as they may
+ arrange to perform joint actions at a particular time.
 \layout Itemize
 
-Concurrency: Several agents are capable of acting at the same time, meaning
- several primitve actions can occur simultaneously.
+
+\series bold 
+Concurrency
+\series default 
+: Several agents are capable of acting at the same time, meaning several
+ primitve actions can occur simultaneously.
  They must also be able to perform tasks concurrently, such as preparing
  several parts of a meal at once.
 \layout Itemize
 
-Shared Resources: The agents will face conention for limited physical resources
- such as the oven, mixing bowls and chopping boards.
+
+\series bold 
+Shared Resources
+\series default 
+: The agents will face conention for limited physical resources such as
+ the oven, mixing bowls and chopping boards.
 \layout Itemize
 
-Continuous Processes: Agents are required to perform actions with some finite
- duration, such as mixing ingredients for a specified time.
+
+\series bold 
+Continuous Processes
+\series default 
+: Agents are required to perform actions with some finite duration, such
+ as mixing ingredients for a specified time.
 \layout Itemize
 
-Natural Actions: These are predictable actions which occur outside of the
- agent's control.
+
+\series bold 
+Natural Actions
+\series default 
+: These are predictable actions which occur outside of the agent's control.
  If an agent sets a timer then it will ring at the appropriate time without
  intervention from any agent.
 \layout Standard
@@ -1442,8 +1439,9 @@ These two concepts of concurrency were combined by Baier and Pinto
 
  by modifying the transition semantics for ConGolog to act on sets of concurrent
  action terms.
- An equivalent approach taken below, incorporating the additional extensions
- made above.
+ An extension of this approach taken below, incorporating the notion of
+ explicit time and placing additional restrictions on transitions in order
+ to ensure programs are well-behaved.
 \layout Standard
 
 Recall that the semantics of a ConGolog program is given in terms of a transitio
@@ -1598,7 +1596,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
  & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
  & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
  & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
- & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
+ & s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
 
  
 
@@ -1607,8 +1605,15 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
 
 \layout Standard
 
-The ability to perform actions concurrently leads to complications in the
- possibility axioms.
+This is equivalent to the work of 
+\begin_inset LatexCommand \cite{pinto99tcongolog}
+
+\end_inset 
+
+.
+ However, this formulation introduces several problems.
+ The first is thatt he ability to perform actions concurrently leads to
+ complications in the possibility axioms.
  While the actions 
 \begin_inset Formula $acquire(Thomas,Bowl)$
 \end_inset 
@@ -1624,6 +1629,16 @@ The ability to perform actions concurrently leads to complications in the
  should clearly not be.
  This is know as the precondition interaction problem and is an area of
  ongoing research.
+ In the semantics of 
+\begin_inset LatexCommand \cite{pinto99tcongolog}
+
+\end_inset 
+
+, there is no restriction that 
+\begin_inset Formula $Poss(c_{1}\cup c_{2},t,s)$
+\end_inset 
+
+.
 \layout Standard
 
 For the purposes of this domain, precondition interaction is addressed by
@@ -1646,6 +1661,33 @@ Poss(c,t,s)\leftrightarrow\forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\we
 \end_inset 
 
 
+\layout Standard
+
+Another issue arises when two programs can legitimately be single-stepped
+ by execution of the same action.
+ Consider the following simple programs:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\delta_{1}=acquire(Thomas,Board)\,;\, release(Thomas,Board)\\
+\delta_{2}=acquire(Thomas,Board)\,;\, wash(Thomas,Board)\,;\, release(Thomas,Board)\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+According to the preliminary semantics above, a legal step of 
+\begin_inset Formula $\delta_{1}||\delta_{2}$
+\end_inset 
+
+ could be made by performing the single action 
+\begin_inset Formula $acquire(Thomas,Board)$
+\end_inset 
+
+, leaving 
 \layout Subsection
 
 Shared Resources
@@ -1717,7 +1759,7 @@ Natural actions are a special class of exogenous actions, those actions
 \end_inset 
 
  and expanded by Reiter 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc,reiter01kia}
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
 \end_inset 
 
@@ -1846,27 +1888,49 @@ lntp(s,t) & \equiv & \exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
 \layout Standard
 
 Note that the LNTP need not exist for a given situation.
- It is straightforward to extend the proof of Lemma 3 in 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
- to this notation,giving the result that:
-\layout Standard
-
-
-\begin_inset Formula \[
-natural(a)\wedge legal(do(c,t,s))\wedge a\in c\rightarrow lntp(s,t)\]
-
-\end_inset 
-
-
 \layout Subsection
 
 The Domain
 \layout Standard
 
 TODO: explain how the example domain is encoded in the sitcalc
+\layout Standard
+
+Some example programs here
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{proc}\, MakeCakeMix(dest)\\
+\pi(agt)(DoPlaceIn(agt,Egg,dest))\,;\\
+\pi(agt)(DoPlaceIn(agt,Flour,dest))\,;\\
+\pi(agt)(DoPlaceIn(agt,Sugar,dest))\,;\\
+\pi(agt)(acquire(agt,dest)\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,5))\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,5))\,;\\
+\,\,\,\, release(agt,dest))\\
+\mathbf{end}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{proc}\, MakeCake(dest)\\
+pcall(MakeCakeMix(dest))\,;\\
+\pi(agt)(DoPlaceIn(agt,dest,Oven)\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, set\_ timer(agt,OvenTimer,35))\,;\\
+ring\_ timer(OvenTimer)\,;\\
+\pi(agt)(DoTransfer(agt,Oven,Bench))\\
+\mathbf{end}\end{array}\]
+
+\end_inset 
+
+
 \layout Section
 
 Langauge Semantics
@@ -1894,8 +1958,9 @@ The extensions to the situation calculus and Golog described above allow
 MIndiGolog Transition Semantics
 \layout Standard
 
-The following gives a transition semantics for MConGolog by defining the
- operators 
+This section shows the modifications that have been made to the semantics
+ of IndiGolog to incorporate the extensions outlined above.
+ Many operators are defined recursively using combinations of 
 \begin_inset Formula $Trans$
 \end_inset 
 
@@ -1903,34 +1968,13 @@ The following gives a transition semantics for MConGolog by defining the
 \begin_inset Formula $Final$
 \end_inset 
 
- for each of the basic program constructs.
-\layout Subsubsection
+ and thus did not need to be modified - for details on the operators not
+ presented here, refer to 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
 
-Empty Proram:
-\layout Standard
-
-An empty program is represented by the literal 
-\begin_inset Formula $nil$
 \end_inset 
 
 .
- There are no transitions from an empty program and such a program is always
- final.
-\layout Standard
-
-
-\begin_inset Formula \[
-Trans(nil,s,\delta',s')\equiv False\]
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(nil,s)\equiv True\]
-
-\end_inset 
-
-
 \layout Subsubsection
 
 (Concurrent) Primitive Actions 
@@ -1986,145 +2030,6 @@ Trans(c,s,\delta',s')\equiv & \exists t_{n}.\left[lntp(s,t_{n})\wedge\right.\\
 \end_inset 
 
  
-\newline 
-
-\begin_inset Formula \[
-Final(c,s)\equiv False\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Wait/test actions:
-\layout Standard
-
-
-\begin_inset Formula \[
-Trans(\phi?,s,\delta',s')\equiv\phi[s]\wedge\delta'=nil\wedge s'=s\]
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\phi?,s)\equiv False\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Sequence:
-\layout Standard
-
-
-\begin_inset Formula \begin{eqnarray*}
-Trans(\delta_{1};\delta_{2},s,\delta',s')\equiv & \exists\gamma\delta'=(\gamma;\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
- & Final(\delta_{1},s)\wedge Trans(\delta_{2},s,\delta',s')\end{eqnarray*}
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\delta_{1};\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Nondeterministic branch:
-\layout Standard
-
-
-\begin_inset Formula \begin{eqnarray*}
-Trans(\delta_{1}|\delta_{2},s,\delta',s')\equiv & Trans(\delta_{1},s,\delta',s') & \vee\\
- & Trans(\delta_{2},s,\delta',s)\end{eqnarray*}
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\delta_{1}|\delta_{2},s)\equiv Final(\delta_{1},s)\vee Final(\delta_{2},s)\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Nondeterministic choice of argument:
-\layout Standard
-
-
-\begin_inset Formula \[
-Trans(\pi v.\delta,x,\delta',s)\equiv\exists x.Trans(\delta_{x}^{v},s,\delta',s')\]
-
-\end_inset 
-
-
-\begin_inset Formula \[
-Final(\pi v.\delta,s)\equiv\exists x.Final(\delta_{x}^{v},s)\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Iteration:
-\layout Standard
-
-
-\begin_inset Formula \[
-Trans(\delta^{*},s,\delta',s')\equiv\exists\gamma.(\delta'=\gamma;\delta^{*})\wedge Trans(\delta,s,\gamma,s')\]
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\delta^{*},s)\equiv True\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Synchonised Conditional:
-\layout Standard
-
-
-\begin_inset Formula \begin{eqnarray*}
-Trans(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s,\delta',s')\equiv & \phi[s]\wedge Trans(\delta_{1},s,\delta',s') & \vee\\
- & \neg\phi[s]\wedge Trans(\delta_{2},s,\delta',s')\end{eqnarray*}
-
-\end_inset 
-
- 
-\begin_inset Formula \begin{eqnarray*}
-Final(\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2},s)\equiv & \phi[s]\wedge Final(\delta_{1},s) & \vee\\
- & \neg\phi[s]\wedge Final(\delta_{1},s)\end{eqnarray*}
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Synchronised While:
-\layout Standard
-
-
-\begin_inset Formula \begin{eqnarray*}
-Trans(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv & \exists\gamma.(\delta'=\gamma;\mathbf{while}\phi\mathbf{do}\delta) & \wedge\\
- & \phi[s]\wedge Trans(\delta,s,\gamma,s')\end{eqnarray*}
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\mathbf{while}\phi\mathbf{do}\delta,s,\delta',s')\equiv\neg\phi[s]\wedge Final(\delta,s)\]
-
-\end_inset 
-
-
 \layout Subsubsection
 
 Concurrent Execution:
@@ -2143,55 +2048,6 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma
 \end_inset 
 
  
-\begin_inset Formula \[
-Final(\delta_{1}||\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Prioritised Concurrency:
-\layout Standard
-
-
-\begin_inset Formula \begin{eqnarray*}
-Trans(\delta_{1}\gg\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma\gg\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
- & \exists\gamma.\delta'=(\delta_{1}\gg\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\wedge\neg\exists\zeta,s''.Trans(\delta_{1},s,\zeta,s'')\end{eqnarray*}
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\delta_{1}\gg\delta_{2},s)\equiv Final(\delta_{1},s)\wedge Final(\delta_{2},s)\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-Concurrent Iteration:
-\layout Standard
-
-
-\begin_inset Formula \[
-Trans(\delta^{||},s,\delta',s')\equiv\exists\gamma.\delta'=(\gamma||\delta^{||})\wedge Trans(\delta,s,\gamma,s')\]
-
-\end_inset 
-
- 
-\begin_inset Formula \[
-Final(\delta^{||},s)\equiv True\]
-
-\end_inset 
-
-
-\layout Subsubsection
-
-TODO: search
-\layout Subsubsection
-
-TODO: procedures
 \layout Subsection
 
 Properties of the Semantics
@@ -2237,8 +2093,8 @@ Consider first the case of
 \end_inset 
 
 .
- The only part of interested is the conjunction which directly produces
- a modified situation 
+ The only part of interest is the conjunction which directly produces a
+ modified situation 
 \begin_inset Formula $s'=do(c_{1}\cup c_{2},t,s)$
 \end_inset 
 
@@ -2508,91 +2364,66 @@ Language Execution
 
 \layout Standard
 
-An advantage of having language semantics specified in first-order logic
- is that implementing an interpreter is straighforward, using a logic programmin
-g language such as Prolog.
- If the above semantics are translated to prolog in the style of 
+As the existing langauges based on Golog have demonstrated, a language interpret
+er can be constructed using a logic programming language such a Prolog.
+ We follow the style of 
 \begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
 
 \end_inset 
 
-, the result is a multi-agent planner.
+, but built an interpreter using the Mozart programming environment 
+\begin_inset LatexCommand \cite{vanroy99mozart}
+
+\end_inset 
+
+.
+ The Mozart system seperates the specification of a logic program from the
+ search strategy used to execute it, and provides strong support for distributed
+ execution.
+ Important aspects of the implementation are shown in listing TODO.
 \layout Standard
 
-TODO: a short demo here?
+TODO: code listing goes here.
 \layout Standard
 
-While this could be used to implement central control for a multi-agent
- team, it fails to make use of the distributed reasoning abilities of the
- teams.
- It would be preferable to have all agents involved in the reasoning process,
- particularly for expensive operations such as search.
+Using a standard depth-first search procedure, this interpreter will determine
+ an appropriate legel execution for a given program, as demonstrated in
+ listing TODO.
+ If each set of actions were sent to the appropriate agents for execution,
+ this system would form a centralised multiagent planner.
 \layout Standard
 
-A preliminary implementation of this idea can be made in the language Mozart
- (TODO), which suports logical programming in a similar manner to prolog.
- Unlike prolog, it does not embed a particular search strategy but allows
- the programmer to select the most appropriate.
- In particular, it provides a parallel search strategy that takes advantage
- of networked machines to speed up the search 
+TODO: listing of centralised output
+\layout Standard
+
+TODO: discuss how this output is better than that produced by IndiGolog
+\layout Standard
+
+Of course, a centralised planner fail to utlise all the resources available
+ to a multiagent team.
+ While a legal execution is being found, other agents are idel.
+ An important aspect of the Mozart system is that it provides a parallel
+ search procedure that can take advantage of networked machines to speed
+ up the search 
 \begin_inset LatexCommand \cite{schulte00oz_parallel}
 
 \end_inset 
 
 .
+ Utilising this, our implementation can be used to form a distributed multiagent
+ planner.
 \layout Standard
 
-For online execution, the amount of reasoning performed before a step is
- found is typically small and would not justify the communication overhead
- of a distributed search.
- Planning, however, stands to benefit immensely.
- The following is a basic algorithm implemented in Mozart to blaby blah
- TODO:
-\layout Enumerate
+TODO: actually get this working
+\layout Standard
 
-Select one agent to be manager for the distributed search
-\layout Enumerate
+TODO: discuss the coordination algorithm
+\layout Standard
 
-Define a function 
-\begin_inset Formula $TimeBound(\delta)$
-\end_inset 
-
- which sets an upper bound on the time taken for any agent to select a next
- step from program 
-\begin_inset Formula $\delta$
-\end_inset 
-
-.
-\layout Enumerate
-
-Define a constant 
-\begin_inset Formula $CommBound$
-\end_inset 
-
- which sets an upper bound on the time taken for a communication to travel
- between agents.
-\layout Enumerate
-
-To execute 
-\begin_inset Formula $\Sigma\delta$
-\end_inset 
-
-, the manager initiates a distributed search ending at time 
-\begin_inset Formula $t_{p}$
-\end_inset 
-
- with plan 
-\begin_inset Formula $\delta_{p}$
-\end_inset 
-
-, which are then communication to the other agents.
-\layout Enumerate
-
-To execute all other programs, agents reason individually about the next
- step to take (using a deterministic reasoning procedure)...blahby blah TODO.
+TODO: give a listing of actions performed by each agent
 \layout Section
 
-Discussion
+Discussion (TODO: better title?)
 \layout Standard
 
 
@@ -2605,13 +2436,6 @@ Discussion
 
 alternate prediction schemes e.g.
  extra Golog programs (in readylog?)
-\layout Itemize
-
-DTGolog e.g.
- find shortest plan
-\layout Itemize
-
-Unpredicatable exogenous actions
 \layout Section
 
 Conclusions and Future Work
@@ -2628,8 +2452,22 @@ Conclusions and Future Work
 Sensing, belief, etc
 \layout Itemize
 
-TODO: concurrent stepping, dont allow same primitive action from both subprogram
-s, unless it's natural
+DTGolog e.g.
+ find shortest plan
+\layout Itemize
+
+Unpredicatable exogenous actions
+\layout Itemize
+
+TODO: are we going to explicityly name it, and will it be 
+\begin_inset Quotes eld
+\end_inset 
+
+MIndiGolog
+\begin_inset Quotes erd
+\end_inset 
+
+?
 \layout Standard
 
 
