@@ -1,7 +1,18 @@
 
 declare
 
-  [RI] = {Module.link ['/opt/mozart/cache/x-ozlib/ri/RI.ozf']}
+functor Goloz
+
+import
+
+    RI at '/opt/mozart/cache/x-ozlib/ri/RI.ozf'
+    Search at 'x-oz://system/Search'
+
+export
+
+    Script
+
+define
 
   proc {ToRIVar Val RIVal}
     if {RI.isRI Val} then
@@ -19,7 +30,7 @@ declare
   proc {IsMember Elem List}
     choice List=nil fail
     []     List=Elem|_
-    []     NewList Head in List=Head|NewList {IsMember Elem NewList}
+    []     NewList in List=_|NewList {IsMember Elem NewList}
     end
   end
 
@@ -226,7 +237,7 @@ declare
   proc {Union L1 L2 LF}
     case L1 of nil then LF=L2
     []   H|T then local LI in LI={Union T L2}
-                  if {Member H L1} then
+                  if {Member H LI} then
                     LF=LI
                   else
                     LF=H|LI
@@ -321,8 +332,8 @@ declare
     []     Agt ID in A=set_timer(Agt ID _)
                      {Holds.no timer_set(ID _) S}
                      {Holds.no doing_task(Agt _ _) S}
-    []     ID RIStart in A=ring_timer(ID)
-                         {Holds.yes timer_set(ID T) S}
+    []     ID in A=ring_timer(ID)
+                 {Holds.yes timer_set(ID T) S}
     end
   end
 
@@ -405,8 +416,8 @@ declare
     timer_set:  fluent(
 
       plus: proc{$ timer_set(ID RingTime) S}
-              local C T Sp Dur RIDur RIStart RIRT in
-                S=res(C T Sp)
+              local C Dur RIDur RIStart RIRT in
+                S=res(C _ _)
                 {IsMember set_timer(_ ID Dur) C}
                 RIDur={ToRIVar Dur}
                 RIRT={ToRIVar RingTime}
@@ -415,7 +426,7 @@ declare
               end
             end
 
-      minus: proc{$ timer_set(ID RingTime) S}
+      minus: proc{$ timer_set(ID _) S}
                local C in 
                  S=res(C _ _)
                  {IsMember ring_timer(ID) C}
@@ -426,16 +437,18 @@ declare
     )
   )
 
-
-in
-  local Ans Sit Prog in 
-
-   {Browse Ans}
-    Sit=res([set_timer(thomas timer1 10)] 1 res([set_timer(richard timer2 5)] 0 s0))
-    Prog=seq(ring_timer(timer2) pick(seq(test(timer_set(timer1 10)) acquire_object(richard knife1)) seq(test(timer_set(timer1 11)) acquire_object(thomas knife1))))
-    Ans={Search.base.all proc {$ E} Dp Sp in {TransStar Prog Sit Dp Sp} E=s(Dp Sp) end}
-
+  proc {Script Root}
+    {Do acquire_object(thomas knife1) res([set_timer(richard t1 10)] 0 s0) Root}
   end
 
+end
 
+in 
 
+local E Ans in
+
+  {Browse Ans}
+  E={New Search.parallel init(localhost)}
+  Ans={E one(Goloz $)}
+
+end
