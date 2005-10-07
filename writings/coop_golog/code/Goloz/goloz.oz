@@ -448,7 +448,8 @@ in
 local E Ans in
 
   {Browse Ans}
-  E={New Search.parallel init(localhost)}
+  E={New Search.parallel init(guava:1#ssh)}
+  {E trace(true)}
   Ans={E one(Goloz $)}
 
 end
