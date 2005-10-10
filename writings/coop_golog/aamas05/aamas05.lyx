@@ -100,7 +100,7 @@ maketitle
 
 In this paper we robustly combine several extensions to the agent programming
  language Golog to represent programs for multiagent teams.
- These include combining true concurrency of actions with the interleaving
+ These include combining true concurrency of actions with the interleaved
  concurrency of ConGolog, incorporating an explicit notion of time to give
  a richer world model and aid in coordination, and tightly integrating the
  concept of natural actions to predict the behavior of the environment.
@@ -237,8 +237,8 @@ For tightly-coupled teams it may be more convenient to conceptualise the
  applications involving multiagent teams.
 \layout Standard
 
-Pursuant to this goal, we combine several extensions to the Golog language
- to make it suitable for representing multiagent teams.
+Pursuant to this goal, we combine several existing extensions to the Golog
+ language to make it suitable for representing multiagent teams.
  Key among these is the notion of true concurrency of actions, which we
  combine with the account of interleaved concurrency found in the language
  ConGolog
@@ -247,15 +247,19 @@ Pursuant to this goal, we combine several extensions to the Golog language
 \end_inset 
 
  to give a flexible model for concurrent execution.
- An explicit notion of time is introduced, both to allow this to be incorporated
- into models of the world and to assist in coordination between agents.
+ An explicit notion of time is incorporated, both to allow this to be included
+ in models of the world and to assist in coordination between agents.
  The well-known concept of natural actions is also tightly integrated into
  the semantics of the language, to allow agents to predict the behavior
  of their environment without additional burden for the programmer.
 \layout Standard
 
-Versions of this language have been implemented in Eclispe Prolog (TODO:ref),
- CIAO Prolog (TODO:ref) and Mozart
+Versions of this language have been implemented in CIAO Prolog 
+\begin_inset LatexCommand \cite{ciao-reference-manual-tr}
+
+\end_inset 
+
+ and Mozart 
 \begin_inset LatexCommand \cite{vanroy99mozart}
 
 \end_inset 
@@ -268,8 +272,8 @@ Versions of this language have been implemented in Eclispe Prolog (TODO:ref),
 
 The contributions of this paper are thus: to motivate high-level program
  execution as a problem-solving paradigm for multiagent teams, to robustly
- combine several extensions to the Golog language into a semantics suitable
- for describing multiagent teams, to describe a concrete implementation
+ combine several existing extensions to the Golog language into a semantics
+ suitable for describing multiagent teams, to describe a concrete implementation
  of this language and to demonstrate its effectiveness both as a centralised
  multiagent planner and a method for distributed execution.
 \layout Standard
@@ -368,14 +372,9 @@ The Situation Calculus
 \layout Standard
 
 The situation calculus is a first order logic formalism for representing
- and reasoning about dynamic worlds, introduced by McCarthy and Hayes 
-\begin_inset LatexCommand \cite{McCHay69sitcalc}
-
-\end_inset 
-
-.
- While the concepts of the situation calculus remain largely unchanged,
- the accompanying notation has evolved somewhat since its inception.
+ and reasoning about dynamic worlds.
+ While its concepts remain largely unchanged since its inception, the accompanyi
+ng notation has evolved somewhat.
  The notation presented here is that of 
 \begin_inset LatexCommand \cite{levesque97golog}
 
@@ -532,7 +531,9 @@ possibility predicates
 
 
 \begin_inset Formula \[
-\forall agt,obj,s.\left[Poss(place\_ in(agt,obj,Bowl),s)\leftrightarrow has\_ object(agt,Bowl,s)\right]\]
+\begin{array}{c}
+\forall agt,obj,s.\left[Poss(place\_ in(agt,obj,Bowl),s)\right.\\
+\left.\leftrightarrow has\_ object(agt,Bowl,s)\right]\end{array}\]
 
 \end_inset 
 
@@ -628,7 +629,7 @@ To program an agent using Golog one specifies an axiomatisation of the agent's
 
 \begin_inset Float table
 wide false
-collapsed false
+collapsed true
 
 \layout Caption
 
@@ -642,7 +643,7 @@ Golog Operators
 \align center 
 
 \begin_inset  Tabular
-<lyxtabular version="3" rows="16" columns="2">
+<lyxtabular version="3" rows="15" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0">
 <column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
@@ -817,7 +818,7 @@ Execute either
 \layout Standard
 
 Nondet.
- select arguments for program 
+ select arguments for 
 \begin_inset Formula $\delta$
 \end_inset 
 
@@ -869,7 +870,8 @@ Execute
 
 \layout Standard
 
-Execute 
+Exec.
+ 
 \begin_inset Formula $\delta_{1}$
 \end_inset 
 
@@ -964,7 +966,8 @@ and
 \layout Standard
 
 Conc.
- execute 
+ exec.
+ 
 \begin_inset Formula $\delta_{1}$
 \end_inset 
 
@@ -995,7 +998,8 @@ Conc.
 \layout Standard
 
 Conc.
- execute 
+ exec.
+ 
 \begin_inset Formula $\delta$
 \end_inset 
 
@@ -1021,26 +1025,11 @@ Conc.
 
 \layout Standard
 
-Find and perform legal execution of 
+Find and perform legal exec.
+ of 
 \begin_inset Formula $\delta$
 \end_inset 
 
-
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
 
 \end_inset 
 </cell>
@@ -1051,6 +1040,11 @@ Find and perform legal execution of
 
 \layout Standard
 
+
+\begin_inset Formula $\mathbf{proc}P(\overrightarrow{x})\delta(\overrightarrow{x})\mathbf{end}$
+\end_inset 
+
+
 \end_inset 
 </cell>
 <cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
@@ -1058,7 +1052,7 @@ Find and perform legal execution of
 
 \layout Standard
 
-TODO: procedure definition and call
+Procedure definition
 \end_inset 
 </cell>
 </row>
@@ -1126,7 +1120,7 @@ The semantics of the Golog operators are typically defined recursively using
 \begin_inset Formula $Trans(\delta,s,\delta',s')$
 \end_inset 
 
- is true precisely when executing part of program 
+ is true precisely when executing a single step of program 
 \begin_inset Formula $\delta$
 \end_inset 
 
@@ -1143,7 +1137,7 @@ The semantics of the Golog operators are typically defined recursively using
 \end_inset 
 
  remains to be executed.
- It thus specifies single-steps of computation of the program 
+ It thus specifies single steps of computation of the program 
 \begin_inset Formula $\delta$
 \end_inset 
 
@@ -1436,24 +1430,45 @@ The possibility predicate for the
 
 
 \begin_inset Formula \[
-Poss(ring\_ timer(ID),t,s)\equiv\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]\]
+\begin{array}{c}
+Poss(ring\_ timer(ID),t,s)\leftrightarrow\\
+\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-To enforce the requirement that natural actions must occur provided nothing
- prevents them, a predicate 
-\begin_inset Formula $legal(s)$
-\end_inset 
-
- is introduced which is true only for situations which respect this requirement:
+An important concept when dealing with natural actions it the least natural
+ time point (LNTP) of a situation.
+ This is defined as the earliest time at which a natural action may occur
+ in a situation:
 \layout Standard
 
 
 \begin_inset Formula \[
-legal(S_{0})\equiv True\]
+\begin{array}{c}
+lntp(s,t)\leftrightarrow\exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
+\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Note that the LNTP need not exist for a given situation.
+ To enforce the requirement that natural actions must occur provided nothing
+ prevents them, a predicate 
+\begin_inset Formula $legal(s)$
+\end_inset 
+
+ is introduced which is true only for situations which respect this requirement
+ (assuming no precondition interaction among natural actions):
+\layout Standard
+
+
+\begin_inset Formula \[
+legal(S_{0})\leftrightarrow True\]
 
 \end_inset 
 
@@ -1463,7 +1478,7 @@ legal(S_{0})\equiv True\]
 
 \begin_inset Formula \[
 \begin{array}{cc}
-legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
+legal(do(c,t,s))\leftrightarrow & legal(s)\wedge Poss(c,t,s)\wedge\\
  & start(s)\leq t\wedge\\
  & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
  & \left[a\in c\vee t<t_{a}\right]\end{array}\]
@@ -1479,52 +1494,66 @@ When utilising natural actions within a Golog program, all legal program
 \end_inset 
 
  predicate is true.
- It will be shown that this can be enforced in the semantics of the language,
- avoiding the need to check it explicitly.
- This characterisation implicitly assumes no precondition interaction among
- natural actions.
+ This can be enforced in the semantics of the language, avoiding the need
+ to check it explicitly.
 \layout Standard
 
-An important concept when dealing with natural actions it the least natural
- time point (LNTP) of a situation.
- This is defined as the earliest time at which a natural action may occur
- in a situation:
+A single action term represents a valid program, the possible transitions
+ for which depend on whether the accompanying situation has a least natural
+ time point.
+ If not, it is legal to perform the action at any time greater than or equal
+ to the start of the situation.
+ If there is an LNTP, a legal situation can be produced in one of three
+ ways: perform the action before the LNTP, perform it at the LNTP in conjunction
+ with the natural actions, or perform the natural actions first.
+ This is captured by the following transition rule:
 \layout Standard
 
 
 \begin_inset Formula \[
-\begin{array}{ccc}
-lntp(s,t) & \equiv & \exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
- &  & \forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\end{array}\]
+\begin{array}{c}
+Trans(c,s,\delta',s')\leftarrow\\
+\\\exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
+\left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\right.\\
+\left.s'=do(c,t,s)\wedge\delta'=nil\right]\\
+\vee\\
+\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
+\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
+\vee\\
+\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \\
+\vee\\
+\neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
+\left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-Note that the LNTP need not exist for a given situation.
+Using this formulation, natural actions will occur at their predicted times
+ without the programmer needing to mention them explicitly.
+ If natural actions are included in the program, they will performed only
+ at their predicted time.
+ A proof of this is offered in section 
+\begin_inset LatexCommand \ref{sub:Properties-of-the-semantics}
+
+\end_inset 
+
+.
 \layout Standard
 
-TODO: discuss how they're added to the semantics.
-\layout Standard
+While time and natural actions in Golog have previously been utilised as
+ a planning tool 
+\begin_inset LatexCommand \cite{pirri00planning_nat_acts}
 
-TODO: 
-\begin_inset Quotes eld
 \end_inset 
 
-closely integrated
-\begin_inset Quotes erd
-\end_inset 
-
-, 
-\begin_inset Quotes eld
-\end_inset 
-
-not in mainstream versions
-\begin_inset Quotes erd
-\end_inset 
-
-, etc...
+, the programmer was required to explicitly check for the possible occurance
+ of natural actions and ensure that executions of the program resulted in
+ legal situations.
+ Out integration significantly lowers the burden on the programmer by providing
+ the ability to predict the behavior of the environment, while guaranteeing
+ that all program executions produce legal situations.
 \layout Subsection
 
 Concurrency
@@ -1675,9 +1704,12 @@ n from either of the two programs as a transition for the pair:
 \layout Standard
 
 
-\begin_inset Formula \begin{eqnarray*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
- & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\end{eqnarray*}
+\begin_inset Formula \[
+\begin{array}{c}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow\\
+\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\\
+\vee\\
+\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\end{array}\]
 
 \end_inset 
 
@@ -1703,11 +1735,11 @@ In the presence of true concurrency, this is insufficient.
 
 
 \begin_inset Formula \[
-\begin{array}{cc}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\\
- & Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge\\
- & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\\
- & \delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
+\begin{array}{c}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow\,\,\,\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\\
+Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge\\
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\\
+\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
 
 \end_inset 
 
@@ -1797,11 +1829,7 @@ Executing
  should result in the bowl containing two units of flour, one unit of sugar
  and an egg.
  However, the semantics of (TODO:ref eqn) allow a transition with 
-\begin_inset Formula $c_{1}=place\_ in(Thomas,Flour,Bowl)$
-\end_inset 
-
- and 
-\begin_inset Formula $c_{2}=place\_ in(Thomas,Flour,Bowl)$
+\begin_inset Formula $c_{1}=c_{2}=place\_ in(Thomas,Flour,Bowl)$
 \end_inset 
 
 , resulting in only one unit of flour being added.
@@ -1925,10 +1953,11 @@ The successor state axioms for
 
 
 \begin_inset Formula \[
-\begin{array}{cc}
-has\_ object(agt,obj,do(c,t,s))\leftrightarrow & acquire(agt,obj)\in c\vee\\
- & \left[has\_ object(agt,obj,s)\wedge\right.\\
- & \left.release(agt,obj)\notin c\right]\end{array}\]
+\begin{array}{c}
+has\_ object(agt,obj,do(c,t,s))\leftrightarrow\\
+acquire(agt,obj)\in c\vee\\
+\left[has\_ object(agt,obj,s)\wedge\right.\\
+\left.release(agt,obj)\notin c\right]\end{array}\]
 
 \end_inset 
 
@@ -1956,7 +1985,7 @@ Continuous Processes
 Continuous processes can be represented in the situation calculus by associating
  them with a fluent which is true precisely when the process is being performed
  
-\begin_inset LatexCommand \cite{pinto94temporal}
+\begin_inset LatexCommand \cite{pinto94temporal,reiter96sc_nat_conc}
 
 \end_inset 
 
@@ -1964,7 +1993,7 @@ Continuous processes can be represented in the situation calculus by associating
  This is accompanied by two actions, one indicating the start of the process
  and one indicating when it stops.
  For the cooking agents this can be achieved using a general fluent 
-\begin_inset Formula $doing\_ task(agt,tsk,s)$
+\begin_inset Formula $doing\_ task$
 \end_inset 
 
  to indicate that 
@@ -1979,8 +2008,19 @@ Continuous processes can be represented in the situation calculus by associating
 \begin_inset Formula $s$
 \end_inset 
 
-.
- It is accompanied by two actions 
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+doing\_ task(agt,tsk,s)\]
+
+\end_inset 
+
+ 
+\layout Standard
+
+It is accompanied by two actions 
 \begin_inset Formula $begin\_ task(agt,tsk)$
 \end_inset 
 
@@ -1993,7 +2033,9 @@ Continuous processes can be represented in the situation calculus by associating
 
 
 \begin_inset Formula \[
-Poss(begin\_ task(agt,tsk),t,s)\rightarrow\neg\exists tsk_{2}.doing\_ task(agt,tsk_{2},s)\]
+\begin{array}{c}
+Poss(begin\_ task(agt,tsk),t,s)\rightarrow\\
+\neg\exists tsk_{2}.doing\_ task(agt,tsk_{2},s)\end{array}\]
 
 \end_inset 
 
@@ -2011,10 +2053,11 @@ Poss(end\_ task(agt,tsk),t,s)\rightarrow doing\_ task(agt,tsk,s)\]
 
 
 \begin_inset Formula \[
-\begin{array}{cc}
-doing\_ task(agt,tsk,do(c,t,s))\leftrightarrow & begin\_ task(agt,tsk)\in c\vee\\
- & \left[doing\_ task(agt,tsk,s)\wedge\right.\\
- & \left.end\_ task(agt,tsk)\notin c\right]\end{array}\]
+\begin{array}{c}
+doing\_ task(agt,tsk,do(c,t,s))\leftrightarrow\\
+begin\_ task(agt,tsk)\in c\vee\\
+\left[doing\_ task(agt,tsk,s)\wedge\right.\\
+\left.end\_ task(agt,tsk)\notin c\right]\end{array}\]
 
 \end_inset 
 
@@ -2135,86 +2178,62 @@ This section shows the modifications that have been made to the semantics
 .
 \layout Subsubsection
 
-(Concurrent) Primitive Actions 
-\layout Standard
-
-A single action term represents a valid program, which can never be a final
- configuration.
- The possible transitions for such a program depend on whether the accompanying
- situation has a least natural time point.
- If not, the only legal transition is to perform the action at some time
- 
-\begin_inset Formula $t$
-\end_inset 
-
- greater than or equal to the start of the situation.
- If there is an LNTP, a legal transition can be produced in one of three
- ways:
-\layout Enumerate
-
-Perform the action at some time 
-\begin_inset Formula $t$
-\end_inset 
-
- before the LNTP, leaving an empty program and new situation
-\layout Enumerate
-
-Perform the action at the LNTP 
-\begin_inset Formula $t_{n}$
-\end_inset 
-
-, concurrently with the natural actions which must occur at that time, leaving
- an empty program and new situation
-\layout Enumerate
-
-Allow the natural actions to occur at the LNTP, producing a new situation
- and leaving the program unchanged
+Concurrent Primitive Actions 
 \layout Standard
 
 
 \begin_inset Formula \[
-\begin{array}{ccc}
-Trans(c,s,\delta',s')\equiv & \exists t_{n}.\left[lntp(s,t_{n})\wedge\right.\\
- & \exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\\
- & s'=do(c,t,s)\wedge\delta'=nil\\
- &  & \vee\\
- & \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
- & \left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right. & \vee\\
- & \left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right]\\
- &  & \vee\\
- & \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
- & \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
+\begin{array}{c}
+Trans(c,s,\delta',s')\equiv\\
+\\\exists t_{n}.\left[lntp(s,t_{n})\wedge\right.\\
+\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\\
+s'=do(c,t,s)\wedge\delta'=nil\\
+\vee\\
+\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
+\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\vee\\
+\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right]\\
+\vee\\
+\neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
+\left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
 
 \end_inset 
 
- 
+
 \layout Subsubsection
 
 Concurrent Execution:
 \layout Standard
 
 
-\begin_inset Formula \begin{eqnarray*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s') & \vee\\
- & \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s') & \vee\\
- & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s)) & \wedge\\
- & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2}) & \wedge\\
- & Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{eqnarray*}
-
- 
+\begin_inset Formula \[
+\begin{array}{c}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
+\\\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\\
+\vee\\
+\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\\
+\vee\\
+\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge\\
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge\\
+\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\wedge\\
+Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
 
 \end_inset 
 
- 
+
 \layout Subsection
 
 Properties of the Semantics
+\begin_inset LatexCommand \label{sub:Properties-of-the-semantics}
+
+\end_inset 
+
+
 \layout Standard
 
 From the formal semantics presented above, it is possible to prove useful
  properties of the proposed language.
- In particular, we seek to prove that if a program starts in a legal situation,
- all executions of the program will produce legal situations.
+ In particular, weprove that if a program starts in a legal situation, all
+ executions of the program will produce legal situations.
 \layout Standard
 
 To show this, first notice that only two transition rules directly modify
@@ -2224,7 +2243,7 @@ To show this, first notice that only two transition rules directly modify
 \end_inset 
 
  predicate.
- Thus, it suffices to show that these two rules will only produce legal
+ Thus, it suffices to show that these two rules will produce only legal
  situations.
  Recall the definition of 
 \begin_inset Formula $legal(s)$
@@ -2236,7 +2255,7 @@ To show this, first notice that only two transition rules directly modify
 
 \begin_inset Formula \[
 \begin{array}{cc}
-legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
+legal(do(c,t,s))\leftrightarrow & legal(s)\wedge Poss(c,t,s)\wedge\\
  & start(s)\leq t\wedge\\
  & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
  & \left[a\in c\vee t<t_{a}\right]\end{array}\]
@@ -2246,151 +2265,32 @@ legal(do(c,t,s))\equiv & legal(s)\wedge Poss(c,t,s)\wedge\\
 
 \layout Standard
 
-Consider first the case of 
-\begin_inset Formula $Trans(\delta_{1}||\delta_{2},s,\delta',s')$
-\end_inset 
-
-.
- The only part of interest is the conjunction which directly produces a
- modified situation 
-\begin_inset Formula $s'=do(c_{1}\cup c_{2},t,s)$
-\end_inset 
-
-.
- Assuming that 
-\begin_inset Formula $s$
-\end_inset 
-
- is a legal situation, we seek to prove that 
-\begin_inset Formula $s'$
-\end_inset 
-
- must be legal.
- Assuming that all other instances of 
+Considering the 
 \begin_inset Formula $Trans$
 \end_inset 
 
- produce legal situations, 
-\begin_inset Formula $Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))$
-\end_inset 
-
- and 
-\begin_inset Formula $Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))$
-\end_inset 
-
- will produce legal situations 
-\begin_inset Formula $do(c_{1},t,s)$
-\end_inset 
-
- and 
-\begin_inset Formula $do(c_{2},t,s)$
-\end_inset 
-
-.
-\layout Standard
-
-From 
-\begin_inset Formula $legal(do(c_{1},t,s))$
-\end_inset 
-
- it can be inferred that:
-\layout Standard
-
-
-\begin_inset Formula \[
-legal(s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-start(s)\leq t\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\vee t<t_{a}\right]\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-This implies that:
-\layout Standard
-
-
-\begin_inset Formula \[
-(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\cup c_{2}\vee t<t_{a}\right]\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-The definition of 
-\begin_inset Formula $Trans$
-\end_inset 
-
- further requires that:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(c_{1}\cup c_{2},t,s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-Thus all four conjuncts necessary prove 
-\begin_inset Formula $legal(do(c_{1}\cup c_{2},t,s))$
-\end_inset 
-
- are true, and this rule generates only legal situations.
-\layout Standard
-
-Turning attention to the 
-\begin_inset Formula $Trans$
-\end_inset 
-
- rule for primitive actions there are four disjuncts to consider, each of
- which may produce a new situation term.
+ rule for primitive actions, each of four disjuncts may produce a new situation
+ term.
  The first requires that:
 \layout Standard
 
 
 \begin_inset Formula \[
-\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists t.\left[t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right]\]
+\begin{array}{c}
+\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists t.\left[t\geq start(s)\wedge t<t_{n}\right.\right.\\
+\left.\left.\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right]\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-From this it is immediately clear that:
+From from it is immediately clear that:
 \layout Standard
 
 
 \begin_inset Formula \[
-start(s)\leq t\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(c,t,s)\]
+start(s)\leq t\,\,\,\,\, Poss(c,t,s)\]
 
 \end_inset 
 
@@ -2447,7 +2347,9 @@ Assuming
 \end_inset 
 
 .
- The next disjunct requires that:
+\layout Standard
+
+The next disjunct requires that:
 \layout Standard
 
 
@@ -2506,6 +2408,94 @@ Again, all conjuncts necessary to prove
 \end_inset 
 
  are true.
+\layout Standard
+
+Consider then the case of 
+\begin_inset Formula $Trans(\delta_{1}||\delta_{2},s,\delta',s')$
+\end_inset 
+
+.
+ The only part of interest is the conjunction which directly produces a
+ modified situation 
+\begin_inset Formula $s'=do(c_{1}\cup c_{2},t,s)$
+\end_inset 
+
+.
+ Assuming that 
+\begin_inset Formula $s$
+\end_inset 
+
+ is a legal situation and that all other transition rules produce legal
+ situations, 
+\begin_inset Formula $Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))$
+\end_inset 
+
+ and 
+\begin_inset Formula $Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))$
+\end_inset 
+
+ will produce legal situations 
+\begin_inset Formula $do(c_{1},t,s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $do(c_{2},t,s)$
+\end_inset 
+
+.
+\layout Standard
+
+From 
+\begin_inset Formula $legal(do(c_{1},t,s))$
+\end_inset 
+
+ it can be inferred that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+legal(s)\,\,\,\,\,\,\,\,\,\, start(s)\leq t\\
+(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\vee t<t_{a}\right]\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+This implies that:
+\layout Standard
+
+
+\begin_inset Formula \[
+(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\cup c_{2}\vee t<t_{a}\right]\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+The definition of 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ further requires that:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(c_{1}\cup c_{2},t,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Thus all four conjuncts necessary prove 
+\begin_inset Formula $legal(do(c_{1}\cup c_{2},t,s))$
+\end_inset 
+
+ are true, and this rule generates only legal situations.
 \layout Standard
 
 TODO: finish this proof and clean it up *a lot*
@@ -2682,6 +2672,9 @@ One important aspect of multiagent teams that was not approached in this
 
 alternate prediction schemes e.g.
  extra Golog programs (in readylog?)
+\layout Itemize
+
+treatmetn of exog actions in ConGolog is compatiable with this work
 \layout Section
 
 Conclusions
