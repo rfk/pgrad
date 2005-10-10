@@ -445,10 +445,10 @@ end
 
 in 
 
-local E Ans in
+local E Ans RI B in
 
   {Browse Ans}
-  E={New Search.parallel init(guava:1#ssh)}
+  E={New Search.parallel init(localhost:1#ssh)}
   {E trace(true)}
   Ans={E one(Goloz $)}
 
