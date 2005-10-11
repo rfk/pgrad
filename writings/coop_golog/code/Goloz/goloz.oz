@@ -438,7 +438,8 @@ define
   )
 
   proc {Script Root}
-    {Do acquire_object(thomas knife1) res([set_timer(richard t1 10)] 0 s0) Root}
+    %{Do ring_timer(timer1) res([set_timer(thomas timer1 10)] 0 s0) Root}
+    {IsAgent Root}
   end
 
 end
@@ -448,8 +449,8 @@ in
 local E Ans RI B in
 
   {Browse Ans}
-  E={New Search.parallel init(localhost:1#ssh)}
+  E={New Search.parallel init(grapefruit:1#ssh banana:1#ssh)}
   {E trace(true)}
-  Ans={E one(Goloz $)}
+  Ans={E all(Goloz $)}
 
 end
