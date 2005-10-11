@@ -34,15 +34,11 @@ status Collapsed
 \layout Standard
 
 \backslash 
-conferenceinfo{AAMAS'06,} {TODO: Date And Place Go Here}
+conferenceinfo{AAMAS'06,} {8-12 May 2006}
 \layout Standard
 
 \backslash 
 CopyrightYear{2005}
-\layout Standard
-
-\backslash 
-crdata{1-59593-057-4/05/0004}
 \layout Standard
 
 \backslash 
@@ -135,7 +131,7 @@ category{I.2.8}{Artificial Intelligence}{Problem Solving, Control Methods, and S
 \layout Standard
 
 \backslash 
-keywords{Agent programming languages, Cooperative distributed problem solving in agent systems, Multi-agent planning}
+keywords{Agent programming languages, Multi-agent planning}
 \layout Standard
 
 \end_inset 
@@ -287,6 +283,13 @@ The remainder of the paper is structured as follows.
  describes the Golog family of languages and their underlying formalism
  the situation calculus, and introduces a running example to be used throughout
  the paper.
+ Section 
+\begin_inset LatexCommand \ref{sec:Other-Work}
+
+\end_inset 
+
+ places this work in the wider context of multiagent systems and existing
+ Golog implementations (such as ConGolog and IndiGolog).
  In section 
 \begin_inset LatexCommand \ref{sec:Language-Features}
 
@@ -306,13 +309,7 @@ The remainder of the paper is structured as follows.
 \end_inset 
 
  describes our implementation with examples of its operation.
- Finally, section 
-\begin_inset LatexCommand \ref{sec:Other-Work}
-
-\end_inset 
-
- places this work in the wider context of multiagent systems and existing
- Golog implementations (such as ConGolog and IndiGolog) while section 
+ Finally section 
 \begin_inset LatexCommand \ref{sec:Conclusions-and-Future}
 
 \end_inset 
@@ -332,59 +329,20 @@ Background
 
 \layout Subsection
 
-Example: The Cooking Agents
-\layout Standard
-
-In order to explore this topic in a concrete way, a running example is introduce
-d and investigated throughout the paper: the 
-\begin_inset Quotes eld
-\end_inset 
-
-Cooking Agents
-\begin_inset Quotes erd
-\end_inset 
-
- domain.
- In this domain, several robotic chefs inhabit a kitchen which they share
- with inanimate objects such as various ingredients, appliances and utensils.
- The agents must cooperate to produce a meal consisting of several dishes.
-\layout Standard
-
-This example is particularly suitable because tightly-coupled cooperation
- will be of benefit, rather than assigning specific tasks to specific agents
- and potentially leaving some agents idle.
- It contains several challenges common to a wide variety of multiagent settings,
- such as contention for shared resources and scheduling timing and scheduling
- constraints.
- It also involves large amounts of procedural knowledge in the form of recipes,
- highlighting the benefits high-level program execution for specifying procedura
-l knowledge.
-\layout Standard
-
-The domain also embodies several assumptions which reduce the complexity
- of this initial investigation.
- It may be idealised as being completely deterministic and fully observable.
- The agents are also in close proximity allowing complete and reliable communica
-tion.
-\layout Subsection
-
 The Situation Calculus
 \layout Standard
 
-The situation calculus is a first order logic formalism for representing
- and reasoning about dynamic worlds.
- While its concepts remain largely unchanged since its inception, the accompanyi
-ng notation has evolved somewhat.
+While the concepts of the situation calculus remain largely unchanged since
+ its inception as a formalism for describing dynamic worlds, the accompanying
+ notation has evolved somewhat.
  The notation presented here is that of 
 \begin_inset LatexCommand \cite{levesque97golog}
 
 \end_inset 
 
 .
-\layout Standard
-
-A representation of a dynamic world in the situation calculus consists of
- first-order logic statements capturing the following:
+ The representation of a dynamic world in the situation calculus consists
+ of first-order logic statements capturing the following:
 \layout Itemize
 
 Actions that can be performed in the world
@@ -454,8 +412,23 @@ situation
 .
 \layout Standard
 
-In this paper, all actions have as their first argument the name of the
- agent performing them.
+In order to explore this topic in a concrete way, a running example is introduce
+d: the 
+\begin_inset Quotes eld
+\end_inset 
+
+Cooking Agents
+\begin_inset Quotes erd
+\end_inset 
+
+ domain.
+ In this domain, several robotic chefs inhabit a kitchen which they share
+ with inanimate objects such as various ingredients, appliances and utensils.
+ The agents must cooperate to produce a meal consisting of several dishes.
+\layout Standard
+
+For multiagent domains, actions have as their first argument the name of
+ the agent performing them.
  For example, the agent 
 \begin_inset Formula $Thomas$
 \end_inset 
@@ -532,22 +505,22 @@ possibility predicates
 
 \begin_inset Formula \[
 \begin{array}{c}
-\forall agt,obj,s.\left[Poss(place\_ in(agt,obj,Bowl),s)\right.\\
-\left.\leftrightarrow has\_ object(agt,Bowl,s)\right]\end{array}\]
+Poss(place\_ in(agt,obj,Bowl),s)\\
+\leftrightarrow has\_ object(agt,Bowl,s)\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-The truth values of fluents are specified in two parts.
+The truth value of fluents is specified in two parts.
  First, one must define what is true of the initial situation, such as the
- following statement that no agents possess any objects initially:
+ following statement that no agent possesses any objects initially:
 \layout Standard
 
 
 \begin_inset Formula \[
-\forall agt.\left[\neg\exists obj.\left(has\_ object(agt,obj,S_{0})\right)\right]\]
+\neg\exists obj.\left(has\_ object(agt,obj,S_{0})\right)\]
 
 \end_inset 
 
@@ -555,14 +528,14 @@ The truth values of fluents are specified in two parts.
 \layout Standard
 
 The effects of various actions are collected into successor state axioms,
- which state that a fluent is true if something caused it to be true, or
+ which state that a fluent is true if something caused it to be tue, or
  it was previously true and nothing caused it to be false.
  They have the general form:
 \layout Standard
 
 
 \begin_inset Formula \[
-f(\overrightarrow{x},do(a,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\vee f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
+f(\overrightarrow{x},do(a,c))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
 
 \end_inset 
 
@@ -587,16 +560,17 @@ Golog is a declarative agent programming language based on the situation
 \end_inset 
 
  ) and many extensions to provide additional functionality (such as ConGolog
+ 
 \begin_inset LatexCommand \cite{giacomo00congolog}
 
 \end_inset 
 
-, DTGolog
+, DTGolog 
 \begin_inset LatexCommand \cite{boutilier00dtgolog}
 
 \end_inset 
 
-, and IndiGolog
+, and IndiGolog 
 \begin_inset LatexCommand \cite{giacomo99indigolog}
 
 \end_inset 
@@ -1170,6 +1144,111 @@ The semantics of the Golog operators are typically defined recursively using
 .
 \layout Section
 
+Related Work
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Other-Work}
+
+\end_inset 
+
+
+\layout Standard
+
+The utility of the high-level program execution paradigm is highlighted
+ by the many extensions which have been developed for the base Golog language.
+ Prominent among these are the following: 
+\emph on 
+ConGolog
+\emph default 
+ 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset 
+
+ introduced the ability for an agent to interleave the execution of multiple
+ high-level programs, along with the notion of an interrupt which gains
+ control when certain conditions become true.
+ 
+\emph on 
+IndiGolog
+\emph default 
+ 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
+
+\end_inset 
+
+ formalised online execution of Golog programs and introduced the search
+ operator to allow controlled offline planning.
+ 
+\emph on 
+DTGolog 
+\emph default 
+
+\begin_inset LatexCommand \cite{boutilier00dtgolog}
+
+\end_inset 
+
+ combined the situation calculus with Markov Decision Processes to allow
+ agents to determine the best execution of a program in the face of probabilisti
+c action outcomes.
+\layout Standard
+
+There has also been work on extending the basic situation calculus with
+ notions such as concurrent actions and explicit time, notably that of Pinto
+ 
+\begin_inset LatexCommand \cite{pinto94temporal}
+
+\end_inset 
+
+ and Reiter 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+.
+ However, there appears to be little work incorporating these extensions
+ with extensions to the Golog language identified above.
+\layout Standard
+
+While work with Golog has predominantly focused on single-agent systems,
+ there have been several notable applications of the technique to multiagent
+ systems.
+ The Cognitive Agent Specification Language (TODO:ref) uses ConGolog to
+ describe the behavior of agents in a multiagent setting, and an automated
+ theorem prover is in development that can prove properties of the agent
+ programs.
+ It differs from our work in that it is designed for open multiagent systems,
+ with each agent having its own Golog program defining its behavior.
+ Another difference is that focus of CASL is on modelling and simulation
+ of agent systems, rather than producing executable agent programs.
+\layout Standard
+
+Closer to the spirit of this paper is the work of Ferrein et.
+ al.
+ 
+\begin_inset LatexCommand \cite{Ferrein2005readylog}
+
+\end_inset 
+
+ on ReadyLog, a Golog derivative designed for agent control in highly dynamic
+ domains.
+ In particular, it has been successfully applied in the control of a RoboCup
+ soccer team.
+ ReadyLog integrates the facilities of concurrency, online execution and
+ decision theory and can thus be seen as a unification of ConGolog, IndiGolog
+ and DTGolog.
+ The programs used to control the soccer team intersperse actions by several
+ agents and can thus be viewed as team programs.
+ However, the program is intended to be evaluated by a single agent which
+ reasons about the actions of other team-members.
+ By contrast, the intent of this paper is to develop Golog programs that
+ are cooperatively executed by the entire team.
+\layout Standard
+
+TODO: summarise what's missing.
+\layout Section
+
 Language Features
 \layout Standard
 
@@ -1225,14 +1304,6 @@ Shared Resources
 \series default 
 : The agents will face contention for limited physical resources such as
  the oven, mixing bowls and chopping boards.
-\layout Itemize
-
-
-\series bold 
-Continuous Processes
-\series default 
-: Agents are required to perform actions with some finite duration, such
- as mixing ingredients for a specified time.
 \layout Standard
 
 While other aspects may also be important for some domains, the above are
@@ -1361,6 +1432,14 @@ Note that the start time of the initial situation is arbitrary, and may
 Natural Actions
 \layout Standard
 
+
+\begin_inset LatexCommand \label{sub:Natural-Actions}
+
+\end_inset 
+
+
+\layout Standard
+
 Natural actions are a special class of exogenous actions, those actions
  which occur outside of the agent's control.
  Introduced to the situation calculus by Pinto 
@@ -1457,7 +1536,15 @@ lntp(s,t)\leftrightarrow\exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge
 \layout Standard
 
 Note that the LNTP need not exist for a given situation.
- To enforce the requirement that natural actions must occur provided nothing
+ This can happen both when no natural actions are possible in a situation,
+ or when a natural action may occur at any time in a situation and there
+ is thus no earliest time at which one may occur.
+ We will assume the programmer has ensured that the domain axiomatisation
+ avoids such pathological cases, and the non-existence of an LNTP implies
+ that no natural actions are possible.
+\layout Standard
+
+To enforce the requirement that natural actions must occur provided nothing
  prevents them, a predicate 
 \begin_inset Formula $legal(s)$
 \end_inset 
@@ -1535,7 +1622,7 @@ Using this formulation, natural actions will occur at their predicted times
  If natural actions are included in the program, they will performed only
  at their predicted time.
  A proof of this is offered in section 
-\begin_inset LatexCommand \ref{sub:Properties-of-the-semantics}
+\begin_inset LatexCommand \ref{sub:Legality-of-the-semantics}
 
 \end_inset 
 
@@ -1548,15 +1635,23 @@ While time and natural actions in Golog have previously been utilised as
 
 \end_inset 
 
-, the programmer was required to explicitly check for the possible occurance
+, the programmer was required to explicitly check for the possible occurrence
  of natural actions and ensure that executions of the program resulted in
  legal situations.
- Out integration significantly lowers the burden on the programmer by providing
+ Our integration significantly lowers the burden on the programmer by providing
  the ability to predict the behavior of the environment, while guaranteeing
  that all program executions produce legal situations.
 \layout Subsection
 
 Concurrency
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sub:Concurrency}
+
+\end_inset 
+
+
 \layout Standard
 
 Concurrency is one of the defining attributes of multiagent systems.
@@ -1601,13 +1696,9 @@ true concurrency
 
 
 \begin_inset Formula \[
-do(\{ a_{1},a_{2},...\},t,s)\]
-
-\end_inset 
-
-
-\begin_inset Formula \[
-Poss(\{ a_{1},a_{2},...\},t,s)\]
+\begin{array}{c}
+do(\{ a_{1},a_{2},...\},t,s)\\
+Poss(\{ a_{1},a_{2},...\},t,s)\end{array}\]
 
 \end_inset 
 
@@ -1851,7 +1942,7 @@ Executing
 
 \layout Standard
 
-Clearly both programs should be allowed to proceed with a single occurance
+Clearly both programs should be allowed to proceed with a single occurrence
  of the 
 \begin_inset Formula $ring\_ timer$
 \end_inset 
@@ -1928,16 +2019,9 @@ We propose a fluent
 
 
 \begin_inset Formula \[
-Poss(acquire(agt,obj),t,s)\rightarrow\neg\exists a_{2}\left[has\_ object(a_{2},obj,s)\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(release(agt,obj),t,s)\rightarrow has\_ object(agt,obj,s)\]
+\begin{array}{c}
+Poss(acquire(agt,obj),t,s)\rightarrow\neg\exists a_{2}\left[has\_ object(a_{2},obj,s)\right]\\
+Poss(release(agt,obj),t,s)\rightarrow has\_ object(agt,obj,s)\end{array}\]
 
 \end_inset 
 
@@ -1979,91 +2063,6 @@ acquire(a_{1},obj)\in c\wedge acquire(a_{2},obj)\in c\\
 
 \layout Subsection
 
-Continuous Processes
-\layout Standard
-
-Continuous processes can be represented in the situation calculus by associating
- them with a fluent which is true precisely when the process is being performed
- 
-\begin_inset LatexCommand \cite{pinto94temporal,reiter96sc_nat_conc}
-
-\end_inset 
-
-.
- This is accompanied by two actions, one indicating the start of the process
- and one indicating when it stops.
- For the cooking agents this can be achieved using a general fluent 
-\begin_inset Formula $doing\_ task$
-\end_inset 
-
- to indicate that 
-\begin_inset Formula $agt$
-\end_inset 
-
- is in the process of doing 
-\begin_inset Formula $tsk$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
-\end_inset 
-
-:
-\layout Standard
-
-
-\begin_inset Formula \[
-doing\_ task(agt,tsk,s)\]
-
-\end_inset 
-
- 
-\layout Standard
-
-It is accompanied by two actions 
-\begin_inset Formula $begin\_ task(agt,tsk)$
-\end_inset 
-
- and 
-\begin_inset Formula $end\_ task(agt,tsk)$
-\end_inset 
-
-:
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-Poss(begin\_ task(agt,tsk),t,s)\rightarrow\\
-\neg\exists tsk_{2}.doing\_ task(agt,tsk_{2},s)\end{array}\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(end\_ task(agt,tsk),t,s)\rightarrow doing\_ task(agt,tsk,s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-doing\_ task(agt,tsk,do(c,t,s))\leftrightarrow\\
-begin\_ task(agt,tsk)\in c\vee\\
-\left[doing\_ task(agt,tsk,s)\wedge\right.\\
-\left.end\_ task(agt,tsk)\notin c\right]\end{array}\]
-
-\end_inset 
-
-
-\layout Subsection
-
 Example Programs
 \layout Standard
 
@@ -2099,7 +2098,7 @@ It first requires that each of three ingredients be added to the bowl.
 \begin_inset Formula $\pi$
 \end_inset 
 
- is used to allow any appriate agent to add each ingredient.
+ is used to allow any appropriate agent to add each ingredient.
  After the ingredients have been added, they must be mixed for five minutes
  by some agent.
 \layout Standard
@@ -2176,22 +2175,30 @@ This section shows the modifications that have been made to the semantics
 \end_inset 
 
 .
-\layout Subsubsection
+\layout Standard
 
-Concurrent Primitive Actions 
+The execution of primitive actions needs to be modified to account for sets
+ of actions instead of individual terms, and to incorporate the least-natural-ti
+me-point considerations of section 
+\begin_inset LatexCommand \ref{sub:Natural-Actions}
+
+\end_inset 
+
+:
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
-Trans(c,s,\delta',s')\equiv\\
-\\\exists t_{n}.\left[lntp(s,t_{n})\wedge\right.\\
-\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\\
-s'=do(c,t,s)\wedge\delta'=nil\\
+Trans(c,s,\delta',s')\leftarrow\\
+\\\exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
+\left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\right.\\
+\left.s'=do(c,t,s)\wedge\delta'=nil\right]\\
 \vee\\
 \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
-\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\vee\\
-\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right]\\
+\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
+\vee\\
+\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \\
 \vee\\
 \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
 \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
@@ -2199,9 +2206,15 @@ s'=do(c,t,s)\wedge\delta'=nil\\
 \end_inset 
 
 
-\layout Subsubsection
+\layout Standard
 
-Concurrent Execution:
+The transition relation for the concurrency operators must also be modified
+ in accordance with the considerations of section 
+\begin_inset LatexCommand \ref{sub:Concurrency}
+
+\end_inset 
+
+:
 \layout Standard
 
 
@@ -2220,24 +2233,37 @@ Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
 \end_inset 
 
 
+\layout Standard
+
+All other operators from ConGolog and IndiGolog will operate over the extended
+ situation calculus without modification.
 \layout Subsection
 
-Properties of the Semantics
-\begin_inset LatexCommand \label{sub:Properties-of-the-semantics}
+Legality of the Semantics
+\begin_inset LatexCommand \label{sub:Legality-of-the-semantics}
 
 \end_inset 
 
 
 \layout Standard
 
-From the formal semantics presented above, it is possible to prove useful
- properties of the proposed language.
- In particular, weprove that if a program starts in a legal situation, all
- executions of the program will produce legal situations.
+From the formal semantics presented above, it is possible to prove that
+ if a program starts in a legal situation, all legal executions of the program
+ will produce legal situations.
+ That is:
 \layout Standard
 
-To show this, first notice that only two transition rules directly modify
- the situation term - execution of a primitive action, and concurrent execution.
+
+\begin_inset Formula \[
+\forall\delta,\delta'\, Trans(\delta,s,\delta',s')\wedge legal(s)\rightarrow legal(s')\]
+
+\end_inset 
+
+
+\layout Standard
+
+First notice that only two transition rules directly modify the situation
+ term - execution of a primitive action, and concurrent execution.
  All other rules modify the situation term by further use of the 
 \begin_inset Formula $Trans$
 \end_inset 
@@ -2269,9 +2295,9 @@ Considering the
 \begin_inset Formula $Trans$
 \end_inset 
 
- rule for primitive actions, each of four disjuncts may produce a new situation
- term.
- The first requires that:
+ rule for primitive actions, each of the four disjuncts may produce a new
+ situation term.
+ Here we consider only the case of performing the actions before the LNTP:
 \layout Standard
 
 
@@ -2285,7 +2311,7 @@ Considering the
 
 \layout Standard
 
-From from it is immediately clear that:
+From this it is immediately clear that:
 \layout Standard
 
 
@@ -2306,7 +2332,9 @@ Using the definition of
 
 
 \begin_inset Formula \[
-\exists a\left[natural(a)\wedge Poss(a,t_{n},s)\right]\wedge\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\]
+\begin{array}{c}
+\exists a\left[natural(a)\wedge Poss(a,t_{n},s)\right]\wedge\\
+\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\end{array}\]
 
 \end_inset 
 
@@ -2338,76 +2366,21 @@ Since
 
 \layout Standard
 
-Assuming 
+Given 
 \begin_inset Formula $legal(s)$
 \end_inset 
 
-, these conjuncts are sufficient to establish 
+, these are sufficient to establish 
 \begin_inset Formula $legal(do(c,t,s))$
 \end_inset 
 
-.
-\layout Standard
-
-The next disjunct requires that:
-\layout Standard
-
-
-\begin_inset Formula \[
-\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge Poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right]\]
-
+ and so 
+\begin_inset Formula $legal(s')$
 \end_inset 
 
-
-\layout Standard
-
-Using this along with the definition of LNTP, it is clear that:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(c\cup cn,t_{n},s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-start(s)\leq t_{n}\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\,\,\wedge\,\, natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-The last of which yields:
-\layout Standard
-
-
-\begin_inset Formula \[
-\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow c\in c\cup cn\vee t_{n}\leq t_{a}\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-Again, all conjuncts necessary to prove 
-\begin_inset Formula $legal(do(c\cup cn,t_{n},s))$
-\end_inset 
-
- are true.
+ as required.
+ Similar arguments can be made for the remaining parts of this transition
+ rule.
 \layout Standard
 
 Consider then the case of 
@@ -2415,18 +2388,27 @@ Consider then the case of
 \end_inset 
 
 .
- The only part of interest is the conjunction which directly produces a
- modified situation 
+ The only part of interest is the disjunct which directly produces a modified
+ situation 
 \begin_inset Formula $s'=do(c_{1}\cup c_{2},t,s)$
 \end_inset 
 
 .
- Assuming that 
+ Assume that 
 \begin_inset Formula $s$
 \end_inset 
 
- is a legal situation and that all other transition rules produce legal
- situations, 
+ is a legal situation, that 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ contain no further concurrency operators and that all other transition
+ rules produce legal situations.
+ Then 
 \begin_inset Formula $Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))$
 \end_inset 
 
@@ -2496,12 +2478,22 @@ Thus all four conjuncts necessary prove
 \end_inset 
 
  are true, and this rule generates only legal situations.
+ Since cases where 
+\begin_inset Formula $\delta_{1}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\delta_{2}$
+\end_inset 
+
+ contain further concurrency operators must eventually decompose into cases
+ where they do no, it is a simple inductive argument to show that this transitio
+n rule produces legal situations for all programs.
 \layout Standard
 
-TODO: finish this proof and clean it up *a lot*
-\layout Standard
-
-TODO: control loop for offline/online execution
+Natural actions are thus guaranteed to be inserted into program executions
+ at their appropriate times, without requiring explicit mention by the programme
+r.
 \layout Section
 
 Language Execution
@@ -2516,8 +2508,8 @@ Language Execution
 \layout Standard
 
 As the existing languages based on Golog have demonstrated, an interpreter
- can be conviently constructed using a logic programming language such a
- Prolog.
+ can be conveniently constructed using a logic programming language such
+ a Prolog.
  We have followed the style of 
 \begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
 
@@ -2529,10 +2521,15 @@ collapsed true
 
 \layout Standard
 
-Availabe from the author's website at http://TODO
+Available from the author's website at http://www.cs.mu.oz.au/~rfk/golog/
 \end_inset 
 
- in Eclipse Prolog (TODO:ref), CIAO Prolog (TODO:ref) and Mozart
+ in CIAO Prolog 
+\begin_inset LatexCommand \cite{ciao-reference-manual-tr}
+
+\end_inset 
+
+ and Mozart
 \begin_inset LatexCommand \cite{vanroy99mozart}
 
 \end_inset 
@@ -2543,10 +2540,10 @@ Availabe from the author's website at http://TODO
 \layout Standard
 
 Programs are encoded in Mozart as record terms, with the name of the record
- representing an operator and its fields (TODO: check terminology) the arguments.
+ representing an operator and its features the arguments.
  Actions are also encoded as records.
- In line with convention in both Prolog and Mozart, uppercase term now represent
- variables.
+ In line with convention in both Prolog and Mozart, uppercase terms now
+ represent variables.
  For example, the program:
 \layout Standard
 
@@ -2600,12 +2597,28 @@ preview false
 
 \layout Standard
 
+The block 
+\series bold 
+proc...end 
+\series default 
+defines a new procedure, the 
+\series bold 
+case 
+\series default 
+statement performs pattern matching, and the 
+\series bold 
+choice
+\series default 
+ statement indicates that the procedure can choose one of several evaluation
+ paths.
+\layout Standard
+
 By defining a procedure 
 \begin_inset Formula $Do(\delta,s,s')\leftrightarrow Trans*(\delta,s,\delta',s')\wedge Final(\delta',s')$
 \end_inset 
 
- it is possible to use the inbuilt depth-firt search procedure to find a
- legal execution for a given program:
+ it is possible to use the inbuilt depth-first search procedure to find
+ a legal execution for a given program:
 \layout Standard
 
 
@@ -2617,19 +2630,13 @@ preview false
 
 \layout Standard
 
-TODO.
- If each set of actions were sent to the appropriate agents for execution,
- this system would form a centralised multiagent planner.
-\layout Standard
-
-TODO: listing of centralised output
-\layout Standard
-
-TODO: discuss how this output is better than that produced by IndiGolog
+The actions thus determined can then be communicated to the team members
+ for execution.
+ This can be viewed as a centralised planner for the multiagent team.
 \layout Standard
 
 Of course, a centralised planner fails to utilise all the resources available
- to a multiagent team.
+ to the team.
  While a legal execution is being found, other agents are idle.
  An important aspect of the Mozart system is that it provides a parallel
  search procedure that can take advantage of networked machines to speed
@@ -2641,40 +2648,46 @@ Of course, a centralised planner fails to utilise all the resources available
 .
  Utilising this, our implementation can be used to form a distributed multiagent
  planner.
+ In the following, 
+\begin_inset Quotes eld
+\end_inset 
+
+agent1
+\begin_inset Quotes erd
+\end_inset 
+
+ and 
+\begin_inset Quotes eld
+\end_inset 
+
+agent2
+\begin_inset Quotes erd
+\end_inset 
+
+ are names mapping to the IP-addresses of agents in the team, and 
+\begin_inset Quotes eld
+\end_inset 
+
+Goloz
+\begin_inset Quotes erd
+\end_inset 
+
+ is a Mozart functor that encapsulates the EvalOffline procedure defined
+ above:
 \layout Standard
 
-TODO: actually get this working
-\layout Standard
 
-TODO: discuss the coordination algorithm
-\layout Standard
-
-TODO: give a listing of actions performed by each agent
-\layout Section
-
-Related and Future Work
-\layout Standard
-
-
-\begin_inset LatexCommand \label{sec:Other-Work}
+\begin_inset Include \verbatiminput{listings/goloz_do_parallel.oz}
+preview false
 
 \end_inset 
 
 
 \layout Standard
 
-One important aspect of multiagent teams that was not approached in this
- paper is the fact that different agents may have differing and even conflicting
- beliefs about the state of the world.
- There has been significant research into representing knowledge and belief
- in Golog, which we hope to incorporate into the framework presented here.
-\layout Itemize
-
-alternate prediction schemes e.g.
- extra Golog programs (in readylog?)
-\layout Itemize
-
-treatmetn of exog actions in ConGolog is compatiable with this work
+The result is the same as the centralised case, a sequence of actions that
+ can be communicated to the team members for execution.
+ 
 \layout Section
 
 Conclusions
@@ -2692,7 +2705,24 @@ In this paper, we have constructed a combination of several important extensions
  to the situation calculus and Golog that provides a language suitable for
  expressing high-level programs for multiagent teams.
  A implementation of this language using Mozart has proven capable of both
- centralised and distributed execution of these programs.
+ centralised and distributed planning using these programs.
+ Of course, the program execution is still centralised in terms of control
+ - the entire execution is assembled in one place before being communicated
+ to the agents for execution.
+\layout Standard
+
+One important aspect of multiagent teams that was not approached in this
+ paper is the fact that different agents may have differing and even conflicting
+ beliefs about the state of the world.
+ There has been significant research into representing knowledge and belief
+ in Golog, which we hope to incorporate into the framework presented here.
+\layout Itemize
+
+alternate prediction schemes e.g.
+ extra Golog programs (in readylog?)
+\layout Itemize
+
+treatment of exog actions in ConGolog is compatible with this work
 \layout Standard
 
 TODO: good concluding line!

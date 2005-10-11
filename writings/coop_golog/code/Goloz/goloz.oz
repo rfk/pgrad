@@ -205,8 +205,12 @@ define
     end
   end
 
-  proc {Proc D2 B}
-    fail
+  proc {Proc Nm Body}
+    case Nm of doPlaceTypeIn(Agt Type Dest) then
+               Body=pi(obj seq(test(obj_is_type(obj Type))
+                               seq(acquire_object(Agt obj)
+                                   pcall(doPlaceIn(Agt obj Dest)))))
+    end
   end
 
   proc {SubInProg Term Value D1 D2}
