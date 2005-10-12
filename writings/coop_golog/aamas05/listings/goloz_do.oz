@@ -12,7 +12,6 @@ proc {Do D S Sp}
   end
 end
 
-TODO: test this procedure
 proc {EvalOffline D Exec}
   Exec={Search.base.one proc {$ E} {Do D s0 E} end}
 end 

@@ -42,7 +42,7 @@ CopyrightYear{2005}
 \layout Standard
 
 \backslash 
-title{High-Level Program Execution for Multi-Agent Teams}
+title{High-Level Program Execution for Multiagent Teams}
 \layout Standard
 
 \backslash 
@@ -1194,9 +1194,8 @@ DTGolog
 c action outcomes.
 \layout Standard
 
-There has also been work on extending the basic situation calculus with
- notions such as concurrent actions and explicit time, notably that of Pinto
- 
+There has also been work on extending the basic situation calculus to allow
+ richer world models, notably that of Pinto 
 \begin_inset LatexCommand \cite{pinto94temporal}
 
 \end_inset 
@@ -1207,6 +1206,9 @@ There has also been work on extending the basic situation calculus with
 \end_inset 
 
 .
+ Work on concurrent execution of primitive actions and explicit time in
+ particular make the situation calculus more capable of representing worlds
+ containing multiple agents.
  However, there appears to be little work incorporating these extensions
  with extensions to the Golog language identified above.
 \layout Standard
@@ -1214,10 +1216,14 @@ There has also been work on extending the basic situation calculus with
 While work with Golog has predominantly focused on single-agent systems,
  there have been several notable applications of the technique to multiagent
  systems.
- The Cognitive Agent Specification Language (TODO:ref) uses ConGolog to
- describe the behavior of agents in a multiagent setting, and an automated
- theorem prover is in development that can prove properties of the agent
- programs.
+ The Cognitive Agent Specification Language 
+\begin_inset LatexCommand \cite{shapiro02}
+
+\end_inset 
+
+ uses ConGolog to describe the behavior of agents in a multiagent setting,
+ and an automated theorem prover is in development that can prove properties
+ of the agent programs.
  It differs from our work in that it is designed for open multiagent systems,
  with each agent having its own Golog program defining its behavior.
  Another difference is that focus of CASL is on modelling and simulation
@@ -1246,7 +1252,13 @@ Closer to the spirit of this paper is the work of Ferrein et.
  are cooperatively executed by the entire team.
 \layout Standard
 
-TODO: summarise what's missing.
+In summary, there have been numerous extensions to Golog that allow more
+ expressive programs to be written, and extensions to the situation calculus
+ which provide richer models of the world.
+ As will be discussed in the following section, the collective capabilities
+ of these extensions would provide a language suitable for representing
+ and programming the behavior of multiagent teams.
+ It is at this crossroads that we position out work.
 \layout Section
 
 Language Features
@@ -1294,8 +1306,8 @@ Concurrency
 \series default 
 : Several agents are capable of acting at the same time, meaning several
  primitive actions can occur simultaneously.
- They must also be able to perform tasks concurrently, such as preparing
- several parts of a meal at once.
+ They must also be able to perform high-level tasks concurrently, such as
+ preparing several parts of a meal at once.
 \layout Itemize
 
 
@@ -1892,7 +1904,7 @@ A typical use of this approach is to prevent each agent from performing
 
 \end_inset 
 
-Since the semantics of (TODO:ref eqn) do not check possibility of the concurrent
+Since the above transition rule does not check possibility of the concurrent
  actions, there is no guarantee that the resulting situation is reachable.
  Another issue arises when two programs can legitimately be single-stepped
  by execution of the same action.
@@ -1919,7 +1931,7 @@ Executing
 
  should result in the bowl containing two units of flour, one unit of sugar
  and an egg.
- However, the semantics of (TODO:ref eqn) allow a transition with 
+ However, the above transition rule allows a transition with 
 \begin_inset Formula $c_{1}=c_{2}=place\_ in(Thomas,Flour,Bowl)$
 \end_inset 
 
@@ -2070,78 +2082,91 @@ Having developed the necessary extensions, we now give some examples of
  programs which could be used in the cooking agents domain.
  One powerful feature of our language is the ability to nondeterministically
  select an agent for a particular task.
- Consider the following procedure for making a simple cake mix in a specified
+ Consider the following procedure for making a simple salad in a specified
  container:
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
-\mathbf{proc}\, MakeCakeMix(dest)\\
-\left[\pi(agt)(DoPlaceIn(agt,Egg,dest))\,||\right.\\
-\pi(agt)(DoPlaceIn(agt,Flour,dest))\,||\\
-\left.\pi(agt)(DoPlaceIn(agt,Sugar,dest))\right]\,;\\
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
 \pi(agt)(acquire(agt,dest)\,;\\
-\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,5))\,;\\
-\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,5))\,;\\
-\,\,\,\, release(agt,dest))\\
-\mathbf{end}\end{array}\]
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,1))\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,1))\,;\\
+\,\,\,\, release(agt,dest))\,\,\mathbf{end}\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-It first requires that each of three ingredients be added to the bowl.
- The concurrency operators allow the order in which they are added to be
- arbitrary, and the nondeterministic choice of argument operator 
-\begin_inset Formula $\pi$
+The procedure 
+\begin_inset Formula $ChopTypeInto$
 \end_inset 
 
- is used to allow any appropriate agent to add each ingredient.
- After the ingredients have been added, they must be mixed for five minutes
- by some agent.
+ (not shown) picks an object of the given type and an available chopping
+ board, chops the object using the board, then transfers it into the destinaatio
+n container.
+ 
+\begin_inset Formula $MakeSalad$
+\end_inset 
+
+ asks the agents to do this for a lettuce, a carrot and a tomato, then mix
+ the ingredients together.
+ Crucially, the agent assigned to handling each ingredient is not specified,
+ nor is the order in which they should be added.
+ The agents are free to determine an appropriate strategy.
 \layout Standard
 
-This procedure can be utilised to define a procedure for actually making
- a cake:
+It is instructive to consider a legal execution of the 
+\begin_inset Formula $MakeSalad$
+\end_inset 
+
+ program, such as the one given below:
+\layout Standard
+
+
+\begin_inset Include \verbatiminput{listings/output_makeSalad.txt}
+preview false
+
+\end_inset 
+
+
+\layout Standard
+
+Note the occurance of several actions in each step, demonstrating the integratio
+n of true concurrency into the language.
+ By contrast, an implementation in ConGolog would have only a single action
+ at each step - assuming each step represents a finite time interval, this
+ would unnecessarily leave some agents idle.
+ Not also the explicit occurance time for each step, allowing the agents
+ to properly synchronise their actions.
+ This time is not fixed but rather constrained based on the times at which
+ previous actions were performed.
+ The agents would agree, for example, to perform each action at the earliest
+ possible time.
+\layout Standard
+
+In this example there are three agents but only two chopping boards, meaning
+ one agent has to remain idle while waiting for the necessary resources.
+ If other tasks were given concurrently with 
+\begin_inset Formula $MakeSalad$
+\end_inset 
+
+, this agent could make progress on those while waiting.
+ For example:
 \layout Standard
 
 
 \begin_inset Formula \[
-\begin{array}{c}
-\mathbf{proc}\, MakeCake()\\
-MakeCakeMix(Bowl)\,;\\
-\pi(agt)\left[DoPlaceIn(agt,Bowl,Oven)\,;\right.\\
-\,\,\,\,\,\,\,\,\,\,\,\left.set\_ timer(agt,OvenTimer,35)\right]\,;\\
-\,\, ring\_ timer(OvenTimer)\,;\\
-\pi(agt)(DoTransfer(agt,Oven,Bench))\\
-\mathbf{end}\end{array}\]
+MakeSalad()\,||\, MakeMainMeal()\,||\, MakeCake()\]
 
 \end_inset 
 
 
-\layout Standard
-
-This procedure incorporates the natural action 
-\begin_inset Formula $ring\_ timer$
-\end_inset 
-
-, will block execution of the program until it is predicted to occur.
- Running additional programs concurrently would allow other work to be done
- while waiting for the timer to ring, for example:
-\layout Standard
-
-
-\begin_inset Formula \[
-MakeEntree()\,||\, MakeMainMeal()\,||\, MakeCake()\]
-
-\end_inset 
-
-
-\layout Standard
-
-TODO: show actions performed for a simple example, contrast with ConGolog
 \layout Section
 
 Language Semantics
@@ -2706,9 +2731,14 @@ In this paper, we have constructed a combination of several important extensions
  expressing high-level programs for multiagent teams.
  A implementation of this language using Mozart has proven capable of both
  centralised and distributed planning using these programs.
- Of course, the program execution is still centralised in terms of control
- - the entire execution is assembled in one place before being communicated
- to the agents for execution.
+\layout Standard
+
+While the workload is sucessfully distributed, program execution is still
+ centralised in terms of control - the action sequence is assembled in one
+ place before being communicated to the agents for execution.
+ Research is ongoing into ways to allow the agents to cooperatively determine
+ an execution without needing centralised control.
+ 
 \layout Standard
 
 One important aspect of multiagent teams that was not approached in this
@@ -2716,16 +2746,14 @@ One important aspect of multiagent teams that was not approached in this
  beliefs about the state of the world.
  There has been significant research into representing knowledge and belief
  in Golog, which we hope to incorporate into the framework presented here.
-\layout Itemize
-
-alternate prediction schemes e.g.
- extra Golog programs (in readylog?)
-\layout Itemize
-
-treatment of exog actions in ConGolog is compatible with this work
 \layout Standard
 
-TODO: good concluding line!
+As the example programs in this paper have shown, a combination of state-of-the-
+art techniques from Golog is highly capable in representing the behavior
+ of multiagent teams.
+ Combined with facilities for distributed logic programming, it allows the
+ advantages of high-level program execution to be successfully applied to
+ multiagent teams.
 \layout Standard
 
 

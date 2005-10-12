@@ -469,7 +469,7 @@ proc(ensureHas(Agt,Obj),
 proc(doPlaceIn(Agt,Obj,Dest),
      ensureHas(Agt,Obj) // ensureHas(Agt,Dest)
      : place_in(Agt,Obj,Dest)
-     : release_object(Agt,Dest)
+     : (release_object(Agt,Dest) / nil)
     ).
 
 %%  Nondeterministically select an object of a given type, gain control
@@ -506,7 +506,9 @@ proc(makeCakeMix(Dest),
 proc(makeCake(Dest),
      makeCakeMix(Dest)
      : pi(myOven, ?obj_is_type(myOven,oven)
-                  : pi(agt, doPlaceIn(agt,Dest,myOven)
+                  : pi(agt, ensureHas(agt,myOven)
+                            : ensureHas(agt,Dest)
+                            : place_in(agt,Dest,myOven)
                             : set_timer(agt,cakeTimer,35)
                       )
                   : ring_timer(cakeTimer)
@@ -567,6 +569,7 @@ proc(makeSalad(Dest),
 %%  Main control program - prepare a nice meal
 proc(control,
      makeSalad(bowl1) // makeCake(bowl2)
+     : ?(and(history_length(L,now),L<30))
     ).
 
 
