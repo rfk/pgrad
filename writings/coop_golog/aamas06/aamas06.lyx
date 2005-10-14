@@ -46,7 +46,7 @@ crdata{1-59593-094-0/05/0007}
 \layout Standard
 
 \backslash 
-title{High-Level Program Execution for Multiagent Teams}
+title{High-Level Program Execution for Multi-Agent Teams}
 \layout Standard
 
 \backslash 
@@ -69,6 +69,12 @@ affaddr{Department of Computer Science and Software Engineering}
 
 \backslash 
  
+\backslash 
+affaddr{NICTA Victoria Laboratory}
+\backslash 
+
+\backslash 
+  
 \backslash 
 affaddr{The University of Melbourne}
 \backslash 
@@ -99,27 +105,30 @@ maketitle
 \layout Abstract
 
 In this paper we robustly combine several extensions to the agent programming
- language Golog to represent programs for multiagent teams.
- These include combining true concurrency of actions with the interleaved
- concurrency of ConGolog, incorporating an explicit notion of time to give
- a richer world model and aid in coordination, and tightly integrating the
- concept of natural actions to predict the behavior of the environment.
- An implementation using the programming language Mozart is described, and
- we demonstrate its effectiveness as a centralised multiagent planner and
- a method for distributed execution.
- 
+ language Golog to represent programs for multi-agent teams.
+ While the concept of high-level program execution, as embodied by Golog,
+ has recently arisen as a practical alternative to traditional planning
+ for single-agent systems, several challenges are encountered when moving
+ to a multi-agent setting.
+ First, concurrency operators must be modified to accurately reflect the
+ concurrency present in multi-agent teams, through a combination of multiple
+ actions occurring at any instant with the interleaved concurrency typical
+ of ConGolog.
+ Second, predictable exogenous actions, often called natural actions, must
+ be effectively modelled.
+ Finally, the representation of time needs special attention, both to assist
+ agent coordination and to ensure correctness with respect to the least
+ natural time point of each situation, which determines when natural actions
+ will occur.
 \layout Abstract
 
-The concept of high-level program execution, as embodied by Golog, has recently
- arisen as a practical alternative to traditional planning for single-agent
- systems.
- When a team of agents must cooperate closely in order to achieve some shared
- goal, they can often be conceptualised as a single agent with distributed
- sensing, reasoning and acting capabilities.
- Behaviors and goals are naturally ascribed to the team rather than to individua
-l members.
- This suggests that high-level program execution can also provide an attractive
- alternative to team planning.
+The contributions of this paper include the integration of true concurrency
+ with interleaved concurrency; the incorporation of an explicit notion of
+ time for coordination; and the tight integration of natural actions into
+ the semantics of the language.
+ An implementation using the programming language Mozart is presented, to
+ demonstrate its effectiveness as a centralised multi-agent planner and
+ a method for distributed execution.
 \layout Abstract
 
 
@@ -129,7 +138,7 @@ status Collapsed
 \layout Standard
 
 \backslash 
-category{I.2.11}{Artificial Intelligence}{Distributed Artificial Intelligence}[Multiagent systems] 
+category{I.2.11}{Artificial Intelligence}{Distributed Artificial Intelligence}[Multi-agent systems] 
 \backslash 
 category{I.2.8}{Artificial Intelligence}{Problem Solving, Control Methods, and Search} 
 \layout Standard
@@ -146,16 +155,33 @@ keywords{Agent programming languages, Multi-agent planning}
 Introduction
 \layout Standard
 
+When a team of agents must cooperate closely in order to achieve some shared
+ goal, they can often be conceptualised as a single agent with distributed
+ sensing, reasoning and acting capabilities.
+ Behaviours and goals are naturally ascribed to the team rather than to
+ individual members.
+ This suggests that 
+\emph on 
+high-level program execution
+\emph default 
+,
+\emph on 
+ 
+\emph default 
+an alternate approach to single-agent planning, can also provide an attractive
+ alternative to team planning.
+\layout Standard
+
 As described in 
 \begin_inset LatexCommand \cite{Levesque98beyondplanning}
 
 \end_inset 
 
-, 
+, high-level program execution
 \emph on 
-high-level program execution
+ 
 \emph default 
- is emerging as a practical alternative to traditional plan synthesis.
+is emerging as a practical alternative to traditional plan synthesis.
  By 
 \begin_inset Quotes eld
 \end_inset 
@@ -167,44 +193,37 @@ high-level program
  is meant a program whose primitive operations are domain-specific actions,
  and which may be incompletely specified due to nondeterministic constructs.
  Rather than a planner finding a sequence of actions leading from an initial
- state to a state in which some goals are achieved, the task is instead
- to find a sequence of actions which constitute an instance of this program.
+ state to a state in which some goals are achieved, the task is to find
+ a sequence of actions which constitute an instance of this program.
 \layout Standard
 
 This task can range from executing a fully-specified program to synthesising
- an action sequence from a completely nondeterministic program.
- It thus subsumes both deterministic agent programming and traditional planning.
+ an action sequence from a completely nondeterministic program, subsuming
+ both deterministic agent programming and traditional planning.
  The primary advantage of this approach is 
 \emph on 
 controlled nondeterminism
 \emph default 
 , allowing some aspects of the program to remain unspecified while avoiding
  an exponential increase in planning difficulty for large programs.
- This method of agent control is epitomised by the Golog 
+ One very successful application of this technique is the Golog 
 \begin_inset LatexCommand \cite{levesque97golog}
 
 \end_inset 
 
- family of programming languages, which have provided the following benefits
- for single-agent programming:
-\layout Itemize
-
-Ability to control the amount of nondeterminism
-\layout Itemize
-
-Programs can incorporate sophisticated symbolic reasoning about the world
-\layout Itemize
-
-Formal verification of program properties, in some cases using automated
- tools
+ family of programming languages, which have provided clear benefits for
+ single-agent programming that include: the ability to control the amount
+ of nondeterminism; sophisticated symbolic reasoning about the world; and
+ formal verification of program properties, in some cases using automated
+ tools.
 \layout Standard
 
-Systems involving multiple autonomous agents can be classified into two
+Systems involving multiple autonomous agents are often classified into two
  subtypes - 
 \begin_inset Quotes eld
 \end_inset 
 
-open multiagent systems
+open multi-agent systems
 \begin_inset Quotes erd
 \end_inset 
 
@@ -212,28 +231,27 @@ open multiagent systems
 \begin_inset Quotes eld
 \end_inset 
 
-multiagent teams
+multi-agent teams
 \begin_inset Quotes erd
 \end_inset 
 
- in which the agents depend intimately on one another for the accomplishment
- of a shared task.
- From a programming viewpoint, open multiagent systems are typically constructed
- by specifying the behavior and goals of individual agents and using communicati
-on primitives to design interaction between agents.
- This approach can also be taken with multiagent teams.
+ in which agents depend intimately on one another to accomplish a shared
+ task.
+ From a programming viewpoint, open multi-agent systems are typically constructe
+d by specifying the behavior and goals of individual agents and using communicat
+ion primitives to design interaction between agents.
 \layout Standard
 
-For tightly-coupled teams it may be more convenient to conceptualise the
- team as a single agent with distributed sensing, reasoning and acting abilities
-, and ascribe behaviors and goals to the team as a whole.
- This suggests that high-level program execution may also provide an attractive
- alternative to team planning, providing the benefits described above to
- applications involving multiagent teams.
+For tightly-coupled teams it is frequently more convenient to conceptualise
+ the team as a single agent with distributed sensing, reasoning and acting
+ abilities, and ascribe behaviors and goals to the team as a whole.
+ This suggests that high-level program execution can provide an attractive
+ approach, providing the benefits described above for applications involving
+ multi-agent teams.
 \layout Standard
 
 Pursuant to this goal, we combine several existing extensions to the Golog
- language to make it suitable for representing multiagent teams.
+ language to make it suitable for representing multi-agent teams.
  Key among these is the notion of true concurrency of actions, which we
  combine with the account of interleaved concurrency found in the language
  ConGolog 
@@ -241,9 +259,9 @@ Pursuant to this goal, we combine several existing extensions to the Golog
 
 \end_inset 
 
- to give a flexible model for concurrent execution.
- An explicit notion of time is incorporated, both to included time in models
- of the world and to assist in coordination between agents.
+ to give a flexible account of concurrent execution.
+ An explicit notion of time is incorporated, both to enrich the world model
+ and to assist in coordination between agents.
  The concept of natural actions 
 \begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
@@ -253,7 +271,7 @@ Pursuant to this goal, we combine several existing extensions to the Golog
  the behavior of their environment.
 \layout Standard
 
-Versions of this language have been implemented in CIAO Prolog 
+Our new language has been implemented in both CIAO Prolog 
 \begin_inset LatexCommand \cite{ciao-reference-manual-tr}
 
 \end_inset 
@@ -263,116 +281,102 @@ Versions of this language have been implemented in CIAO Prolog
 
 \end_inset 
 
- to facilitate our research.
+ to facilitate research into its semantics and operation.
  Using the distributed computing capabilities of Mozart, we show how the
- combined resources of all agents in the team may be utilised when finding
- a program execution.
+ combined resources of all agents in a team may be effectively utilised
+ when planning the execution of a program.
 \layout Standard
 
 The contributions of this paper are thus: to motivate high-level program
- execution as a problem-solving paradigm for multiagent teams, to robustly
+ execution as a problem-solving paradigm for multi-agent teams; to robustly
  combine several existing extensions to the Golog language into a semantics
- suitable for describing multiagent teams, to describe a concrete implementation
- of this language and to demonstrate its effectiveness both as a centralised
- multiagent planner and a method for distributed execution.
+ suitable for describing multi-agent teams; and to describe a concrete implement
+ation of this language and demonstrate its effectiveness both as a centralised
+ multi-agent planner and a method for distributed execution.
 \layout Standard
 
-The remainder of the paper is structured as follows.
- Section 
-\begin_inset LatexCommand \ref{sec:Background}
+The paper is structured as follows.
+ Sections 
+\begin_inset LatexCommand \ref{sec:Situation-Calculus}
 
 \end_inset 
 
- describes the Golog family of languages and their underlying formalism
- the situation calculus, and introduces a running example to be used throughout
- the paper.
+ and 
+\begin_inset LatexCommand \ref{sec:Golog}
+
+\end_inset 
+
+ review the Golog family of languages and their underlying formalism the
+ situation calculus, and introduce an example multi-agent domain.
  Section 
 \begin_inset LatexCommand \ref{sec:Other-Work}
 
 \end_inset 
 
- places this work in the wider context of multiagent systems and existing
- Golog implementations (such as ConGolog and IndiGolog).
+ places this work in the context of existing Golog implementations.
  In section 
 \begin_inset LatexCommand \ref{sec:Language-Features}
 
 \end_inset 
 
- we present and combine extensions to Golog which offer capabilities useful
- for describing multiagent teams, while section 
+ we present extensions to Golog that can properly describe multi-agent teams,
+ while section 
 \begin_inset LatexCommand \ref{sec:Langauge-Semantics}
 
 \end_inset 
 
- details the formal semantics and demonstrates that it has some important
- properties.
- Section 
+ details the properties of the formal semantics and section 
 \begin_inset LatexCommand \ref{sec:Language-Execution}
 
 \end_inset 
 
- describes our implementation with examples of its operation.
- Finally section 
+ describes our implementation.
+ Finally, section 
 \begin_inset LatexCommand \ref{sec:Conclusions-and-Future}
 
 \end_inset 
 
- presents our conclusions and ideas for future research.
+ presents our conclusions and future research.
  
 \layout Section
-
-Background
-\layout Standard
-
-
-\begin_inset LatexCommand \label{sec:Background}
-
-\end_inset 
-
-
-\layout Subsection
 
 The Situation Calculus
 \layout Standard
 
-While the concepts of the situation calculus remain largely unchanged since
- its inception as a formalism for describing dynamic worlds, the accompanying
- notation has evolved somewhat.
- The notation presented here is that of 
-\begin_inset LatexCommand \cite{levesque97golog}
+
+\begin_inset LatexCommand \label{sec:Situation-Calculus}
 
 \end_inset 
 
-.
- The representation of a dynamic world in the situation calculus consists
- of first-order logic statements capturing the following:
-\layout Itemize
 
-Actions that can be performed in the world
-\layout Itemize
-
-Fluents that describe the state of the world
-\layout Itemize
-
-Action precondition axioms, one for each action
-\layout Itemize
-
-Successor state axioms, one for each fluent
-\layout Itemize
-
-Axioms describing the initial world situation
-\layout Itemize
-
-The foundational axioms of the situation calculus
 \layout Standard
 
-Only an overview of these concepts is presented here.
- A detailed treatment may be found in 
+The representation of a dynamic world in the situation calculus consists
+ of first-order logic statements capturing the following: actions that can
+ be performed in the world; fluents describing the state of the world; precondit
+ion axioms describing when actions are possible; and successor state axioms
+ describing how fluents change across situations.
+ A detailed treatment is available in 
 \begin_inset LatexCommand \cite{levesque97golog}
 
 \end_inset 
 
 .
+\layout Standard
+
+In order to explore this topic in a concrete way, a running example is introduce
+d: the 
+\begin_inset Quotes eld
+\end_inset 
+
+Cooking Agents
+\begin_inset Quotes erd
+\end_inset 
+
+ domain.
+ In this domain, several robotic chefs inhabit a kitchen containing various
+ ingredients, appliances and utensils.
+ The agents must cooperate to produce a meal consisting of several dishes.
 \layout Standard
 
 
@@ -415,22 +419,7 @@ situation
 .
 \layout Standard
 
-In order to explore this topic in a concrete way, a running example is introduce
-d: the 
-\begin_inset Quotes eld
-\end_inset 
-
-Cooking Agents
-\begin_inset Quotes erd
-\end_inset 
-
- domain.
- In this domain, several robotic chefs inhabit a kitchen which they share
- with inanimate objects such as various ingredients, appliances and utensils.
- The agents must cooperate to produce a meal consisting of several dishes.
-\layout Standard
-
-For multiagent domains, actions have as their first argument the name of
+For multi-agent domains, actions have as their first argument the name of
  the agent performing them.
  For example, the agent 
 \begin_inset Formula $Thomas$
@@ -438,7 +427,7 @@ For multiagent domains, actions have as their first argument the name of
 
  may perform the action of placing an egg in a bowl, represented as
 \begin_inset Foot
-collapsed false
+collapsed true
 
 \layout Standard
 
@@ -516,25 +505,13 @@ Poss(place\_ in(agt,obj,Bowl),s)\\
 
 \layout Standard
 
-The truth value of fluents is specified in two parts.
- First, one must define what is true of the initial situation, such as the
- following statement that no agent possesses any objects initially:
-\layout Standard
-
-
-\begin_inset Formula \[
-\neg\exists obj.\left(has\_ object(agt,obj,S_{0})\right)\]
-
-\end_inset 
-
-
-\layout Standard
-
-The effects of various actions are collected into 
+The truth value of fluents is specified by defining what is true of the
+ initial situation, and collecting the effects of various actions into
 \emph on 
-successor state axioms
+ successor state axioms
 \emph default 
-, which state that a fluent is true if something caused it to be true, or
+.
+ These state that a fluent is true if something caused it to be true, or
  it was previously true and nothing caused it to be false.
  They have the general form:
 \layout Standard
@@ -546,9 +523,17 @@ f(\overrightarrow{x},do(a,c))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\v
 \end_inset 
 
 
-\layout Subsection
+\layout Section
 
 Golog
+\layout Standard
+
+
+\begin_inset LatexCommand \label{sec:Golog}
+
+\end_inset 
+
+
 \layout Standard
 
 Golog is a declarative agent programming language based on the situation
@@ -613,7 +598,7 @@ collapsed true
 
 \layout Caption
 
-Golog Operators
+Some Golog Operators
 \begin_inset LatexCommand \label{tbl:Golog-Operators}
 
 \end_inset 
@@ -623,7 +608,7 @@ Golog Operators
 \align center 
 
 \begin_inset  Tabular
-<lyxtabular version="3" rows="15" columns="2">
+<lyxtabular version="3" rows="13" columns="2">
 <features>
 <column alignment="center" valignment="top" leftline="true" width="0">
 <column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
@@ -642,28 +627,6 @@ Operator
 \layout Standard
 
 Meaning
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-
-\begin_inset Formula $nil$
-\end_inset 
-
-
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Empty program
 \end_inset 
 </cell>
 </row>
@@ -966,34 +929,6 @@ Conc.
 \layout Standard
 
 
-\begin_inset Formula $\delta^{||}$
-\end_inset 
-
-
-\end_inset 
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-Conc.
- exec.
- 
-\begin_inset Formula $\delta$
-\end_inset 
-
- zero or more times
-\end_inset 
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\layout Standard
-
-
 \begin_inset Formula $\Sigma\delta$
 \end_inset 
 
@@ -1069,7 +1004,7 @@ The original Golog was conceived as on offline planner - the agent would
  occurrences or information obtained from run-time sensing.
  An alternative is online execution, where nondeterministic choices become
  arbitrary choices and are committed to immediately.
- This notion was formalised in the extension IndiGolog
+ This notion was formalised in the extension IndiGolog 
 \begin_inset LatexCommand \cite{giacomo99indigolog}
 
 \end_inset 
@@ -1220,17 +1155,17 @@ There has also been work on extending the situation calculus to allow richer
 \layout Standard
 
 While work with Golog has predominantly focused on single-agent systems,
- there have been several notable applications of the technique to multiagent
+ there have been several notable applications of the technique to multi-agent
  systems.
  The Cognitive Agent Specification Language 
 \begin_inset LatexCommand \cite{shapiro02}
 
 \end_inset 
 
- uses ConGolog to describe the behavior of agents in a multiagent setting,
+ uses ConGolog to describe the behavior of agents in a multi-agent setting,
  and an automated theorem prover is in development that can verify properties
  of the programs.
- It differs from our work in that it is designed for open multiagent systems,
+ It differs from our work in that it is designed for open multi-agent systems,
  with each agent having its own Golog program defining its behavior.
  By contrast, we seek to develop a single Golog program this is cooperatively
  executed by all agents.
@@ -1246,7 +1181,7 @@ Closer to the spirit of this paper is the work of Ferrein et.
 \end_inset 
 
  on ReadyLog, a Golog derivative designed for highly dynamic domains.
- It has been successfully applied to control multiagent teams in the RoboCup
+ It has been successfully applied to control multi-agent teams in the RoboCup
  soccer tournament.
  ReadyLog integrates the facilities of concurrency, online execution and
  decision theory and can be seen as a unification of ConGolog, IndiGolog
@@ -1257,16 +1192,17 @@ Closer to the spirit of this paper is the work of Ferrein et.
  the actions of other team-members.
 \layout Standard
 
-In summary, there have been numerous extensions to Golog that allow more
- expressive programs to be written, and extensions to the situation calculus
- which provide richer models of the world.
- As will be discussed in the following section, the collective capabilities
- of these extensions would provide a language suitable for representing
- and programming the behavior of multiagent teams.
+In summary, while there have been extensions to Golog that allow more expressive
+ programs to be written and extensions to the situation calculus which provide
+ richer models of the world, the integration of these approaches is a topic
+ of ongoing work.
  It is at this crossroads that we position out work.
+ In the following section, the collective capabilities of these extensions
+ are presented and combined to provide a new language suitable for representing
+ and programming the behavior of multi-agent teams.
 \layout Section
 
-Language Features
+The Language
 \layout Standard
 
 
@@ -1277,7 +1213,7 @@ Language Features
 
 \layout Standard
 
-A multiagent setting poses several challenges for the situation calculus
+A multi-agent setting poses several challenges for the situation calculus
  and Golog.
  It should allow the programmer to represent the following aspects of the
  system, each of which are described using examples from the Cooking Agents
@@ -1318,7 +1254,7 @@ Natural Actions
 Many of these concepts have been independently addressed in Golog and the
  situation calculus.
  They will be systematically examined and combined in the following sections.
- Many other aspects of multiagent domains can already be captured in the
+ Many other aspects of multi-agent domains can already be captured in the
  situation calculus.
  For example, contention over shared resources can be modelled using action
  precondition axioms.
@@ -1442,10 +1378,9 @@ Concurrency
 
 \layout Standard
 
-In the context of the situation calculus and Golog, concurrency refers to
- two distinct ideas - the possibility of having several primitive actions
- performed at the same instant, and the possibility of interleaving the
- execution of several high-level programs.
+For multi-agent teams, concurrency refers to two distinct ideas - the possibilit
+y of performing several actions at the same instant, and the possibility
+ of interleaving the execution of several high-level programs.
  These are referred to as 
 \emph on 
 true concurrency 
@@ -1464,21 +1399,26 @@ The work of
 
  provides an extension to the situation calculus that allows several primitive
  actions to occur at the same time.
- Primitive action terms are replaced with sets of actions to be performed
- simultaneously.
+ Action terms are replaced with sets of actions to be performed simultaneously.
  All functions and predicates that take an action are modified to accept
- sets of actions instead:
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-do(\{ a_{1},a_{2},...\},t,s)\\
-Poss(\{ a_{1},a_{2},...\},t,s)\end{array}\]
-
+ sets of actions instead.
+ For example,t 
+\begin_inset Formula $do$
 \end_inset 
 
+ and 
+\begin_inset Formula $Poss$
+\end_inset 
 
+ become 
+\begin_inset Formula $do(\{ a_{1},a_{2},...\},t,s)$
+\end_inset 
+
+ and 
+\begin_inset Formula $Poss(\{ a_{1},a_{2},...\},t,s)$
+\end_inset 
+
+ respectively.
 \layout Standard
 
 The approach to time used in 
@@ -1488,24 +1428,6 @@ The approach to time used in
 
  requires a predicate 
 \begin_inset Formula $coherent(c)$
-\end_inset 
-
-
-\begin_inset Foot
-collapsed true
-
-\layout Standard
-
-Throughout the remainder of the paper the variables 
-\begin_inset Formula $c$
-\end_inset 
-
-, 
-\begin_inset Formula $c_{1}$
-\end_inset 
-
-, etc will be used to refer to sets of concurrently performed actions.
- 
 \end_inset 
 
  to be defined, which is true when the concurrent action 
@@ -1560,7 +1482,7 @@ execute both
  This is achieved by interleaving steps of execution from the two programs.
 \layout Standard
 
-These two concepts of concurrency were combined by Baier and Pinto 
+These two notions of concurrency were combined by Baier and Pinto 
 \begin_inset LatexCommand \cite{pinto99tcongolog}
 
 \end_inset 
@@ -1579,24 +1501,16 @@ Recall that the semantics of a ConGolog program is a transition system based
 .
  It is straightforward to modify the transition for primitive actions to
  handle sets of concurrent actions instead.
- However, the fact that several actions can occur simultaneously means that
- the definition of concurrent execution can be extended.
-\layout Standard
-
-In the ConGolog transition semantics the concurrency operator 
-\begin_inset Formula $\delta_{1}||\delta_{2}$
-\end_inset 
-
- is implemented by accepting a transition from either of the two programs
- as a transition for the pair:
+ The fact that several actions can occur simultaneously has deeper implications
+ for the concurrency operator, which in ConGolog is implemented by accepting
+ a transition from either of the two programs as a transition for the pair:
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow\\
-\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\\
-\vee\\
+\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\,\,\,\,\vee\\
 \exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\end{array}\]
 
 \end_inset 
@@ -1620,8 +1534,8 @@ In the presence of true concurrency, this is insufficient.
 \begin_inset Formula \[
 \begin{array}{c}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow\,\,\,\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\\
-Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge\\
-Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\\
+Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\,\wedge\\
 \delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
 
 \end_inset 
@@ -1630,13 +1544,11 @@ Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\\
 \layout Standard
 
 This approach introduces several complications.
- First, the transition rule must check that the combination of actions 
+ First, the combination of actions 
 \begin_inset Formula $c_{1}\cup c_{2}$
 \end_inset 
 
- is actually possible.
- The ability to perform actions concurrently places additional requirements
- on the possibility axioms.
+ is not guaranteed to be possible.
  While the actions 
 \begin_inset Formula $acquire(Thomas,Bowl)$
 \end_inset 
@@ -1646,20 +1558,19 @@ This approach introduces several complications.
 \end_inset 
 
  may individually be possible, performing them concurrently clearly is not.
- This is known as the precondition interaction problem and is an area of
- ongoing research 
+ This is known as the precondition interaction problem 
 \begin_inset LatexCommand \cite{pinto94temporal}
 
 \end_inset 
 
-.
+ and is an area of ongoing research.
 \layout Standard
 
 For our purposes this is addressed by introducing a predicate 
 \begin_inset Formula $Conflicts(c,t,s)$
 \end_inset 
 
- which is true when the concurrent actions in 
+ which is true when the actions in 
 \begin_inset Formula $c$
 \end_inset 
 
@@ -1725,7 +1636,7 @@ Executing
 \begin_inset Formula $c_{1}=c_{2}=place\_ in(Thomas,Flour,Bowl)$
 \end_inset 
 
-, resulting in only one unit of flour being added.
+, which adds only one unit of flour.
  Alternately, consider two programs waiting for a timer to ring (a natural
  action, see section 
 \begin_inset LatexCommand \ref{sub:Natural-Actions}
@@ -1760,7 +1671,8 @@ Both programs should be allowed to proceed with a single occurrence of the
 e of the same agent-initiated action.
 \layout Standard
 
-An improved transition rule which takes these factors into account is:
+Taking these factors into account, we derive an improved transition rule
+ are follows:
 \layout Standard
 
 
@@ -1778,9 +1690,8 @@ Poss(c_{1}\cup c_{2},t,s)\wedge\\
 
 \layout Standard
 
-This robust combination of true and interleaved concurrency will allow the
- language to more accurately reflect the concurrency present in multiagent
- teams.
+This robust combination of true and interleaved concurrency allows the language
+ to more accurately reflect the concurrency present in multi-agent teams.
 \layout Subsection
 
 Natural Actions
@@ -1821,46 +1732,35 @@ The methodology of
 \end_inset 
 
  is adopted, suitably modified for our handling of time.
- Natural actions are indicated by the predicate 
+ Natural actions are indicated by truth of the predicate 
 \begin_inset Formula $natural(a)$
 \end_inset 
 
-, which is true precisely when 
-\begin_inset Formula $a$
-\end_inset 
-
- is a natural action.
- The times at which natural actions may occur are specified by the 
+.
+ As usual, the times at which natural actions may occur are specified by
+ the 
 \begin_inset Formula $Poss$
 \end_inset 
 
- predicate, as with agent-initiated actions.
- For example, suppose that the following fluent represents the fact that
- a timer identified by 
-\begin_inset Formula $ID$
+ predicate.
+ For example, suppose that the fluent 
+\begin_inset Formula $timer\_ set(ID,m,s)$
 \end_inset 
 
- is set to ring in 10 minutes in situation 
+ represents the fact that a particular timer is set to ring in 
+\begin_inset Formula $m$
+\end_inset 
+
+ minutes in situation 
 \begin_inset Formula $S$
 \end_inset 
 
-:
-\layout Standard
-
-
-\begin_inset Formula \[
-timer\_ set(ID,10,S)\]
-
-\end_inset 
-
-
-\layout Standard
-
-The possibility predicate for the 
+.
+ The possibility predicate for the 
 \begin_inset Formula $ring\_ timer(ID)$
 \end_inset 
 
- action could then be given as:
+ action would be:
 \layout Standard
 
 
@@ -1911,20 +1811,12 @@ To enforce the requirement that natural actions must occur when possible,
 
 
 \begin_inset Formula \[
-legal(S_{0})\leftrightarrow True\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{cc}
-legal(do(c,t,s))\leftrightarrow & legal(s)\wedge Poss(c,t,s)\wedge\\
- & start(s)\leq t\wedge\\
- & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
- & \left[a\in c\vee t<t_{a}\right]\end{array}\]
+\begin{array}{c}
+legal(S_{0})\leftrightarrow True\\
+\\legal(do(c,t,s))\leftrightarrow\\
+legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t\wedge\\
+(\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
+\left[a\in c\vee t<t_{a}\right]\end{array}\]
 
 \end_inset 
 
@@ -1955,15 +1847,12 @@ The possible transitions for a program containing a single action depend
 \begin_inset Formula \[
 \begin{array}{c}
 Trans(c,s,\delta',s')\leftarrow\\
-\\\exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
+\exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
 \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\right.\\
-\left.s'=do(c,t,s)\wedge\delta'=nil\right]\\
-\vee\\
+\left.s'=do(c,t,s)\wedge\delta'=nil\right]\,\,\,\,\vee\\
 \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
-\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
-\vee\\
-\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \\
-\vee\\
+\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\,\,\,\,\vee\\
+\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \,\,\,\,\vee\\
 \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
 \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
 
@@ -2059,8 +1948,12 @@ preview false
 
 \layout Standard
 
-Note the occurrence of several actions in each step, demonstrating the integrati
-on of true concurrency into the language.
+Notice the occurrence of several actions within each 
+\series bold 
+do 
+\series default 
+statement of the trace, demonstrating the integration of true concurrency
+ into the language.
  By contrast, an implementation in ConGolog would have only a single action
  at each step - assuming each step represents a finite time interval, this
  would unnecessarily leave some agents idle.
@@ -2117,7 +2010,7 @@ This section shows the modifications that have been made to the semantics
 
  and thus did not need to be modified - for details on the operators not
  presented here, refer to 
-\begin_inset LatexCommand \cite{giacomo99indigolog}
+\begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
 
 \end_inset 
 
@@ -2140,13 +2033,10 @@ me-point considerations of section
 Trans(c,s,\delta',s')\leftarrow\\
 \exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
 \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\right.\\
-\left.s'=do(c,t,s)\wedge\delta'=nil\right]\\
-\vee\\
+\left.s'=do(c,t,s)\wedge\delta'=nil\right]\,\,\,\,\vee\\
 \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
-\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
-\vee\\
-\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \\
-\vee\\
+\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\,\,\,\,\vee\\
+\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \,\,\,\,\vee\\
 \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
 \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
 
@@ -2168,13 +2058,11 @@ The transition relation for the concurrency operators must also be modified
 \begin_inset Formula \[
 \begin{array}{c}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
-\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\\
-\vee\\
-\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\\
-\vee\\
-\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge\\
-Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge\\
-\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\wedge\\
+\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\,\,\,\,\vee\\
+\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\,\,\,\,\vee\\
+\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\,\wedge\\
+\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\,\wedge\\
 Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
 
 \end_inset 
@@ -2227,11 +2115,11 @@ First notice that only two transition rules directly modify the situation
 
 
 \begin_inset Formula \[
-\begin{array}{cc}
-legal(do(c,t,s))\leftrightarrow & legal(s)\wedge Poss(c,t,s)\wedge\\
- & start(s)\leq t\wedge\\
- & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
- & \left[a\in c\vee t<t_{a}\right]\end{array}\]
+\begin{array}{c}
+legal(do(c,t,s))\leftrightarrow\\
+legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t\wedge\\
+(\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
+\left[a\in c\vee t<t_{a}\right]\end{array}\]
 
 \end_inset 
 
@@ -2579,7 +2467,7 @@ preview false
 
 The actions thus determined can then be communicated to the team members
  for execution.
- This can be viewed as a centralised planner for the multiagent team.
+ This can be viewed as a centralised planner for the multi-agent team.
 \layout Standard
 
 Of course, a centralised planner fails to utilise all the resources available
@@ -2588,8 +2476,8 @@ Of course, a centralised planner fails to utilise all the resources available
  An important aspect of the Mozart system is that it provides a parallel
  search procedure that can take advantage of networked machines to speed
  up the search.
- Utilising this, our implementation can be used to form a distributed multiagent
- planner.
+ Utilising this, our implementation can be used to form a distributed multi-agen
+t planner.
  In the following, 
 \begin_inset Quotes eld
 \end_inset 
@@ -2643,34 +2531,37 @@ Conclusions
 
 \layout Standard
 
-In this paper, we have constructed a combination of several important extensions
- to the situation calculus and Golog that provides a language suitable for
- expressing high-level programs for multiagent teams.
- A implementation of this language using Mozart has proven capable of both
- centralised and distributed planning using these programs.
-\layout Standard
-
-While the workload is successfully distributed, program execution is still
- centralised in terms of control - the action sequence is assembled in one
- place before being communicated to the agents for execution.
- Research is ongoing into ways to allow the agents to cooperatively determine
- an execution without needing centralised control.
+In this paper, we have integrated a combination of several important extensions
+ to the situation calculus and Golog that provides a new language suitable
+ for expressing high-level programs for multi-agent teams.
+ The main contribution of this work is the effective integration of elements
+ important to multi-agent programs into the semantics: the combination of
+ true and interleaved concurrency; an explicit notion of time for coordination;
+ and the tight integration of natural actions.
+ An implementation of this language using Mozart has demonstrated its effectiven
+ess as a centralised multi-agent planner and a method for distributed execution.
  
 \layout Standard
 
-One important aspect of multiagent teams that was not approached in this
- paper is the fact that different agents may have differing and even conflicting
- beliefs about the state of the world.
- There has been significant research into representing knowledge and belief
- in Golog, which we hope to incorporate into the framework presented here.
+We are presently exploring the potential of this approach for a range of
+ distributed programming applications, and the integration of additional
+ techniques from the field of high-level program execution.
+ Key among these is the significant work on representing knowledge and belief
+ in Golog.
+ As many applications involve partially observable worlds, different agents
+ must be capable of having different beliefs about the world.
+ Additionally, while we have distributed the workload of planning an execution,
+ overall control is still centralised.
+ We are actively researching techniques to allow an execution to be found
+ in a decentralised manner.
 \layout Standard
 
-As the example programs in this paper have shown, a combination of state-of-the-
-art techniques from Golog is highly capable in representing the behavior
- of multiagent teams.
- Combined with facilities for distributed logic programming, it allows the
- advantages of high-level program execution to be successfully applied to
- multiagent teams.
+As our implementations have demonstrated, the combination of state-of-the-art
+ techniques from Golog is highly capable of representing the behavior of
+ multi-agent teams.
+ Combined with facilities for distributed logic programming, our approach
+ promises to provide the advantages of high-level program execution for
+ multi-agent teams.
 \layout Standard
 
 
