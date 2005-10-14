@@ -8,8 +8,8 @@ proc {Trans D S Dp Sp}
                             {Trans D2 S Dp Sp}
                      end
   [] pick(D1 D2) then choice {Trans D1 S Dp Sp}
-                          [] {Trans D2 S Dp Sp}
-                          end
+                      []     {Trans D2 S Dp Sp}
+                      end
   [] ... <additional cases ommitted> ...
   end
 end

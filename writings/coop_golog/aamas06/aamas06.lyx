@@ -112,7 +112,7 @@ In this paper we robustly combine several extensions to the agent programming
  to a multi-agent setting.
  First, concurrency operators must be modified to accurately reflect the
  concurrency present in multi-agent teams, through a combination of multiple
- actions occurring at any instant with the interleaved concurrency typical
+ actions occurring at any instant and the interleaved concurrency typical
  of ConGolog.
  Second, predictable exogenous actions, often called natural actions, must
  be effectively modelled.
@@ -239,15 +239,15 @@ multi-agent teams
  task.
  From a programming viewpoint, open multi-agent systems are typically constructe
 d by specifying the behavior and goals of individual agents and using communicat
-ion primitives to design interaction between agents.
+ion primitives to design interaction between them.
 \layout Standard
 
 For tightly-coupled teams it is frequently more convenient to conceptualise
  the team as a single agent with distributed sensing, reasoning and acting
  abilities, and ascribe behaviors and goals to the team as a whole.
- This suggests that high-level program execution can provide an attractive
- approach, providing the benefits described above for applications involving
- multi-agent teams.
+ This suggests high-level program execution as an attractive approach, potential
+ly providing the benefits described above for applications involving multi-agent
+ teams.
 \layout Standard
 
 Pursuant to this goal, we combine several existing extensions to the Golog
@@ -325,13 +325,13 @@ The paper is structured as follows.
 
 \end_inset 
 
- details the properties of the formal semantics and section 
+ details the properties of the formal semantics.
+ Section 
 \begin_inset LatexCommand \ref{sec:Language-Execution}
 
 \end_inset 
 
- describes our implementation.
- Finally, section 
+ describes our implementation and section 
 \begin_inset LatexCommand \ref{sec:Conclusions-and-Future}
 
 \end_inset 
@@ -427,7 +427,7 @@ For multi-agent domains, actions have as their first argument the name of
 
  may perform the action of placing an egg in a bowl, represented as
 \begin_inset Foot
-collapsed true
+collapsed false
 
 \layout Standard
 
@@ -485,13 +485,13 @@ has\_ object(Richard,Knife,S)\]
 
 \layout Standard
 
-Action precondition axioms are given in terms of 
+Precondition axioms are given in terms of 
 \emph on 
 possibility predicates
 \emph default 
 , which specify when it is possible for a given action to be performed.
  To state that an agent may only place an object in a bowl when they have
- possession of that bowl, the following possibility fluent could be used:
+ possession of that bowl, the following possibility predicate could be used:
 \layout Standard
 
 
@@ -505,7 +505,7 @@ Poss(place\_ in(agt,obj,Bowl),s)\\
 
 \layout Standard
 
-The truth value of fluents is specified by defining what is true of the
+The truth values of fluents are specified by defining what is true of the
  initial situation, and collecting the effects of various actions into
 \emph on 
  successor state axioms
@@ -518,7 +518,7 @@ The truth value of fluents is specified by defining what is true of the
 
 
 \begin_inset Formula \[
-f(\overrightarrow{x},do(a,c))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
+f(\overrightarrow{x},do(a,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
 
 \end_inset 
 
@@ -546,7 +546,7 @@ Golog is a declarative agent programming language based on the situation
 .
  Testimony to its success are its wide range of applications (see, for example,
  
-\begin_inset LatexCommand \cite{Levesque98beyondplanning,Ferrein2005readylog}
+\begin_inset LatexCommand \cite{Ferrein2005readylog,Levesque98beyondplanning}
 
 \end_inset 
 
@@ -594,7 +594,7 @@ To program an agent using Golog one specifies an axiomatisation of the agent's
 
 \begin_inset Float table
 wide false
-collapsed true
+collapsed false
 
 \layout Caption
 
@@ -802,7 +802,7 @@ Execute
 \layout Standard
 
 
-\begin_inset Formula $\mathbf{if}\phi\mathbf{then}\delta_{1}\mathbf{else}\delta_{2}$
+\begin_inset Formula $\mathbf{if}\,\phi\,\mathbf{then}\,\delta_{1}\,\mathbf{else}\,\delta_{2}$
 \end_inset 
 
 
@@ -837,7 +837,7 @@ Exec.
 \layout Standard
 
 
-\begin_inset Formula $\mathbf{while}\phi\mathbf{do}\delta$
+\begin_inset Formula $\mathbf{while\,}\phi\mathbf{\, do}\,\delta$
 \end_inset 
 
 
@@ -999,7 +999,7 @@ legal execution
 The original Golog was conceived as on offline planner - the agent would
  determine a complete execution of the program before any actions were performed
  in the world.
- While this guarantees that a legal execution will be found if present,
+ While this guarantees that a legal execution will be found if possible,
  it can be impractical for large programs and cannot account for unexpected
  occurrences or information obtained from run-time sensing.
  An alternative is online execution, where nondeterministic choices become
@@ -1196,7 +1196,7 @@ In summary, while there have been extensions to Golog that allow more expressive
  programs to be written and extensions to the situation calculus which provide
  richer models of the world, the integration of these approaches is a topic
  of ongoing work.
- It is at this crossroads that we position out work.
+ It is at this crossroads that we position our work.
  In the following section, the collective capabilities of these extensions
  are presented and combined to provide a new language suitable for representing
  and programming the behavior of multi-agent teams.
@@ -1364,7 +1364,7 @@ start(do(a,t,s))=t\]
 \layout Standard
 
 Note that the start time of the initial situation is arbitrary, and may
- be defined as required for specific application.
+ be defined as required for specific applications.
 \layout Subsection
 
 Concurrency
@@ -1402,7 +1402,7 @@ The work of
  Action terms are replaced with sets of actions to be performed simultaneously.
  All functions and predicates that take an action are modified to accept
  sets of actions instead.
- For example,t 
+ For example, 
 \begin_inset Formula $do$
 \end_inset 
 
@@ -1795,8 +1795,8 @@ Note that the LNTP need not exist for a given situation.
  This can happen both when no natural actions are possible in a situation,
  or when a natural action may occur at any time in a situation (and there
  is thus no earliest time).
- We will assume the that the domain axiomatisation is designed to avoid
- such pathological cases, and the absence of an LNTP implies that no natural
+ We will assume that the domain axiomatisation is designed to avoid such
+ pathological cases, and the absence of an LNTP implies that no natural
  actions are possible.
 \layout Standard
 
@@ -2008,7 +2008,7 @@ This section shows the modifications that have been made to the semantics
 \begin_inset Formula $Final$
 \end_inset 
 
- and thus did not need to be modified - for details on the operators not
+ and thus do not need to be modified - for semantics of the operators not
  presented here, refer to 
 \begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
 
@@ -2018,8 +2018,8 @@ This section shows the modifications that have been made to the semantics
 \layout Standard
 
 The execution of primitive actions needs to be modified to account for sets
- of actions instead of individual terms, and to incorporate the least-natural-ti
-me-point considerations of section 
+ of actions instead of single ones, and to incorporate the least natural
+ time point considerations of section 
 \begin_inset LatexCommand \ref{sub:Natural-Actions}
 
 \end_inset 
@@ -2090,7 +2090,7 @@ From the formal semantics presented above, it is possible to prove that
 
 
 \begin_inset Formula \[
-\forall\delta,\delta'\, Trans(\delta,s,\delta',s')\wedge legal(s)\rightarrow legal(s')\]
+\forall\delta,\delta'.\, Trans(\delta,s,\delta',s')\wedge legal(s)\rightarrow legal(s')\]
 
 \end_inset 
 
@@ -2185,16 +2185,9 @@ Since
 
 
 \begin_inset Formula \[
-\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow a\in c\vee t\leq t_{a}\right]\]
+\begin{array}{c}
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\\
+\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow a\in c\vee t\leq t_{a}\right]\end{array}\]
 
 \end_inset 
 
@@ -2308,7 +2301,7 @@ Poss(c_{1}\cup c_{2},t,s)\]
 
 \layout Standard
 
-Thus all four conjuncts necessary prove 
+Thus all four conjuncts necessary to prove 
 \begin_inset Formula $legal(do(c_{1}\cup c_{2},t,s))$
 \end_inset 
 
@@ -2322,8 +2315,8 @@ Thus all four conjuncts necessary prove
 \end_inset 
 
  contain further concurrency operators must eventually decompose into cases
- where they do no, it is a simple inductive argument to show that this transitio
-n rule produces legal situations for all programs.
+ where they do not, it is a simple inductive argument to show that this
+ transition rule produces legal situations for all programs.
 \layout Standard
 
 Natural actions are thus guaranteed to be inserted into program executions
@@ -2352,7 +2345,7 @@ As the existing languages based on Golog have demonstrated, an interpreter
 
 , to build interpreters for our language
 \begin_inset Foot
-collapsed true
+collapsed false
 
 \layout Standard
 
@@ -2517,6 +2510,8 @@ preview false
 
 The result is the same as the centralised case, a sequence of actions that
  can be communicated to the team members for execution.
+ Agents can thus plan the execution of their shared program both individually
+ and collectively.
  
 \layout Section
 
