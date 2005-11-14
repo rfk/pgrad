@@ -1,0 +1,193 @@
+\documentclass{beamer}
+
+\mode<presentation>{\usetheme{Dresden}}
+
+\title{GOLOG and Friends}
+\subtitle{An Introduction}
+\author{Ryan Kelly}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+
+\begin{frame}
+\frametitle{Motivation: Why do we need Golog?}
+
+\begin{itemize}
+\item Developed for Cognitive Robotics applications
+\item Robots should be able to explicitly represent and reason about their world
+\item Programs should reflect the domain, not the programming environment
+\end{itemize}
+
+\end{frame}
+
+
+\section{The Situation Calculus}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+
+A FOL formalism for reasoning about dynamic worlds:
+
+\begin{itemize}
+\item Actions: $wait$, $pickup(obj)$, $goto(x,y)$
+\pause
+\item Situations: $S_{0}$, $do(a_{1},S_{0})$, $do(a_{2},do(a_{1},S_{0}))$
+\pause
+\item Fluents: $holding(obj,s)$, $(x,y)=curPosition(s)$
+\pause
+\item Successor State Axioms:\[
+\begin{array}{cc}
+holding(obj,do(a,s))\iff & a=pickup(obj)\,\vee\\
+ & \left[holding(obj,s)\wedge a\neq drop(obj)\right]\end{array}\]
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+Using a S.C. axiomatisation of their domain, agents can:
+\begin{itemize}
+  \item Reason about when actions are possible
+  \item Reason about the effects of actions
+  \item Represent sequences of actions as situations:\[
+\left[a_1, a_2, a_3, a_4\right] \rightarrow do(a_4,do(a_3,do(a_2,do(a_1,S_0))))
+\]
+\end{itemize}
+But, what about more complex actions and procedures?
+\begin{itemize}
+  \item $\mathbf{if}\ available(Item)\ \mathbf{then}\ pickup(Item)\ \mathbf{else}\ beSad$
+  \item $\mathbf{while}\ (\exists block)\ ontable(block)\ \mathbf{do}\ remove(block)\ \mathbf{endWhile}$
+  \item $\mathbf{proc}\ remove(block)\ [pickup(block);putaway(block)]\ \mathbf{endProc}$
+\end{itemize}
+\end{frame}
+
+\section{GOLOG}
+\begin{frame}
+\frametitle{GOLOG: "alGOL in LOGic"}
+Introduces programming to the S.C. by means of "complex actions":
+\begin{itemize}
+  \item $\delta_1;\delta_2$: Perform actions in sequence
+  \item $\phi?$: Assert that a condition holds
+  \item $\delta_1|\delta_2$: Choose between actions to perform
+  \item $(\pi x)\delta(x)$: Choose suitable bindings for variables
+  \item $\delta^*$: Perform an action zero or more times
+\end{itemize}
+Composing actions by means of these operators allows complex programs
+to be defined.\\
+\ \\
+Key Point:  programs can include arbitrarily much \alert{nondeterminism}
+\end{frame}
+
+\begin{frame}
+\frametitle{GOLOG: "alGOL in LOGic"}
+Semantics of operators given recursively in terms of the macro $Do$.
+$Do(\delta,s,s')$ means "program $\delta$ may begin in situation $s$ and end
+in situation $s'$"
+\begin{itemize}
+  \item Primitive actions: $Do(a,s,s') \equiv Poss(a,s)\wedge s'=do(a,s)$
+  \item Test actions: $Do(\phi?,s,s') \equiv \phi \wedge s=s'$
+  \item Sequence: $Do(\delta_1;\delta_2) \equiv \exists s^* (Do(\delta_1,s,s^*)\wedge Do(\delta_2,s^*,s'))$
+  \item Nondet. Choice: $Do(\delta_1|\delta_2,s,s') \equiv Do(\delta_1,s,s')\vee Do(\delta_2,s,s')$
+  \item Nondet. Argument: $Do((\pi x)\delta(x),s,s') \equiv \exists x Do(\delta(x),s,s')$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Executing a Golog Program}
+Intuitively, an agent must find a \emph{legal execution} of its nondeterministic
+program - some set of choices for the nondeterministic components that allow
+the program to execute successfully.\\
+\ \\
+Formally, the agent must find a situation $s$ such that:\[
+\exists s . Do(\delta,S_0,s)\]
+
+
+Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.
+\end{frame}
+
+\begin{frame}
+\frametitle{A Simple Example}
+\[\delta = [(\pi\ block)(moveNextTo(block);pickup(block))];holding(Block1)?\]
+
+Assuming that $\neg holding(Block1,S_0)$, this program has a unique
+legal execution:\[
+s = do(pickup(Block1),do(moveNextTo(Block1),S_0)\]
+
+Corresponding to the action sequence:\[
+[moveNextTo(Block1), pickup(Block1)]\]
+
+The agent reasons about the world to inform its nondeterministic choices.
+\end{frame}
+
+\begin{frame}
+\frametitle{A More Complicated Example}
+As a slightly more complex example, consider a Golog program for
+getting to uni of a morning:\[
+\begin{array}{c}
+ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
+haveShower;(\pi\ food)(edible(food)?;eat(food));\\
+(driveToUni\ |\ tramToUni\ |\ walkToUni);\\
+(time<9:00)?
+\end{array}\]
+
+There are potentially many legal executions, depending on which actions
+are possible in the world.
+\end{frame}
+
+\section{ConGolog}
+\begin{frame}
+\frametitle{ConGolog: Concurrency and Interrupts}
+\end{frame}
+
+\section{IndiGolog}
+\begin{frame}
+\frametitle{IndiGolog: Online Execution and Sensing}
+\end{frame}
+
+\section{Where?}
+\begin{frame}
+\frametitle{What is Golog used for?}
+Many applications focused on robotics:
+\begin{itemize}
+  \item Mail delivery, coffee delivery robots
+  \item Museum tour guide
+  \item Robocup soccer team
+  \item Lego Mindstorms: "Legolog"
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{What is Golog used for?}
+But, also being picked up in other areas
+\begin{itemize}
+  \item Rapid prototyping for evolutionary biology applications
+  \item Service composition for the semantic web
+  \item Homeland Security response plans
+  \item AI for Unreal Tournament bots
+  \item ...
+\end{itemize}
+\end{frame}
+
+\section{Why?}
+\begin{frame}
+\frametitle{Why is Golog popular?}
+\end{frame}
+
+
+\section{The Future}
+\begin{frame}
+\frametitle{The Future...}
+\end{frame}
+
+
+
+\end{document}
