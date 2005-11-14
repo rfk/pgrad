@@ -21,13 +21,16 @@
 
 \begin{frame}
 \frametitle{Motivation: Why do we need Golog?}
-
+Golog has been developed primarily for Cognitive Robotics applications - agents
+which must do sophisticated reasoning about themselves, other agents, and their
+changing environment.
 \begin{itemize}
-\item Developed for Cognitive Robotics applications
-\item Robots should be able to explicitly represent and reason about their world
+\item Agents should explicitly represent and reason about their world
 \item Programs should reflect the domain, not the programming environment
+\item Full planning shouldnt be needed for simple tasks
 \end{itemize}
-
+And moreover, these properties should be natural and easy to obtain in the
+control program for your agent.
 \end{frame}
 
 
@@ -36,9 +39,10 @@
 \begin{frame}
 \frametitle{The Situation Calculus}
 
-A FOL formalism for reasoning about dynamic worlds:
+A F.O.L. formalism for reasoning about dynamic worlds:
 
 \begin{itemize}
+\pause
 \item Actions: $wait$, $pickup(obj)$, $goto(x,y)$
 \pause
 \item Situations: $S_{0}$, $do(a_{1},S_{0})$, $do(a_{2},do(a_{1},S_{0}))$
@@ -63,6 +67,7 @@ Using a S.C. axiomatisation of their domain, agents can:
 \left[a_1, a_2, a_3, a_4\right] \rightarrow do(a_4,do(a_3,do(a_2,do(a_1,S_0))))
 \]
 \end{itemize}
+\pause
 But, what about more complex actions and procedures?
 \begin{itemize}
   \item $\mathbf{if}\ available(Item)\ \mathbf{then}\ pickup(Item)\ \mathbf{else}\ beSad$
@@ -76,15 +81,22 @@ But, what about more complex actions and procedures?
 \frametitle{GOLOG: "alGOL in LOGic"}
 Introduces programming to the S.C. by means of "complex actions":
 \begin{itemize}
+  \pause
   \item $\delta_1;\delta_2$: Perform actions in sequence
+  \pause
   \item $\phi?$: Assert that a condition holds
+  \pause
   \item $\delta_1|\delta_2$: Choose between actions to perform
+  \pause
   \item $(\pi x)\delta(x)$: Choose suitable bindings for variables
+  \pause
   \item $\delta^*$: Perform an action zero or more times
+  \pause
 \end{itemize}
 Composing actions by means of these operators allows complex programs
 to be defined.\\
 \ \\
+\pause
 Key Point:  programs can include arbitrarily much \alert{nondeterminism}
 \end{frame}
 
@@ -94,11 +106,20 @@ Semantics of operators given recursively in terms of the macro $Do$.
 $Do(\delta,s,s')$ means "program $\delta$ may begin in situation $s$ and end
 in situation $s'$"
 \begin{itemize}
+  \pause
   \item Primitive actions: $Do(a,s,s') \equiv Poss(a,s)\wedge s'=do(a,s)$
+  \pause
   \item Test actions: $Do(\phi?,s,s') \equiv \phi \wedge s=s'$
+  \pause
   \item Sequence: $Do(\delta_1;\delta_2) \equiv \exists s^* (Do(\delta_1,s,s^*)\wedge Do(\delta_2,s^*,s'))$
+  \pause
   \item Nondet. Choice: $Do(\delta_1|\delta_2,s,s') \equiv Do(\delta_1,s,s')\vee Do(\delta_2,s,s')$
+  \pause
   \item Nondet. Argument: $Do((\pi x)\delta(x),s,s') \equiv \exists x Do(\delta(x),s,s')$
+  \pause
+  \item $\mathbf{if}\ \phi\ \mathbf{then}\ \delta_1\ \mathbf{else}\ \delta_2\ \mathbf{endIf}\ \equiv\ [\phi?;\delta_1]\ |\ [\neg\phi?;\delta_2]$
+  \pause
+  \item $\mathbf{while}\ \phi\ \mathbf{do}\ \delta\ \mathbf{endWhile}\ \equiv\ [[\phi?;\delta]*;\neg\phi?]$
 \end{itemize}
 \end{frame}
 
@@ -117,14 +138,14 @@ Remember, a situation is a sequence of actions - in this case, the actions which
 
 \begin{frame}
 \frametitle{A Simple Example}
-\[\delta = [(\pi\ block)(moveNextTo(block);pickup(block))];holding(Block1)?\]
-
+$[(\pi\ block)(goNextTo(block);pickup(block))];holding(Block1)?$\\
+\ \\
 Assuming that $\neg holding(Block1,S_0)$, this program has a unique
 legal execution:\[
-s = do(pickup(Block1),do(moveNextTo(Block1),S_0)\]
+s = do(pickup(Block1),do(goNextTo(Block1),S_0)\]
 
 Corresponding to the action sequence:\[
-[moveNextTo(Block1), pickup(Block1)]\]
+[goNextTo(Block1), pickup(Block1)]\]
 
 The agent reasons about the world to inform its nondeterministic choices.
 \end{frame}
@@ -144,14 +165,88 @@ There are potentially many legal executions, depending on which actions
 are possible in the world.
 \end{frame}
 
+\begin{frame}
+\frametitle{Programming or Planning?}
+\begin{itemize}
+  \item May require reasoning about effects of actions to resolve nondeterminism
+$\rightarrow$ Planning
+  \item Or, procedure may be completely specified $\rightarrow$ Programming
+  \item Golog occupies a middle ground $\rightarrow$ "High-Level Programming"
+\end{itemize}
+
+Full planning is possible in Golog:\[
+\mathbf{while}\ \neg Goal\ \mathbf{do}\ (\pi\ a)(a)\ \mathbf{endWhile}\]
+
+Or you can specify more of the procedure yourself, to make the agent's job
+easier.\\
+\ \\
+Key Point: \alert{Controlled} Nondeterminism
+\end{frame}
+
 \section{ConGolog}
 \begin{frame}
 \frametitle{ConGolog: Concurrency and Interrupts}
+"Concurrent Golog" was designed to support the concurrent execution of
+several threads of control.  It also allows threads to be spawned in
+response to conditions in the environment:
+\begin{itemize}
+  \pause
+  \item $\delta_1\ ||\ \delta_2$: Execute two programs concurrently
+  \pause
+  \item $\delta_1\ \gg\ \delta_2$: Execute two programs concurrently, giving one priority over the other
+  \pause
+  \item $<\phi \rightarrow \delta>$: Execute $\delta$ when $\phi$ becomes true
+\end{itemize}
+\pause
+This requires a modification of the $Do$ semantics.  Instead, it uses
+$Trans(\delta,s,\delta',s')$ to indicate that program $\delta$ may execute
+a single step, taking the world from situation $s$ to $s'$, and leaving the
+program $\delta'$ still to be executed.
+\end{frame}
+
+\begin{frame}
+\frametitle{ConGolog}
+Concurrency is achieved by interleaving steps from both programs:
+\[
+\begin{array}{cc}
+Trans(\delta_1\ ||\ \delta_2,s,\delta',s') \equiv & \exists \gamma . \delta'=(\gamma\ ||\ \delta_2)\wedge Trans(\delta_1,s,\gamma,s')\\
+& \vee\ \exists \gamma . \delta'=(\delta_1\ ||\ \gamma)\wedge Trans(\delta_2,s,\gamma,s')
+\end{array}\]
+\pause
+\ \\
+Revisit "getting to uni" for today:
+\[
+\begin{array}{c}
+<runningLate\rightarrow panic>\\
+\gg\ stressAboutPresentation\\
+||\ (getReady;goToUni)
+\end{array}\]
+
 \end{frame}
 
 \section{IndiGolog}
 \begin{frame}
 \frametitle{IndiGolog: Online Execution and Sensing}
+In order to be sure an execution is legal, Golog must plan all the way
+to the end.  "Offline Execution" - for highly nondeterministic programs
+this may be intractable.\\
+\ \\
+Furthermore, the agent might not have all the information it needs when
+execution begins - may require \emph{sensing}.
+
+\begin{itemize}
+  \pause
+  \item Execute online, making nondet choices arbitrarily
+  \pause
+  \item Perform sensing actions when extra information is required
+  \pause
+  \item Allow planning over individual parts of the program
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{IndiGolog}
+
 \end{frame}
 
 \section{Where?}
@@ -164,9 +259,7 @@ Many applications focused on robotics:
   \item Robocup soccer team
   \item Lego Mindstorms: "Legolog"
 \end{itemize}
-\end{frame}
-\begin{frame}
-\frametitle{What is Golog used for?}
+\pause
 But, also being picked up in other areas
 \begin{itemize}
   \item Rapid prototyping for evolutionary biology applications
@@ -180,6 +273,25 @@ But, also being picked up in other areas
 \section{Why?}
 \begin{frame}
 \frametitle{Why is Golog popular?}
+\begin{itemize}
+  \item Good level of abstraction:
+  \begin{itemize}
+    \item Programs based directly on actions from the domain
+    \item Nondeterminism makes programs simpler and more powerful
+    \item Symbolic reasoning effortlessly available
+  \end{itemize}
+  \item Tradeoff between programming and planning:
+  \begin{itemize}
+    \item Amount of nondeterminism controlled by the programmer
+    \item Procedural knowledge easy to encode
+    \item Full planning still available
+  \end{itemize}
+  \item Logic-based:
+  \begin{itemize}
+    \item Compact implementation in Prolog
+    \item Possible to prove safety/liveness properties
+  \end{itemize}
+\end{itemize}
 \end{frame}
 
 
