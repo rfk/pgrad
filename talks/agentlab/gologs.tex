@@ -27,7 +27,7 @@ changing environment.
 \begin{itemize}
 \item Agents should explicitly represent and reason about their world
 \item Programs should reflect the domain, not the programming environment
-\item Full planning shouldnt be needed for simple tasks
+\item Full planning shouldn't be needed for simple tasks
 \end{itemize}
 And moreover, these properties should be natural and easy to obtain in the
 control program for your agent.
@@ -97,7 +97,7 @@ Composing actions by means of these operators allows complex programs
 to be defined.\\
 \ \\
 \pause
-Key Point:  programs can include arbitrarily much \alert{nondeterminism}
+Key Point:  programs can include \alert{nondeterminism}
 \end{frame}
 
 \begin{frame}
@@ -214,13 +214,30 @@ Trans(\delta_1\ ||\ \delta_2,s,\delta',s') \equiv & \exists \gamma . \delta'=(\g
 \end{array}\]
 \pause
 \ \\
-Revisit "getting to uni" for today:
+My "getting to uni" for today:
 \[
 \begin{array}{c}
 <runningLate\rightarrow panic>\\
 \gg\ stressAboutPresentation\\
 ||\ (getReady;goToUni)
 \end{array}\]
+
+\end{frame}
+
+\begin{frame}
+\frametitle{ConGolog}
+What might a legal execution look like?  Suppose:\[
+stressAboutPresentation \equiv fidgetNervously^*\]
+Then we could have:
+\[ringAlarm\]
+\[turnOffAlarm\]
+\[fidgetNervously\]
+\[haveShower\]
+\[fidgetNervously\]
+\[eat(toast)\]
+\[tramToUni\]
+\[fidgetNervously\]
+
 
 \end{frame}
 
@@ -246,6 +263,21 @@ execution begins - may require \emph{sensing}.
 
 \begin{frame}
 \frametitle{IndiGolog}
+"Getting to Uni" could fail at the final test because we snoozed too long:\[
+\begin{array}{c}
+ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
+haveShower;(\pi\ food)(edible(food)?;eat(food));\\
+(driveToUni\ |\ tramToUni\ |\ walkToUni);\\
+(time<9:00)?
+\end{array}\]\\
+\ \\
+Instead, plan over just the nondeterministic parts:\[
+\begin{array}{c}
+ringAlarm;\Sigma[(hitSnooze; ringAlarm)^*;(time<8:15)?];turnOffAlarm;\\
+haveShower;\Sigma[(\pi\ food)(edible(food)?;eat(food))];\\
+\Sigma[(driveToUni\ |\ tramToUni\ |\ walkToUni);(time<9:00)?]
+
+\end{array}\]\\
 
 \end{frame}
 
@@ -298,8 +330,25 @@ But, also being picked up in other areas
 \section{The Future}
 \begin{frame}
 \frametitle{The Future...}
-\end{frame}
+Multiagent systems:
+\begin{itemize}
+  \item Modelling and Simulation of multi-agent systems (CASL, Levesque et. al.)
+  \item Golog for team coordination and control (ReadyLog, Lakemeyer et. al.)
+  \item Cooperative execution of Golog programs (Us)
+\end{itemize}
 
+Knowledge and belief
+\begin{itemize}
+  \item Particularly with regard to sensing and communication
+\end{itemize}
+
+Modifying the situation calculus:
+\begin{itemize}
+  \item Concurrency, time, ...
+  \item Fluent Calculus
+  \item Modal Logic
+\end{itemize}
+\end{frame}
 
 
 \end{document}
