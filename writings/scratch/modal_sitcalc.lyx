@@ -1,0 +1,798 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Enhancing the Modal Situation Calculus
+\layout Author
+
+Ryan Kelly
+\layout Section
+
+Introduction
+\layout Standard
+
+Recent years have seen a growing number of works incorporating ideas from
+ the situation calclulus and modal logics of knowledge and belief.
+ This can be achieved by reformulating the situation calculus as a modal
+ logic formalism something akin to dynamic logic.
+ Examples of this approach include the work of Lakemeyer and Levesque 
+\begin_inset LatexCommand \cite{Lakemeyer2005Semantic}
+
+\end_inset 
+
+ and Blackburn et.
+ al.
+ 
+\begin_inset LatexCommand \cite{blackburn01hybrid_sitcalc}
+
+\end_inset 
+
+.
+ It seems clear that a modal formulation offers many advantages, including:
+\layout Itemize
+
+Simpler representation of fluents and action sequences
+\layout Itemize
+
+Integration of existing formalisms for knowledge and belief
+\layout Itemize
+
+More straightforward proofs for a number of important properties
+\layout Standard
+
+However, the approach has also demonstrated some drawbacks when compared
+ to classical situation calculus:
+\layout Itemize
+
+In purely modal formulations, situations cannot be accessed directly
+\layout Itemize
+
+Situations carry no information about their history - for example, it is
+ not possible to determine the action which brought about a particular situation
+\layout Itemize
+
+Incorporating successor state axioms as a solution to the frame problem
+ requires quantifying over action modalities
+\layout Standard
+
+Inspired by the work of 
+\begin_inset LatexCommand \cite{blackburn01hybrid_sitcalc}
+
+\end_inset 
+
+, we seek a formulation of the situation calculus in Quantified Hybrid Logic
+ which addresses these shortcomings.
+\layout Section
+
+Background
+\layout Subsection
+
+Classical Situation Calculus
+\layout Standard
+
+The representation of a dynamic world in the classical situation calculus
+ consists of first-order logic statements capturing the following: actions
+ that can be performed in the world; fluents describing the state of the
+ world; precondition axioms describing when actions are possible; and successor
+ state axioms describing how fluents change across situations.
+\layout Standard
+
+
+\emph on 
+Actions
+\emph default 
+ are literals in the logic representing the ways in which the world can
+ be changed, and are taken to be instantaneous.
+ The 
+\begin_inset Quotes eld
+\end_inset 
+
+state of the world
+\begin_inset Quotes erd
+\end_inset 
+
+ is represented as a 
+\emph on 
+situation
+\emph default 
+, which is the history of actions that have been performed so far, with
+ the initial situation represented by the term 
+\begin_inset Formula $S_{0}$
+\end_inset 
+
+.
+ Terms representing other situations are constructed using the function
+ 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ which gives the situation resulting from performing action 
+\begin_inset Formula $a$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+\layout Standard
+
+For example, the action of picking up an object may be represented by the
+ following action term:
+\layout Standard
+
+
+\begin_inset Formula \[
+pickup(Obj)\]
+
+\end_inset 
+
+
+\layout Standard
+
+If this is the first action performed in the world, the new situation becomes:
+\layout Standard
+
+
+\begin_inset Formula \[
+do(pickup(Obj))\]
+
+\end_inset 
+
+
+\layout Standard
+
+Properties of the world are described by 
+\emph on 
+fluents
+\emph default 
+, which are functions or predicates taking a situation as their final argument.
+ For example, the fact that the agent has possession of an object in some
+ situation 
+\begin_inset Formula $S$
+\end_inset 
+
+ might be represented as:
+\layout Standard
+
+
+\begin_inset Formula \[
+has\_ object(Obj,S)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Precondition axioms are given in terms of 
+\emph on 
+possibility predicates
+\emph default 
+, which specify when it is possible for a given action to be performed.
+ To state that an agent may only place an object in a bowl when they have
+ possession of that bowl, the following possibility predicate could be used
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+
+\size small 
+We follow the convention that lowercase terms are implicitly universally
+ quantified.
+ 
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+Poss(drop(obj),s)\\
+\leftrightarrow has\_ object(obj,s)\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+The truth values of fluents are specified by defining what is true of the
+ initial situation, and collecting the effects of various actions into
+\emph on 
+ successor state axioms
+\emph default 
+.
+ These state that a fluent is true if something caused it to be true, or
+ it was previously true and nothing caused it to be false.
+ They have the general form:
+\layout Standard
+
+
+\begin_inset Formula \[
+f(\overrightarrow{x},do(a,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Modal Situation Calculus
+\layout Standard
+
+Many of the formalisms of the situation calculus have an intuitive correspondanc
+e to ideas from modal logic.
+ It is therefore unsurprising that many modal encodings of the situation
+ calculus have a lot in common.
+\layout Standard
+
+Situation terms are represented by the 
+\begin_inset Quotes eld
+\end_inset 
+
+possible worlds
+\begin_inset Quotes erd
+\end_inset 
+
+ of modal logic semantics, and thus do not appear in formulas when pure
+ modal logic is used.
+ Fluents then simply become logical formulae, which are automatically interprete
+d in a particular world.
+ The fluent 
+\begin_inset Formula $has\_ object(Obj,S)$
+\end_inset 
+
+ becomes simply 
+\begin_inset Formula $has\_ object(Obj)$
+\end_inset 
+
+.
+\layout Standard
+
+Actions function as a relation between situations, and are thus typically
+ translated as modalities in a style very similar to that of dynamic logic.
+ For example, the following states that 
+\begin_inset Formula $has\_ object(Obj)$
+\end_inset 
+
+ is true after performing the action 
+\begin_inset Formula $pickup(Obj)$
+\end_inset 
+
+:
+\begin_inset Formula \[
+\left[pickup(Obj)\right]has\_ object(Obj)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Sequences of actions are naturally represented as the chaining of several
+ action modalities:
+\begin_inset Formula \[
+\left[pickup(Obj)\right]\left[drop(Obj)\right]\neg has\_ object(Obj)\]
+
+\end_inset 
+
+
+\layout Standard
+
+This interpretation highlights an important difference between classical
+ and modal situation calculus - situations are rarely dealt with in the
+ language.
+ For classical situation calculus, it is possible to construct situation
+ terms such as 
+\begin_inset Formula $do(pickup(Obj),S_{0})$
+\end_inset 
+
+.
+ In the modal variant, it is only possible to talk about fluents that hold
+ in these situations, not the situations themselves.
+ This distinction can be diminished using a hybrid logic approach, which
+ will be discussed shortly.
+\layout Standard
+
+The possibility of performing an action can be enforced at the level of
+ the model, or at a higher level.
+ In the first instance, the statement:
+\layout Standard
+
+
+\begin_inset Formula \[
+\left<drop(Obj)\right>\top\]
+
+\end_inset 
+
+
+\layout Standard
+
+Indicates that 
+\begin_inset Quotes eld
+\end_inset 
+
+there is some situation reachable by doing the action 
+\begin_inset Formula $drop(Obj)$
+\end_inset 
+
+
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ Placing restrictions on the worlds in which this is true limits the underlying
+ model to contain only those situations that are physically reachable.
+ Alternately, the predicate 
+\begin_inset Formula $Poss(a)$
+\end_inset 
+
+ can be imported as an ordinary fluent, and the restriction to physically
+ realisable worlds enforced at a higher level.
+\layout Standard
+
+This point also demonstrates one of the difficulties of treating actions
+ as modalities.
+ Consider the case where there are infinitely many objects that may be picked
+ up.
+ Not only does this introduce an infinite number of modalities, but writing
+ axioms for when 
+\begin_inset Formula $\left<drop(Obj)\right>\top$
+\end_inset 
+
+ holds will require quantification over the modalities:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall obj.\left[\left<drop(obj)\right>\top\leftrightarrow has\_ object(obj)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+While this can be avoided by using the 
+\begin_inset Formula $Poss$
+\end_inset 
+
+ predicate to enforce possibility, the issue is also encountered when formulatin
+g successor state axioms.
+\layout Standard
+
+The standard statement of a successor state axiom has a straightforward
+ translation into the modal formalism:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a,s\,.\, f(\overrightarrow{x},do(a,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a\,.\,\left[a\right]f(\overrightarrow{x})\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x})\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
+
+\end_inset 
+
+
+\layout Standard
+
+These have an equivalent reading in English: 
+\begin_inset Quotes eld
+\end_inset 
+
+Fluent 
+\begin_inset Formula $f$
+\end_inset 
+
+ will be true after doing action 
+\begin_inset Formula $a$
+\end_inset 
+
+ if 
+\begin_inset Formula $a$
+\end_inset 
+
+ made it true, or it is currently true and doing 
+\begin_inset Formula $a$
+\end_inset 
+
+ will not make it false
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ Again, this requires quantifying over the action modalities.
+\layout Standard
+
+One disadvantage of the modal formulation of the situation calculus is that
+ it is not possible to explicitly refer to situations.
+ This can be useful, for example, to specify conditions on the initial situation.
+ Blackburn et.
+ al.
+ 
+\begin_inset LatexCommand \cite{blackburn01hybrid_sitcalc}
+
+\end_inset 
+
+ show how Hybrid Logic, a superset of modal logic that includes explicit
+ reference to states, can be used to naturally capture this additional feature
+ of the classic situation calculus.
+\layout Section
+
+Our Approach
+\layout Standard
+
+Using the additional expressiveness of Quantified Hybrid Logic, we aim to
+ overcome the shortcomings outlined in the introduction by:
+\layout Itemize
+
+Providing a means to explicitly reference situations, and to access their
+ history information
+\layout Itemize
+
+Capture possibility and successor state axioms that naturally reflect those
+ of the classical situation calculus, without requiring quantification over
+ modalities
+\layout Standard
+
+Utilising hybrid logic automatically ensures that situations can be explicitly
+ referenced.
+ Further capabilities are enabled by:
+\layout Itemize
+
+Introducing actions are nominals rather than modalities
+\layout Itemize
+
+Giving situations access to their predecessors by means of a backward-facing
+ modality
+\layout Subsection
+
+Actions as Nominals
+\layout Standard
+
+One of the key features of hybrid logic is its ability to explicitly name
+ states using 
+\emph on 
+nominals,
+\emph default 
+ propositional variables that are true in precisely one state.
+ As some means of quantifying over actions seems necessary, we need to introduce
+ actions to the formalism in a form that can be quantified over.
+ Nominals provide an ideal route.
+ Later it will be shown that action modalities, unquestionably a useful
+ 
+\layout Standard
+
+In addition to states representing situations, the model underlying our
+ formalism contains a unique state for each possible action and a nominal,
+ taking the form of the action term, that identifies that state.
+ These states have no outgoing modalities and are reachable from situation
+ states only via the 
+\begin_inset Formula $\left<Act\right>$
+\end_inset 
+
+ modality.
+ In any situation, the truth of 
+\begin_inset Formula $<Act>a$
+\end_inset 
+
+ indicates that the situation was brought about by performing action 
+\begin_inset Formula $a$
+\end_inset 
+
+.
+ Since a situation can only have been brought about by performing a unique
+ action, the following axiom is required:
+\layout Standard
+
+
+\begin_inset Formula \[
+\left<Act\right>i\leftrightarrow\left[Act\right]i\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Reachability and Predecessor Modalities
+\layout Standard
+
+Rather than using a seperate modality for each action term, we introduce
+ a single modality 
+\begin_inset Formula $\left<R\right>$
+\end_inset 
+
+ to indicate that a situation is reachable by performing 
+\emph on 
+some
+\emph default 
+ action.
+ To facilitate the retreival of history information, it is accompanied by
+ a converse modality 
+\begin_inset Formula $\left<P\right>$
+\end_inset 
+
+ that always uniquely reaches the parent situation.
+ To enforce this relation, we use the standard hybrid logic axioms for mutually
+ converse relations:
+\layout Standard
+
+
+\begin_inset Formula \[
+@_{i}\left[R\right]\left<P\right>i\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+@_{i}\left[P\right]\left<R\right>i\]
+
+\end_inset 
+
+
+\layout Standard
+
+The situation 
+\begin_inset Formula $do(a,s)$
+\end_inset 
+
+ in classical situation calculus can then be accessed using the following
+ notation:
+\layout Standard
+
+
+\begin_inset Formula \[
+\left<R\right>\left(\left<Act\right>a\,\wedge\,\phi\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+In words, 
+\begin_inset Quotes eld
+\end_inset 
+
+it is possible to reach a situaion that was brought about by performing
+ action 
+\begin_inset Formula $a$
+\end_inset 
+
+, and in which 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ holds
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ This clearly corresponds to the action modalities of earlier formulations,
+ which can be reintroduced as macros if desired:
+\layout Standard
+
+
+\begin_inset Formula \[
+\left<a\right>\phi=^{def}\left<R\right>\left(\left<Act\right>a\,\wedge\,\phi\right)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\left[a\right]\phi=^{def}\left[R\right]\left(\left<Act\right>a\rightarrow\phi\right)\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Possibility Axioms
+\layout Standard
+
+It is now possible to reformulate the possibility predicates as a modal
+ operator.
+ Intuitively, we want 
+\begin_inset Formula $\left<Poss\right>a$
+\end_inset 
+
+ to indicate 
+\begin_inset Quotes eld
+\end_inset 
+
+it is possible to perform action 
+\begin_inset Formula $a$
+\end_inset 
+
+, reaching a new situation
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ It is quite straightforward to transfer classical possibility axioms to
+ use this notation, for example:
+\layout Standard
+
+
+\begin_inset Formula \[
+\left<Poss\right>drop(obj)\leftrightarrow has\_ object(obj)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Similar to the action modalities, 
+\begin_inset Formula $\left<Poss\right>$
+\end_inset 
+
+may be treated as a macro for a more complex reachability expression involving
+ 
+\begin_inset Formula $\left<R\right>$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\left<Poss\right>a=^{def}\left<R\right>\left<Act\right>a\]
+
+\end_inset 
+
+
+\layout Standard
+
+Using the definition, a collection possibility axioms will restrict the
+ underlying model to contain only those situations which are physically
+ realisable.
+\layout Subsection
+
+Successor State Axioms
+\layout Standard
+
+Given the definition of action modalities, the formulation of successor
+ state axioms is straightforward:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall a\,.\,\left[a\right]f(\overrightarrow{x})\leftrightarrow\Gamma^{+}(\overrightarrow{x},a)\,\vee\, f(\overrightarrow{x})\wedge\neg\Gamma^{-}(\overrightarrow{x},a)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Expanding the action modalities results in quantifying over nominals, a
+ fundamental operation of quantified hybrid logic (TODO: confirm that this
+ is true).
+\layout Standard
+
+Alternately, sucessor state axioms can be formulated without quantification
+ by adopting a slightly different viewpoint.
+ Instead of the statement 
+\begin_inset Quotes eld
+\end_inset 
+
+Fluent 
+\begin_inset Formula $f$
+\end_inset 
+
+ will be true after doing action 
+\begin_inset Formula $a$
+\end_inset 
+
+ if 
+\begin_inset Formula $a$
+\end_inset 
+
+ made it true, or it is currently true and doing 
+\begin_inset Formula $a$
+\end_inset 
+
+ will not make it false
+\begin_inset Quotes erd
+\end_inset 
+
+, consider the equivalent 
+\begin_inset Quotes eld
+\end_inset 
+
+Fluent 
+\begin_inset Formula $f$
+\end_inset 
+
+ is if the last action 
+\begin_inset Formula $a$
+\end_inset 
+
+ made it true, or it was previously true and 
+\begin_inset Formula $a$
+\end_inset 
+
+ did not make it false
+\begin_inset Quotes erd
+\end_inset 
+
+.
+ This switches the perspective to the current situation and can be formulated
+ using the 
+\begin_inset Formula $\left<P\right>$
+\end_inset 
+
+ modality:
+\layout Standard
+
+
+\begin_inset Formula \[
+f(\overrightarrow{x})\leftrightarrow\Gamma^{+}(\overrightarrow{x})\,\vee\,\left<P\right>f(\overrightarrow{x})\wedge\neg\Gamma^{-}(\overrightarrow{x})\]
+
+\end_inset 
+
+
+\layout Standard
+
+For example:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+has\_ object(obj)\leftrightarrow\left<Act\right>pickup(obj)\,\vee\,\\
+\left<P\right>has\_ object(obj)\wedge\neg\left<Act\right>drop(obj)\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Note that this does not necessarily releive the need to quantify over nominals
+ - the structure of the 
+\begin_inset Formula $P$
+\end_inset 
+
+ relation is eventually determined by the possibility axioms, which are
+ likely to quantify over actions as well.
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset 
+
+
+\the_end
