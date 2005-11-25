@@ -1,5 +1,7 @@
 \documentclass{beamer}
 
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+
 \mode<presentation>{\usetheme{Dresden}}
 
 \title{GOLOG and Friends}
@@ -49,17 +51,22 @@ A F.O.L. formalism for reasoning about dynamic worlds:
 \pause
 \item Fluents: $holding(obj,s)$, $(x,y)=curPosition(s)$
 \pause
+\item Precondition Axioms: $Poss(pickup(obj),s) \leftrightarrow holding(obj,s)$
+\pause
 \item Successor State Axioms:\[
 \begin{array}{cc}
 holding(obj,do(a,s))\iff & a=pickup(obj)\,\vee\\
  & \left[holding(obj,s)\wedge a\neq drop(obj)\right]\end{array}\]
 \end{itemize}
-
+\pause
+Successor State Axioms can provide an elegant solution to the infamous
+frame problem.
 \end{frame}
 
 \begin{frame}
 \frametitle{The Situation Calculus}
-Using a S.C. axiomatisation of their domain, agents can:
+These axioms combine to give a first-order \emph{Theory of Action} $\mathbf{D}$,
+ with which agents can:
 \begin{itemize}
   \item Reason about when actions are possible
   \item Reason about the effects of actions
@@ -107,19 +114,19 @@ $Do(\delta,s,s')$ means "program $\delta$ may begin in situation $s$ and end
 in situation $s'$"
 \begin{itemize}
   \pause
-  \item Primitive actions: $Do(a,s,s') \equiv Poss(a,s)\wedge s'=do(a,s)$
+  \item Primitive actions: $Do(a,s,s')\ \isdef\ Poss(a,s)\wedge s'=do(a,s)$
   \pause
-  \item Test actions: $Do(\phi?,s,s') \equiv \phi \wedge s=s'$
+  \item Test actions: $Do(\phi?,s,s')\ \isdef\ \phi [s] \wedge s=s'$
   \pause
-  \item Sequence: $Do(\delta_1;\delta_2) \equiv \exists s^* (Do(\delta_1,s,s^*)\wedge Do(\delta_2,s^*,s'))$
+  \item Sequence: $Do(\delta_1;\delta_2)\ \isdef\ \exists s'' (Do(\delta_1,s,s'')\wedge Do(\delta_2,sxxi''^*,s'))$
   \pause
-  \item Nondet. Choice: $Do(\delta_1|\delta_2,s,s') \equiv Do(\delta_1,s,s')\vee Do(\delta_2,s,s')$
+  \item Nondet. Choice: $Do(\delta_1|\delta_2,s,s')\ \isdef\ Do(\delta_1,s,s')\vee Do(\delta_2,s,s')$
   \pause
-  \item Nondet. Argument: $Do((\pi x)\delta(x),s,s') \equiv \exists x Do(\delta(x),s,s')$
+  \item Nondet. Argument: $Do((\pi x)\delta(x),s,s')\ \isdef\ \exists x Do(\delta(x),s,s')$
   \pause
-  \item $\mathbf{if}\ \phi\ \mathbf{then}\ \delta_1\ \mathbf{else}\ \delta_2\ \mathbf{endIf}\ \equiv\ [\phi?;\delta_1]\ |\ [\neg\phi?;\delta_2]$
+  \item $\mathbf{if}\ \phi\ \mathbf{then}\ \delta_1\ \mathbf{else}\ \delta_2\ \mathbf{endIf}\ \isdef\ [\phi?;\delta_1]\ |\ [\neg\phi?;\delta_2]$
   \pause
-  \item $\mathbf{while}\ \phi\ \mathbf{do}\ \delta\ \mathbf{endWhile}\ \equiv\ [[\phi?;\delta]*;\neg\phi?]$
+  \item $\mathbf{while}\ \phi\ \mathbf{do}\ \delta\ \mathbf{endWhile}\ \isdef\ [[\phi?;\delta]*;\neg\phi?]$
 \end{itemize}
 \end{frame}
 
@@ -130,7 +137,7 @@ program - some set of choices for the nondeterministic components that allow
 the program to execute successfully.\\
 \ \\
 Formally, the agent must find a situation $s$ such that:\[
-\exists s . Do(\delta,S_0,s)\]
+\mathbf{D} \models \exists s . Do(\delta,S_0,s)\]
 
 
 Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.

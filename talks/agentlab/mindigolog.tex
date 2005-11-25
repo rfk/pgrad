@@ -1,0 +1,227 @@
+\documentclass{beamer}
+
+\mode<presentation>{\usetheme{Dresden}}
+
+\title{High-Level Program Execution for Multi-Agent Teams}
+\author{Ryan Kelly}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+
+\begin{frame}
+\frametitle{Multi-Agent Teams}
+Two categories of multi-agent system:
+\begin{itemize}
+  \item Open multi-agent systems
+  \item Multi-agent teams
+\end{itemize}
+Teams may be conceptualised as a single agent, with distributed sensing,
+reasoning and acting capabilities.
+\end{frame}
+
+\begin{frame}
+\frametitle{High-Level Program Execution}
+A practical alternative to planning for single-agent systems. Specify
+a program made up of:
+\begin{itemize}
+  \item Actions from the world
+  \item Connected by high-level programming constructs
+  \item Including nondeterminism where reasoning is required
+\end{itemize}
+\ \\
+Can range from deterministic programming to full planning:
+\alert{Controlled Nondeterminism}
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivating Example: The Cooking Agents}
+Several robotic chefs inhabit a kitchen, along with various ingredients,
+appliances and utensils.  They must cooperate to produce a meal consisting
+of several dishes.
+
+Challenges:
+\begin{itemize}
+  \item Concurrent execution of tasks
+  \item Conflict over shared resources
+  \item Coordination of shared actions
+\end{itemize}
+
+Assumptions:
+\begin{itemize}
+  \item Deterministic, fully observable world
+  \item Complete and reliable communication
+\end{itemize}
+\end{frame}
+
+
+\section{Golog Review}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+
+A F.O.L. formalism for reasoning about dynamic worlds:
+
+\begin{itemize}
+\pause
+\item Actions: $wait$, $pickup(obj)$, $goto(x,y)$
+\pause
+\item Situations: $S_{0}$, $do(a_{1},S_{0})$, $do(a_{2},do(a_{1},S_{0}))$
+\pause
+\item Fluents: $holding(obj,s)$, $(x,y)=curPosition(s)$
+\pause
+\item Successor State Axioms:\[
+\begin{array}{cc}
+holding(obj,do(a,s))\iff & a=pickup(obj)\,\vee\\
+ & \left[holding(obj,s)\wedge a\neq drop(obj)\right]\end{array}\]
+\end{itemize}
+Successor state axioms can provide an elegant solution to the infamous
+frame problem.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Golog}
+Introduces programming to the S.C. by means of "complex actions":
+\begin{itemize}
+  \pause
+  \item $\delta_1;\delta_2$: Perform actions in sequence
+  \pause
+  \item $\phi?$: Assert that a condition holds
+  \pause
+  \item $\delta_1|\delta_2$: Choose between actions to perform
+  \pause
+  \item $(\pi x)\delta(x)$: Choose suitable bindings for variables
+  \pause
+  \item $\delta^*$: Perform an action zero or more times
+  \pause
+\end{itemize}
+Composing actions by means of these operators allows complex programs
+to be defined.
+\end{frame}
+
+\begin{frame}
+\frametitle{Executing a Golog Program}
+Intuitively, an agent must find a \emph{legal execution} of its nondeterministic
+program - some set of choices for the nondeterministic components that allow
+the program to execute successfully.\\
+\ \\
+Formally, the agent must find a situation $s$ such that:\[
+\mathbf{D} \models \exists s . Do(\delta,S_0,s)\]
+
+Here, $\mathbf{D}$ is the Situation Calculus theory of action, and $Do$
+encodes the semantics of the Golog operators.
+
+Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.
+\end{frame}
+
+\begin{frame}
+\frametitle{An Example}
+Consider a Golog program for making a simple salad:
+TODO
+\end{frame}
+
+\begin{frame}
+\frametitle{ConGolog: Concurrency and Interrupts}
+"Concurrent Golog" was designed to support the concurrent execution of
+several threads of control.  It also allows threads to be spawned in
+response to conditions in the environment:
+\begin{itemize}
+  \pause
+  \item $\delta_1\ ||\ \delta_2$: Execute two programs concurrently
+  \pause
+  \item $\delta_1\ \gg\ \delta_2$: Execute two programs concurrently, giving one priority over the other
+  \pause
+  \item $<\phi \rightarrow \delta>$: Execute $\delta$ when $\phi$ becomes true
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{ConGolog}
+Semantics are defined in terms of "single steps" of computation.
+$Trans(\delta,s,\delta',s')$ indicates that program $\delta$ may execute
+a single step, taking the world from situation $s$ to $s'$, and leaving the
+program $\delta'$ still to be executed.
+\pause
+Concurrency is achieved by interleaving steps from both programs:
+\[
+\begin{array}{cc}
+Trans(\delta_1\ ||\ \delta_2,s,\delta',s') \equiv & \exists \gamma . \delta'=(\gamma\ ||\ \delta_2)\wedge Trans(\delta_1,s,\gamma,s')\\
+& \vee\ \exists \gamma . \delta'=(\delta_1\ ||\ \gamma)\wedge Trans(\delta_2,s,\gamma,s')
+\end{array}\]
+\end{frame}
+
+
+\begin{frame}
+\frametitle{IndiGolog: Online Execution and Sensing}
+In order to be sure an execution is legal, Golog must plan all the way
+to the end.  "Offline Execution" - for highly nondeterministic programs
+this may be intractable.\\
+\ \\
+Furthermore, the agent might not have all the information it needs when
+execution begins - may require \emph{sensing}.
+
+\begin{itemize}
+  \pause
+  \item Execute online, making nondet choices arbitrarily
+  \pause
+  \item Perform sensing actions when extra information is required
+  \pause
+  \item Allow planning over individual parts of the program
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{IndiGolog}
+TODO: example from cooking domain
+\end{frame}
+
+
+\section{Golog for MA Teams?}
+
+\begin{frame}
+\frametitle{Golog for MA Teams?}
+Golog has proven very powerful in single-agent domains.  But, there are
+some challenges when moving to a multi-agent setting:
+\begin{itemize}
+  \pause
+  \item Several actions can be performed at the same instant:
+        \emph{True Concurrency}
+  \pause
+  \item Need to coordinate concurrent actions
+  \pause
+  \item Need to predict actions of others, and the environment
+\end{itemize}
+The capabilities have been individually addressed in the Situation Calculus.
+We show how to integrate them into a Golog suitable for multi-agent teams:
+"MIndiGolog".
+\end{frame}
+
+\begin{frame}
+\frametitle{True vs Interleaved Concurrency}
+\end{frame}
+
+\begin{frame}
+\frametitle{Time}
+\end{frame}
+
+\begin{frame}
+\frametitle{Natural Actions}
+\end{frame}
+
+\section{Implementation}
+
+
+\section{Future Work}
+
+
+\end{document}
