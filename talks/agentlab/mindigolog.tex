@@ -26,7 +26,10 @@ Two categories of multi-agent system:
   \item Multi-agent teams
 \end{itemize}
 Teams may be conceptualised as a single agent, with distributed sensing,
-reasoning and acting capabilities.
+reasoning and acting capabilities.\\
+\ \\
+\pause
+What ideas can we borrow from single-agent programming?
 \end{frame}
 
 \begin{frame}
@@ -39,6 +42,7 @@ a program made up of:
   \item Including nondeterminism where reasoning is required
 \end{itemize}
 \ \\
+\ \\
 Can range from deterministic programming to full planning:
 \alert{Controlled Nondeterminism}
 \end{frame}
@@ -47,8 +51,8 @@ Can range from deterministic programming to full planning:
 \frametitle{Motivating Example: The Cooking Agents}
 Several robotic chefs inhabit a kitchen, along with various ingredients,
 appliances and utensils.  They must cooperate to produce a meal consisting
-of several dishes.
-
+of several dishes.\\
+\ \\
 Challenges:
 \begin{itemize}
   \item Concurrent execution of tasks
@@ -69,7 +73,7 @@ Assumptions:
 \begin{frame}
 \frametitle{The Situation Calculus}
 
-A F.O.L. formalism for reasoning about dynamic worlds:
+A first-order logic formalism for reasoning about dynamic worlds:
 
 \begin{itemize}
 \pause
@@ -110,6 +114,18 @@ to be defined.
 \end{frame}
 
 \begin{frame}
+\frametitle{Example: A Salad in Golog}
+Consider a Golog program for making a simple salad:\[
+\begin{array}{c}
+\mathbf{proc}\ MakeSalad(dest)\\
+ChopTypeInto(Lettuce,dest)\ ;\\
+ChopTypeInto(Carrot,dest)\ ;\\
+ChopTypeInto(Tomato,dest)\ ;\\
+mix(dest,1)\\
+\mathbf{end}\end{array}\]
+\end{frame}
+
+\begin{frame}
 \frametitle{Executing a Golog Program}
 Intuitively, an agent must find a \emph{legal execution} of its nondeterministic
 program - some set of choices for the nondeterministic components that allow
@@ -119,22 +135,17 @@ Formally, the agent must find a situation $s$ such that:\[
 \mathbf{D} \models \exists s . Do(\delta,S_0,s)\]
 
 Here, $\mathbf{D}$ is the Situation Calculus theory of action, and $Do$
-encodes the semantics of the Golog operators.
-
+encodes the semantics of the Golog operators.\\
+\ \\
 Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.
-\end{frame}
-
-\begin{frame}
-\frametitle{An Example}
-Consider a Golog program for making a simple salad:
-TODO
 \end{frame}
 
 \begin{frame}
 \frametitle{ConGolog: Concurrency and Interrupts}
 "Concurrent Golog" was designed to support the concurrent execution of
 several threads of control.  It also allows threads to be spawned in
-response to conditions in the environment:
+response to conditions in the environment: \\
+\ \\
 \begin{itemize}
   \pause
   \item $\delta_1\ ||\ \delta_2$: Execute two programs concurrently
@@ -150,7 +161,8 @@ response to conditions in the environment:
 Semantics are defined in terms of "single steps" of computation.
 $Trans(\delta,s,\delta',s')$ indicates that program $\delta$ may execute
 a single step, taking the world from situation $s$ to $s'$, and leaving the
-program $\delta'$ still to be executed.
+program $\delta'$ still to be executed.\\
+\ \\
 \pause
 Concurrency is achieved by interleaving steps from both programs:
 \[
@@ -158,6 +170,19 @@ Concurrency is achieved by interleaving steps from both programs:
 Trans(\delta_1\ ||\ \delta_2,s,\delta',s') \equiv & \exists \gamma . \delta'=(\gamma\ ||\ \delta_2)\wedge Trans(\delta_1,s,\gamma,s')\\
 & \vee\ \exists \gamma . \delta'=(\delta_1\ ||\ \gamma)\wedge Trans(\delta_2,s,\gamma,s')
 \end{array}\]
+\end{frame}
+
+\begin{frame}
+\frametitle{A Salad in ConGolog}
+When making a salad, the order of ingredients doesnt matter.  This can
+be expressed using concurrency:\[
+\begin{array}{c}
+\mathbf{proc}\ MakeSalad(dest)\\
+\left[\ ChopTypeInto(Lettuce,dest)\ ||\right.\\
+ChopTypeInto(Carrot,dest)\ ||\\
+\left.ChopTypeInto(Tomato,dest)\ \right]\ ;\\
+mix(dest,1)\\
+\mathbf{end}\end{array}\]
 \end{frame}
 
 
@@ -176,13 +201,21 @@ execution begins - may require \emph{sensing}.
   \pause
   \item Perform sensing actions when extra information is required
   \pause
-  \item Allow planning over individual parts of the program
+  \item Allow planning over individual parts of the program: $\Sigma(\delta)$
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{IndiGolog}
-TODO: example from cooking domain
+\frametitle{A Salad in IndiGolog}
+Regardles of what ends up in the bowl, it can always be mixed.  Only need
+to plan how to add the ingredients:\[
+\begin{array}{c}
+\mathbf{proc}\ MakeSalad(dest)\\
+\Sigma\left[\ ChopTypeInto(Lettuce,dest)\ ||\right.\\
+ChopTypeInto(Carrot,dest)\ ||\\
+\left.ChopTypeInto(Tomato,dest)\ \right]\ ;\\
+mix(dest,1)\\
+\mathbf{end}\end{array}\]
 \end{frame}
 
 
@@ -194,34 +227,175 @@ Golog has proven very powerful in single-agent domains.  But, there are
 some challenges when moving to a multi-agent setting:
 \begin{itemize}
   \pause
-  \item Several actions can be performed at the same instant:
-        \emph{True Concurrency}
+  \item Several actions can be performed at the same instant
   \pause
   \item Need to coordinate concurrent actions
   \pause
   \item Need to predict actions of others, and the environment
 \end{itemize}
-The capabilities have been individually addressed in the Situation Calculus.
-We show how to integrate them into a Golog suitable for multi-agent teams:
-"MIndiGolog".
+\ \\
+\ \\
+\pause
+Some of these have been individually addressed in the Situation Calculus.
+We integrate them into a Golog suitable for multi-agent teams: "MIndiGolog".
+
 \end{frame}
+
+\section{Concurrency}
 
 \begin{frame}
 \frametitle{True vs Interleaved Concurrency}
+ConGolog provides \emph{interleaved concurrency} allowing multiple
+high-level programs to be executed together.\\
+\ \\
+With mulitple agents, the world exhibits \emph{true concurrency}. Several
+actions can occur at the same instant.\\
+\ \\
+\pause
+Need to:
+\begin{itemize}
+  \item allow true concurrency to be represented
+  \item modify the $||$ operator to take advantages of true concurrency
+  \item ensure that this modification is well-behaved
+\end{itemize}
 \end{frame}
+
+\begin{frame}
+\frametitle{The Concurrent Situation Calculus (Reiter, TODO)}
+Have the first argument of an action name the agent performing it:\[
+pickup(Thomas,Lettuce1),\ mix(Richard,Bowl1,1)\]
+\pause
+Replace action terms with sets of actions, all of which are performed
+at the same time:\[
+do(\{pickup(Thomas,Lettuce1),pickup(Richard,Tomato1)\},S_0)\]
+\pause
+Precondition interaction:\[
+Poss({pickup(Richard,Obj),pickup(Harriet,Obj)},s)\ ?\]
+\pause
+Basic solution:\[
+Poss(C,s) \leftrightarrow \forall a \in C.Poss(a,s)\ \wedge\ \neg Conflicts(C,s)\]
+\end{frame}
+
+\begin{frame}
+\frametitle{True + Interleaved Concurrency}
+When executing two programs in parallel, it may be possible for the team to
+execute a step from each simultaneously:\[
+\begin{array}{cc}
+Trans(\delta_1\ ||\ \delta_2,s,\delta',s') \equiv & \exists \gamma . \delta'=(\gamma\ ||\ \delta_2)\wedge Trans(\delta_1,s,\gamma,s')\\
+& \\
+& \vee\ \exists \gamma . \delta'=(\delta_1\ ||\ \gamma)\wedge Trans(\delta_2,s,\gamma,s')\\
+& \\
+& \vee\ \exists c_1,c_2,\gamma_1,\gamma_2.\ Trans(\delta_1,s,\gamma_1,do(c_1,s)\\
+& \wedge\ Trans(\delta_2,s,\gamma_2,do(c_2,s))\\
+& \wedge\ \delta'=(\gamma_1||\gamma_2) \wedge s'=do(c_1 \cup c_2,s)\\
+\end{array}\]
+But, this simple encoding is not well-behaved (later...)
+\end{frame}
+
+\section{Time}
 
 \begin{frame}
 \frametitle{Time}
+Which is easier for a team to manage?
+\begin{itemize}
+  \pause
+  \item Perform a list of actions concurrently
+  \pause
+  \item Perform a list of actions concurrently at time $t$
+\end{itemize}
+\ \\
+\ \\
+\pause
+Assuming a good wall-clock is available, explicit time makes coordination easier.\\
+\ \\
+It is also generally a nice feature to have when representing dynamic worlds.
+Example: bake a cake for \emph{10 minutes}
 \end{frame}
 
 \begin{frame}
-\frametitle{Natural Actions}
+\frametitle{The Temporal Situation Calculus}
+Adding time to the S.C. has a long history (TODO: refs).\\
+\ \\
+We opt for a simple solution: attach an explcit time to each situation,
+indicating when it was brought about:\[
+\begin{array}{c}
+do(a_1,t_1,S_0),\ do(a_2,t_2,do(a_1,t_1,S_0))\\
+Poss(a,t,s) \leftrightarrow\ \dots
+start(do(a,t,s)) = t
+\end{array}\]
+\pause
+Temporal Golog finds situations with \emph{constraints} on the
+time at which actions are performed:\[
+\begin{array}{c}
+do(a_2,t_2,do(a_1,t_1,S_0)\\
+t_1>0,\ t_2>t_1+5
+\end{array}\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Continuous Actions}
+Some actions have a finite duration: $mix(Thomas,Bowl1,5)$
+Others are instantaneous: $pickup(Robert,Lettuce1)$.
+So this concurrent action is problematic:\[
+\{mix(Thomas,Bowl1,5),pickup(Robert,Lettuce1)\}\]
+Standard solution: decompose continuous actions into instantaneous $begin$ 
+and $end$ actions:\[
+begin\_mix(Thomas,Bowl1,5)$, $end\_mix(Thomas,Bowl1,5)\]
+But $begin\_mix$ is not a standard action.  It cannot be performed at
+any time.  Rather, it \emph{must} occur whenever it is possible.
+\end{frame}
+
+\section{Natural Actions}
+
+\begin{frame}
+\frametitle{Natural Actions (Reiter, TODO)}
+\begin{itemize}
+  \item Natural Action:  an action that must occur whenever it is possible,
+        unless some earlier action prevents it from occuring.
+  \item $Poss(na,t,s)$ predicts the times at which a natural action will occur.
+  \item Least Natural Time Point: the earliest time at which a natural
+        action will occur for a given situation:\[
+\begin{array}{c}
+lntp(s,t) \leftrightarrow \exists a [natural(a) \wedge Poss(a,t,s)] \wedge\\
+\forall a,t_a [natural(a) \wedge Poss(a,t_a,s) \rightarrow t \leq t_a]
+\end{array}\]
+  \item Legal Situation: one in which any natural actions that could have occured, did occur:\[
+\begin{array}{c}
+legal(do(c,t,s)) \leftrightarrow legal(s) \wedge\\
+Poss(c,t,s) \wedge start(s) \leq t \wedge\\
+\forall a,t_a [natural(a) \wedge Poss(a,t_a,s) \rightarrow (a \in c \vee t < t_a)]
+\end{array}\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Making Salad, again}
+So, how does a team cooperate to make a salad?
+\[
+\begin{array}{c}
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\pi(agt)\left[acquire(agt,dest)\,;\right.\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,1))\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,1))\,;\\
+\left.\,\,\,\, release(agt,dest)\right]\,\,\mathbf{end}\end{array}\]
 \end{frame}
 
 \section{Implementation}
+Our first implementation was in Prolog:
+\begin{itemize}
+  \item $Trans$ rules from the semantics of ConGolog/IndiGolog
+  \pause
+  \item Modified for lists of concurrent actions, explicit time
+  \pause
+  \item Including our new rules for $||$ and primitive actions
+  \pause
+  \item And an axiomatisation of the "cooking agents" domain
+\end{itemize}
 
-
-\section{Future Work}
+\section{Related/Future Work}
 
 
 \end{document}
