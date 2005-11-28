@@ -1,11 +1,13 @@
 \documentclass{beamer}
-
 \mode<presentation>{\usetheme{Dresden}}
 
-\title{High-Level Program Execution for Multi-Agent Teams}
+\usepackage{fancyvrb}
+
+\title{High-Level Program Execution\\ for Multi-Agent Teams}
 \author{Ryan Kelly}
 
 \begin{document}
+
 
 \begin{frame}
   \titlepage
@@ -25,6 +27,8 @@ Two categories of multi-agent system:
   \item Open multi-agent systems
   \item Multi-agent teams
 \end{itemize}
+\ \\
+\ \\
 Teams may be conceptualised as a single agent, with distributed sensing,
 reasoning and acting capabilities.\\
 \ \\
@@ -43,8 +47,13 @@ a program made up of:
 \end{itemize}
 \ \\
 \ \\
-Can range from deterministic programming to full planning:
-\alert{Controlled Nondeterminism}
+Why?
+\begin{itemize}
+  \item Controlled Nondeterminism
+  \item Clear, simple programs
+  \item Symbolic reasoning about the world
+  \item Can prove program properties (safety/liveness/etc...)
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -83,11 +92,14 @@ A first-order logic formalism for reasoning about dynamic worlds:
 \pause
 \item Fluents: $holding(obj,s)$, $(x,y)=curPosition(s)$
 \pause
+\item Precondition Axioms: $Poss(pickup(obj),s) \leftrightarrow holding(obj,s)$
+\pause
 \item Successor State Axioms:\[
 \begin{array}{cc}
 holding(obj,do(a,s))\iff & a=pickup(obj)\,\vee\\
  & \left[holding(obj,s)\wedge a\neq drop(obj)\right]\end{array}\]
 \end{itemize}
+\pause
 Successor state axioms can provide an elegant solution to the infamous
 frame problem.
 
@@ -115,7 +127,19 @@ to be defined.
 
 \begin{frame}
 \frametitle{Example: A Salad in Golog}
-Consider a Golog program for making a simple salad:\[
+Consider a Golog program for making a simple salad:\\
+\ \\
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+\[
+\begin{array}{c}
+\mathbf{proc}\ ChopTypeInto(type,dest)\\
+\pi(obj)[IsType(obj,type)?\ ;\\
+chop(obj)\ ;\ place\_in(obj,dest)]\\
+\mathbf{end}\end{array}\]
+  \end{column}
+  \begin{column}{0.5\textwidth}
+\[
 \begin{array}{c}
 \mathbf{proc}\ MakeSalad(dest)\\
 ChopTypeInto(Lettuce,dest)\ ;\\
@@ -123,21 +147,21 @@ ChopTypeInto(Carrot,dest)\ ;\\
 ChopTypeInto(Tomato,dest)\ ;\\
 mix(dest,1)\\
 \mathbf{end}\end{array}\]
+  \end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}
 \frametitle{Executing a Golog Program}
 Intuitively, an agent must find a \emph{legal execution} of its nondeterministic
-program - some set of choices for the nondeterministic components that allow
-the program to execute successfully.\\
+program - some set of choices for the nondeterministic components so that all
+actions performed are possible, and all test conditions are satisfied.\\
 \ \\
 Formally, the agent must find a situation $s$ such that:\[
 \mathbf{D} \models \exists s . Do(\delta,S_0,s)\]
 
 Here, $\mathbf{D}$ is the Situation Calculus theory of action, and $Do$
-encodes the semantics of the Golog operators.\\
-\ \\
-Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.
+encodes the semantics of the Golog operators.  Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.
 \end{frame}
 
 \begin{frame}
@@ -232,6 +256,8 @@ some challenges when moving to a multi-agent setting:
   \item Need to coordinate concurrent actions
   \pause
   \item Need to predict actions of others, and the environment
+  \pause
+  \item Agents may have differing knowledge/belief about the world
 \end{itemize}
 \ \\
 \ \\
@@ -261,7 +287,7 @@ Need to:
 \end{frame}
 
 \begin{frame}
-\frametitle{The Concurrent Situation Calculus (Reiter, TODO)}
+\frametitle{The Concurrent Situation Calculus (Reiter, 1996)}
 Have the first argument of an action name the agent performing it:\[
 pickup(Thomas,Lettuce1),\ mix(Richard,Bowl1,1)\]
 \pause
@@ -270,7 +296,7 @@ at the same time:\[
 do(\{pickup(Thomas,Lettuce1),pickup(Richard,Tomato1)\},S_0)\]
 \pause
 Precondition interaction:\[
-Poss({pickup(Richard,Obj),pickup(Harriet,Obj)},s)\ ?\]
+Poss(\{pickup(Richard,Obj),pickup(Harriet,Obj)\},s)\ ?\]
 \pause
 Basic solution:\[
 Poss(C,s) \leftrightarrow \forall a \in C.Poss(a,s)\ \wedge\ \neg Conflicts(C,s)\]
@@ -314,13 +340,13 @@ Example: bake a cake for \emph{10 minutes}
 
 \begin{frame}
 \frametitle{The Temporal Situation Calculus}
-Adding time to the S.C. has a long history (TODO: refs).\\
+Adding time to the S.C. has a long history (Pinto 1994, Reiter 1996).\\
 \ \\
-We opt for a simple solution: attach an explcit time to each situation,
+We opt for a simple solution: attach an explicit time to each situation,
 indicating when it was brought about:\[
 \begin{array}{c}
 do(a_1,t_1,S_0),\ do(a_2,t_2,do(a_1,t_1,S_0))\\
-Poss(a,t,s) \leftrightarrow\ \dots
+Poss(a,t,s) \leftrightarrow\ \dots\\
 start(do(a,t,s)) = t
 \end{array}\]
 \pause
@@ -340,15 +366,15 @@ So this concurrent action is problematic:\[
 \{mix(Thomas,Bowl1,5),pickup(Robert,Lettuce1)\}\]
 Standard solution: decompose continuous actions into instantaneous $begin$ 
 and $end$ actions:\[
-begin\_mix(Thomas,Bowl1,5)$, $end\_mix(Thomas,Bowl1,5)\]
-But $begin\_mix$ is not a standard action.  It cannot be performed at
+begin\_mix(Thomas,Bowl1,5) \dots end\_mix(Thomas,Bowl1,5)\]
+But $end\_mix()$ is not a standard action.  It cannot be performed at
 any time.  Rather, it \emph{must} occur whenever it is possible.
 \end{frame}
 
 \section{Natural Actions}
 
 \begin{frame}
-\frametitle{Natural Actions (Reiter, TODO)}
+\frametitle{Natural Actions (Reiter, 1996)}
 \begin{itemize}
   \item Natural Action:  an action that must occur whenever it is possible,
         unless some earlier action prevents it from occuring.
@@ -369,6 +395,24 @@ Poss(c,t,s) \wedge start(s) \leq t \wedge\\
 \end{frame}
 
 \begin{frame}
+\frametitle{Our Semantics}
+Most ConGolog/IndiGolog operators trivially modified for the extended S.C.\\
+\ \\
+\pause
+$Trans(c,s,\delta',s')$ modified to ensure only legal situations are produced
+(too complicated for this slide)
+\pause
+\[\begin{array}{cc}
+Trans(\delta_1\ ||\ \delta_2,s,\delta',s') & \equiv \exists \gamma . \delta'=(\gamma\ ||\ \delta_2)\wedge Trans(\delta_1,s,\gamma,s')\\
+& \vee\ \exists \gamma . \delta'=(\delta_1\ ||\ \gamma)\wedge Trans(\delta_2,s,\gamma,s')\\
+& \vee\ \exists c_1,c_2,\gamma_1,\gamma_2,t.\ Trans(\delta_1,s,\gamma_1,do(c_1,t,s)\\
+& \wedge\ Trans(\delta_2,s,\gamma_2,do(c_2,t,s)) \wedge \delta'=(\gamma_1||\gamma_2)\\
+& \wedge \forall a\left[a \in c_1 \wedge a \in c_2 \rightarrow natural(a) \right]\\
+& \wedge\ Poss(c_1 \cup c_2,t,s) \wedge s'=do(c_1 \cup c_2,t,s)\\
+\end{array}\]
+\end{frame}
+
+\begin{frame}
 \frametitle{Making Salad, again}
 So, how does a team cooperate to make a salad?
 \[
@@ -384,6 +428,9 @@ So, how does a team cooperate to make a salad?
 \end{frame}
 
 \section{Implementation}
+
+\begin{frame}
+\frametitle{Implementation 1}
 Our first implementation was in Prolog:
 \begin{itemize}
   \item $Trans$ rules from the semantics of ConGolog/IndiGolog
@@ -394,8 +441,71 @@ Our first implementation was in Prolog:
   \pause
   \item And an axiomatisation of the "cooking agents" domain
 \end{itemize}
+\ \\
+\ \\
+\pause
+It functions as a \emph{centralised} multi-agent planner.
+\end{frame}
+
+\begin{frame}
+\frametitle{Actually Making Salad}
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+    \VerbatimInput[fontsize=\tiny]{output_makeSalad_1.txt}
+  \end{column}
+  \begin{column}{0.5\textwidth}
+    \VerbatimInput[fontsize=\tiny]{output_makeSalad_2.txt}
+  \end{column}
+\end{columns}
+\ \\
+\ \\
+Can give idle agents other work using:\[
+MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Implementation 2}
+But, we want to take advantage of the distributed reasoning capabilities of
+the team.  Since we have a logic-based language, we need
+\emph{Distributed Logic Programming}.\\
+\ \\
+Oz is a multi-paradigm language with strong support for distributed execution.
+In particular, it can do parallel search over logic programs:\\
+\ \\
+\VerbatimInput[fontsize=\scriptsize]{oz_code.txt}
+\ \\
+This version can function as a \emph{distributed} multi-agent planner
+\end{frame}
 
 \section{Related/Future Work}
 
+\begin{frame}
+\frametitle{Related Work}
+\emph{Many} extensions to the situation calculus and Golog.  We were able to
+pick and choose the ones we needed.\\
+\ \\
+Multi-agent Golog:
+\begin{itemize}
+  \item CASL: Modelling and Simulation of Multi-Agent Systems (Levesque, 2002-)
+  \item ReadyLog: Golog for Team Coordination and Control (Lakemeyer, 2002-)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Future Work}
+So far, agents are assumed to be fully informed, and the world
+fully obersvable.  This is not realistic in many situations. 
+Investigating:
+\begin{itemize}
+  \item Knowledge and Belief in the S.C.
+  \item Sensing from IndiGolog
+  \item Modal logics of Knowledge and Belief
+\end{itemize}
+\ \\
+\ \\
+While planning uses the teams' distributed resources, control of the
+process is still centralised.  How can the agents plan together without
+centralised control?
+\end{frame}
 
 \end{document}
