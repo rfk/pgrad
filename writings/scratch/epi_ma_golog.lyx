@@ -1,0 +1,273 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Cooperative Execution of IndiGolog Programs
+\layout Author
+
+Ryan Kelly
+\layout Section
+
+Introduction
+\layout Section
+
+Preliminaries
+\layout Subsection
+
+
+\begin_inset Formula $Trans$
+\end_inset 
+
+ and 
+\begin_inset Formula $Step$
+\end_inset 
+
+
+\layout Standard
+
+The semantics of IndiGolog is traditionally given in terms of a predicate
+ 
+\begin_inset Formula $Trans(\delta,s,\delta',s')$
+\end_inset 
+
+ which indicates possible transitions of the program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ The situations 
+\begin_inset Formula $s$
+\end_inset 
+
+ and 
+\begin_inset Formula $s'$
+\end_inset 
+
+ can be related in one of two ways: either 
+\begin_inset Formula $s'=s$
+\end_inset 
+
+, or 
+\begin_inset Formula $\exists c,t\, s'=do(c,t,s)$
+\end_inset 
+
+.
+ Thus, 
+\begin_inset Formula $Trans$
+\end_inset 
+
+ cannot be used directly to determine the next action to take.
+\layout Standard
+
+TODO: figure out a better SOL axiom for 
+\begin_inset Formula $Step$
+\end_inset 
+
+, rather than using 
+\begin_inset Formula $Trans*$
+\end_inset 
+
+
+\layout Standard
+
+For clarity, we define a predicate 
+\begin_inset Formula $Step(\delta,s,\delta',s')$
+\end_inset 
+
+ that behaves like 
+\begin_inset Formula $Trans,$
+\end_inset 
+
+ but guarantees that 
+\begin_inset Formula $\exists c,t\, s'=do(c,t,s)$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+Step(\delta,s,\delta',s')\equiv\exists c,t\, s'=do(c,t,s)\wedge Trans*(\delta,s,\delta',s')\]
+
+\end_inset 
+
+
+\layout Subsection
+
+The 
+\begin_inset Formula $Task$
+\end_inset 
+
+ fluent
+\layout Standard
+
+Given that agents may be unable to observe all actions that have taken place,
+ they could possibly consider the program to be in various stages of completion.
+ Since agent's knowledge is represented in terms of possible situations,
+ it is thus necessary to somehow embed the program being executed into the
+ situations themselves.
+ The fluent 
+\begin_inset Formula $Task(\delta,s)$
+\end_inset 
+
+ is defined for this purpose, which should be read as asserting that 
+\begin_inset Quotes eld
+\end_inset 
+
+program 
+\begin_inset Formula $\delta$
+\end_inset 
+
+remains to be executed in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+\begin_inset Quotes erd
+\end_inset 
+
+ The successor state axiom for this fluent can be formulated using 
+\begin_inset Formula $Step$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+Task(\delta,do(c,t,s))\equiv\exists\delta'\, Task(\delta',s)\wedge Step(\delta',s,\delta,do(c,t,s))\]
+
+\end_inset 
+
+
+\layout Standard
+
+The program 
+\begin_inset Formula $\delta_{0}$
+\end_inset 
+
+ to be carried out by the agents can then be specified using 
+\begin_inset Formula $Task(\delta_{0},S_{0})$
+\end_inset 
+
+.
+ It's worth noting that this fluent need not indicate a unique value of
+ 
+\begin_inset Formula $\delta$
+\end_inset 
+
+ for any particular situation.
+ For situations that cannot be reached during the execution of 
+\begin_inset Formula $\delta_{0}$
+\end_inset 
+
+, there can be no program remaining to execute and it will not hold for
+ any 
+\begin_inset Formula $\delta$
+\end_inset 
+
+.
+ For programs that can execute along several branches with the same action
+ (such as 
+\begin_inset Formula $a;b\,|\, a;c$
+\end_inset 
+
+) it will be true for several programs, any of which could be used to further
+ the execution.
+\layout Subsection
+
+Ordering over Situations
+\layout Standard
+
+To assist in coordination between the agents, they share a strict total
+ order 
+\begin_inset Formula $<$
+\end_inset 
+
+ over situation terms.
+ Intuitively, the agents will consider a situation 
+\begin_inset Formula $S_{1}$
+\end_inset 
+
+to be 
+\begin_inset Quotes eld
+\end_inset 
+
+better
+\begin_inset Quotes erd
+\end_inset 
+
+ than 
+\begin_inset Formula $S_{2}$
+\end_inset 
+
+ if 
+\begin_inset Formula $S_{2}<S_{1}$
+\end_inset 
+
+, and when executing each step of the program will choose the best situation
+ known to be possible.
+ In practise the ordering may be arbitrary, or it may indeed reflect some
+ judgement on the utility of the situations.
+ Its only purpose here is to reduce the communication required in coordinating
+ actions.
+\layout Subsection
+
+Communication
+\layout Standard
+
+There has been significant work done on modelling communication in the situation
+ calculus.
+ Typically, special actions such as 
+\begin_inset Formula $ask$
+\end_inset 
+
+ and 
+\begin_inset Formula $tell$
+\end_inset 
+
+ are used to indicate communication between agents, with the successor state
+ axioms for these actions updating the knowledge states of the agents involved.
+ They can thus be viewed as a type of sensing action.
+\layout Standard
+
+For the purposes of this paper...TODO: still thinking about this.
+\layout Section
+
+TODO
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset 
+
+
+\the_end
