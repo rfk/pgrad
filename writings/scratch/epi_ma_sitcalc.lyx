@@ -25,10 +25,26 @@
 
 \layout Title
 
-The Epistemic Multi-Agent Situation Calculus
+Knowledge in the Multi-Agent Situation Calculus with Partial Observability
 \layout Author
 
 Ryan Kelly
+\layout Abstract
+
+In this paper we extend the account of knowledge in the situation calculus
+ to handle rich multi-agent domains with partial observability of actions.
+ Models of mult-agent domains in the situation calculus typically assume
+ that all agents are aware of all actions that have been performed, and
+ thus have a complete history of the world.
+ Clearly this assumption does not always hold in real-world systems.
+ By explicitly axiomatising the conditions under which actions are observable,
+ we develop a new account of knowledge that is free of this assumption and
+ can thus model a wider variety of multi-agent domains.
+ We also develop a general account of communication actions as sensing actions,
+ so that adding new communication actions does not require modifying the
+ axiomatisation of knowledge.
+ This is accomplished in a situation calculus variant that includes several
+ extensions, such as concurrent actions and explicit time.
 \layout Section
 
 Introduction
@@ -40,8 +56,8 @@ The situation calculus
 \end_inset 
 
  is a popular formalism for representing dynamic worlds.
- Over the years, many extensions have been proposed for representing concepts
- such as knowledge 
+ Since its inception, many extensions have been proposed to enrich its ontology
+ with concepts such as knowledge 
 \begin_inset LatexCommand \cite{scherl03sc_knowledge}
 
 \end_inset 
@@ -51,84 +67,266 @@ The situation calculus
 
 \end_inset 
 
-, and natural and concurrent actions 
+, natural and concurrent actions 
 \begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
 \end_inset 
 
-.
- The development of time and concurrent actions, in particular, make the
- situation calculus highly suitable for modelling multi-agent domains.
- In 
-\begin_inset LatexCommand \cite{scherl03conc_knowledge}
+, and complex actions based on the GOLOG family of languages 
+\begin_inset LatexCommand \cite{levesque97golog,giacomo00congolog}
 
 \end_inset 
 
- these concepts are combined with an account of knowledge in the context
- of a single-agent system.
+.
+ These extensions can be combined to provide a rich formalism for modelling
+ multi-agent systems, such as the Cognitive Agent Specification Language
+ (CASL) 
+\begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
+
+\end_inset 
+
+ and ReadyLog 
+\begin_inset LatexCommand \cite{Ferrein2005readylog}
+
+\end_inset 
+
+.
 \layout Standard
 
-However, there appears to be no account of knowledge in a multi-agent variant
- of the situation calculus.
- Such an account must consider several complications that do not arise in
- the single-agent case:
-\layout Itemize
-
-Agents only know the results of sensing actions that they themselves have
- performed
-\layout Itemize
-
-Agents may not be able to observe the actions taken by other agents
+A common assumption among such work is that agents are always aware of which
+ actions have been performed in the world.
+ Indeed, the very notion of 'situation' is formalised as a history of actions.
+ While agents may be unsure about precisely what situation the world started
+ out it, they are never unsure as to precisely what situation they are in
+ relative to it.
+ When dealing with knowledge in a multi-agent context, this assumption does
+ not necessarily hold - it is quite conceivable that one agent could perform
+ an action without another agent being aware of it.
+ This paper provides an account of knowledge in the multi-agent situation
+ calculus that lifts this assumption and is thus suitable for partially
+ observable domains.
 \layout Standard
 
-It is the aim of this paper to provide such an account.
+Multi-agent systems almost invariably require communication between agents,
+ which is typically represented by explicit communication actions.
+ Such actions are intricately connected with the knowledge states of the
+ agents involved, and existing accounts of knowledge such as 
+\begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
+
+\end_inset 
+
+ include them explicitly in the dynamics of knowledge change.
+ However, it should not be necessary to alter the fundamental axioms of
+ the formalism to add or modify communication actions.
+ We propose a general account of communication actions as sensing actions
+ to achieve this seperation.
 \layout Section
 
-The Situation Calculus and Extensions
+The Situation Calculus for Multi-Agent Domains
 \layout Standard
 
-In this section, the basic situation calculus is discussed, along with some
- important extensions which will be integrated throughout this paper.
-\layout Standard
+In this section, we introduce the situation calculus enriched with a number
+ of extensions that are useful for modelling multi-agent domains.
+ It is a combination of the following:
+\layout Itemize
 
-In order to explore this topic in a concrete way, a running example is introduce
-d: the 
-\begin_inset Quotes eld
-\end_inset 
-
-Cooking Agents
-\begin_inset Quotes erd
-\end_inset 
-
- domain.
- In this domain, several robotic chefs inhabit a kitchen containing various
- ingredients, appliances and utensils.
- The agents must cooperate to produce a meal consisting of several dishes.
-\layout Subsection
-
-The Situation Calculus
-\layout Standard
-
-The representation of a dynamic world in the basic situation calculus consists
- of first-order logic statements capturing the following: actions that can
- be performed in the world; fluents describing the state of the world; precondit
-ion axioms describing when actions are possible; and successor state axioms
- describing how fluents change across situations.
- A detailed treatment is available in 
+The basic situation calculus, as described in 
 \begin_inset LatexCommand \cite{reiter91frameprob}
 
 \end_inset 
 
-.
+
+\layout Itemize
+
+An explicit temporal component similar to that of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+, but attached to situations rather than actions
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+This eliminates some technical complexities such as the 
+\begin_inset Formula $coherent$
+\end_inset 
+
+ predicate of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+ and the action-time pairs of 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset 
+
+, at the expense of more verbose predicate signatures.
+\end_inset 
+
+
+\layout Itemize
+
+Concurrent actions and natural actions, as developed in 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+
+\layout Itemize
+
+Knowledge and sensing, as developed in 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset 
+
+ and expanded in 
+\begin_inset LatexCommand \cite{scherl03conc_knowledge}
+
+\end_inset 
+
+
+\layout Itemize
+
+Multiple agents and communication, as used in CASL 
+\begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
+
+\end_inset 
+
+
+\layout Standard
+
+These components are largely independent, and any can be removed from the
+ formulation in a straight-forward manner.
+ Only an overview is provided here, for details see the individual works.
+\layout Subsection
+
+Preliminaries
+\layout Standard
+
+The situation calculus is a many-sorted first-order logic language for describin
+g dynamic worlds.
+ Its principle components are described in the following paragraphs.
+\newline 
+
 \layout Standard
 
 
-\emph on 
-Actions
-\emph default 
- are functions in the logic denoting the ways in which the world can be
- changed, and are taken to be instantaneous.
- The 
+\noun on 
+Agent
+\noun default 
+ terms (variables 
+\begin_inset Formula $agt$
+\end_inset 
+
+, 
+\begin_inset Formula $agt_{i}$
+\end_inset 
+
+) represent the agents operating in the world.
+ We assume a fixed, finite number of agents.
+ 
+\layout Standard
+
+
+\noun on 
+Action
+\noun default 
+ terms (variables 
+\begin_inset Formula $a$
+\end_inset 
+
+, 
+\begin_inset Formula $a'$
+\end_inset 
+
+, 
+\begin_inset Formula $a_{i}$
+\end_inset 
+
+) represent individual events that can cause the state of the world to change.
+ They are typically functions that take an agent as their first argument,
+ e.g.
+ 
+\begin_inset Formula $pickup(Harriet,Block1)$
+\end_inset 
+
+ represents agent 
+\begin_inset Formula $Harriet$
+\end_inset 
+
+ picking up the block 
+\begin_inset Formula $Block1$
+\end_inset 
+
+.
+ Actions may also occur outside the control of any agent, for example a
+ block hitting the floor when dropped: 
+\begin_inset Formula $hitFloor(Block2)$
+\end_inset 
+
+.
+ Actions are assumed to be instantaneous.
+\layout Standard
+
+
+\noun on 
+Concurrent
+\noun default 
+ terms (variables 
+\begin_inset Formula $c$
+\end_inset 
+
+, 
+\begin_inset Formula $c'$
+\end_inset 
+
+, 
+\begin_inset Formula $c_{i}$
+\end_inset 
+
+) are sets of actions that occur at the same instant.
+ It is assumed that an appropriate axiomatisation of the behavior of sets
+ is provided.
+\layout Standard
+
+
+\noun on 
+Time 
+\noun default 
+terms (variables 
+\begin_inset Formula $t$
+\end_inset 
+
+, 
+\begin_inset Formula $t'$
+\end_inset 
+
+, 
+\begin_inset Formula $t_{i}$
+\end_inset 
+
+) represent instants of time.
+ No commitment is made to a particular way of representing time, other than
+ that it behave arithmetically and have an appropriate axiomatisation.
+ Reals or integers are typically used.
+\layout Standard
+
+
+\noun on 
+Situation 
+\noun default 
+terms (variables 
+\begin_inset Formula $s$
+\end_inset 
+
+, 
+\begin_inset Formula $s'$
+\end_inset 
+
+) can be thought of as representing the 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -136,86 +334,139 @@ state of the world
 \begin_inset Quotes erd
 \end_inset 
 
- is represented as a 
-\emph on 
-situation
-\emph default 
-, which is the history of actions that have been performed so far, with
- the initial situation represented by the term 
+.
+ They are in fact histories of the actions that have occured in the world.
+ The initial situation is represented by 
 \begin_inset Formula $S_{0}$
 \end_inset 
 
-.
- Terms representing other situations are constructed using the function
- 
-\begin_inset Formula $do(a,s)$
+, and further situations are built up using the function 
+\begin_inset Formula $do\,:\, Action\times Time\times Situation\rightarrow Situation$
 \end_inset 
 
- which gives the situation resulting from performing action 
-\begin_inset Formula $a$
+.
+ For example, 
+\begin_inset Formula $do(\{ pickup(Harriet,Block1)\},T,S)$
+\end_inset 
+
+ indicates the situation resulting from 
+\begin_inset Formula $Harriet$
+\end_inset 
+
+ picking up 
+\begin_inset Formula $Block1$
+\end_inset 
+
+ at time 
+\begin_inset Formula $T$
 \end_inset 
 
  in situation 
-\begin_inset Formula $s$
+\begin_inset Formula $S$
 \end_inset 
 
 .
 \layout Standard
 
-For example, the action of placing an egg in a bowl may be represented by
- the following action term:
-\layout Standard
 
-
-\begin_inset Formula \[
-place\_ in(Egg,Bowl)\]
-
+\noun on 
+Fluent 
+\noun default 
+terms (variables 
+\begin_inset Formula $f$
 \end_inset 
 
-
-\layout Standard
-
-If this is the first action performed in the world, the new situation becomes:
-\layout Standard
-
-
-\begin_inset Formula \[
-do(place\_ in(Egg,Bowl),S_{0})\]
-
+, 
+\begin_inset Formula $f'$
 \end_inset 
 
+) are predicates or functions that represent properties of the world.
+ The take as their last argument a situation term.
+ For example, 
+\begin_inset Formula $holding(Harriet,Block1,S)$
+\end_inset 
 
-\layout Standard
+ is true when 
+\begin_inset Formula $Harriet$
+\end_inset 
 
-Properties of the world are described by 
-\emph on 
-fluents
-\emph default 
-, which are functions or predicates taking a situation as their final argument.
- For example, the fact that the agent has possession of a knife in some
- situation 
+ is holding 
+\begin_inset Formula $Block1$
+\end_inset 
+
+ in the situation 
 \begin_inset Formula $S$
 \end_inset 
 
- might be represented as:
+.
+\layout Standard
+
+
+\noun on 
+Object 
+\noun default 
+terms (variables 
+\begin_inset Formula $obj$
+\end_inset 
+
+, 
+\begin_inset Formula $obj_{i}$
+\end_inset 
+
+) represent any other objects in the domain.
+\layout Subsection
+
+Useful Functions
+\layout Standard
+
+The following functions are introduced to the situation calculus to make
+ it easier to write complex expressions.
+\layout Standard
+
+
+\begin_inset Formula $start(s)$
+\end_inset 
+
+ gives the starting time of a situation:
 \layout Standard
 
 
 \begin_inset Formula \[
-has\_ object(Knife,S)\]
+start(do(c,t,s))=t\]
 
 \end_inset 
 
 
 \layout Standard
 
-Precondition axioms are given in terms of 
-\emph on 
-possibility predicates
-\emph default 
-, which specify when it is possible for a given action to be performed.
- To state that the agent may only place an object in a bowl when they have
- possession of that bowl, the following possibility predicate could be used
+
+\begin_inset Formula $agent(a)$
+\end_inset 
+
+ gives the agent that performs an action, and must be defined for each action
+ in the domain.
+ For example:
+\layout Standard
+
+
+\begin_inset Formula \[
+agent(pickup(agt,obj))=agt\]
+
+\end_inset 
+
+
+\layout Subsection
+
+Action Precondition Axioms
+\layout Standard
+
+There is a distinguished fluent predicate 
+\begin_inset Formula $Poss(a,t,s)$
+\end_inset 
+
+ that indicates when it is possible to perform an action in a given situation.
+ For example, it is only possible for an agent to drop an object if they
+ are holding it
 \begin_inset Foot
 collapsed true
 
@@ -234,256 +485,15 @@ We follow the convention that lowercase terms are implicitly universally
 
 \begin_inset Formula \[
 \begin{array}{c}
-Poss(place\_ in(obj,Bowl),s)\\
-\leftrightarrow has\_ object(Bowl,s)\end{array}\]
+Poss(drop(agt,obj),t,s)\\
+\leftrightarrow holding(agt,obj,s)\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-The truth values of fluents are specified by defining what is true of the
- initial situation, and collecting the effects of various actions into
-\emph on 
- successor state axioms
-\emph default 
-.
- These state that a fluent is true if something caused it to be true, or
- it was previously true and nothing caused it to be false.
- Successor state axioms provide a general solution to the frame problem,
- developed fully in 
-\begin_inset LatexCommand \cite{reiter91frameprob}
-
-\end_inset 
-
-.
- They have the general form:
-\layout Standard
-
-
-\begin_inset Formula \[
-f(\overrightarrow{x},do(a,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a,s)\,\vee\, f(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a,s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-Here 
-\begin_inset Formula $f$
-\end_inset 
-
- is a fluent with non-situation arguments 
-\begin_inset Formula $\overrightarrow{x}$
-\end_inset 
-
-, 
-\begin_inset Formula $\Gamma^{+}$
-\end_inset 
-
- is a formula giving the conditions under which 
-\begin_inset Formula $f$
-\end_inset 
-
- will become true, and 
-\begin_inset Formula $\Gamma^{-}$
-\end_inset 
-
- a formula giving the conditions under which 
-\begin_inset Formula $f$
-\end_inset 
-
- will become false.
-\layout Subsection
-
-Time
-\layout Standard
-
-There have been several efforts to incorporate a temporal component into
- the situation calculus, beginning with Pinto 
-\begin_inset LatexCommand \cite{pinto94temporal}
-
-\end_inset 
-
-.
- Reiter 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
- simplified this work by including within each action an explicit argument
- indicating the time at which it was performed.
- While this is useful when specifying precise times for action occurrences,
- it has several drawbacks:
-\layout Itemize
-
-when actions are performed concurrently (see section TODO) one must ensure
- that all actions in a set have the same occurance time 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
-
-\layout Itemize
-
-when integrated with knowledge (see section TODO) it requires that the agent
- always know the absolute time at which actions are performed 
-\begin_inset LatexCommand \cite{scherl03conc_knowledge}
-
-\end_inset 
-
-
-\layout Standard
-
-These complications can be avoided by attaching the occurrence time not
- to actions but to situations.
- The successor situation function 
-\begin_inset Formula $do(a,s)$
-\end_inset 
-
- becomes 
-\begin_inset Formula $do(a,t,s)$
-\end_inset 
-
-, to indicate 
-\begin_inset Quotes eld
-\end_inset 
-
-action 
-\begin_inset Formula $a$
-\end_inset 
-
- was performed at time 
-\begin_inset Formula $t$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
-\end_inset 
-
-
-\begin_inset Quotes erd
-\end_inset 
-
-.
- Likewise, the possibility predicate 
-\begin_inset Formula $Poss(a,s)$
-\end_inset 
-
- becomes 
-\begin_inset Formula $Poss(a,t,s)$
-\end_inset 
-
-, meaning 
-\begin_inset Quotes eld
-\end_inset 
-
-it is possible to perform action 
-\begin_inset Formula $a$
-\end_inset 
-
- at time 
-\begin_inset Formula $t$
-\end_inset 
-
- in situation 
-\begin_inset Formula $s$
-\end_inset 
-
-
-\begin_inset Quotes erd
-\end_inset 
-
-.
- The function 
-\begin_inset Formula $start(s)$
-\end_inset 
-
- is introduced which gives the starting time of a situation:
-\layout Standard
-
-
-\begin_inset Formula \[
-start(do(a,t,s))=t\]
-
-\end_inset 
-
-
-\layout Standard
-
-Note that the start time of the initial situation is arbitrary, and may
- be defined as required for specific applications.
- As yet there are also no restrictions on what values the time argument
- may take (for example real numbers of integers) although clearly the values
- should have a total order defined over them.
- For clarity and ease of exposition, it will be assumed that time values
- are of some arithmetic type with defined relationships such as 
-\begin_inset Formula $<$
-\end_inset 
-
-, 
-\begin_inset Formula $+$
-\end_inset 
-
- and 
-\begin_inset Formula $-$
-\end_inset 
-
-.
-\layout Subsection
-
-Concurrency
-\layout Standard
-
-The work of 
-\begin_inset LatexCommand \cite{lin92sc_conc,reiter96sc_nat_conc}
-
-\end_inset 
-
- provides an extension to the situation calculus that allows several actions
- to occur at the same instant.
- Single actions are replaced with sets of actions to be performed simultaneously.
- All functions and predicates that take an action are modified to accept
- sets of actions instead.
- For example, 
-\begin_inset Formula $do$
-\end_inset 
-
- and 
-\begin_inset Formula $Poss$
-\end_inset 
-
- become 
-\begin_inset Formula $do(\{ a_{1},a_{2},...\},t,s)$
-\end_inset 
-
- and 
-\begin_inset Formula $Poss(\{ a_{1},a_{2},...\},t,s)$
-\end_inset 
-
- respectively.
-\layout Standard
-
-The approach to time used in 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
- requires a predicate 
-\begin_inset Formula $coherent(c)$
-\end_inset 
-
- to be defined, which is true when the concurrent action 
-\begin_inset Formula $c$
-\end_inset 
-
- contains at least one action and all the actions occur at the same time.
- By attaching time to situations instead of actions, this property is automatica
-lly satisfied.
-\layout Standard
-
-This approach introduces several complications.
- First, an arbitrary combination of actions 
+For concurrent actions, an arbitrary combination of actions 
 \begin_inset Formula $\{ a_{1},a_{2}\}$
 \end_inset 
 
@@ -514,7 +524,7 @@ This is addressed by introducing a predicate
 \end_inset 
 
  are in conflict and cannot be performed together.
- The possibility axiom for concurrent actions is then:
+ The following possibility axiom is then introduced for concurrent actions:
 \layout Standard
 
 
@@ -524,63 +534,83 @@ Poss(c,t,s)\leftrightarrow\forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\we
 \end_inset 
 
 
+\layout Subsection
+
+Successor State Axioms
 \layout Standard
 
-For the most part, this change interacts in a straightforward way with other
- extensions to the situation calculus.
- All that is typically required is to replace action equality tests (e.g.
- 
-\begin_inset Formula $a=moveTo(Chair)$
+The truth values of fluents are specified by defining what is true of the
+ initial situation, and collecting the effects of various actions into
+\emph on 
+ successor state axioms
+\emph default 
+.
+ These state that a fluent is true if something caused it to be true, or
+ it was previously true and nothing caused it to be false.
+ Successor state axioms provide a general solution to the frame problem,
+ developed fully in 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
 \end_inset 
 
-) with set membership tests (e.g.
- 
-\begin_inset Formula $moveTo(Chair)\in c$
+.
+ They have the general form:
+\layout Standard
+
+
+\begin_inset Formula \[
+F(\overrightarrow{x},do(a,t,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a,t,s)\,\vee\, F(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a,t,s)\]
+
 \end_inset 
 
-).
- Naturally, an axiomatisation of the behavior of sets must be added to the
- action theory.
+
+\layout Standard
+
+Here 
+\begin_inset Formula $F$
+\end_inset 
+
+ is a fluent with non-situation arguments 
+\begin_inset Formula $\overrightarrow{x}$
+\end_inset 
+
+, 
+\begin_inset Formula $\Gamma^{+}$
+\end_inset 
+
+ is a formula giving the conditions under which 
+\begin_inset Formula $F$
+\end_inset 
+
+ will become true, and 
+\begin_inset Formula $\Gamma^{-}$
+\end_inset 
+
+ a formula giving the conditions under which 
+\begin_inset Formula $f$
+\end_inset 
+
+ will become false.
+\layout Standard
+
+TODO: give an example?
 \layout Subsection
 
 Natural Actions
 \layout Standard
 
-
-\begin_inset LatexCommand \label{sub:Natural-Actions}
-
-\end_inset 
-
-
-\layout Standard
-
 Natural actions are a special class of exogenous actions, those actions
- which occur outside of the agent's control.
- Introduced to the situation calculus by Pinto 
-\begin_inset LatexCommand \cite{pinto94temporal}
-
-\end_inset 
-
- and expanded by Reiter 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
-, they are classified according to the following requirement: natural actions
+ which occur outside of any agent's control.
+ They are classified according to the following requirement: natural actions
  must occur at their predicted times, provided no earlier actions prevent
  them from occurring.
  For example, a timer will ring at the time it was set for, unless it is
- switched off.
- They are thus a tool allowing agents to predict the behavior of the environment.
+ cancelled.
+ They are thus a tool allowing agents to predict the behavior of their environme
+nt.
 \layout Standard
 
-The methodology of 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
- is easily modified for the new method of representing time.
- Natural actions are indicated by truth of the predicate 
+Natural actions are indicated by truth of the predicate 
 \begin_inset Formula $natural(a)$
 \end_inset 
 
@@ -643,9 +673,9 @@ Note that the LNTP need not exist for a given situation.
  This can happen both when no natural actions are possible in a situation,
  or when a natural action may occur at any time in a situation (and there
  is thus no earliest time).
- For this paper, it is assumed that the domain axiomatisation is designed
- to avoid such pathological cases, and the absence of an LNTP implies that
- no natural actions are possible.
+ It is assumed that the domain axiomatisation is designed to avoid such
+ pathological cases, and the absence of an LNTP implies that no natural
+ actions are possible.
 \layout Standard
 
 To enforce the requirement that natural actions must occur when possible,
@@ -671,11 +701,39 @@ legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t\wedge\\
 
 \layout Subsection
 
+Communication
+\layout Standard
+
+Inter-agent communication is typically modelled by special communication
+ actions.
+ Representative of this approach are the 
+\begin_inset Formula $informWhether(agt_{1},agt_{2},\phi)$
+\end_inset 
+
+ and 
+\begin_inset Formula $informRef(agt_{1},agt_{2},\theta)$
+\end_inset 
+
+ of CASL, whereby 
+\begin_inset Formula $agt_{1}$
+\end_inset 
+
+ informs 
+\begin_inset Formula $agt_{2}$
+\end_inset 
+
+ about the truth of a formula or the referrent of a function respectively.
+\layout Subsection
+
 Knowledge and Sensing
 \layout Standard
 
-One of the most popular means for reasoning about knowledge is a semantics
- based on 
+The semantics of knowledge in the situation calculus 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset 
+
+ are based on the popular 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -683,32 +741,12 @@ possible worlds
 \begin_inset Quotes erd
 \end_inset 
 
-, typically given in the context of a modal logic.
- The basic notion is that in any given situation, the agent 
-\emph on 
-considers possible
-\emph default 
- an additional set of situations.
- The agent is said to know some formula precisely when that formula is true
- in all situations to agent considers possible.
- This semantics was adapted for the situation calculus in 
-\begin_inset LatexCommand \cite{scherl03sc_knowledge}
-
+ model.
+ A knowledge fluent 
+\begin_inset Formula $K(agt,s',s)$
 \end_inset 
 
-, and expanded in 
-\begin_inset LatexCommand \cite{scherl03conc_knowledge}
-
-\end_inset 
-
- to integrate it with concurrent actions and time.
-\layout Standard
-
-A knowledge fluent 
-\begin_inset Formula $K(s',s)$
-\end_inset 
-
- is added to indicate that 
+ is used to indicate that 
 \begin_inset Quotes eld
 \end_inset 
 
@@ -716,7 +754,11 @@ in situation
 \begin_inset Formula $s$
 \end_inset 
 
-, the agent considers the alternate situation 
+, the agent 
+\begin_inset Formula $agt$
+\end_inset 
+
+ considers the alternate situation 
 \begin_inset Formula $s'$
 \end_inset 
 
@@ -729,7 +771,7 @@ in situation
 \begin_inset Formula $\mathbf{Knows}$
 \end_inset 
 
-can then be introduced as a macro:
+is then introduced as a macro:
 \layout Standard
 
 
@@ -741,24 +783,15 @@ can then be introduced as a macro:
 
 \layout Standard
 
-It is assumed that actions are divided into two types, although this is
- largely to simplify various proofs about the system:
-\layout Itemize
-
-ordinary actions, which affect the state of the world but not the agent's
- knowledge
-\layout Itemize
-
-sensing actions, which affect the agent's knowledge but not the state of
- the world
+TODO: other macros such as KWhether, KRef, etc...
 \layout Standard
 
-To incorporate the results that may be returned from sensing actions, the
- sensing result function 
+To allow actions to return sensing information, the sensing result function
+ 
 \begin_inset Formula $SR(a,s)$
 \end_inset 
 
- is introduced, which gives the value returned by the sensing action 
+ is introduced, which gives the value returned by the action 
 \begin_inset Formula $a$
 \end_inset 
 
@@ -767,13 +800,13 @@ To incorporate the results that may be returned from sensing actions, the
 \end_inset 
 
 .
- This must be accompanied by sensing results axioms to determine the values
- returned, of the form:
+ This is accompanied by sensing results axioms to determine the values that
+ would be returned, of the form:
 \layout Standard
 
 
 \begin_inset Formula \[
-SR(a(\overrightarrow{x}),s)=r\equiv\phi_{a}(\overrightarrow{x},r,s)\]
+SR(a(\overrightarrow{x}),t,s)=r\equiv\phi_{a}(\overrightarrow{x},r,t,s)\]
 
 \end_inset 
 
@@ -781,11 +814,11 @@ SR(a(\overrightarrow{x}),s)=r\equiv\phi_{a}(\overrightarrow{x},r,s)\]
 \layout Standard
 
 For example, consider the action 
-\begin_inset Formula $sense_{Q}$
+\begin_inset Formula $sense_{F}$
 \end_inset 
 
  which senses whether fluent 
-\begin_inset Formula $Q$
+\begin_inset Formula $F$
 \end_inset 
 
  is true or false.
@@ -795,7 +828,7 @@ For example, consider the action
 
 \begin_inset Formula \[
 \begin{array}{c}
-SR(sense_{Q},s)=r\equiv\\
+SR(sense_{F},t,s)=r\equiv\\
 (r="YES"\wedge Q(s))\vee(r="NO"\wedge\neg Q(s))\end{array}\]
 
 \end_inset 
@@ -803,122 +836,98 @@ SR(sense_{Q},s)=r\equiv\\
 
 \layout Standard
 
-For ordinary actions, the value of 
+For actions that dont sense information, the value of 
 \begin_inset Formula $SR$
 \end_inset 
 
- should be set to some arbitrary constant value.
+ should be set to some arbitrary constant such as 
+\begin_inset Formula $"OK"$
+\end_inset 
+
+.
 \layout Standard
 
-The successor state axiom for the knowledge fluent in the absense of time
- or concurrency is given by:
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-K(s'',do(a,s))\equiv\\
-(\exists s')\, s''=do(a,s')\wedge K(s',s)\wedge Poss(a,s')\\
-\wedge SR(a,s)=SR(a,s')\end{array}\]
+Combining the semantics of 
+\begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
 
 \end_inset 
 
-
-\layout Standard
-
-That is, after performing an action the agent considers possible any situations
- that are successors to those considered possible previously, were brought
- about by performing that action, and agree with the sensing results obtained.
- While 
+ and 
 \begin_inset LatexCommand \cite{scherl03conc_knowledge}
 
 \end_inset 
 
- gives a more complex axiom for handling time and concurrency, the underlying
- ideas are the same and it need not be repeated here, except to note that
- our approach to handling time does not required the use of <action,time>
- pairs in the formulation.
-\layout Standard
-
-TODO: actually, we should repeat this, it's just not important at this stage
-\layout Subsection
-
-Multiple Agents
-\layout Standard
-
-The base situation calculus is quite a capable formalism for representing
- multi-agent domains.
- Typically, each action is modified to take as its first argument the agent
- performing it.
- To return to an earlier example, the action of agent 
-\begin_inset Formula $Harriet$
-\end_inset 
-
- placing an egg in a bowl may be represented by:
-\layout Standard
-
-
-\begin_inset Formula \[
-place\_ in(Harriet,Egg,Bowl)\]
-
-\end_inset 
-
-
-\layout Standard
-
-To allow this information be to extracted, the function 
-\begin_inset Formula $actor$
-\end_inset 
-
- is introduced which takes an action, and returns the agent that carried
- it out.
- For example:
-\layout Standard
-
-
-\begin_inset Formula \[
-actor(place\_ in(agt,obj1,obj2))=agt\]
-
-\end_inset 
-
-
-\layout Standard
-
-Typically, one wants to allow agents to action concurrently but prevent
- each agent from performing more than one action at a time.
- This can be achieved as part of the axiomatisation of the 
-\begin_inset Formula $Conflicts$
-\end_inset 
-
- predicate:
+, a successor state axiom for the knowledge fluent can be written:
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
-\exists a_{1},a_{2}\left[a_{1}\in c\wedge a_{2}\in c\wedge actor(a_{1})=actor(a_{2})\right]\\
-\rightarrow Conflicts(c,t,s)\end{array}\]
+K(agt,s'',do(c,t,s))\equiv\\
+\exists s',t'\,.\, s''=do(c,t',s')\,\wedge K(s',s)\wedge Poss(c,t',s')\\
+\wedge\, start(s'')=start(s')+t-start(s)\\
+\wedge\,\forall a\left[a\in c\wedge agent(a)=agt\rightarrow SR(a,t,s)=SR(a,t,s')\right]\\
+\wedge\,\forall agt_{2},\phi\left[informWhether(agt_{2},agt,\phi)\in c\rightarrow\phi[s']\equiv\phi[s]\right]\\
+\wedge\,\forall agt_{2},\theta\left[informRef(agt_{2},agt,\theta)\in c\rightarrow\theta[s']=\theta[s]\right]\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-Since knowledge is specific to an individual agent, the knowledge fluent
- 
+TODO: explain the 
+\begin_inset Formula $\phi[s]$
+\end_inset 
+
+ notation.
+\layout Standard
+
+In words, this states that 
+\begin_inset Formula $s''$
+\end_inset 
+
+ is considered a possible alternative to 
+\begin_inset Formula $do(c,t,s)$
+\end_inset 
+
+ when 
+\begin_inset Formula $s''$
+\end_inset 
+
+ is the result of doing the concurrent actions 
+\begin_inset Formula $c$
+\end_inset 
+
+ at the same relative time 
+\begin_inset Formula $t-start(s)$
+\end_inset 
+
+ in a situation 
+\begin_inset Formula $s'$
+\end_inset 
+
+ that is a possible alternative to 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ The situation must furthermore be possible, the sensing results must agree
+ for all actions in 
+\begin_inset Formula $c$
+\end_inset 
+
+ carried out by that agent and the situation must be consistent with what
+ it has been informed by others.
+\layout Standard
+
+Improving this successor state axiom for 
 \begin_inset Formula $K$
 \end_inset 
 
- must also be modified to 
-\begin_inset Formula $K(agt,s',s)$
-\end_inset 
-
- to indicate the particular agent of concern.
- Providing a suitable successor state axiom for this multi-agent knowledge
- fluent is a prime concern of this paper.
+ is the main aim of this paper.
 \layout Section
 
-Knowledge for Multiple Agents
+New Semantics for Knowledge
 \layout Subsection
 
 Observability of Actions
@@ -932,10 +941,10 @@ Work in the situation calculus generally assumes, even in the multi-agent
 \layout Standard
 
 To deal with this extra complexity, a predicate 
-\begin_inset Formula $Obs(agt,a,s)$
+\begin_inset Formula $CanObs(agt,a,t,s)$
 \end_inset 
 
- is introduce that indicates whether agent 
+ is introduced that indicates whether agent 
 \begin_inset Formula $agt$
 \end_inset 
 
@@ -943,26 +952,120 @@ To deal with this extra complexity, a predicate
 \begin_inset Formula $a$
 \end_inset 
 
- being performed in situation 
+ being performed at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
 \begin_inset Formula $s$
 \end_inset 
 
 .
- The axiomtisation of this predicate, like that of 
+ The axiomatisation of this predicate, like that of 
 \begin_inset Formula $Poss$
 \end_inset 
 
-, would be up to the domain modeller.
+, is the responsibility of the domain modeller.
+\layout Subsection
+
+Communication as Sensing
 \layout Standard
 
-TODO: assume that, at least, agents can always observe the actions that
- they themselves perform
+As observed previously, communication actions are typically built into the
+ successor state axiom of the knowledge fluent.
+ In our opinion, this unnecessarily complicates the semantics of knowledge
+ and makes it more difficult to introduce additional communication actions.
 \layout Standard
 
-This notion has deep implications for the situations that an agent considers
- possible.
- The agent must consider possible any situation brought about by a sequence
- of actions that they cannot observe.
+The existing account of sensing also disallows the possibility that other
+ agents might 
+\begin_inset Quotes eld
+\end_inset 
+
+overhear
+\begin_inset Quotes erd
+\end_inset 
+
+ the results of a sensing operation.
+ For example, consider an agent waiting for a train who activates a speaker
+ to acquire information about when it will arrive.
+ This information will be available to other agents within earshot, even
+ though they did not initiate the sensing action.
+\layout Standard
+
+We propose an additional predicate 
+\begin_inset Formula $CanSense(agt,a,t,s)$
+\end_inset 
+
+ that indicates that the sensing results of action 
+\begin_inset Formula $a$
+\end_inset 
+
+ at time 
+\begin_inset Formula $t$
+\end_inset 
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ would be available to the agent 
+\begin_inset Formula $agt$
+\end_inset 
+
+.
+ Consider formulating the action 
+\begin_inset Formula $informWhether$
+\end_inset 
+
+ in this framework:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(informWhether(agt_{1},agt_{2},\phi),t,s)\equiv\mathbf{KWhether}(agt_{1},\phi,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+SR(informWhether(agt_{2},agt_{3},\phi),t,s)=r\equiv\\
+(r="YES"\wedge\phi[s])\,\vee\,(r="NO"\wedge\neg\phi[s])\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+CanObs(agt_{1},informWhether(agt_{2},agt_{3},\phi),t,s)\equiv\\
+agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+CanSense(agt_{1},informWhether(agt_{2},agt_{3},\phi),t,s)\equiv\\
+agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+As we shall see, this account allows the communication to be treated as
+ a standard sensing action while modifying the knowledge of the agents appropria
+tely.
 \layout Subsection
 
 Successor State Axiom for 
@@ -977,22 +1080,44 @@ What, then, are the considerations required for the successor state axiom
 \begin_inset Formula $K$
 \end_inset 
 
- in for any particular agent.
- The considerations of 
+ for any particular agent? Generalising the considerations of 
 \begin_inset LatexCommand \cite{scherl03sc_knowledge}
 
 \end_inset 
 
- and 
+, 
 \begin_inset LatexCommand \cite{scherl03conc_knowledge}
 
 \end_inset 
 
- must still apply, but tempered by the considerations above.
- Possible situations must:
+ and 
+\begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
+
+\end_inset 
+
+, situations considered possible must:
 \layout Itemize
 
 be successors to situations previously considered possible by the agent
+\layout Itemize
+
+be possible according to 
+\begin_inset Formula $Poss$
+\end_inset 
+
+
+\layout Itemize
+
+agree on relative elapsed time since the start of the previous situation
+\layout Itemize
+
+agree on all actions that the agent observed to occur
+\layout Itemize
+
+agree with all sensing results that the agent observed
+\layout Standard
+
+We introduce two more considerations:
 \layout Itemize
 
 be legal according to 
@@ -1002,46 +1127,123 @@ be legal according to
 , which implies they must be possible
 \layout Itemize
 
-agree on relative elapsed time since the start of the previous situation
-\layout Itemize
-
-agree on all actions that the agent observed to occur
-\layout Itemize
-
-agree on sensing results for all actions that the agent performed
-\layout Itemize
-
 admit the possibility of a sequence of actions that were totally unobservable
  by the agent
 \layout Standard
 
-By formalising each of these considerations, the following successor state
- axiom is obtained:
+By formalising each of the above considerations, the following successor
+ state axiom is obtained:
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
-K(agt,s'',do(c,t,s))\equiv\exists s',c',t'\,.\, s''=do(c',t',s')\wedge\\
-\left(\, K(agt,s',s)\right.\\
-\wedge\, legal(s'')\\
+K(agt,s'',do(c,t,s))\equiv\\
+\exists s',c',t'\,.\, s''=do(c',t',s')\wedge legal(s'')\wedge\\
+\\\left(\, K(agt,s',s)\right.\\
 \wedge\, start(s'')=start(s')+t-start(s)\\
-\wedge\,\forall a\left[a\in c\wedge Obs(agt,a,s)\rightarrow a\in c'\right]\\
-\wedge\,\forall a\left[a\in c'\wedge Obs(agt,a,s)\rightarrow a\in c\right]\\
-\wedge\,\forall a\left[a\in c\wedge actor(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\\
+\wedge\,\forall a\left[a\in c\wedge CanObs(agt,a,t,s)\rightarrow a\in c'\right]\\
+\wedge\,\forall a\left[a\in c'\wedge CanObs(agt,a,t,s)\rightarrow a\in c\right]\\
+\wedge\,\forall a\left[a\in c\wedge CanObs(agt,a,t,s)\wedge CanSense(agt,a,t,s)\right.\\
+\left.\rightarrow SR(a,t,s)=SR(a,t',s')\right]\\
 \vee\\
 K(agt,s',do(c,t,s))\\
-\wedge\,\forall a\left[a\in c'\rightarrow\neg Obs(agt,a,s')\right]\,\left.\right)\end{array}\]
+\left.\wedge\,\forall a\left[a\in c'\rightarrow\neg Obs(agt,a,s')\right]\,\right)\end{array}\]
 
 \end_inset 
 
 
-\layout Subsection
+\layout Section
 
-Knowledge Macros
+Implications for Reasoning
 \layout Standard
 
-TODO: give definitions of Knows, KWhether, KRef etc
+As noted above, the fact that an agent may be unable to observe some actions
+ taking place means that they must consider possible any situation brought
+ about by such actions.This has deep implications for the agent's state of
+ knowledge.
+ If there are many actions that it cannot observe, it must consider possible
+ a large number of situations and so may have difficulting arriving at knowledge
+ of any fluent.
+\layout Standard
+
+In particular, this successor state axiom is unusual in that the term 
+\begin_inset Formula $do(c,t,s)$
+\end_inset 
+
+ appears on the right-hand side.
+ TODO: understand regression better, then write about it here
+\layout Subsection
+
+Possible Remedies
+\layout Standard
+
+For domains with a large amount of unobservability, it may be necessary
+ to take additional steps to allow the agents to accumulate knowledge.
+ If time is discrete, this can be achieved by making all agents aware of
+ the passage of time.
+ Introduce a natural action 
+\begin_inset Formula $tick$
+\end_inset 
+
+ that occurs to indicate the passage from one time instant to the next,
+ and which all agents can observe:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+natural(tick)\equiv True\\
+Poss(tick,t,s)\equiv t=start(s)+1\\
+CanObs(agt,tick,t,s)\equiv True\\
+CanSense(agt,tick,t,s)\equiv True\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Since agents know all situations to be legal, and 
+\begin_inset Formula $tick$
+\end_inset 
+
+ actions can always be observed, all situations considered possible by an
+ agent must agree on how many 
+\begin_inset Formula $tick$
+\end_inset 
+
+s have occured.
+ This prevents long sequences of totally unobservable actions from being
+ considered possible.
+\layout Section
+
+Properties of Knowledge
+\layout Standard
+
+TODO: use the properties developed in other accounts, to show that this
+ still works as required.
+ Such as:
+\layout Itemize
+
+Memory
+\layout Itemize
+
+Persistance of Ignorance
+\layout Itemize
+
+Preservation of reflexivity, transitivity, symmetry etc
+\layout Itemize
+
+Knowledge incorporation (including for communication actions)
+\layout Itemize
+
+inability to know things that might change without it noticing
+\layout Section
+
+Related Work
+\layout Section
+
+Conclusions
 \layout Section
 
 TODO
@@ -1065,6 +1267,13 @@ How does sensing interact with concurrency, if one action undoes a precondition
 
 Try to formulate some regression clauses, although I have my doubts because
  of the use of a situation on both sides of its SSA
+\layout Itemize
+
+Talk about the requirements for knowledge - e.g.
+ symmetry, reflexivity - that we require for this to be reasonable.
+\layout Itemize
+
+Work in Init(s) as a substitute for S0
 \layout Standard
 
 
