@@ -32,9 +32,19 @@ Ryan Kelly
 \layout Section
 
 Introduction
+\layout Standard
+
+TODO: pinch stuff from the MIndiGolog paper to motivate this research.
 \layout Section
 
 Preliminaries
+\layout Subsection
+
+Knowledge
+\layout Standard
+
+We adopt the formalisn of [TODO: my other paper] when modelling knowledge
+ in the multi-agent situation calculus.
 \layout Subsection
 
 
@@ -173,7 +183,8 @@ The program
 \begin_inset Formula $\delta_{0}$
 \end_inset 
 
- to be carried out by the agents can then be specified using 
+ to be carried out by the agents can then be specified by asserting that
+ 
 \begin_inset Formula $Task(\delta_{0},S_{0})$
 \end_inset 
 
@@ -188,8 +199,11 @@ The program
 \begin_inset Formula $\delta_{0}$
 \end_inset 
 
-, there can be no program remaining to execute and it will not hold for
- any 
+, there can be no program remaining to execute and 
+\begin_inset Formula $Task$
+\end_inset 
+
+ will not hold for any 
 \begin_inset Formula $\delta$
 \end_inset 
 
@@ -201,6 +215,158 @@ The program
 
 ) it will be true for several programs, any of which could be used to further
  the execution.
+\layout Subsection
+
+Communication
+\layout Standard
+
+There has been significant work done on modelling communication in the situation
+ calculus.
+ Typically, special actions such as 
+\begin_inset Formula $ask$
+\end_inset 
+
+ and 
+\begin_inset Formula $inform$
+\end_inset 
+
+ are used to indicate communication between agents, with the successor state
+ axioms for these actions updating the knowledge states of the agents involved.
+ In [TODO: my other paper] communication is formalised as a type of sensing
+ action, and this approach will be followed here.
+\layout Standard
+
+We introduce two types of action.
+ 
+\begin_inset Quotes eld
+\end_inset 
+
+Ask
+\begin_inset Quotes erd
+\end_inset 
+
+ actions allow one agent to query the knowledge of another, and 
+\begin_inset Quotes eld
+\end_inset 
+
+inform
+\begin_inset Quotes erd
+\end_inset 
+
+ actions allow an agent to inform another about some knowledge.
+ We further distinguish two types of knowledge - knowledge of formulae,
+ and knowledge of referrents.
+ This results in a total of four communication actions:
+\layout Itemize
+
+
+\begin_inset Formula $askWhether(agt_{1},agt_{2},\phi)$
+\end_inset 
+
+: 
+\begin_inset Formula $agt_{1}$
+\end_inset 
+
+ asks 
+\begin_inset Formula $agt_{2}$
+\end_inset 
+
+ whether the formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ currently holds
+\layout Itemize
+
+
+\begin_inset Formula $askRef(agt_{1},agt_{2},\theta)$
+\end_inset 
+
+: 
+\begin_inset Formula $agt_{1}$
+\end_inset 
+
+ asks 
+\begin_inset Formula $agt_{2}$
+\end_inset 
+
+ for the current refferent of function 
+\begin_inset Formula $\theta$
+\end_inset 
+
+
+\layout Itemize
+
+
+\begin_inset Formula $informWhether(agt_{1},agt_{2},\phi)$
+\end_inset 
+
+: 
+\begin_inset Formula $agt_{1}$
+\end_inset 
+
+ informs 
+\begin_inset Formula $agt_{2}$
+\end_inset 
+
+ whether the formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ currently holds
+\layout Itemize
+
+
+\begin_inset Formula $informRef(agt_{1},agt_{2},\theta)$
+\end_inset 
+
+: 
+\begin_inset Formula $agt_{1}$
+\end_inset 
+
+ informs 
+\begin_inset Formula $agt_{2}$
+\end_inset 
+
+ of the current refferent of function 
+\begin_inset Formula $\theta$
+\end_inset 
+
+
+\layout Standard
+
+The semantics of inform actions are well-understood.
+ Ask actions require extra care, as there is no guarantee that the agent
+ being asked actually knows the information sought.
+ There are thus three possible results from the 
+\begin_inset Formula $askWhether$
+\end_inset 
+
+ action: 
+\begin_inset Quotes eld
+\end_inset 
+
+YES
+\begin_inset Quotes erd
+\end_inset 
+
+, 
+\begin_inset Quotes eld
+\end_inset 
+
+NO
+\begin_inset Quotes erd
+\end_inset 
+
+, and 
+\begin_inset Quotes eld
+\end_inset 
+
+MAYBE
+\begin_inset Quotes erd
+\end_inset 
+
+.
 \layout Subsection
 
 Ordering over Situations
@@ -238,30 +404,171 @@ better
  judgement on the utility of the situations.
  Its only purpose here is to reduce the communication required in coordinating
  actions.
+\layout Standard
+
+This ordering is analogous to the execution strategy of IndiGolog for a
+ single agent.
+ In any particular situation the agent may be faced with several potential
+ actions, but the one that it will actually chose is determined 
+\emph on 
+a priori
+\emph default 
+ by the execution order of the underlying prolog engine.
+ This can be viewed as an ordering over the possible situation terms.
 \layout Subsection
 
-Communication
+When to perform an action
 \layout Standard
 
-There has been significant work done on modelling communication in the situation
- calculus.
- Typically, special actions such as 
-\begin_inset Formula $ask$
+The crux of the coordination strategy for cooperative execution is: given
+ a candidate 
+\begin_inset Quotes eld
 \end_inset 
 
- and 
-\begin_inset Formula $tell$
+next situation
+\begin_inset Quotes erd
 \end_inset 
 
- are used to indicate communication between agents, with the successor state
- axioms for these actions updating the knowledge states of the agents involved.
- They can thus be viewed as a type of sensing action.
+ 
+\begin_inset Formula $s$
+\end_inset 
+
+, when is it safe for the agent to perform its actions 
+\begin_inset Formula $AgentDoing(agt,c,s)$
+\end_inset 
+
+.
+ The idea of 
+\begin_inset Quotes eld
+\end_inset 
+
+safe to perform
+\begin_inset Quotes erd
+\end_inset 
+
+ must capture several considerations:
+\layout Itemize
+
+The agent must know that there is no better situation 
+\begin_inset Formula $s<s'$
+\end_inset 
+
+ that could be brought about by doing something other than 
+\begin_inset Formula $c$
+\end_inset 
+
+
+\layout Itemize
+
+The agent must know that no matter what actions the other agents perform,
+ a legal transition will still result
 \layout Standard
 
-For the purposes of this paper...TODO: still thinking about this.
+We introduce a predicate 
+\begin_inset Formula $SafeToDo(agt,c,t,s)$
+\end_inset 
+
+ that indicates when an agent is safe to perform a set of actions, and assert
+ that no agent will perform any actions unless safe to do so.
+ As a first step to formaulating such a predicate, we introduce 
+\begin_inset Formula $BestMoveM(agt,s',s)$
+\end_inset 
+
+ which indicates that 
+\begin_inset Formula $s'$
+\end_inset 
+
+ is the best move agent 
+\begin_inset Formula $agt$
+\end_inset 
+
+ thinks might be possible in situation 
+\begin_inset Formula $s$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+BestMoveM(agt,s',s)\equiv\mathbf{Maybe}(agt,Step(now,s'),s)\\
+\wedge\,\neg\exists s''\,\mathbf{Maybe}(agt,Step(now,s''),s)\wedge s'<s''\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+It is then possible for formulate 
+\begin_inset Formula $SafeToDo$
+\end_inset 
+
+ as follows:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+SafeToDo(agt,c,t,s)\equiv\exists s_{B},c_{B}\, BestMoveM(agt,s_{B},s)\\
+\wedge s_{B}=do(c_{B},t,s)\,\wedge\,\mathbf{Knows}(agt,Step(now,s_{B}),s)\,\wedge\, AgentDoing(agt,c,c_{B})\\
+\wedge\,\neg\exists s',c'\, s'=do(c',t,s)\,\wedge\, AgentDoing(agt,c,c')\\
+\wedge\,\mathbf{Maybe}(agt,AllSafeToDo(c'/c,now),s)\,\wedge\,\mathbf{Maybe}(agt,\neg Step(now,s'),s)\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Here we have introduced 
+\begin_inset Formula $AllSafeToDo$
+\end_inset 
+
+ as a simple appreviation for:
+\layout Standard
+
+
+\begin_inset Formula \[
+AllSafeToDo(c,s)=^{def}\forall agt\,\exists c'\, AgentDoing(agt,c',c)\wedge SafeToDo(agt,c',s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+Observing this equivalence, it is clear that an agent must reason deeply
+ about nested levels of knowledge in order to determine that an action is
+ safe to perform.
+ TODO: show that such determination is actually tractable.
 \layout Section
 
 TODO
+\layout Itemize
+
+Talk about 
+\begin_inset Formula $AgentDoing$
+\end_inset 
+
+ etc in preliminaries
+\layout Itemize
+
+Need to run programs concurrently with 
+\begin_inset Formula $((\pi(a)sensing(a)?a)^{||})*$
+\end_inset 
+
+ to allow communication in the program.
+ But, must ensure other situations are preferred over these...
+\layout Itemize
+
+Holy moly, this needs serious work to do planning correctly
+\layout Itemize
+
+Things to prove:
+\begin_deeper 
+\layout Itemize
+
+fully observable == no communication necessary
+\end_deeper 
 \layout Standard
 
 
