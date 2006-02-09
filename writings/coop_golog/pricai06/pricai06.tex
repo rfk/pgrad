@@ -1,28 +1,20 @@
-%% LyX 1.3 created this file.  For more info, see http://www.lyx.org/.
-%% Do not edit unless you really know what you are doing.
+
 \documentclass{llncs}
-\usepackage[T1]{fontenc}
 \usepackage{verbatim}
 \usepackage{amsmath}
-\usepackage{amssymb}
 
-\makeatletter
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
-%% Because html converters don't know tabularnewline
-\providecommand{\tabularnewline}{\\}
-
-\makeatother
 \begin{document}
 
 
 \title{High-Level Program Execution for Multi-Agent Teams}
 
-\author{Ryan Kelly and Adrian Pearce}
+\author{Ryan Kelly \and Adrian Pearce}
 
-\institute{The University of Melbourne}
+\institute{The University of Melbourne\\
+\email{\{rfk,adrian\}@csse.unimelb.edu.au}}
 
 \maketitle
+
 \begin{abstract}
 In this paper we present a promising approach to programming multi-agent
 teams based high-level program execution, and a concrete implementation
@@ -32,7 +24,7 @@ alternative to traditional planning for single-agent systems, several
 challenges are encountered when moving to a multi-agent setting: concurrency
 operators must be modified to accurately reflect the concurrency present
 in multi-agent teams, predictable exogenous actions (often called
-{}``natural actions'') must be effectively modelled, and a representation
+"natural actions") must be effectively modelled, and a representation
 of time must be incorporated to assist agent coordination and to ensure
 correctness with respect to natural actions. 
 
@@ -58,7 +50,7 @@ alternative to team planning.
 
 As described in \cite{giacomo99indigolog}, high-level program execution
 is emerging as a practical alternative to traditional plan
-synthesis. By {}``high-level program'' is meant a program whose
+synthesis. By "high-level program" is meant a program whose
 primitive operations are domain-specific actions, and which may be
 incompletely specified due to nondeterministic constructs. Rather
 than a planner finding a sequence of actions leading from an initial
@@ -79,9 +71,9 @@ the world; and formal verification of program properties, in some
 cases using automated tools.
 
 TODO: references for these opinions? Systems involving multiple autonomous
-agents are often classified into two subtypes - {}``open multi-agent
-systems'' in which agent behaviors are loosely coupled, and {}``multi-agent
-teams'' in which agents depend intimately on one another to accomplish
+agents are often classified into two subtypes - "open multi-agent
+systems" in which agent behaviors are loosely coupled, and "multi-agent
+teams" in which agents depend intimately on one another to accomplish
 a shared task. From a programming viewpoint, open multi-agent systems
 are typically constructed by specifying the behavior and goals of
 individual agents and using communication primitives to design interaction
@@ -104,7 +96,7 @@ the world model and to assist in coordination between agents. The
 concept of natural actions \cite{reiter96sc_nat_conc} is also tightly
 integrated into the language, to allow agents to predict the behavior
 of each other and their environment. We name the resulting language
-{}``MIndiGolog'' for {}``Multi-Agent IndiGolog''.
+"MIndiGolog" for "Multi-Agent IndiGolog".
 
 Our new language has been implemented in both CIAO Prolog \cite{iclp99ciao}
 and Mozart \cite{vanroy03mozart_logic} to facilitate research into
@@ -190,7 +182,7 @@ to its success are its wide range of applications (see, for example,
 \cite{levesque97golog,Ferrein2005readylog} ) and many extensions
 to provide additional functionality (such as ConGolog \cite{giacomo00congolog},
 DTGolog \cite{boutilier00dtgolog}, and IndiGolog \cite{giacomo99indigolog}).
-In this paper we use the term {}``Golog'' to refer to the family
+In this paper we use the term "Golog" to refer to the family
 of languages based on this technique.
 
 To program an agent using Golog one specifies a situation calculus
@@ -247,8 +239,8 @@ Procedure definition\tabularnewline
 In line with the idea of high-level program execution, the agent's
 control program is nondeterministic. It is the task of the agent to
 find a deterministic instantiation of the program, a sequence of actions
-that can be performed in the world. Such a sequence is called a {}``legal
-execution'' of the Golog program.
+that can be performed in the world. Such a sequence is called a "legal
+execution" of the Golog program.
 
 The original Golog was conceived as on offline planner - the agent
 would determine a complete execution of the program before any actions
@@ -326,10 +318,10 @@ concurrently as described in Section \ref{sub:Concurrency}.
 
 This complexity can be avoided by attaching the occurrence time not
 to actions but to situations. The successor situation function $do(a,s)$
-becomes $do(a,t,s)$, to indicate {}``action $a$ was performed at
-time $t$ in situation $s$''. Likewise, the possibility predicate
-$Poss(a,s)$ becomes $Poss(a,t,s)$, meaning {}``it is possible to
-perform action $a$ at time $t$ in situation $s$''. The function
+becomes $do(a,t,s)$, to indicate "action $a$ was performed at
+time $t$ in situation $s$". Likewise, the possibility predicate
+$Poss(a,s)$ becomes $Poss(a,t,s)$, meaning "it is possible to
+perform action $a$ at time $t$ in situation $s$". The function
 $start(s)$ is added which gives the starting time of a situation:
 
 \[
@@ -374,8 +366,8 @@ is never possible to perform such an empty set:
 
 The notion of concurrently executing multiple high-level programs
 is treated in \cite{giacomo00congolog} with the development of ConGolog.
-The operator $\delta_{1}||\delta_{2}$ is introduced, meaning {}``execute
-both $\delta_{1}$ and $\delta_{2}$ concurrently''. This is achieved
+The operator $\delta_{1}||\delta_{2}$ is introduced, meaning "execute
+both $\delta_{1}$ and $\delta_{2}$ concurrently". This is achieved
 by interleaving steps of execution from the two programs.
 
 These two notions of concurrency were combined by Baier and Pinto
@@ -554,14 +546,13 @@ the natural actions, or perform the natural actions first. This is
 captured by the following transition rule:
 
 \begin{align*}
-Trans(c,s,\delta',s')\leftarrow & \exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
-& \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\right.\\
-& \left.s'=do(c,t,s)\wedge\delta'=nil\right]\,\,\,\,\vee\\
-& \exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
-& \left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\,\,\,\,\vee\\
-& \left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \,\,\,\,\vee\\
-& \neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
-& \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]
+Trans(c,s,\delta',s')\equiv & \exists t_{n}. lntp(s,t_{n}) \\
+  & \wedge \left\{ \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right.\\
+  &  \quad\vee\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\leftrightarrow a\in cn\right)\\
+  & \quad\wedge\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
+  & \quad\vee\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\}\\
+  & \vee\quad\neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
+  & \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]
 \end{align*}
 
 
@@ -570,88 +561,7 @@ times without the programmer needing to mention them explicitly. If
 natural actions are included in the program, they will performed only
 at their predicted time. A proof of this is offered in Section \ref{sub:Legality-of-the-semantics}.
 
-While time and natural actions in Golog have previously been utilised
-as a planning tool \cite{pirri00planning_nat_acts}, the programmer
-was required to explicitly check for the possible occurrence of natural
-actions and ensure that executions of the program resulted in legal
-situations. Our integration significantly lowers the burden on the
-programmer by guaranteeing that all program executions produce legal
-situations.
-
-
-\subsection{Example Programs}
-
-Having developed the necessary extensions, we now give some examples
-of programs which could be used in the cooking agents domain. One
-powerful feature of our language is the ability to nondeterministically
-select an agent for a particular task. Consider the following procedure
-for making a simple salad in a specified container:
-
-\[
-\begin{array}{c}
-\mathbf{proc}\, MakeSalad(dest)\\
-\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
-\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
-\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
-\pi(agt)(acquire(agt,dest)\,;\\
-\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,1))\,;\\
-\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,1))\,;\\
-\,\,\,\, release(agt,dest))\,\,\mathbf{end}\end{array}\]
-
-
-The procedure $ChopTypeInto$ (not shown) picks an object of the given
-type and an available chopping board, chops the object using the board,
-then transfers it into the destination container. $MakeSalad$ asks
-the agents to do this for a lettuce, a carrot and a tomato, then mix
-the ingredients together. Crucially, the agent assigned to handling
-each ingredient is not specified, nor is the order in which they should
-be added. The agents are free to determine an appropriate strategy.
-
-%
-\begin{figure}[hbt]
-\verbatiminput{listings/output_makeSalad.txt}
-
-\verbatiminput{listings/constraints_makeSalad.txt}
-
-
-\caption{\label{cap:example_trace}Trace of an execution of the $MakeSalad$
-program with three agents (top). Variables $\_ U$, $\_ T$, etc give
-the occurrence times of each action, constrained to ensure all situations
-are legal (bottom).}
-\end{figure}
-
-
-A trace of a legal execution of the $MakeSalad$ program is shown
-in Figure \ref{cap:example_trace}. Notice the occurrence of several
-actions within each \textbf{do} statement, demonstrating the integration
-of true concurrency into the language. By contrast, an implementation
-in ConGolog would have only a single action at each step - assuming
-each step represents a finite time interval, this would unnecessarily
-leave some agents idle. Note also the explicit occurrence time for
-each step, allowing the agents to properly synchronise their actions.
-This time is not fixed but rather constrained based on the times at
-which previous actions were performed. These constraints emerge from
-the underlying situation calculus description of the world and are
-maintained automatically by the language. For coordination purposes
-the agents would agree, for example, to perform each action at the
-earliest possible time.
-
-In this example there are three agents but only two chopping boards,
-meaning one agent has to remain idle while waiting for the necessary
-resources. If other tasks were given concurrently with $MakeSalad$,
-this agent could make progress on those while waiting. For example:
-
-\[
-MakeSalad()\,||\, MakeMainMeal()\,||\, MakeCake()\]
-
-
-
-\section{MIndiGolog Semantics}
-
-\label{sec:Langauge-Semantics}
-
-
-\subsection{Transition Semantics}
+TODO: use theorem and proof environment here
 
 This section shows the modifications that have been made to the semantics
 of IndiGolog to incorporate the extensions outlined above and produce
@@ -659,42 +569,8 @@ the language MIndiGolog. Many operators are defined recursively using
 combinations of $Trans$ and $Final$ and thus do not need to be modified
 - for semantics of the operators not presented here, refer to \cite{giacomo00congolog,giacomo99indigolog}.
 
-The execution of primitive actions needs to be modified to account
-for sets of actions instead of single ones, and to incorporate the
-least natural time point considerations of Section \ref{sub:Natural-Actions}:
-
-\[
-\begin{array}{c}
-Trans(c,s,\delta',s')\leftarrow\\
-\exists t_{n}.\left\{ lntp(s,t_{n})\wedge\right.\\
-\left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge\right.\\
-\left.s'=do(c,t,s)\wedge\delta'=nil\right]\,\,\,\,\vee\\
-\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\rightarrow a\in cn\right)\wedge\\
-\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\,\,\,\,\vee\\
-\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\} \,\,\,\,\vee\\
-\neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
-\left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\end{array}\]
-
-
-The transition relation for the concurrency operators must also be
-modified in accordance with the considerations of Section \ref{sub:Concurrency}:
-
-\[
-\begin{array}{c}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
-\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\,\,\,\,\vee\\
-\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')\,\,\,\,\vee\\
-\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t.Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
-Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\,\wedge\\
-\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\,\wedge\\
-Poss(c_{1}\cup c_{2},t,s)\wedge s'=do(c_{1}\cup c_{2},t,s)\end{array}\]
-
-
 All other operators from ConGolog and IndiGolog can be incorporated
 into our new language without modification.
-
-
-\subsection{Legality of the Semantics\label{sub:Legality-of-the-semantics}}
 
 From the formal semantics presented above, it is possible to prove
 that if a program starts in a legal situation, all legal executions
@@ -794,6 +670,83 @@ Natural actions are thus guaranteed to be inserted into program executions
 at their appropriate times, without requiring explicit mention by
 the programmer.
 
+While time and natural actions in Golog have previously been utilised
+as a planning tool \cite{pirri00planning_nat_acts}, the programmer
+was required to explicitly check for the possible occurrence of natural
+actions and ensure that executions of the program resulted in legal
+situations. Our integration significantly lowers the burden on the
+programmer by guaranteeing that all program executions produce legal
+situations.
+
+
+\subsection{Example Programs}
+
+Having developed the necessary extensions, we now give some examples
+of programs which could be used in the cooking agents domain. One
+powerful feature of our language is the ability to nondeterministically
+select an agent for a particular task. Consider the following procedure
+for making a simple salad in a specified container:
+
+\[
+\begin{array}{c}
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\pi(agt)(acquire(agt,dest)\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,1))\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,1))\,;\\
+\,\,\,\, release(agt,dest))\,\,\mathbf{end}\end{array}\]
+
+
+The procedure $ChopTypeInto$ (not shown) picks an object of the given
+type and an available chopping board, chops the object using the board,
+then transfers it into the destination container. $MakeSalad$ asks
+the agents to do this for a lettuce, a carrot and a tomato, then mix
+the ingredients together. Crucially, the agent assigned to handling
+each ingredient is not specified, nor is the order in which they should
+be added. The agents are free to determine an appropriate strategy.
+
+%
+\begin{figure}[hbt]
+\verbatiminput{listings/output_makeSalad.txt}
+
+\verbatiminput{listings/constraints_makeSalad.txt}
+
+
+\caption{\label{cap:example_trace}Trace of an execution of the $MakeSalad$
+program with three agents (top). Variables $\_ U$, $\_ T$, etc give
+the occurrence times of each action, constrained to ensure all situations
+are legal (bottom).}
+\end{figure}
+
+
+A trace of a legal execution of the $MakeSalad$ program is shown
+in Figure \ref{cap:example_trace}. Notice the occurrence of several
+actions within each \textbf{do} statement, demonstrating the integration
+of true concurrency into the language. By contrast, an implementation
+in ConGolog would have only a single action at each step - assuming
+each step represents a finite time interval, this would unnecessarily
+leave some agents idle. Note also the explicit occurrence time for
+each step, allowing the agents to properly synchronise their actions.
+This time is not fixed but rather constrained based on the times at
+which previous actions were performed. These constraints emerge from
+the underlying situation calculus description of the world and are
+maintained automatically by the language. For coordination purposes
+the agents would agree, for example, to perform each action at the
+earliest possible time.
+
+In this example there are three agents but only two chopping boards,
+meaning one agent has to remain idle while waiting for the necessary
+resources. If other tasks were given concurrently with $MakeSalad$,
+this agent could make progress on those while waiting. For example:
+
+\[
+MakeSalad()\,||\, MakeMainMeal()\,||\, MakeCake()\]
+
+
+
+
 
 \section{Execution}
 
@@ -850,8 +803,8 @@ agents are idle. An important aspect of the Mozart system is that
 it provides a parallel search procedure that can take advantage of
 networked machines to speed up the search. Utilising this, our implementation
 can be used to form a distributed multi-agent planner. In the following,
-{}``agent1'' and {}``agent2'' are names mapping to the IP-addresses
-of agents in the team, and {}``Goloz'' is a Mozart functor that
+"agent1" and "agent2" are names mapping to the IP-addresses
+of agents in the team, and "Goloz" is a Mozart functor that
 encapsulates the EvalOffline procedure defined above:
 
 \verbatiminput{listings/goloz_do_parallel.oz}
@@ -949,7 +902,6 @@ techniques from Golog is highly capable of representing the behavior
 of multi-agent teams. Combined with facilities for distributed logic
 programming, MIndiGolog promises to provide the advantages of high-level
 program execution for multi-agent teams.
-\newpage
 
 \bibliographystyle{abbrv}
 \bibliography{/storage/uni/pgrad/library/references}
