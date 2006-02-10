@@ -1,5 +1,11 @@
 
-\documentclass{llncs}
+\documentclass[letterpaper]{article}
+
+\usepackage{aaai}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+
 \usepackage{verbatim}
 \usepackage{amsmath}
 
@@ -9,9 +15,6 @@
 \title{High-Level Program Execution for Multi-Agent Teams}
 
 \author{Ryan Kelly \and Adrian Pearce}
-
-\institute{The University of Melbourne\\
-\email{\{rfk,adrian\}@csse.unimelb.edu.au}}
 
 \maketitle
 
@@ -31,11 +34,7 @@ correctness with respect to natural actions.
 The contributions of this paper include the integration of true concurrency
 with interleaved concurrency in Golog; the incorporation of an explicit
 notion of time for coordination; and the tight integration of natural
-actions into the semantics of the language. An implementation using
-the programming language Mozart is presented, that demonstrates both
-its effectiveness as a centralised multi-agent planner and how existing
-techniques for distributed logic programming allow planning work to
-be shared among agents.
+actions into the semantics of the language.
 \end{abstract}
 
 \section{Introduction}
@@ -98,27 +97,19 @@ integrated into the language, to allow agents to predict the behavior
 of each other and their environment. We name the resulting language
 "MIndiGolog" for "Multi-Agent IndiGolog".
 
-Our new language has been implemented in both CIAO Prolog \cite{iclp99ciao}
-and Mozart \cite{vanroy03mozart_logic} to facilitate research into
-its semantics and operation. Using the distributed computing capabilities
-of Mozart, we show how the combined resources of all agents in a team
-may be effectively utilised when planning the execution of a program.
-
 The contributions of this paper are thus: to motivate high-level program
 execution as a problem-solving paradigm for multi-agent teams; to
 robustly combine several existing extensions to the Golog language
 into a semantics suitable for describing multi-agent teams; and to
-describe a concrete implementation of this language and demonstrate
-its effectiveness both as a centralised multi-agent planner and a
-method for distributed execution.
+describe a concrete implementation of this language.
 
 The paper is structured as follows. Sections \ref{sec:Situation-Calculus}
 and \ref{sec:Golog} briefly review the Golog family of languages
 and their underlying formalism the situation calculus. In Section
 \ref{sec:Language-Features} we present the extensions that allow
 MIndiGolog to properly describe multi-agent teams, while Section \ref{sec:Langauge-Semantics}
-details the properties of the formal semantics and Section \ref{sec:Language-Execution}
-describes our implementation. Section \ref{sec:Other-Work} places
+details the properties of the formal semantics.
+Section \ref{sec:Other-Work} places
 this work in the context of existing Golog implementations, and Section
 \ref{sec:Conclusions-and-Future} presents our conclusions and future
 research. 
@@ -271,7 +262,8 @@ a legal execution then consists of finding a situation $s$ such that:
 \]
 
 
-Here $Trans*$ is the reflexive transitive closure of $Trans$.
+Here $Trans*$ is the reflexive transitive closure of $Trans$, or a first-order
+appropximation thereof.
 
 
 \section{The New Language}
@@ -745,76 +737,6 @@ this agent could make progress on those while waiting. For example:
 MakeSalad()\,||\, MakeMainMeal()\,||\, MakeCake()\]
 
 
-
-
-
-\section{Execution}
-
-\label{sec:Language-Execution}
-
-As the existing languages based on Golog have demonstrated, an interpreter
-can be conveniently constructed using a logic programming language
-such a Prolog. We have followed the style of \cite{giacomo00congolog,giacomo99indigolog},
-to build interpreters for our language%
-\footnote{Available from the author's website at http://www.cs.mu.oz.au/\textasciitilde{}rfk/golog/%
-} in CIAO Prolog \cite{iclp99ciao} and Mozart \cite{vanroy03mozart_logic}.
-The Mozart implementation is highlighted in this paper as it provides
-strong support for distributed execution.
-
-Programs are encoded in Mozart as record terms, with the name of the
-record representing an operator and its features the arguments. Actions
-are also encoded as records. In line with convention in both Prolog
-and Mozart, uppercase terms now represent variables. For example,
-the program:
-
-\[
-\pi(agt)\left[acquire(agt,Bowl);acquire(agt,Knife)\right]\]
-
-
-Is represented as follows:
-
-\verbatiminput{listings/goloz_ex_prog.oz}
-
-The predicates $Trans$ and $Final$ have a straightforward encoding
-as Mozart procedures:
-
-\verbatiminput{listings/goloz_trans.oz}
-
-\verbatiminput{listings/goloz_final.oz}
-
-The block \textbf{proc...end} defines a new procedure, the \textbf{case}
-statement performs pattern matching, and the \textbf{choice} statement
-indicates that the procedure can choose one of several evaluation
-paths.
-
-By defining a procedure $Do(\delta,s,s')\leftrightarrow Trans*(\delta,s,\delta',s')\wedge Final(\delta',s')$
-it is possible to use the inbuilt depth-first search procedure to
-find a legal execution for a given program:
-
-\verbatiminput{listings/goloz_do.oz}
-
-The actions thus determined can then be communicated to the team members
-for execution. This can be viewed as a centralised planner for the
-multi-agent team.
-
-Of course, a centralised planner fails to utilise all the resources
-available to the team. While a legal execution is being found, other
-agents are idle. An important aspect of the Mozart system is that
-it provides a parallel search procedure that can take advantage of
-networked machines to speed up the search. Utilising this, our implementation
-can be used to form a distributed multi-agent planner. In the following,
-"agent1" and "agent2" are names mapping to the IP-addresses
-of agents in the team, and "Goloz" is a Mozart functor that
-encapsulates the EvalOffline procedure defined above:
-
-\verbatiminput{listings/goloz_do_parallel.oz}
-
-The result is the same as the centralised case, a sequence of actions
-that can be communicated to the team members for execution. Agents
-can thus plan the execution of their shared program both individually
-and collectively. 
-
-
 \section{Related Work}
 
 \label{sec:Other-Work}
@@ -903,8 +825,7 @@ of multi-agent teams. Combined with facilities for distributed logic
 programming, MIndiGolog promises to provide the advantages of high-level
 program execution for multi-agent teams.
 
-\bibliographystyle{abbrv}
 \bibliography{/storage/uni/pgrad/library/references}
-
+\bibliographystyle{aaai}
 
 \end{document}
