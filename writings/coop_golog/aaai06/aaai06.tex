@@ -8,13 +8,22 @@
 
 \usepackage{verbatim}
 \usepackage{amsmath}
-
-\begin{document}
-
+\usepackage{amsthm}
 
 \title{High-Level Program Execution for Multi-Agent Teams}
 
-\author{Ryan Kelly \and Adrian Pearce}
+\author{Ryan Kelly \and Adrian Pearce \\
+Department of Commputer Science and Software Engineering \\
+NICTA Victoria Laboratory \\
+The University of Melbourne \\
+Victoria, 3010, Australia \\
+\{rfk,adrian\}@csse.unimelb.edu.au}
+
+%\nocopyright
+
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
 
 \maketitle
 
@@ -27,7 +36,7 @@ alternative to traditional planning for single-agent systems, several
 challenges are encountered when moving to a multi-agent setting: concurrency
 operators must be modified to accurately reflect the concurrency present
 in multi-agent teams, predictable exogenous actions (often called
-"natural actions") must be effectively modelled, and a representation
+``natural actions'') must be effectively modelled, and a representation
 of time must be incorporated to assist agent coordination and to ensure
 correctness with respect to natural actions. 
 
@@ -49,7 +58,7 @@ alternative to team planning.
 
 As described in \cite{giacomo99indigolog}, high-level program execution
 is emerging as a practical alternative to traditional plan
-synthesis. By "high-level program" is meant a program whose
+synthesis. By ``high-level program'' is meant a program whose
 primitive operations are domain-specific actions, and which may be
 incompletely specified due to nondeterministic constructs. Rather
 than a planner finding a sequence of actions leading from an initial
@@ -70,9 +79,9 @@ the world; and formal verification of program properties, in some
 cases using automated tools.
 
 TODO: references for these opinions? Systems involving multiple autonomous
-agents are often classified into two subtypes - "open multi-agent
-systems" in which agent behaviors are loosely coupled, and "multi-agent
-teams" in which agents depend intimately on one another to accomplish
+agents are often classified into two subtypes - ``open multi-agent
+systems'' in which agent behaviors are loosely coupled, and ``multi-agent
+teams'' in which agents depend intimately on one another to accomplish
 a shared task. From a programming viewpoint, open multi-agent systems
 are typically constructed by specifying the behavior and goals of
 individual agents and using communication primitives to design interaction
@@ -95,7 +104,7 @@ the world model and to assist in coordination between agents. The
 concept of natural actions \cite{reiter96sc_nat_conc} is also tightly
 integrated into the language, to allow agents to predict the behavior
 of each other and their environment. We name the resulting language
-"MIndiGolog" for "Multi-Agent IndiGolog".
+``MIndiGolog'' for ``Multi-Agent IndiGolog''.
 
 The contributions of this paper are thus: to motivate high-level program
 execution as a problem-solving paradigm for multi-agent teams; to
@@ -103,8 +112,8 @@ robustly combine several existing extensions to the Golog language
 into a semantics suitable for describing multi-agent teams; and to
 describe a concrete implementation of this language.
 
-The paper is structured as follows. Sections \ref{sec:Situation-Calculus}
-and \ref{sec:Golog} briefly review the Golog family of languages
+The paper is structured as follows. Section \ref{sec:SC-Golog}
+briefly reviews the Golog family of languages
 and their underlying formalism the situation calculus. In Section
 \ref{sec:Language-Features} we present the extensions that allow
 MIndiGolog to properly describe multi-agent teams, while Section \ref{sec:Langauge-Semantics}
@@ -117,9 +126,9 @@ research.
 TODO introduce the running example at an appropriate point
 
 
-\section{The Situation Calculus}
+\section{The Situation Calculus and Golog}
 
-\label{sec:Situation-Calculus}
+\label{sec:SC-Golog}
 
 The representation of a dynamic world in the situation calculus consists
 of first-order logic statements capturing the following: actions that
@@ -153,19 +162,13 @@ axioms of the calculus; action precondition axioms; successor state
 axioms; unique names axioms for actions; and axioms describing the
 initial situation. The theory of action thus consists of several independent
 sets of axioms:
-
-\[
+\begin{equation}
 \mathcal{D}=\Sigma\cup\mathcal{D}_{ap}\cup\mathcal{D}_{ss}\cup\mathcal{D}_{una}\cup\mathcal{D}_{S_{0}}
-\]
+\end{equation}
 
 
 Statements about the world are then evaluated relative to this theory
 of action.
-
-
-\section{Golog}
-
-\label{sec:Golog}
 
 Golog is a declarative agent programming language based on the situation
 calculus, developed by Levesque et. al \cite{levesque97golog}. Testimony
@@ -173,7 +176,7 @@ to its success are its wide range of applications (see, for example,
 \cite{levesque97golog,Ferrein2005readylog} ) and many extensions
 to provide additional functionality (such as ConGolog \cite{giacomo00congolog},
 DTGolog \cite{boutilier00dtgolog}, and IndiGolog \cite{giacomo99indigolog}).
-In this paper we use the term "Golog" to refer to the family
+In this paper we use the term ``Golog'' to refer to the family
 of languages based on this technique.
 
 To program an agent using Golog one specifies a situation calculus
@@ -230,8 +233,8 @@ Procedure definition\tabularnewline
 In line with the idea of high-level program execution, the agent's
 control program is nondeterministic. It is the task of the agent to
 find a deterministic instantiation of the program, a sequence of actions
-that can be performed in the world. Such a sequence is called a "legal
-execution" of the Golog program.
+that can be performed in the world. Such a sequence is called a ``legal
+execution'' of the Golog program.
 
 The original Golog was conceived as on offline planner - the agent
 would determine a complete execution of the program before any actions
@@ -256,17 +259,14 @@ remains to be executed. It thus specifies single steps of computation
 of the program $\delta$. $Final(\delta,s)$ is true when program
 $\delta$ may legally terminate its execution in situation $s$. Finding
 a legal execution then consists of finding a situation $s$ such that:
-
-\[
+\begin{equation}
 \mathcal{D}\models\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]
-\]
-
+\end{equation}
 
 Here $Trans*$ is the reflexive transitive closure of $Trans$, or a first-order
 appropximation thereof.
 
-
-\section{The New Language}
+\section{MIndiGolog}
 
 \label{sec:Language-Features}
 
@@ -310,16 +310,14 @@ concurrently as described in Section \ref{sub:Concurrency}.
 
 This complexity can be avoided by attaching the occurrence time not
 to actions but to situations. The successor situation function $do(a,s)$
-becomes $do(a,t,s)$, to indicate "action $a$ was performed at
-time $t$ in situation $s$". Likewise, the possibility predicate
-$Poss(a,s)$ becomes $Poss(a,t,s)$, meaning "it is possible to
-perform action $a$ at time $t$ in situation $s$". The function
+becomes $do(a,t,s)$, to indicate ``action $a$ was performed at
+time $t$ in situation $s$''. Likewise, the possibility predicate
+$Poss(a,s)$ becomes $Poss(a,t,s)$, meaning ``it is possible to
+perform action $a$ at time $t$ in situation $s$''. The function
 $start(s)$ is added which gives the starting time of a situation:
-
-\[
+\begin{equation}
 start(do(a,t,s))=t
-\]
-
+\end{equation}
 
 Note that the start time of the initial situation is arbitrary, and
 may be defined as required for specific applications.
@@ -350,16 +348,15 @@ at the same time. By attaching time to situations instead of actions,
 this property is automatically satisfied. To ensure that program executions
 do not include empty sets of actions one need only ensure that it
 is never possible to perform such an empty set:
-
-\[
+\begin{equation}
 \forall s,t.\left[Poss(\{\},t,s)\equiv False\right]
-\]
+\end{equation}
 
 
 The notion of concurrently executing multiple high-level programs
 is treated in \cite{giacomo00congolog} with the development of ConGolog.
-The operator $\delta_{1}||\delta_{2}$ is introduced, meaning "execute
-both $\delta_{1}$ and $\delta_{2}$ concurrently". This is achieved
+The operator $\delta_{1}||\delta_{2}$ is introduced, meaning ``execute
+both $\delta_{1}$ and $\delta_{2}$ concurrently''. This is achieved
 by interleaving steps of execution from the two programs.
 
 These two notions of concurrency were combined by Baier and Pinto
@@ -376,12 +373,11 @@ instead. The fact that several actions can occur simultaneously has
 deeper implications for the concurrency operator, which in ConGolog
 is implemented by accepting a transition from either of the two programs
 as a transition for the pair:
-
-\begin{align*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')\\
- & \vee\,\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')
-\end{align*}
-
+\begin{multline}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
+\shoveright{\exists\gamma.\delta'=(\gamma||\delta_{2})\wedge Trans(\delta_{1},s,\gamma,s')}\\
+\vee\exists\gamma.\delta'=(\delta_{1}||\gamma)\wedge Trans(\delta_{2},s,\gamma,s')
+\end{multline}
 
 In the presence of true concurrency, this is insufficient. It may
 also be possible to simultaneously transition both $\delta_{1}$ and
@@ -389,12 +385,12 @@ $\delta_{2}$ by executing actions concurrently:%
 \footnote{Here we use implication to indicate an additional sufficient, but
 not necessary, condition for $Trans$ %
 }
-
-\begin{align*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
- & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\,\wedge\\
- & \delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
-\end{align*}
+\begin{multline}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\,\\
+ Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\\
+ \wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\\
+ \wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
+\end{multline}
 
 
 This approach introduces several complications. First, the combination
@@ -408,40 +404,40 @@ For our purposes this is addressed by introducing a predicate $Conflicts(c,t,s)$
 which is true when the actions in $c$ are in conflict and cannot
 be performed together. The possibility axiom for concurrent actions
 is then:
-
-\[
-Poss(c,t,s)\leftrightarrow\forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\wedge\neg Conflicts(c,t,s)
-\]
-
+\begin{multline}
+Poss(c,t,s)\leftrightarrow\\
+\forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\wedge\neg Conflicts(c,t,s)
+\end{multline}
 
 A typical use of this approach is to prevent each agent from performing
 more than one action at a time (here $actor(a)$ gives the agent performing
 action $a$):
-
-\[
-\exists a_{1},a_{2}\left[a_{1}\in c\wedge a_{2}\in c\wedge actor(a_{1})=actor(a_{2})\right]\rightarrow Conflicts(c,t,s)
-\]
+\begin{multline}
+\exists a_{1},a_{2}\left[a_{1}\in c\wedge a_{2}\in c\wedge actor(a_{1})=actor(a_{2})\right]\\
+\rightarrow Conflicts(c,t,s)
+\end{multline}
 
 Another issue arises when two programs can legitimately be transitioned
 by executing the same action. Consider the following programs which
 add ingredients to a bowl:
-
-\begin{align*}
-\delta_{1}=place\_ in(Thomas,Flour,Bowl)\,;\, place\_ in(Thomas,Sugar,Bowl)\\
-\delta_{2}=place\_ in(Thomas,Flour,Bowl)\,;\, place\_ in(Thomas,Egg,Bowl)
-\end{align*}
-
+\begin{multline}
+\delta_{1}=place\_ in(Thomas,Flour,Bowl)\,;\\
+   \shoveright{place\_ in(Thomas,Sugar,Bowl)}\\
+\shoveleft{\delta_{2}=place\_ in(Thomas,Flour,Bowl)\,;}\\
+   place\_ in(Thomas,Egg,Bowl)
+\end{multline}
 
 Executing $\delta_{1}||\delta_{2}$ should result in the bowl containing
 two units of flour, one unit of sugar and an egg. However, the above
 transition rule allows a transition with $c_{1}=c_{2}=place\_ in(Thomas,Flour,Bowl)$,
 which adds only one unit of flour. Alternately, consider two programs
 waiting for a timer to ring (a natural action, see Section \ref{sub:Natural-Actions}):
-
-\begin{align*}
-\delta_{1}=ring\_ timer(OvenTimer)\,;\, acquire(Thomas,Bowl)\\
-\delta_{2}=ring\_ timer(OvenTimer)\,;\, acquire(Richard,Board)
-\end{align*}
+\begin{multline}
+\delta_{1}=ring\_ timer(OvenTimer)\,;\\
+   \shoveright{acquire(Thomas,Bowl)}\\
+\shoveleft{\delta_{2}=ring\_ timer(OvenTimer)\,;}\\
+    acquire(Richard,Board)
+\end{multline}
 
 
 Both programs should be allowed to proceed with a single occurrence
@@ -452,14 +448,14 @@ action.
 
 Taking these factors into account, we derive an improved transition
 rule are follows:
-
-\begin{align*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow & \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
- & Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge Poss(c_{1}\cup c_{2},t,s)\,\wedge\\
- & \forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\,\wedge\\
- & \delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
-\end{align*}
-
+\begin{multline}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\\
+Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\\
+Poss(c_{1}\cup c_{2},t,s)\,\wedge\\
+\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\,\wedge\\
+\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
+\end{multline}
 
 This robust combination of true and interleaved concurrency allows
 the language to more accurately reflect the concurrency present in
@@ -467,8 +463,6 @@ multi-agent teams.
 
 
 \subsection{Natural Actions}
-
-\label{sub:Natural-Actions}
 
 Natural actions are a special class of exogenous actions, those actions
 which occur outside of the agent's control. Introduced to the situation
@@ -480,6 +474,14 @@ time it was set for, unless it is switched off. In the context of
 high-level programing, they are a tool for predicting the behavior
 of the environment.
 
+While time and natural actions in Golog have previously been utilised
+as a planning tool \cite{pirri00planning_nat_acts}, the programmer
+was required to explicitly check for the possible occurrence of natural
+actions and ensure that executions of the program resulted in legal
+situations. Our integration significantly lowers the burden on the
+programmer by guaranteeing that all program executions produce legal
+situations.
+
 The methodology of \cite{reiter96sc_nat_conc} is adopted, suitably
 modified for our handling of time. Natural actions are indicated by
 truth of the predicate $natural(a)$. As usual, the times at which
@@ -488,21 +490,18 @@ For example, suppose that the fluent $timer\_ set(ID,m,s)$ represents
 the fact that a particular timer is set to ring in $m$ minutes in
 situation $S$. The possibility predicate for the $ring\_ timer(ID)$
 action would be:
-
-\[
-Poss(ring\_ timer(ID),t,s)\leftrightarrow\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]
-\]
-
+\begin{multline}
+Poss(ring\_ timer(ID),t,s)\leftrightarrow\\
+\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]
+\end{multline}
 
 An important concept when dealing with natural actions it the least
 natural time point (LNTP) of a situation. This is defined as the earliest
 time at which a natural action may occur in a situation:
-
-\begin{align*}
-lntp(s,t)\leftrightarrow & \exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
- & \forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]
-\end{align*}
-
+\begin{multline}
+lntp(s,t)\leftrightarrow \exists a\left[natural(a)\wedge Poss(a,t,s)\right]\wedge\\
+\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]
+\end{multline}
 
 Note that the LNTP need not exist for a given situation. This can
 happen both when no natural actions are possible in a situation, or
@@ -515,12 +514,13 @@ To enforce the requirement that natural actions must occur when possible,
 a predicate $legal(s)$ is introduced which is true only for situations
 which respect this requirement (assuming no precondition interaction
 among natural actions):
-
-\begin{align*}
-legal(S_{0}) \leftrightarrow & True\\
-legal(do(c,t,s)) \leftrightarrow & (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c\vee t<t_{a}\right]\\
- & \wedge\, legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t
-\end{align*}
+\begin{equation}
+legal(S_{0}) \leftrightarrow True
+\end{equation}
+\begin{multline}
+legal(do(c,t,s)) \leftrightarrow legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t\\
+\wedge (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c\vee t<t_{a}\right]
+\end{multline}
 
 
 When utilising natural actions within a Golog program, all legal program
@@ -536,139 +536,93 @@ a legal situation can be produced in one of three ways: perform the
 action before the LNTP, perform it at the LNTP in conjunction with
 the natural actions, or perform the natural actions first. This is
 captured by the following transition rule:
-
-\begin{align*}
-Trans(c,s,\delta',s')\equiv & \exists t_{n}. lntp(s,t_{n}) \\
-  & \wedge \left\{ \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right.\\
-  &  \quad\vee\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\leftrightarrow a\in cn\right)\\
-  & \quad\wedge\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
-  & \quad\vee\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\}\\
-  & \vee\quad\neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
-  & \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]
-\end{align*}
+\begin{multline}
+Trans(c,s,\delta',s')\equiv \exists t_{n}. lntp(s,t_{n}) \\
+  \wedge \left\{ \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right.\\
+   \quad\vee\exists cn.\left(\forall a.natural(a)\wedge Poss(a,t_{n},s)\leftrightarrow a\in cn\right)\\
+  \quad\wedge\left[poss(c\cup cn,t_{n},s)\wedge s'=do(c\cup cn,t_{n},s)\wedge\delta'=nil\right.\\
+  \quad\vee\left.\left.s'=do(cn,t_{n},s)\wedge\delta'=c\right]\right\}\\
+  \vee\quad\neg\exists t_{n}.lntp(s,t_{n})\wedge\exists t.\left[Poss(c,t,s)\wedge\right.\\
+  \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]
+\end{multline}
 
 
 Using this formulation, natural actions will occur at their predicted
 times without the programmer needing to mention them explicitly. If
 natural actions are included in the program, they will performed only
-at their predicted time. A proof of this is offered in Section \ref{sub:Legality-of-the-semantics}.
-
-TODO: use theorem and proof environment here
-
-This section shows the modifications that have been made to the semantics
-of IndiGolog to incorporate the extensions outlined above and produce
-the language MIndiGolog. Many operators are defined recursively using
-combinations of $Trans$ and $Final$ and thus do not need to be modified
-- for semantics of the operators not presented here, refer to \cite{giacomo00congolog,giacomo99indigolog}.
-
-All other operators from ConGolog and IndiGolog can be incorporated
-into our new language without modification.
-
-From the formal semantics presented above, it is possible to prove
-that if a program starts in a legal situation, all legal executions
-of the program will produce legal situations. That is:
-
-\[
-\forall\delta,\delta'.\, Trans(\delta,s,\delta',s')\wedge legal(s)\rightarrow legal(s')\]
+at their predicted time.
 
 
-First notice that only two transition rules directly modify the situation
-term - execution of a primitive action, and concurrent execution.
-All other rules modify the situation term by further use of the $Trans$
-predicate. Thus, it suffices to show that these two rules will produce
-only legal situations. Recall the definition of $legal(s)$:
+\begin{theorem}
+Let $\mathcal{D}$ be a MIndiGolog theory of action. Then:
+\begin{multline*}
+\mathcal{D} \models \forall s,s',\delta,\delta'.legal(s)\wedge Trans(\delta,s,\delta',s')\\
+\rightarrow legal(s')
+\end{multline*}
+\end{theorem}
 
-\[
-\begin{array}{c}
-legal(do(c,t,s))\leftrightarrow\\
-legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t\wedge\\
-(\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\\
-\left[a\in c\vee t<t_{a}\right]\end{array}\]
-
-
-Considering the $Trans$ rule for primitive actions, each of the four
-disjuncts may produce a new situation term. Here we consider only
-the case of performing the actions before the LNTP:
-
-\[
-\begin{array}{c}
-\exists t_{n}.\left[lntp(s,t_{n})\wedge\exists t.\left[t\geq start(s)\wedge t<t_{n}\right.\right.\\
-\left.\left.\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right]\end{array}\]
-
-
-From this it is immediately clear that:
-
-\[
-start(s)\leq t\,\,\,\,\, Poss(c,t,s)\]
-
-
-Using the definition of $lntp(s,t_{n})$:
-
-\[
-\begin{array}{c}
-\exists a\left[natural(a)\wedge Poss(a,t_{n},s)\right]\wedge\\
-\forall a,t_{a}\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t_{n}\leq t_{a}\right]\end{array}\]
-
-
-Since $t<t_{n}$, this gives:
-
-\[
-\begin{array}{c}
-\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\\
-\forall a,t_{a}.\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow a\in c\vee t\leq t_{a}\right]\end{array}\]
-
-
-Given $legal(s)$, these are sufficient to establish $legal(do(c,t,s))$
-and so $legal(s')$ as required. Similar arguments can be made for
-the remaining parts of this transition rule.
-
-Consider then the case of $Trans(\delta_{1}||\delta_{2},s,\delta',s')$.
-The only part of interest is the disjunct which directly produces
-a modified situation $s'=do(c_{1}\cup c_{2},t,s)$. Assume that $s$
-is a legal situation, that $\delta_{1}$ and $\delta_{2}$ contain
-no further concurrency operators and that all other transition rules
-produce legal situations. Then $Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))$
-and $Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))$ will produce legal
-situations $do(c_{1},t,s)$ and $do(c_{2},t,s)$.
-
-From $legal(do(c_{1},t,s))$ it can be inferred that:
-
-\[
-\begin{array}{c}
-legal(s)\,\,\,\,\,\,\,\,\,\, start(s)\leq t\\
-(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\vee t<t_{a}\right]\right]\end{array}\]
+\begin{proof}
+By induction on the structure of $\delta$.
+Consider first the case of a single concurrent action, $\delta=c$.  This
+$Trans$ clause (TODO) has four disjuncts. We treat here only the
+case where actions are performed before the LNTP, other
+cases employ similar reasoning.
+Assuming this case, (TODO) reduces to:
+\begin{multline*}
+Trans(c,s,nil,do(c,t,s)) \equiv \exists t_n . lntp(s,t_n) \wedge \\
+  t < t_n \wedge ti \geq start(s) \wedge Poss(c,t,s)
+\end{multline*}
+By the definition of $lntp$ (TODO) and given $t < t_n$, no natural actions
+can be possible before or at time $t$, allowing us to add:
+\begin{multline*}
+Trans(c,s,nil,do(c,t,s)) \equiv \exists t_n . lntp(s,t_n) \wedge \\
+  t < t_n \wedge t \geq start(s) \wedge Poss(c,t,s) \wedge\\
+  \forall a,t_a \left[ natural(a) \wedge Poss(a,t_a,s) \rightarrow t < t_a \right]
+\end{multline*}
+Given $legal(s)$ and equation TODO, it is then clear that:
+\begin{multline*}
+\mathcal{D} \models legal(s) \wedge Trans(c,s,nil,do(c,t,s))\\
+\rightarrow legal(do(c,t,s))
+\end{multline*}
+Next consider the case of concurrent execution of two programs.  The $Trans$
+clause (TODO)for concurrency will only introduce a new situation term when both
+sub-programs transition simulaneously, with other cases trivially legal by
+the inductive hypothesis.  Limiting to this case, (TODO) reduces to:
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\leftarrow \exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\\
+Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\,\wedge\\
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\\
+Poss(c_{1}\cup c_{2},t,s)\,\wedge\\
+\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow natural(a)\right]\,\wedge\\
+\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
+\end{multline*}
+Both $do(c_1,t,s)$ and $(do,c_2,t,s)$ will be legal by the inductive hypothesis,
+hence $start(s) \leq t$ and $c_1$ contains any required natural actions.
+Since $Trans$ requires that $Poss(c_1 \cup c_2,t,s)$ all conjuncts in
+equation (TODO) are satisfied, and:
+\begin{multline*}
+\mathcal{D} \models legal(s) \wedge Trans(\delta_1 || \delta_2,s,\delta,s'))\\
+\rightarrow legal(s')
+\end{multline*}
+No other $Trans$ clauses introduce new situation terms, making
+the remaining induction.
+\end{proof}
 
 
-This implies that:
+\begin{theorem}
+Let $\mathcal{D}$ be a MIndiGolog theory of action. Then:
+\begin{equation*}
+\mathcal{D} \models \forall s',\delta,\delta'. Trans*(\delta,S_0,\delta',s')
+\rightarrow legal(s')
+\end{equation*}
+Consequently, all legal executions of a MIndiGolog program respect
+the occurance of natural actions.
+\end{theorem}
 
-\[
-(\forall a,t_{a}).\left[natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c_{1}\cup c_{2}\vee t<t_{a}\right]\right]\]
-
-
-The definition of $Trans$ further requires that:
-
-\[
-Poss(c_{1}\cup c_{2},t,s)\]
-
-
-Thus all four conjuncts necessary to prove $legal(do(c_{1}\cup c_{2},t,s))$
-are true, and this rule generates only legal situations. Since cases
-where $\delta_{1}$ and $\delta_{2}$ contain further concurrency
-operators must eventually decompose into cases where they do not,
-it is a simple inductive argument to show that this transition rule
-produces legal situations for all programs.
-
-Natural actions are thus guaranteed to be inserted into program executions
-at their appropriate times, without requiring explicit mention by
-the programmer.
-
-While time and natural actions in Golog have previously been utilised
-as a planning tool \cite{pirri00planning_nat_acts}, the programmer
-was required to explicitly check for the possible occurrence of natural
-actions and ensure that executions of the program resulted in legal
-situations. Our integration significantly lowers the burden on the
-programmer by guaranteeing that all program executions produce legal
-situations.
+\begin{proof}
+Immediate from Theorem TODO, the legality of $S_0$, and the properties
+of transitive closure.
+\end{proof}
 
 
 \subsection{Example Programs}
