@@ -9,6 +9,7 @@
 \usepackage{verbatim}
 \usepackage{amsmath}
 \usepackage{amsthm}
+\usepackage{subfigure}
 
 \title{High-Level Program Execution for Multi-Agent Teams}
 
@@ -186,7 +187,7 @@ loops, and nondeterministic choice. Table \ref{tbl:Golog-Operators}
 lists some of the operators available from various incarnations of
 the language.
 
-\begin{table}[hbt]
+\begin{table}[t]
 \begin{center}\begin{tabular}{|c|c|}
 \hline 
 Operator&
@@ -263,42 +264,24 @@ a legal execution then consists of finding a situation $s$ such that:
 \mathcal{D}\models\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]
 \end{equation}
 
-Here $Trans*$ is the reflexive transitive closure of $Trans$, or a first-order
-appropximation thereof.
+Here $Trans*$ is the reflexive transitive closure of $Trans$, or at least a
+first-order appropximation thereof.
 
-\section{MIndiGolog}
+\section{Improved Semantics}
 
-\label{sec:Language-Features}
+\label{sec:MIndiGolog}
 
-Our new language overcomes several challenges encountered when moving
-to a multi-agent setting. It allows the programmer to represent the
-following aspects of the system, each of which are described using
-examples from the Cooking Agents domain:
+We have integrated three extensions to the situation calculus with the
+existing semanitcs of ConGolog and IndiGolog to overcome several
+challenges encountered when moving to a multi-agent setting.  These
+extensions allow the agents to represent time, concurrently-occuring actions,
+and natural actions.
+\\
 
-\begin{itemize}
-\item \textbf{Time}: Some tasks in the cooking domain require an explicit
-notion of time. For example, a cake must be baked for 30 minutes before
-being removed from the oven. Explicit time also makes coordination
-between agents easier, as they may arrange to perform joint actions
-at a particular time.
-\item \textbf{Concurrency}: Since agents are capable of acting at the same
-time, several primitive actions can occur simultaneously. They must
-also be able to perform high-level tasks concurrently, such as preparing
-several parts of a meal at once.
-\item \textbf{Natural Actions}: These are predictable actions which occur
-outside of the agent's control. If an agent sets a timer then it will
-ring at the appropriate time without intervention from any agent.
-Natural actions should incorporate easily into the program.
-\end{itemize}
-While these concepts have been independently addressed in Golog and
-the situation calculus, we systematically develop and integrate them
-into the new language in the following subsections. Many other aspects
-of multi-agent domains can already be captured in the situation calculus
-- for example, contention over shared resources can be modelled using
-action precondition axioms.
-
-
-\subsection{Time}
+\textbf{Time}: An explicit notion of time can make coordination between agents
+easier, as they may arrange to perform joint actions at a particular time.  It
+also alows a richer description of the world - for example, it becomes possible
+to specify that cake must be baked for 30 minutes.
 
 There have been several efforts to incorporate a temporal component
 into the situation calculus, beginning with Pinto \cite{pinto94temporal}.
@@ -306,27 +289,24 @@ Reiter \cite{reiter96sc_nat_conc} simplified this work by including
 within each action an explicit argument indicating the time at which
 it was performed. While this is useful when specifying precise times
 for action occurrences, it adds complexity when actions are performed
-concurrently as described in Section \ref{sub:Concurrency}.
+concurrently.
 
 This complexity can be avoided by attaching the occurrence time not
 to actions but to situations. The successor situation function $do(a,s)$
 becomes $do(a,t,s)$, to indicate ``action $a$ was performed at
 time $t$ in situation $s$''. Likewise, the possibility predicate
 $Poss(a,s)$ becomes $Poss(a,t,s)$, meaning ``it is possible to
-perform action $a$ at time $t$ in situation $s$''. The function
-$start(s)$ is added which gives the starting time of a situation:
+perform action $a$ at time $t$ in situation $s$''.  The existing semantics
+of IndiGolog are trivially modified to accomodate this.
+
+Time may be represented by any appropriately-behaved sequence (e.g. reals,
+integers), and no commitment is made about the starting time of $S_0$.
+The function $start(s)$ is added to give the starting time of other situations:
 \begin{equation}
 start(do(a,t,s))=t
 \end{equation}
 
-Note that the start time of the initial situation is arbitrary, and
-may be defined as required for specific applications.
-
-
-\subsection{Concurrency}
-
-\label{sub:Concurrency}
-
+\textbf{Concurrency}: 
 For multi-agent teams, concurrency refers to two distinct ideas -
 the possibility of performing several actions at the same instant,
 and the possibility of interleaving the execution of several high-level
@@ -339,19 +319,7 @@ occur at the same time. Action terms are replaced with sets of actions
 to be performed simultaneously. All functions and predicates that
 take an action are modified to accept sets of actions instead. For
 example, $do$ and $Poss$ become $do(\{ a_{1},a_{2},...\},t,s)$
-and $Poss(\{ a_{1},a_{2},...\},t,s)$ respectively.
-
-The approach to time used in \cite{reiter96sc_nat_conc} requires
-a predicate $coherent(c)$ to be defined, which is true when the concurrent
-action $c$ contains at least one action and all the actions occur
-at the same time. By attaching time to situations instead of actions,
-this property is automatically satisfied. To ensure that program executions
-do not include empty sets of actions one need only ensure that it
-is never possible to perform such an empty set:
-\begin{equation}
-\forall s,t.\left[Poss(\{\},t,s)\equiv False\right]
-\end{equation}
-
+and $Poss(\{ a_{1},a_{2},...\},t,s)$.
 
 The notion of concurrently executing multiple high-level programs
 is treated in \cite{giacomo00congolog} with the development of ConGolog.
@@ -361,15 +329,14 @@ by interleaving steps of execution from the two programs.
 
 These two notions of concurrency were combined by Baier and Pinto
 \cite{pinto99tcongolog} by modifying ConGolog to incorporate sets
-of concurrent actions. We follow a similar approach below, but place
+of concurrent actions. We follow a similar approach, but place
 additional restrictions on the semantics to ensure that programs are
 well-behaved. Their work also does not include an explicit account
 of time.
 
-Recall that the semantics of a ConGolog program is a transition system
-based on the predicate $Trans$. It is straightforward to modify the
-transition for primitive actions to handle sets of concurrent actions
-instead. The fact that several actions can occur simultaneously has
+It is straightforward to modify the clause of $Trans$
+for primitive actions to instead accept sets of concurrent actions.
+The fact that several actions can occur simultaneously has
 deeper implications for the concurrency operator, which in ConGolog
 is implemented by accepting a transition from either of the two programs
 as a transition for the pair:
@@ -409,13 +376,8 @@ Poss(c,t,s)\leftrightarrow\\
 \forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\wedge\neg Conflicts(c,t,s)
 \end{multline}
 
-A typical use of this approach is to prevent each agent from performing
-more than one action at a time (here $actor(a)$ gives the agent performing
-action $a$):
-\begin{multline}
-\exists a_{1},a_{2}\left[a_{1}\in c\wedge a_{2}\in c\wedge actor(a_{1})=actor(a_{2})\right]\\
-\rightarrow Conflicts(c,t,s)
-\end{multline}
+This can be used, for example, to prevent each agent from performing
+more than one action at a time.
 
 Another issue arises when two programs can legitimately be transitioned
 by executing the same action. Consider the following programs which
@@ -460,39 +422,35 @@ Poss(c_{1}\cup c_{2},t,s)\,\wedge\\
 This robust combination of true and interleaved concurrency allows
 the language to more accurately reflect the concurrency present in
 multi-agent teams.
+\\
 
+\textbf{Natural Actions}: These are a special class of exogenous actions, those
+actions which occur
+outside of the agent's control.
+If an agent sets a timer then it will
+ring at the appropriate time without further intervention from any agent.  They
+are especially important in a multi-agent context for predicting the
+behavior of other agents, such as when they will finish a particular
+long-running task.
 
-\subsection{Natural Actions}
-
-Natural actions are a special class of exogenous actions, those actions
-which occur outside of the agent's control. Introduced to the situation
+Introduced to the situation
 calculus by Pinto \cite{pinto94temporal} and expanded by Reiter \cite{reiter96sc_nat_conc},
 they are classified according to the following requirement: natural
 actions must occur at their predicted times, provided no earlier actions
 prevent them from occurring. For example, a timer will ring at the
-time it was set for, unless it is switched off. In the context of
-high-level programing, they are a tool for predicting the behavior
-of the environment.
-
-While time and natural actions in Golog have previously been utilised
-as a planning tool \cite{pirri00planning_nat_acts}, the programmer
-was required to explicitly check for the possible occurrence of natural
-actions and ensure that executions of the program resulted in legal
-situations. Our integration significantly lowers the burden on the
-programmer by guaranteeing that all program executions produce legal
-situations.
+time it was set for, unless it is switched off.
 
 The methodology of \cite{reiter96sc_nat_conc} is adopted, suitably
 modified for our handling of time. Natural actions are indicated by
 truth of the predicate $natural(a)$. As usual, the times at which
 natural actions may occur are specified by the $Poss$ predicate.
-For example, suppose that the fluent $timer\_ set(ID,m,s)$ represents
+For example, suppose that the fluent $timer\_set(ID,m,s)$ represents
 the fact that a particular timer is set to ring in $m$ minutes in
-situation $S$. The possibility predicate for the $ring\_ timer(ID)$
+situation $S$. The possibility predicate for the $ring\_timer(ID)$
 action would be:
 \begin{multline}
-Poss(ring\_ timer(ID),t,s)\leftrightarrow\\
-\exists m.\left[timer\_ set(ID,m,s)\wedge t=start(s)+m\right]
+Poss(ring\_timer(ID),t,s)\leftrightarrow\\
+\exists m.\left[timer\_set(ID,m,s)\wedge t=start(s)+m\right]
 \end{multline}
 
 An important concept when dealing with natural actions it the least
@@ -522,20 +480,26 @@ legal(do(c,t,s)) \leftrightarrow legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t
 \wedge (\forall a,t_{a}).natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c\vee t<t_{a}\right]
 \end{multline}
 
-
-When utilising natural actions within a Golog program, all legal program
-executions should result in situations for which the $legal$ predicate
-is true. This can be enforced in the semantics of the language, avoiding
-the need to check it explicitly.
+While time and natural actions in Golog have previously been utilised
+for planning \cite{pirri00planning_nat_acts}, the programmer
+was required to explicitly check for the possible occurrence of natural
+actions and ensure that executions of the program resulted in legal
+situations. Our integration significantly lowers the burden on the
+programmer by guaranteeing that all program executions produce legal
+situations.
+MIndiGolog agents will plan for the occurance of natural actions
+without having them explicitly mentioned in the program.  They may
+optionally be included in the program, instructing the agents to wait for
+the action to occur before proceeding.
 
 The possible transitions for a program containing a single action
 depend on whether the accompanying situation has a least natural time
 point. If not, it is legal to perform the action at any time greater
-than or equal to the start of the situation. If there is an LNTP,
+than or equal to the start of the situation. If there is a LNTP,
 a legal situation can be produced in one of three ways: perform the
 action before the LNTP, perform it at the LNTP in conjunction with
-the natural actions, or perform the natural actions first. This is
-captured by the following transition rule:
+the natural actions, or perform the natural actions first.  We modify
+the $Trans$ clause for primitive actions to account for these four options:
 \begin{multline}
 Trans(c,s,\delta',s')\equiv \exists t_{n}. lntp(s,t_{n}) \\
   \wedge \left\{ \left[\exists t.t\geq start(s)\wedge t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]\right.\\
@@ -546,12 +510,7 @@ Trans(c,s,\delta',s')\equiv \exists t_{n}. lntp(s,t_{n}) \\
   \left.t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=nil\right]
 \end{multline}
 
-
-Using this formulation, natural actions will occur at their predicted
-times without the programmer needing to mention them explicitly. If
-natural actions are included in the program, they will performed only
-at their predicted time.
-
+\textbf{MIndiGolog}:   
 
 \begin{theorem}
 Let $\mathcal{D}$ be a MIndiGolog theory of action. Then:
@@ -600,12 +559,12 @@ Both $do(c_1,t,s)$ and $(do,c_2,t,s)$ will be legal by the inductive hypothesis,
 hence $start(s) \leq t$ and $c_1$ contains any required natural actions.
 Since $Trans$ requires that $Poss(c_1 \cup c_2,t,s)$ all conjuncts in
 equation (TODO) are satisfied, and:
-\begin{multline*}
-\mathcal{D} \models legal(s) \wedge Trans(\delta_1 || \delta_2,s,\delta,s'))\\
+\begin{equation*}
+\mathcal{D} \models legal(s) \wedge Trans(\delta_1 || \delta_2,s,\delta,s'))
 \rightarrow legal(s')
-\end{multline*}
+\end{equation*}
 No other $Trans$ clauses introduce new situation terms, making
-the remaining induction.
+the remaining induction trivial.
 \end{proof}
 
 
@@ -654,17 +613,23 @@ each ingredient is not specified, nor is the order in which they should
 be added. The agents are free to determine an appropriate strategy.
 
 %
-\begin{figure}[hbt]
-\verbatiminput{listings/output_makeSalad.txt}
-
-\verbatiminput{listings/constraints_makeSalad.txt}
-
-
-\caption{\label{cap:example_trace}Trace of an execution of the $MakeSalad$
-program with three agents (top). Variables $\_ U$, $\_ T$, etc give
+\begin{figure*}[t]
+\centering
+\framebox{
+\begin{minipage}[t]{0.5\linewidth}
+\small
+\verbatiminput{listings/output_makeSalad_1.txt}
+\end{minipage}
+\begin{minipage}[t]{0.45\linewidth}
+\small
+\verbatiminput{listings/output_makeSalad_2.txt}
+\end{minipage}
+}
+\caption{One possible execution of the $MakeSalad$
+program with three agents. Variables $\_ U$, $\_ T$, etc give
 the occurrence times of each action, constrained to ensure all situations
-are legal (bottom).}
-\end{figure}
+are legal.}\label{cap:example_trace}
+\end{figure*}
 
 
 A trace of a legal execution of the $MakeSalad$ program is shown
@@ -728,6 +693,17 @@ to develop a single Golog program that is cooperatively executed by
 all agents. Another difference is its focus on modelling and simulation
 of agent systems, rather than producing executable programs.
 
+Closer to the spirit of this paper is the work of Ferrein et. al.
+\cite{Ferrein2005readylog} on ReadyLog, a Golog derivative designed
+for highly dynamic domains. It has been successfully applied to control
+multi-agent teams in the RoboCup soccer tournament. ReadyLog integrates
+the facilities of concurrency, online execution and decision theory
+and can be seen as a unification of ConGolog, IndiGolog and DTGolog.
+The programs used to control the soccer team intersperse actions by
+several agents and can thus be viewed as team programs. However, the
+program is evaluated separately by each agent.
+
+TODO: another paragraph on the wider MA contex,
 Closer to the spirit of this paper is the work of Ferrein et. al.
 \cite{Ferrein2005readylog} on ReadyLog, a Golog derivative designed
 for highly dynamic domains. It has been successfully applied to control
