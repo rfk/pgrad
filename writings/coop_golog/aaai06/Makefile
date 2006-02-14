@@ -37,8 +37,8 @@ LISTINGS =
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.bbl *.blg
 GARBAGE = $(LATEX_GARBAGE) *~ $(IMAGES_CLEAN)
 
-PS = aaai06.ps
-PDF = aaai06.pdf
+PS = aaai06rkelly.ps
+PDF = aaai06rkelly.pdf
 RTF = # List RTF files
 HTML = # List HTML Files
 
@@ -110,8 +110,8 @@ clobber: clean
 
 ##  Additional Dependencies
 
-aaai06.dvi:  $(IMAGES) $(LISTINGS) aaai06.bbl ../../../library/references.bib
+aaai06rkelly.dvi:  $(IMAGES) $(LISTINGS) aaai06rkelly.bbl ../../../library/references.bib
 
-view:   clobber aaai06.ps
-	evince aaai06.ps
+view:   clobber aaai06rkelly.ps
+	evince aaai06rkelly.ps
 
