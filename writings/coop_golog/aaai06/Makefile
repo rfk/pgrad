@@ -17,7 +17,7 @@
 
 L2H = latex2html -split 0 -show_section_numbers -toc_depth 5 -ascii_mode -images
 DVIPS = dvips
-PS2PDF = ps2pdf
+DVIPDFM = dvipdfm
 L2RTF = latex2rtf
 
 
@@ -89,8 +89,8 @@ rtf: $(RTF)
 %.ps: %.dvi
 	$(DVIPS) -o $@ $<
 
-%.pdf: %.ps
-	$(PS2PDF) $< $@
+%.pdf: %.dvi
+	$(DVIPDFM) -o $@ $<
 
 %/index.html: %.tex
 	$(L2H) $<
@@ -112,6 +112,6 @@ clobber: clean
 
 aaai06rkelly.dvi:  $(IMAGES) $(LISTINGS) aaai06rkelly.bbl ../../../library/references.bib
 
-view:   clobber aaai06rkelly.ps
-	evince aaai06rkelly.ps
+view:   clobber aaai06rkelly.pdf
+	evince aaai06rkelly.pdf
 
