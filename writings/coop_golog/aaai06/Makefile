@@ -17,7 +17,7 @@
 
 L2H = latex2html -split 0 -show_section_numbers -toc_depth 5 -ascii_mode -images
 DVIPS = dvips
-DVIPDFM = dvipdfm
+DVIPDFM = dvipdfm -p letter
 L2RTF = latex2rtf
 
 
