@@ -1,0 +1,337 @@
+#LyX 1.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 221
+\textclass article
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\papersize Default
+\paperpackage a4
+\use_geometry 0
+\use_amsmath 0
+\use_natbib 0
+\use_numerical_citations 0
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\quotes_times 2
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+
+\layout Title
+
+Proving Properties of States without Induction
+\layout Author
+
+Ryan Kelly
+\layout Abstract
+
+Universally quantifying over states in the situation calculus typically
+ requires the use of a second-order induction axiom.
+ While this is useful for verifying state properties with a manual proof,
+ it is problematic for automated reasoning.
+ We take inspiration from the idea of regression, and show how a formula
+ universally quantifying over states can be reduced to a purley first-order
+ formula that is uniform in a single situation variable.
+\layout Section
+
+Introduction
+\layout Standard
+
+I know you said not to bother with LaTeX, but I use a GUI editor so it's
+ just as easy as writing text :-)
+\layout Section
+
+The Problem
+\layout Standard
+
+Many useful reasoning tasks in the situation calculus require universally
+ quantifying over situations.
+ For example, when reasoning about action, it is useful to determine whether
+ a given condition can ever possibly be satisfied in the world:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{D}\models\forall s\,\neg G(s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+When the situation calculus is enriched with knowledge, such reasoning becomes
+ more and more important.
+ Consider the case where an agent must is unable to observe certain actions
+ occuring in the world.
+ In order to know that some formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ holds, it must determine not only that it holds in the current situation
+ 
+\begin_inset Formula $s$
+\end_inset 
+
+ but that it cannot become false in any successor situations that might
+ arise without it knowing:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s'\, s\leq s'\rightarrow\phi[s']\vee\exists s''\, s'=do(a,s'')\wedge s\leq s''\wedge CanObs(a,s'')\]
+
+\end_inset 
+
+
+\layout Standard
+
+A note on notation: 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ here is a situation-suppressed formula, i.e.
+ one in which all fluents are missing their situation terms and no other
+ situation terms are mentioned.
+ 
+\begin_inset Formula $\phi[s]$
+\end_inset 
+
+ indicate restoring the situation term to the fluents.
+ An example could be 
+\begin_inset Formula $\phi=broken(x)$
+\end_inset 
+
+ and 
+\begin_inset Formula $\phi[s]=broken(x,s)$
+\end_inset 
+
+.
+ 
+\layout Standard
+
+The canonical reference for such reasoning in the situation calculus is
+ 
+\begin_inset LatexCommand \cite{Reiter93proving}
+
+\end_inset 
+
+, where a second-order induction axiom is given to allow this:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall P\,\left[\right(P(S_{0})\wedge\forall s,a\, P(s)\rightarrow P(do(a,s))\left)\rightarrow\forall s\, P(s)\right]\]
+
+\end_inset 
+
+
+\layout Standard
+
+While such an axiom makes manual verification of universal state properties
+ possible, it is problematic for automated reasoning.
+\layout Standard
+
+For agent-programming tasks, we would like to replace quantification over
+ situations with a more tractable form of reasoning - specifically, evaluation
+ of a uniform formula at a specific situation.
+ That is, we would like some syntactic transformation of a situation suppressed
+ formula 
+\begin_inset Formula $Q*(\phi)$
+\end_inset 
+
+ such that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s'\, s\leq s'\rightarrow\phi[s']\equiv Q*(\phi)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+This is similar in spirit to the regression operator, where reasoning about
+ an arbitrary situation is reduced to reasoning about the initial situation
+ by means of a syntactic translation 
+\begin_inset Formula $\mathcal{R}(\phi)$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\phi[do(a_{1},do(a_{2},...do(a_{n},S_{0})))]\equiv\mathcal{R}(\phi)[S_{0}]\]
+
+\end_inset 
+
+
+\layout Section
+
+Ideas
+\layout Standard
+
+It is intuitively possible to define an operator 
+\begin_inset Formula $Q(\phi)$
+\end_inset 
+
+ such that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\phi[s]\wedge\forall s'\, s'=do(a,s)\rightarrow\phi[s']\equiv Q(\phi)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+That is, 
+\begin_inset Formula $Q(\phi)$
+\end_inset 
+
+ is satisfied at 
+\begin_inset Formula $s$
+\end_inset 
+
+ if and only if 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ is satisfied at 
+\begin_inset Formula $s$
+\end_inset 
+
+ and all of its direct successors.
+ The intuition behind this function is simlar to the regression operator.
+\layout Standard
+
+Now, if 
+\begin_inset Formula $Q(\phi)$
+\end_inset 
+
+ is shown to be true at 
+\begin_inset Formula $s$
+\end_inset 
+
+ and all of its direct successors, then 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ must be true at 
+\begin_inset Formula $s$
+\end_inset 
+
+, any of its successors, and any of their successors.
+ Therefore:
+\layout Standard
+
+
+\begin_inset Formula \[
+\phi[s]\wedge\forall s'\, s'=do(a,s)\vee s'=do(a_{1},do(a_{2},s))\rightarrow\phi[s']\equiv Q(Q(\phi))[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Let 
+\begin_inset Formula $Q^{n}(\phi)$
+\end_inset 
+
+ represent 
+\begin_inset Formula $n$
+\end_inset 
+
+ applications of the 
+\begin_inset Formula $Q$
+\end_inset 
+
+ function to the formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+.
+ Intuitively, if a situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ satisfied 
+\begin_inset Formula $Q^{n}(\phi)$
+\end_inset 
+
+ then 
+\begin_inset Formula $s$
+\end_inset 
+
+ and all of its successors up to depth 
+\begin_inset Formula $n$
+\end_inset 
+
+ satisfy the formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+.
+\layout Standard
+
+If it is possible to determine a fixed point 
+\begin_inset Formula $Q*(\phi)$
+\end_inset 
+
+ of repeated applications of this function such that:
+\layout Standard
+
+
+\begin_inset Formula \[
+Q*(\phi)\models Q(Q*(\phi))\]
+
+\end_inset 
+
+
+\layout Standard
+
+Then if 
+\begin_inset Formula $s$
+\end_inset 
+
+ satisfies 
+\begin_inset Formula $Q*(\phi)$
+\end_inset 
+
+, all of its successors at any depth with satisfy 
+\begin_inset Formula $\phi$
+\end_inset 
+
+.
+ Thus:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s'\, s\leq s'\rightarrow\phi[s']\equiv Q*(\phi)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+As desired.
+ The trick is to find this fixed point, and to guarantee that it exists.
+\layout Standard
+
+
+\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset 
+
+
+\the_end
