@@ -64,9 +64,11 @@ simplify(P & Q,S) :-
     ;
         SQ=false, S=false
     ;
-        SP=true, S=Q
+        SP=true, S=SQ
     ;
-        SQ=true, S=P
+        SQ=true, S=SP
+    ;
+        ground(SP), ground(SQ), SP=SQ, S=SP
     ;
         S=SP & SQ
     ), !.
@@ -82,6 +84,8 @@ simplify(P v Q,S) :-
     ;
         SQ=false, S=SP
     ;
+        ground(SP), ground(SQ), SP=SQ, S=SP
+    ;
         S=SP v SQ
     ), !.
 simplify(~P,S) :-
@@ -90,6 +94,8 @@ simplify(~P,S) :-
         SP=false, S=true
     ;
         SP=true, S=false
+    ;
+        SP = ~P2, S=P2
     ;
         S = ~SP
     ), !.
@@ -117,23 +123,24 @@ consequence(P1,P2) :-
     Fml = ~(true & ~false & P1) v P2,
     to_leancop_form(Fml,C),
     make_matrix(C,M),
-    prove(M,5).
+    prove(M).
 
-find_qcond(P,Q) :-
-    find_qcond(P,0,Q).
 
-find_qcond(Qold,N,Q) :-
-    N < 10,
-    Nnew is N + 1,
-    qcond(Qold,Qtmp),
-    simplify(Qtmp,Qnew),
-    write(Nnew), write(' :: '), write(Qnew), nl,
+find_qcond([Qold|T],Q) :-
+    length(T,Len), Len < 10,
+    qcond_t(Qold,Qnew),
+    write(Len), write(' :: '), write(Qnew), nl,
     (consequence(Qold,Qnew) ->
-        Q=Qnew
+        joinlist(&,[Qold|T],Q)
+    ; consequence(Qold,~Qnew) ->
+        Q=false
     ;
-        find_qcond(Qnew,Nnew,Q)
+        find_qcond([Qnew,Qold|T],Q)
     ).
+find_qcond(P,Q) :-
+    find_qcond([P],Q).
     
+
 subs(_,_,T,Tr) :-
     var(T), Tr = T.
 subs(X,Y,T,Tr) :-
@@ -151,32 +158,28 @@ joinlist(O,[H|T],J) :-
     joinlist(O,T,TJ),
     J =.. [O,H,TJ].
 
-
-qcond(P,Q) :-
-    setof(Qt,A^qcond1(P,A,Qt),Qts),
+qcond_t(P,Q) :-
+    findall(Qt,A^qcond_t1(P,A,Qt),Qts),
     (
-      Qts=[], Q=P
+      Qts=[], Qtmp=true
     ;
-      joinlist(&,Qts,Qp), Q=P & Qp
-    ).
+      joinlist(&,Qts,Qp), Qtmp=Qp
+    ),
+    simplify(Qtmp,Q).
 
-qcond(P,0,P).
-qcond(P,N,Q) :-
+qcond_t(P,0,P).
+qcond_t(P,N,Q) :-
      N > 0,
      N2 is N - 1,
-     qcond(P,N2,Q2),
-     qcond(Q2,Q).
+     qcond_t(P,N2,Q2),
+     qcond_t(Q2,Q).
     
 
-qcond1(P,A,Q) :-
+qcond_t1(P,A,Q) :-
     eps_n(P,A,QP),
     poss(A,QA),
-    Q = ~QA v ~QP.
-    %getvars(A),
-    %A =.. [_|Args],
-    %Qt = ~QA v ~QP,
-    %append(Args,[Qt],Ql),
-    %joinlist(all,Ql,Q).
+    Qt = ~QA v ~QP,
+    simplify(Qt,Q).
 
 affected(P,A) :-
     eps_p(P,A,_) ; eps_n(P,A,_).
@@ -288,7 +291,7 @@ eps_n(holding(X),putdown(X),true).
 poss(drop(X),holding(X)).
 poss(pickup(_),true).
 poss(putdown(X),holding(X)).
-poss(repair(X),holding(X)).
+poss(repair(X),holding(X) & hasglue).
 
 getvars(A) :-
     A =.. [_|Args],

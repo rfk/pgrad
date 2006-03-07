@@ -1,11 +1,16 @@
 #LyX 1.3 created this file. For more info see http://www.lyx.org/
 \lyxformat 221
 \textclass article
+\begin_preamble
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+\end_preamble
 \language english
 \inputencoding auto
 \fontscheme default
 \graphics default
 \paperfontsize default
+\spacing single 
 \papersize Default
 \paperpackage a4
 \use_geometry 0
@@ -25,7 +30,7 @@
 
 \layout Title
 
-Proving Properties of States without Induction
+Proving State Properties without Induction in the Situation Calculus
 \layout Author
 
 Ryan Kelly
@@ -41,13 +46,6 @@ Universally quantifying over states in the situation calculus typically
 \layout Section
 
 Introduction
-\layout Standard
-
-I know you said not to bother with LaTeX, but I use a GUI editor so it's
- just as easy as writing text :-)
-\layout Section
-
-The Problem
 \layout Standard
 
 Many useful reasoning tasks in the situation calculus require universally
@@ -134,7 +132,8 @@ The canonical reference for such reasoning in the situation calculus is
 \layout Standard
 
 While such an axiom makes manual verification of universal state properties
- possible, it is problematic for automated reasoning.
+ possible, its second-order nature makes it problematic for automated reasoning.
+ 
 \layout Standard
 
 For agent-programming tasks, we would like to replace quantification over
@@ -142,7 +141,7 @@ For agent-programming tasks, we would like to replace quantification over
  of a uniform formula at a specific situation.
  That is, we would like some syntactic transformation of a situation suppressed
  formula 
-\begin_inset Formula $Q*(\phi)$
+\begin_inset Formula $Q^{F}(\phi)$
 \end_inset 
 
  such that:
@@ -150,7 +149,7 @@ For agent-programming tasks, we would like to replace quantification over
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\equiv Q*(\phi)[s]\]
+\forall s'\, s\leq s'\rightarrow\phi[s']\equiv Q^{F}(\phi)[s]\]
 
 \end_inset 
 
@@ -169,6 +168,174 @@ This is similar in spirit to the regression operator, where reasoning about
 
 \begin_inset Formula \[
 \phi[do(a_{1},do(a_{2},...do(a_{n},S_{0})))]\equiv\mathcal{R}(\phi)[S_{0}]\]
+
+\end_inset 
+
+
+\layout Section
+
+Formulation
+\layout Subsection
+
+Preliminaries
+\layout Standard
+
+TODO: basic description of situation calculus here
+\layout Standard
+
+An important definition: uniform formulae.
+ TODO: look it up
+\layout Standard
+
+talk about situation suppression
+\layout Subsection
+
+Effect Axioms
+\layout Standard
+
+We assume that the theory of action is specified in terms of
+\emph on 
+ effect axioms
+\emph default 
+.
+ For each action function 
+\begin_inset Formula $\alpha(\overrightarrow{x})$
+\end_inset 
+
+ that could cause a fluent 
+\begin_inset Formula $F(\overrightarrow{y})$
+\end_inset 
+
+ to become true, there is a positive effect axiom of the form:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall\overrightarrow{x},\overrightarrow{y},s\,\pi_{\alpha}(\overrightarrow{x},s)\wedge\epsilon_{F,\alpha}^{+}(\overrightarrow{x},\overrightarrow{y},s)\rightarrow F(\overrightarrow{y},do(\alpha(\overrightarrow{x}),s))\]
+
+\end_inset 
+
+
+\layout Standard
+
+The meta-formula 
+\begin_inset Formula $\pi_{\alpha}$
+\end_inset 
+
+ gives the prerequisites that must be satisfied in order to carry out the
+ action 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ in the world, and 
+\begin_inset Formula $\epsilon_{F,\alpha}$
+\end_inset 
+
+ gives the conditions under which action 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ will cause fluent 
+\begin_inset Formula $F$
+\end_inset 
+
+ to become true.
+ Similarly, for each action that could cause a fluent to become false there
+ is a negative effect axiom of the form:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall\overrightarrow{x},\overrightarrow{y},s\,\pi_{\alpha}(\overrightarrow{x},s)\wedge\epsilon_{F,\alpha}^{-}(\overrightarrow{x},\overrightarrow{y},s)\rightarrow\neg F(\overrightarrow{y},do(\alpha(\overrightarrow{x}),s))\]
+
+\end_inset 
+
+
+\layout Standard
+
+In his landmark paper 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
+\end_inset 
+
+, Reiter showed how a solution to the frame problem can be compiled from
+ a collection of such effect axioms, under the assumption that they specify
+ 
+\emph on 
+all
+\emph default 
+ the ways in which fluents can change value.
+ By utilising the same assumption, we will show how the effect conditions
+ 
+\begin_inset Formula $\pi$
+\end_inset 
+
+, 
+\begin_inset Formula $\epsilon^{+}$
+\end_inset 
+
+ and 
+\begin_inset Formula $\epsilon^{-}$
+\end_inset 
+
+ can be used in proving state properties.
+\layout Standard
+
+TODO: explicitly list the actions affecting a fluent? Useful for rewriting
+\layout Subsection
+
+Compound Fluents
+\layout Standard
+
+Any situation-suppressed formula can be though of as describing a compound
+ property of the world - that is, a property whose truth depends on the
+ truth of other properties of the world.
+ In other words, we may think of a situation-suppressed formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ as a 
+\emph on 
+compound fluent
+\emph default 
+ that is true or false relative to a single situation variable 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ From this perspective, it should be possible to construct compound effect
+ axioms for a given compound fluent.
+\layout Standard
+
+We define operators 
+\begin_inset Formula $\mathcal{E}^{+}[\phi,\alpha]$
+\end_inset 
+
+ and 
+\begin_inset Formula $\mathcal{E}^{-}[\phi,\alpha]$
+\end_inset 
+
+ that operate on compound fluents 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ to give their positive and negative effect axioms with respect to an action
+ 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+.
+ These operators can be defined inductively on the structure of compound
+ fluents:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathcal{E}^{+}[F,\alpha]\isdef\epsilon_{F,\alpha}^{+}\\
+\mathcal{E}^{+}[\phi\wedge\psi,\alpha]\isdef(\mathcal{E}^{+}[\phi,\alpha]\wedge\mathcal{E}^{+}[\psi,\alpha])\vee(\mathcal{E}^{+}[\phi,\alpha]\wedge\psi\wedge\neg\mathcal{E}^{-}[\psi,\alpha])\vee(\mathcal{\phi\wedge\neg E}^{-}[\phi,\alpha]\wedge\mathcal{E}^{+}[\psi,\alpha])\\
+\mathcal{E}^{+}[\phi\vee\psi,\alpha]\\
+\\\\\end{array}\]
 
 \end_inset 
 
