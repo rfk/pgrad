@@ -174,7 +174,9 @@ qcond_t(P,N,Q) :-
      qcond_t(P,N2,Q2),
      qcond_t(Q2,Q).
     
-
+% TODO: this doesnt handle quantification properly
+%       Because the action appears outside quantifier scope.
+%       need to rethink this a little for quantification
 qcond_t1(P,A,Q) :-
     eps_n(P,A,QP),
     poss(A,QA),
