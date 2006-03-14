@@ -30,19 +30,20 @@
 
 \layout Title
 
-State Property Persistence in the Situation Calculus
+Property Persistence in the Situation Calculus
 \layout Author
 
 Ryan Kelly
 \layout Abstract
 
 Universally quantifying over states in the situation calculus typically
- requires the use of a second-order induction axiom.
- While this is useful for verifying state properties with a manual proof,
- it is problematic for automated reasoning.
- We take inspiration from the idea of regression, and show how a formula
- universally quantifying over states can be reduced to a purley first-order
- formula that is uniform in a single situation variable.
+ requires the use of a second-order induction axiom, which can be problematic
+ for automated reasoning.
+ Fortunately, special cases exist where the need for induction can be eliminated.
+ We show that given a uniform formula expressing some property of a situtation,
+ the persistence of that property - that is, whether the property holds
+ in a given situation and all future situations - can be determined without
+ employing the induction axiom.
 \layout Section
 
 Introduction
@@ -82,7 +83,44 @@ When the situation calculus is enriched with knowledge, such reasoning becomes
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\vee\exists s''\, s'=do(a,s'')\wedge s\leq s''\wedge CanObs(a,s'')\]
+\forall s'\, s\leq s'\rightarrow\phi[s']\vee\exists a\, occurs(a,s,s')\wedge CanObs(a,s'')\]
+
+\end_inset 
+
+
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+
+\begin_inset Formula $occurs(a,s_{1},s_{2})$
+\end_inset 
+
+ means 
+\begin_inset Quotes eld
+\end_inset 
+
+action 
+\begin_inset Formula $a$
+\end_inset 
+
+ occured between situations 
+\begin_inset Formula $s_{1}$
+\end_inset 
+
+ and 
+\begin_inset Formula $s_{2}$
+\end_inset 
+
+
+\begin_inset Quotes erd
+\end_inset 
+
+ and can be defined as: 
+\begin_inset Formula $occurs(a,s_{1},s_{2})\equiv\exists s,s'\, s_{1}<s\leq s_{2}\wedge s=do(a,s')$
+\end_inset 
+
 
 \end_inset 
 
@@ -136,12 +174,78 @@ While such an axiom makes manual verification of universal state properties
  
 \layout Standard
 
+In this paper we are specifically interested in 
+\emph on 
+persistence
+\emph default 
+ of properties in a situation.
+ That is, given that some formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ holds in a situation 
+\begin_inset Formula $s$
+\end_inset 
+
+, does it continue to hold in all situations in the future of 
+\begin_inset Formula $s$
+\end_inset 
+
+?
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s'\, s\leq s'\rightarrow\phi[s']\]
+
+\end_inset 
+
+
+\layout Standard
+
+For some applications, it may be desirable to limit the future situations
+ to those containing a certain class of actions.
+ Suppose the formula 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ is true for precisely those actions to be considered, then the question
+ of persistence becomes:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s'\, s\leq s'\rightarrow\phi[s']\vee\exists a\, occurs(a,s,s')\wedge\alpha(a)\]
+
+\end_inset 
+
+
+\layout Standard
+
+TODO: 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+also needs the situation in which 
+\begin_inset Formula $a$
+\end_inset 
+
+ is being performed...
+\layout Standard
+
 For agent-programming tasks, we would like to replace quantification over
  situations with a more tractable form of reasoning - specifically, evaluation
  of a uniform formula at a specific situation.
- That is, we would like some syntactic transformation of a situation suppressed
- formula 
-\begin_inset Formula $Q^{F}(\phi)$
+ That is, we would like some syntactic transformation 
+\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+\end_inset 
+
+ of a property 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ and action conditions 
+\begin_inset Formula $\alpha$
 \end_inset 
 
  such that:
@@ -149,29 +253,41 @@ For agent-programming tasks, we would like to replace quantification over
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\equiv Q^{F}(\phi)[s]\]
+\forall s'\, s\leq s'\rightarrow\phi(s')\vee\exists a\, occurs(a,s,s')\wedge\alpha(a)\,\equiv\,\mathcal{P}(\phi,\alpha)\]
 
 \end_inset 
 
 
 \layout Standard
 
-This is similar in spirit to the regression operator, where reasoning about
- an arbitrary situation is reduced to reasoning about the initial situation
- by means of a syntactic translation 
-\begin_inset Formula $\mathcal{R}(\phi)$
+We say that 
+\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
 \end_inset 
 
-:
-\layout Standard
+ is the 
+\emph on 
+persistence condition
+\emph default 
+ of formula 
+\begin_inset Formula $\phi$
+\end_inset 
 
+ with respect to the class of actions 
+\begin_inset Formula $\alpha$
+\end_inset 
 
-\begin_inset Formula \[
-\phi[do(a_{1},do(a_{2},...do(a_{n},S_{0})))]\equiv\mathcal{R}(\phi)[S_{0}]\]
+.
+ Such an operation is clearly in the spirit of the regression operator 
+\begin_inset Formula $\mathcal{R}$
+\end_inset 
+
+ introduced by Reiter 
+\begin_inset LatexCommand \cite{reiter91frameprob}
 
 \end_inset 
 
-
+, which allows reasoning about what holds in an arbitrary situation to be
+ reduces to reasoning about the initial situation.
 \layout Section
 
 Formulation
@@ -493,6 +609,28 @@ Then if
 
 As desired.
  The trick is to find this fixed point, and to guarantee that it exists.
+\layout Section
+
+TODO
+\layout Standard
+
+Dont use the word 
+\begin_inset Quotes eld
+\end_inset 
+
+state
+\begin_inset Quotes erd
+\end_inset 
+
+ anywhere, use 
+\begin_inset Quotes eld
+\end_inset 
+
+situation
+\begin_inset Quotes erd
+\end_inset 
+
+ instead
 \layout Standard
 
 
