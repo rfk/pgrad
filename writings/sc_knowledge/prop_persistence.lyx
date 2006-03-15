@@ -83,44 +83,7 @@ When the situation calculus is enriched with knowledge, such reasoning becomes
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\vee\exists a\, occurs(a,s,s')\wedge CanObs(a,s'')\]
-
-\end_inset 
-
-
-\begin_inset Foot
-collapsed true
-
-\layout Standard
-
-
-\begin_inset Formula $occurs(a,s_{1},s_{2})$
-\end_inset 
-
- means 
-\begin_inset Quotes eld
-\end_inset 
-
-action 
-\begin_inset Formula $a$
-\end_inset 
-
- occured between situations 
-\begin_inset Formula $s_{1}$
-\end_inset 
-
- and 
-\begin_inset Formula $s_{2}$
-\end_inset 
-
-
-\begin_inset Quotes erd
-\end_inset 
-
- and can be defined as: 
-\begin_inset Formula $occurs(a,s_{1},s_{2})\equiv\exists s,s'\, s_{1}<s\leq s_{2}\wedge s=do(a,s')$
-\end_inset 
-
+\forall s''\, s\leq s''\rightarrow\phi[s'']\vee\exists a,s'\, s<do(a,s')\leq s''\wedge CanObs(a,s')\]
 
 \end_inset 
 
@@ -132,13 +95,37 @@ A note on notation:
 \end_inset 
 
  here is a situation-suppressed formula, i.e.
- one in which all fluents are missing their situation terms and no other
- situation terms are mentioned.
+ a formula uniform in a situation variable 
+\begin_inset Formula $s$
+\end_inset 
+
+, in which all references to 
+\begin_inset Formula $s$
+\end_inset 
+
+ have been suppressed.
  
 \begin_inset Formula $\phi[s]$
 \end_inset 
 
- indicate restoring the situation term to the fluents.
+ indicates restoring the situation term to the fluents, and can be thought
+ of as 
+\begin_inset Quotes eld
+\end_inset 
+
+evaluating
+\begin_inset Quotes erd
+\end_inset 
+
+ the formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ at situation 
+\begin_inset Formula $s$
+\end_inset 
+
+.
  An example could be 
 \begin_inset Formula $\phi=broken(x)$
 \end_inset 
@@ -215,22 +202,11 @@ For some applications, it may be desirable to limit the future situations
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\vee\exists a\, occurs(a,s,s')\wedge\alpha(a)\]
+\forall s''\, s\leq s''\rightarrow\phi[s'']\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\alpha(a,s)\]
 
 \end_inset 
 
 
-\layout Standard
-
-TODO: 
-\begin_inset Formula $\alpha$
-\end_inset 
-
-also needs the situation in which 
-\begin_inset Formula $a$
-\end_inset 
-
- is being performed...
 \layout Standard
 
 For agent-programming tasks, we would like to replace quantification over
@@ -288,6 +264,191 @@ persistence condition
 
 , which allows reasoning about what holds in an arbitrary situation to be
  reduces to reasoning about the initial situation.
+\layout Section
+
+Overview
+\layout Standard
+
+Recall the single-step regression operator 
+\begin_inset Formula $\mathcal{R}$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\phi[do(a,s)]\equiv\mathcal{R}(\phi[do(a,s)])\]
+
+\end_inset 
+
+
+\layout Standard
+
+The important point is that 
+\begin_inset Formula $\mathcal{R}(\phi[do(a,s)])$
+\end_inset 
+
+ is uniform in 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ Let 
+\begin_inset Formula $\mathcal{P}^{1}(\phi)[s]$
+\end_inset 
+
+ be a formula uniform in 
+\begin_inset Formula $s$
+\end_inset 
+
+ that is true precisely when 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ holds in 
+\begin_inset Formula $s$
+\end_inset 
+
+ and all its immediate successors.
+ We can define such a formula as follows:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}^{1}(\phi)[s]\isdef\phi[s]\wedge\forall a\,\mathcal{R}(\phi[do(a,s)])\]
+
+\end_inset 
+
+
+\layout Standard
+
+Intuitively, if 
+\begin_inset Formula $\mathcal{P}^{1}(\phi)$
+\end_inset 
+
+ holds in 
+\begin_inset Formula $s$
+\end_inset 
+
+ and all its immediate sucecssors, then 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ will hold in 
+\begin_inset Formula $s$
+\end_inset 
+
+ and all successors up to depth two:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}^{2}(\phi)[s]\isdef\mathcal{P}^{1}(\mathcal{P}^{1}(\phi))[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+This generalises in a straightforward way to arbitrarily deep successors:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}^{n}(\phi)[s]\equiv\mathcal{P}^{1}(\mathcal{P}^{n-1}(\phi))[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+It is clear that for any 
+\begin_inset Formula $n$
+\end_inset 
+
+ and 
+\begin_inset Formula $s$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}^{n}(\phi)[s]\rightarrow\mathcal{P}^{n-1}(\phi)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+If it is possible to show that there is an 
+\begin_inset Formula $n$
+\end_inset 
+
+ such that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}^{n}(\phi)[s]\rightarrow\mathcal{P}^{n+1}(\phi)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+Then we have shown logical equivalence of all further applications of 
+\begin_inset Formula $\mathcal{P}^{1}$
+\end_inset 
+
+:
+\begin_inset Formula \[
+\forall m\, n<m\rightarrow\mathcal{P}^{n}(\phi)[s]\equiv\mathcal{P}^{m}(\phi)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+This 
+\begin_inset Formula $\mathcal{P}^{n}$
+\end_inset 
+
+ can thus be considered a fixed-point of 
+\begin_inset Formula $\mathcal{P}^{1}$
+\end_inset 
+
+.
+ We shall denote this fixed point by 
+\begin_inset Formula $\mathcal{P}(\phi)$
+\end_inset 
+
+.
+ It is then a simple inductive argument to show that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\forall s'\, s\leq s'\rightarrow\phi[s']\equiv\mathcal{P}(\phi)\]
+
+\end_inset 
+
+
+\layout Standard
+
+The following questions then remain:
+\layout Itemize
+
+How can we guarantee that such a fixed-point exists?
+\layout Itemize
+
+How can we efficiently compute the fixed point for a given 
+\begin_inset Formula $\phi$
+\end_inset 
+
+
 \layout Section
 
 Formulation
@@ -456,159 +617,6 @@ We define operators
 \end_inset 
 
 
-\layout Section
-
-Ideas
-\layout Standard
-
-It is intuitively possible to define an operator 
-\begin_inset Formula $Q(\phi)$
-\end_inset 
-
- such that:
-\layout Standard
-
-
-\begin_inset Formula \[
-\phi[s]\wedge\forall s'\, s'=do(a,s)\rightarrow\phi[s']\equiv Q(\phi)[s]\]
-
-\end_inset 
-
-
-\layout Standard
-
-That is, 
-\begin_inset Formula $Q(\phi)$
-\end_inset 
-
- is satisfied at 
-\begin_inset Formula $s$
-\end_inset 
-
- if and only if 
-\begin_inset Formula $\phi$
-\end_inset 
-
- is satisfied at 
-\begin_inset Formula $s$
-\end_inset 
-
- and all of its direct successors.
- The intuition behind this function is simlar to the regression operator.
-\layout Standard
-
-Now, if 
-\begin_inset Formula $Q(\phi)$
-\end_inset 
-
- is shown to be true at 
-\begin_inset Formula $s$
-\end_inset 
-
- and all of its direct successors, then 
-\begin_inset Formula $\phi$
-\end_inset 
-
- must be true at 
-\begin_inset Formula $s$
-\end_inset 
-
-, any of its successors, and any of their successors.
- Therefore:
-\layout Standard
-
-
-\begin_inset Formula \[
-\phi[s]\wedge\forall s'\, s'=do(a,s)\vee s'=do(a_{1},do(a_{2},s))\rightarrow\phi[s']\equiv Q(Q(\phi))[s]\]
-
-\end_inset 
-
-
-\layout Standard
-
-Let 
-\begin_inset Formula $Q^{n}(\phi)$
-\end_inset 
-
- represent 
-\begin_inset Formula $n$
-\end_inset 
-
- applications of the 
-\begin_inset Formula $Q$
-\end_inset 
-
- function to the formula 
-\begin_inset Formula $\phi$
-\end_inset 
-
-.
- Intuitively, if a situation 
-\begin_inset Formula $s$
-\end_inset 
-
- satisfied 
-\begin_inset Formula $Q^{n}(\phi)$
-\end_inset 
-
- then 
-\begin_inset Formula $s$
-\end_inset 
-
- and all of its successors up to depth 
-\begin_inset Formula $n$
-\end_inset 
-
- satisfy the formula 
-\begin_inset Formula $\phi$
-\end_inset 
-
-.
-\layout Standard
-
-If it is possible to determine a fixed point 
-\begin_inset Formula $Q*(\phi)$
-\end_inset 
-
- of repeated applications of this function such that:
-\layout Standard
-
-
-\begin_inset Formula \[
-Q*(\phi)\models Q(Q*(\phi))\]
-
-\end_inset 
-
-
-\layout Standard
-
-Then if 
-\begin_inset Formula $s$
-\end_inset 
-
- satisfies 
-\begin_inset Formula $Q*(\phi)$
-\end_inset 
-
-, all of its successors at any depth with satisfy 
-\begin_inset Formula $\phi$
-\end_inset 
-
-.
- Thus:
-\layout Standard
-
-
-\begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\equiv Q*(\phi)[s]\]
-
-\end_inset 
-
-
-\layout Standard
-
-As desired.
- The trick is to find this fixed point, and to guarantee that it exists.
 \layout Section
 
 TODO

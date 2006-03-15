@@ -160,27 +160,9 @@ We work in a version of the the situation calculus enriched with a number
 
 \end_inset 
 
-, but attached to situations rather than actions
-\begin_inset Foot
-collapsed true
+ but using the action-time pairs of 
+\begin_inset LatexCommand \cite{scherl03conc_knowledge}
 
-\layout Standard
-
-This eliminates some technical complexities such as the 
-\begin_inset Formula $coherent$
-\end_inset 
-
- predicate of 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset 
-
- and the action-time pairs of 
-\begin_inset LatexCommand \cite{scherl03sc_knowledge}
-
-\end_inset 
-
-, at the expense of more verbose predicate signatures.
 \end_inset 
 
 ; concurrent actions and natural actions as developed in 
@@ -204,12 +186,9 @@ This eliminates some technical complexities such as the
 \end_inset 
 
 .
- These extensions are largely independent, and can be removed from the formulati
-on in a straight-forward manner.
+ These extensions are largely independent, and can each be removed from
+ the formalism in a straight-forward manner.
  We provide only a basic overview here.
-\layout Standard
-
-TODO: this section is very longwinded.
 \layout Subsection
 
 Preliminaries
@@ -222,11 +201,7 @@ The situation calculus is a many-sorted first-order logic language, augmented
  Agent
 \noun default 
  terms (variables 
-\begin_inset Formula $agt$
-\end_inset 
-
-, 
-\begin_inset Formula $agt_{i}$
+\begin_inset Formula $agt_{y}^{x}$
 \end_inset 
 
 ) represent the agents operating in the world;
@@ -234,98 +209,97 @@ The situation calculus is a many-sorted first-order logic language, augmented
  Action
 \noun default 
  terms (variables 
-\begin_inset Formula $a$
-\end_inset 
-
-, 
-\begin_inset Formula $a'$
-\end_inset 
-
-, 
-\begin_inset Formula $a_{i}$
+\begin_inset Formula $a_{y}^{x}$
 \end_inset 
 
 ) represent individual instantaneous events that can cause the state of
  the world to change;
 \noun on 
- Concurrent
-\noun default 
- terms (variables 
-\begin_inset Formula $c$
-\end_inset 
-
-, 
-\begin_inset Formula $c'$
-\end_inset 
-
-, 
-\begin_inset Formula $c_{i}$
-\end_inset 
-
-) are sets of actions that occur at the same instant; 
-\noun on 
-Time 
+ Time 
 \noun default 
 terms (variables 
-\begin_inset Formula $t$
-\end_inset 
-
-, 
-\begin_inset Formula $t'$
-\end_inset 
-
-, 
-\begin_inset Formula $t_{i}$
+\begin_inset Formula $t_{y}^{x}$
 \end_inset 
 
 ) represent instants in time using some suitable representation (e.g.
  reals, integers);
 \noun on 
- Situation 
+ Action-Time Pairs
+\noun default 
+ (variables 
+\begin_inset Formula $p_{y}^{x}=<a_{y}^{x},t_{y}^{x}>$
+\end_inset 
+
+) represent an action and the time at which it occured; 
+\noun on 
+Concurrent
+\noun default 
+ terms (variables 
+\begin_inset Formula $c_{y}^{x}$
+\end_inset 
+
+) are sets of actions that occur simultaneously; 
+\noun on 
+Event
+\noun default 
+ terms (variables 
+\begin_inset Formula $e_{y}^{x}=<c_{y}^{x},t_{y}^{x}>$
+\end_inset 
+
+) pair a set of concurrent actions with the time at which they occur
+\begin_inset Foot
+collapsed true
+
+\layout Standard
+
+This simplifies some technical matters, such as the 
+\begin_inset Formula $Coherent$
+\end_inset 
+
+ predicate of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset 
+
+
+\end_inset 
+
+; 
+\noun on 
+Situation 
 \noun default 
 terms (variables 
-\begin_inset Formula $s$
+\begin_inset Formula $s_{y}^{x}$
 \end_inset 
 
-, 
-\begin_inset Formula $s'$
-\end_inset 
-
-) are histories of the actions that have occured in the world, with the
- initial situation represented by 
+) are histories of the concurrent actions that have occured in the world,
+ with the initial situation represented by 
 \begin_inset Formula $S_{0}$
 \end_inset 
 
  and successive situations built up using the function 
-\begin_inset Formula $do\,:\, Action\times Time\times Situation\rightarrow Situation$
+\begin_inset Formula $do\,:\, Event\times Situation\rightarrow Situation$
 \end_inset 
 
 ;
 \noun on 
- Fluents
-\noun default 
- (variables 
-\begin_inset Formula $f$
-\end_inset 
-
-, 
-\begin_inset Formula $f'$
-\end_inset 
-
-) are predicates or functions that represent properties of the world, and
- take a situation term as their last argument;
-\noun on 
  Object 
 \noun default 
 terms (variables 
-\begin_inset Formula $obj$
-\end_inset 
-
-, 
-\begin_inset Formula $obj_{i}$
+\begin_inset Formula $obj_{y}^{x}$
 \end_inset 
 
 ) represent any other object in the domain.
+
+\noun on 
+ 
+\noun default 
+We also distinguish 
+\noun on 
+Fluents
+\noun default 
+ as predicates or functions that represent properties of the world, and
+ that take a situation term as their last argument.
 \layout Subsection
 
 Useful Functions
@@ -333,6 +307,56 @@ Useful Functions
 
 The following functions are introduced to the situation calculus to make
  it easier to write complex expressions.
+\layout Standard
+
+
+\begin_inset Formula $time(p)$
+\end_inset 
+
+ and 
+\begin_inset Formula $action(p)$
+\end_inset 
+
+ gives the time and action components of a pair:
+\layout Standard
+
+
+\begin_inset Formula \[
+time(<a,t>)=t\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+action(<a,t>)=a\]
+
+\end_inset 
+
+
+\layout Standard
+
+Similar functions are defined for event terms:
+\layout Standard
+
+
+\begin_inset Formula \[
+time(<c,t>)=t\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+actions(<c,t>)=c\]
+
+\end_inset 
+
+
 \layout Standard
 
 
@@ -344,7 +368,7 @@ The following functions are introduced to the situation calculus to make
 
 
 \begin_inset Formula \[
-start(do(c,t,s))=t\]
+start(do(e,s))=time(e)\]
 
 \end_inset 
 
@@ -373,31 +397,18 @@ Action Precondition Axioms
 \layout Standard
 
 There is a distinguished fluent predicate 
-\begin_inset Formula $Poss(a,t,s)$
+\begin_inset Formula $Poss(<a,t>,s)$
 \end_inset 
 
  that indicates when it is possible to perform an action in a given situation.
  For example, it is only possible for an agent to drop an object if they
- are holding it
-\begin_inset Foot
-collapsed true
-
-\layout Standard
-
-
-\size small 
-We follow the convention that lowercase terms are implicitly universally
- quantified.
- 
-\end_inset 
-
-:
+ are holding it:
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
-Poss(drop(agt,obj),t,s)\\
+Poss(<drop(agt,obj),t>,s)\\
 \leftrightarrow holding(agt,obj,s)\end{array}\]
 
 \end_inset 
@@ -428,11 +439,11 @@ For concurrent actions, an arbitrary combination of actions
 \layout Standard
 
 This is addressed by introducing a predicate 
-\begin_inset Formula $Conflicts(c,t,s)$
+\begin_inset Formula $Conflicts(e,s)$
 \end_inset 
 
  which is true when the actions in 
-\begin_inset Formula $c$
+\begin_inset Formula $e$
 \end_inset 
 
  are in conflict and cannot be performed together.
@@ -441,7 +452,7 @@ This is addressed by introducing a predicate
 
 
 \begin_inset Formula \[
-Poss(c,t,s)\leftrightarrow\forall a\left[a\in c\rightarrow Poss(a,t,s)\right]\wedge\neg Conflicts(c,t,s)\]
+Poss(e,s)\leftrightarrow\forall a\left[a\in actions(e)\rightarrow Poss(<a,time(e)>,s)\right]\wedge\neg Conflicts(e,s)\]
 
 \end_inset 
 
@@ -471,7 +482,7 @@ The truth values of fluents are specified by defining what is true of the
 
 
 \begin_inset Formula \[
-F(\overrightarrow{x},do(a,t,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},a,t,s)\,\vee\, F(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},a,t,s)\]
+F(\overrightarrow{x},do(<c,t>,s))\leftrightarrow\Gamma^{+}(\overrightarrow{x},c,t,s)\,\vee\, F(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},c,t,s)\]
 
 \end_inset 
 
@@ -542,8 +553,8 @@ An important concept when dealing with natural actions it the least natural
 
 \begin_inset Formula \[
 \begin{array}{c}
-Lntp(s,t)\equiv\exists a\left[Natural(a)\wedge Poss(a,t,s)\right]\wedge\\
-\forall a,t_{a}\left[Natural(a)\wedge Poss(a,t_{a},s)\rightarrow t\leq t_{a}\right]\end{array}\]
+Lntp(s,t)\equiv\exists a\left[Natural(a)\wedge Poss(<a,t>,s)\right]\wedge\\
+\forall a,t_{a}\left[Natural(a)\wedge Poss(<a,t_{a}>,s)\rightarrow t\leq t_{a}\right]\end{array}\]
 
 \end_inset 
 
@@ -571,9 +582,9 @@ To enforce the requirement that natural actions must occur when possible,
 
 \begin_inset Formula \begin{multline}
 Legal(S_{0})\equiv True\label{eqn:legal_def}\\
-\shoveleft{Legal(do(c,t,s))\equiv}\\
-Legal(s)\wedge Poss(c,t,s)\wedge start(s)\leq t\,\wedge\\
-\forall a,t_{a}.\, Natural(a)\wedge Poss(a,t_{a},s)\rightarrow\left[a\in c\vee t<t_{a}\right]\end{multline}
+\shoveleft{Legal(do(e,s))\equiv}\\
+Legal(s)\wedge Poss(e,s)\wedge start(s)\leq time(e)\,\wedge\\
+\forall a,t_{a}.\, Natural(a)\wedge Poss(<a,t_{a}>,s)\rightarrow\left[a\in actions(e)\vee time(e)<t_{a}\right]\end{multline}
 
 \end_inset 
 
@@ -667,7 +678,7 @@ TODO: other macros such as KWhether, KRef, etc...
 
 To allow actions to return sensing information, the sensing result function
  
-\begin_inset Formula $SR(a,s)$
+\begin_inset Formula $SR(<a,t>,s)$
 \end_inset 
 
  is introduced, which gives the value returned by the action 
@@ -685,7 +696,7 @@ To allow actions to return sensing information, the sensing result function
 
 
 \begin_inset Formula \[
-SR(a(\overrightarrow{x}),t,s)=r\equiv\phi_{a}(\overrightarrow{x},r,t,s)\]
+SR(<a(\overrightarrow{x}),t>,s)=r\equiv\phi_{a}(\overrightarrow{x},r,t,s)\]
 
 \end_inset 
 
@@ -707,8 +718,8 @@ For example, consider the action
 
 \begin_inset Formula \[
 \begin{array}{c}
-SR(sense_{F},t,s)=r\equiv\\
-(r="YES"\wedge Q(s))\vee(r="NO"\wedge\neg Q(s))\end{array}\]
+SR(<sense_{F},t>,s)=r\equiv\\
+(r="YES"\wedge F(s))\vee(r="NO"\wedge\neg F(s))\end{array}\]
 
 \end_inset 
 
@@ -742,10 +753,10 @@ Combining the semantics of
 
 \begin_inset Formula \[
 \begin{array}{c}
-K(agt,s'',do(c,t,s))\equiv\\
-\exists s',t'\,.\, s''=do(c,t',s')\,\wedge K(s',s)\wedge Poss(c,t',s')\\
-\wedge\, start(s'')=start(s')+t-start(s)\\
-\wedge\,\forall a\left[a\in c\wedge agent(a)=agt\rightarrow SR(a,t,s)=SR(a,t,s')\right]\\
+K(agt,s'',do(e,s))\equiv\\
+\exists s',e'\,.\, s''=do(e',s')\,\wedge K(s',s)\wedge Poss(e',s')\\
+\wedge\, start(s'')=start(s')+time(e)-start(s)\,\wedge actions(e)=actions(e')\\
+\wedge\,\forall a\left[a\in actions(e)\wedge agent(a)=agt\rightarrow SR(<a,time(e)>,s)=SR(<a,time(e')>,s')\right]\\
 \wedge\,\forall agt_{2},\phi\left[informWhether(agt_{2},agt,\phi)\in c\rightarrow\phi[s']\equiv\phi[s]\right]\\
 \wedge\,\forall agt_{2},\theta\left[informRef(agt_{2},agt,\theta)\in c\rightarrow\theta[s']=\theta[s]\right]\end{array}\]
 
@@ -766,19 +777,19 @@ In words, this states that
 \end_inset 
 
  is considered a possible alternative to 
-\begin_inset Formula $do(c,t,s)$
+\begin_inset Formula $do(e,s)$
 \end_inset 
 
  when 
 \begin_inset Formula $s''$
 \end_inset 
 
- is the result of doing the concurrent actions 
-\begin_inset Formula $c$
+ is the result of doing the actions in 
+\begin_inset Formula $e$
 \end_inset 
 
  at the same relative time 
-\begin_inset Formula $t-start(s)$
+\begin_inset Formula $time(e)-start(s)$
 \end_inset 
 
  in a situation 
@@ -792,11 +803,14 @@ In words, this states that
 .
  The situation must furthermore be possible, the sensing results must agree
  for all actions in 
-\begin_inset Formula $c$
+\begin_inset Formula $e$
 \end_inset 
 
- carried out by that agent and the situation must be consistent with what
+ carried out by that agent, and the situation must be consistent with what
  it has been informed by others.
+\layout Standard
+
+TODO: critique this heere?
 \layout Standard
 
 Improving this successor state axiom for 
@@ -848,7 +862,7 @@ Another distinguished fluent is introduced, akin to
 \end_inset 
 
  but describing when actions will be observed by agents: 
-\begin_inset Formula $CanObs(agt,a,t,s)$
+\begin_inset Formula $CanObs(agt,<a,t>,s)$
 \end_inset 
 
  indicates that agent 
@@ -876,17 +890,17 @@ Another distinguished fluent is introduced, akin to
 \layout Standard
 
 There is a related assumption implicit in the handling of sensing actions:
- that only the agent performing a sensing action is aware of its outcome.
+ that only the agent performing a sensing action is aware of its result.
  Such a restriction is common in the real world, but certainly not universal.
  Consider an agent waiting for a train who activates a speaker to acquire
  information about when it will arive.
  The results of this sensing action would be available to any other agents
  within earshot.
  We add an analogous predicate 
-\begin_inset Formula $CanSense(agt,a,t,s)$
+\begin_inset Formula $CanSense(agt,<a,t>,s)$
 \end_inset 
 
- to indicate when the outcome of an action is available to an agent.
+ to indicate when the result of an action is available to an agent.
 \layout Standard
 
 Like their counterpart 
@@ -904,93 +918,7 @@ Like their counterpart
  may suffer from interaction problems when concurrent actions are considered
  - for example, one agent moving in front of another may mean the second
  agent's actions are no longer observable\SpecialChar \@.
-
-\layout Subsection
-
-Observation History
-\layout Standard
-
-The primary intuition we wish to capture about possible worlds is the following:
- 
-\begin_inset Quotes eld
-\end_inset 
-
-an agent considers possible any situation in which it would have observed
- the same series of actions.
-\begin_inset Quotes erd
-\end_inset 
-
- Given a situation, we thus need a way to determine the series of actions
- that the agent would have observed.
- We introduce a fluent 
-\begin_inset Formula $ObsHist(agt,s_{H},s)$
-\end_inset 
-
-.
- This fluent indicates that ...
-\layout Standard
-
-TODO: we need to encode the sensing outcomes in situations for this to work
-\layout Subsection
-
-Communication as Sensing
-\layout Standard
-
-As observed previously, communication actions are typically built into the
- successor state axiom of the knowledge fluent.
- In our opinion, this unnecessarily complicates the semantics of knowledge
- and makes it more difficult to introduce additional communication actions.
- Our formulation provides a ready alternative - encode communication actions
- are sensing actions where both sender and recipient are aware of the outcome.
- Consider formulating the action 
-\begin_inset Formula $informWhether$
-\end_inset 
-
- in this framework:
-\layout Standard
-
-
-\begin_inset Formula \[
-Poss(informWhether(agt_{1},agt_{2},\phi),t,s)\equiv\mathbf{KWhether}(agt_{1},\phi,s)\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-SR(informWhether(agt_{2},agt_{3},\phi),t,s)=r\equiv\\
-(r="YES"\wedge\phi[s])\,\vee\,(r="NO"\wedge\neg\phi[s])\end{array}\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-CanObs(agt_{1},informWhether(agt_{2},agt_{3},\phi),t,s)\equiv\\
-agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{array}\]
-
-\end_inset 
-
-
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-CanSense(agt_{1},informWhether(agt_{2},agt_{3},\phi),t,s)\equiv\\
-agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{array}\]
-
-\end_inset 
-
-
-\layout Standard
-
+ This is currently an open problem.
 \layout Subsection
 
 Successor State Axiom for 
@@ -1046,14 +974,43 @@ We introduce two more considerations:
 \layout Itemize
 
 be legal according to 
-\begin_inset Formula $legal(s)$
+\begin_inset Formula $Legal(s)$
 \end_inset 
 
 , which implies they must be possible
 \layout Itemize
 
-admit the possibility of a sequence of actions that were totally unobservable
+admit the possibility of a sequence of actions that was totally unobservable
  by the agent
+\layout Standard
+
+First, define an abbreviation to help keep the equation readable.
+ 
+\begin_inset Formula $Unobs(agt,s,s')$
+\end_inset 
+
+ will be true when the agent 
+\begin_inset Formula $agt$
+\end_inset 
+
+ cannot observe any of the events leading from 
+\begin_inset Formula $s$
+\end_inset 
+
+ to 
+\begin_inset Formula $s'$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathbf{Unobs}(agt,s,s'')=^{def}\forall a,e,s'\, s<do(e,s')\leq s''\rightarrow a\notin actions(e)\vee\neg CanObs(agt,<a,time(e)>,s')\]
+
+\end_inset 
+
+
 \layout Standard
 
 By formalising each of the above considerations, the following successor
@@ -1063,17 +1020,76 @@ By formalising each of the above considerations, the following successor
 
 \begin_inset Formula \[
 \begin{array}{c}
-K(agt,s'',do(c,t,s))\equiv\\
-\exists s',c',t'\,.\, s''=do(c',t',s')\wedge legal(s'')\wedge\\
-\\\left(\, K(agt,s',s)\right.\\
-\wedge\, start(s'')=start(s')+t-start(s)\\
-\wedge\,\forall a\left[a\in c\wedge CanObs(agt,a,t,s)\rightarrow a\in c'\right]\\
-\wedge\,\forall a\left[a\in c'\wedge CanObs(agt,a,t,s')\rightarrow a\in c\right]\\
-\wedge\,\forall a\left[a\in c\wedge CanObs(agt,a,t,s)\wedge CanSense(agt,a,t,s)\right.\\
-\left.\rightarrow SR(a,t,s)=SR(a,t',s')\right]\\
-\vee\\
-K(agt,s',do(c,t,s))\\
-\left.\wedge\,\forall a\left[a\in c'\rightarrow\neg CanObs(agt,a,s')\right]\,\right)\end{array}\]
+K(agt,s'',do(e,s))\equiv\\
+\exists s',e',s_{o}\,.\, s_{o}=do(e',s')\wedge K(s',s)\wedge Legal(s_{o})\\
+\wedge Legal(s'')\wedge s_{o}\leq s''\\
+\wedge\, time(e')=start(s')+time(e)-start(s)\\
+\wedge\,\forall a\left[a\in actions(e)\wedge CanObs(agt,<a,time(e)>,s)\equiv a\in actions(e')\wedge CanObs(agt,<a,time(e')>,s')\right]\\
+\wedge\forall a,r\,\left[a\in actions(e)\wedge CanSense(agt,<a,time(e)>,s)\wedge SR(<a,time(e)>,s)=r\right.\right\\\
+\left.\equiv a\in actions(e')\wedge CanSense(agt,<a,time(e')>,s)\wedge SR(<a,time(e')>,s)=r\right]\\
+\wedge\,\mathbf{Unobs}(s_{o},s'')\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+TODO: this is really messy! Can we clean up our terminology to clean it
+ up a bit?
+\layout Subsection
+
+Communication as Sensing
+\layout Standard
+
+As observed previously, communication actions are typically built into the
+ successor state axiom of the knowledge fluent.
+ In our opinion, this unnecessarily complicates the semantics of knowledge
+ and makes it more difficult to introduce additional communication actions.
+ Our formulation provides a ready alternative - encode communication actions
+ are sensing actions where both sender and recipient are aware of the outcome.
+ Consider formulating the action 
+\begin_inset Formula $informWhether$
+\end_inset 
+
+ in this framework:
+\layout Standard
+
+
+\begin_inset Formula \[
+Poss(<informWhether(agt_{1},agt_{2},\phi),t>,s)\equiv\mathbf{KWhether}(agt_{1},\phi,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+SR(<informWhether(agt_{2},agt_{3},\phi),t>,s)=r\equiv\\
+(r="YES"\wedge\phi[s])\,\vee\,(r="NO"\wedge\neg\phi[s])\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+CanObs(agt_{1},<informWhether(agt_{2},agt_{3},\phi),t>,s)\equiv\\
+agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+CanSense(agt_{1},<informWhether(agt_{2},agt_{3},\phi),t>,s)\equiv\\
+agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{array}\]
 
 \end_inset 
 
@@ -1092,15 +1108,18 @@ As noted above, the fact that an agent may be unable to observe some actions
  of any fluent.
 \layout Standard
 
-In particular, this successor state axiom is unusual in that the term 
-\begin_inset Formula $do(c,t,s)$
+In particular, the appearance of 
+\begin_inset Formula $\mathbf{Unobs}$
 \end_inset 
 
- appears on the right-hand side.
- TODO: understand regression better, then write about it here
+ on the right-hand-side of equation (TODO) means that it is doing unbounded
+ quantification over situation terms.
+ It is therefore not possible to use the standard regression technique,
+ the the RHS of the successor state axiom is not regressible.
+ We investigate two solutions to this problem below.
 \layout Subsection
 
-Possible Remedies
+Awareness of Time
 \layout Standard
 
 For domains with a large amount of unobservability, it may be necessary
@@ -1118,10 +1137,10 @@ For domains with a large amount of unobservability, it may be necessary
 
 \begin_inset Formula \[
 \begin{array}{c}
-natural(tick)\equiv True\\
-Poss(tick,t,s)\equiv t=start(s)+1\\
-CanObs(agt,tick,t,s)\equiv True\\
-CanSense(agt,tick,t,s)\equiv True\end{array}\]
+Natural(tick)\equiv True\\
+Poss(<tick,t>,s)\equiv t=start(s)+1\\
+CanObs(agt,<tick,t>,s)\equiv True\\
+CanSense(agt,<tick,t>,s)\equiv True\end{array}\]
 
 \end_inset 
 
@@ -1132,27 +1151,173 @@ Since agents know all situations to be legal, and
 \begin_inset Formula $tick$
 \end_inset 
 
- actions can always be observed, all situations considered possible by an
- agent must agree on how many 
-\begin_inset Formula $tick$
+ actions can always be observed, the only way to satisfy 
+\begin_inset Formula $\mathbf{Unobs}(s_{o},s'')$
 \end_inset 
 
-s have occured.
- This prevents long sequences of totally unobservable actions from being
- considered possible.
+ is to have 
+\begin_inset Formula $s_{o}=s''$
+\end_inset 
+
+.
+ Thus 
+\begin_inset Formula $\mathbf{Unobs}$
+\end_inset 
+
+ is no longer doing any work in the successor state axiom and can be removed.
+ The remaining RHS is a regressible formula, so the standard regression
+ techniques of 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge,scherl03conc_knowledge}
+
+\end_inset 
+
+ can be applied.
 \layout Subsection
 
-Inductive Reasoning
+Property Persistence
 \layout Standard
 
-Use Lemma 5 from 
-\begin_inset LatexCommand \cite{Lin94-StateConstraints}
+In a companion paper (TODO:cite ourselves) we show how to define the persistence
+ condition 
+\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+\end_inset 
+
+ of a situation-suppressed formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ with respect to actions satisfying conditions 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+, such that:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}(\phi,\alpha)[s]\equiv\forall s''\, s\leq s''\rightarrow\phi[s'']\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\alpha(a,s)\]
 
 \end_inset 
 
- to establish that a proposition holds in all futures of a situation.
- This 'precomputes' the inductive proof to leave first-order reasoning.
- Allows us to regress statements about knowledge.
+
+\layout Standard
+
+In words this states that the truth of 
+\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+\end_inset 
+
+ guarantees that, so long as no actions satisying 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ occur, the formula 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ will remain true in all situations in the future of 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ By having 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ single out observable actions, the persistence condition can be used to
+ guarantee that 
+\begin_inset Formula $\phi$
+\end_inset 
+
+ will not be falsified without the agent being aware of it.
+ Combined with the techniques for regressing knowledge of 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset 
+
+, this can be used to regress the 
+\begin_inset Formula $\mathbf{Knows}$
+\end_inset 
+
+ operator to knowledge persistence in the initial situation.
+\layout Standard
+
+For readability, let us abbreviate the parts of equation TODO that reference
+ only 
+\begin_inset Formula $s$
+\end_inset 
+
+, 
+\begin_inset Formula $s'$
+\end_inset 
+
+, 
+\begin_inset Formula $e$
+\end_inset 
+
+ and 
+\begin_inset Formula $e'$
+\end_inset 
+
+ as 
+\begin_inset Formula $\Phi$
+\end_inset 
+
+, so that it becomes:
+\begin_inset Formula \[
+\begin{array}{c}
+K(agt,s'',do(e,s))\equiv\\
+\exists s',e',s_{o}\,.\, s_{o}=do(e',s')\wedge K(s',s)\wedge Legal(s_{o})\\
+\wedge Legal(s'')\wedge s_{o}\leq s''\\
+\wedge\,\Phi\\
+\wedge\,\mathbf{Unobs}(s_{o},s'')\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Assume that the 
+\begin_inset Formula $K$
+\end_inset 
+
+ fluent is only used in the context of a 
+\begin_inset Formula $\mathbf{Knows}$
+\end_inset 
+
+ operator.
+ Then:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathbf{Knows}(\phi,do(e,s))\equiv\forall s''\, K(s'',do(e,s))\rightarrow\phi[s'']\]
+
+\end_inset 
+
+
+\layout Standard
+
+Employing the SSA for 
+\begin_inset Formula $K$
+\end_inset 
+
+ gives:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\forall s''\exists s',e',s_{o}\, s_{o}=do(e',s')\wedge K(s',s')\wedge Legal(s_{o})\\
+\wedge Legal(s'')\wedge s_{o}\leq s''\\
+\wedge\,\Phi\\
+\wedge\,\mathbf{Unobs}(s_{o},s'')\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+TODO: need to work out how to justify the rearrangement..
 \layout Section
 
 Properties of Knowledge
@@ -1218,6 +1383,21 @@ Talk about the requirements for knowledge - e.g.
 \layout Itemize
 
 Work in Init(s) as a substitute for S0
+\layout Itemize
+
+Make 
+\begin_inset Formula $s<s'$
+\end_inset 
+
+ imply legality of 
+\begin_inset Formula $s'$
+\end_inset 
+
+ if 
+\begin_inset Formula $Legal(s)$
+\end_inset 
+
+ 
 \layout Standard
 
 
