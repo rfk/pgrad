@@ -1,11 +1,16 @@
 #LyX 1.3 created this file. For more info see http://www.lyx.org/
 \lyxformat 221
 \textclass article
+\begin_preamble
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+\end_preamble
 \language english
 \inputencoding auto
 \fontscheme default
 \graphics default
 \paperfontsize default
+\spacing single 
 \papersize Default
 \paperpackage a4
 \use_geometry 0
@@ -252,7 +257,7 @@ collapsed true
 
 \layout Standard
 
-This simplifies some technical matters, such as the 
+This simplifies some technical and notational matters, such as the 
 \begin_inset Formula $Coherent$
 \end_inset 
 
@@ -300,6 +305,9 @@ Fluents
 \noun default 
  as predicates or functions that represent properties of the world, and
  that take a situation term as their last argument.
+\layout Standard
+
+TODO: sort for results? action-result pairs?
 \layout Subsection
 
 Useful Functions
@@ -690,7 +698,7 @@ To allow actions to return sensing information, the sensing result function
 \end_inset 
 
 .
- This is accompanied by sensing results axioms to determine the values that
+ This is defined by sensing results axioms to determine the values that
  would be returned, of the form:
 \layout Standard
 
@@ -810,7 +818,7 @@ In words, this states that
  it has been informed by others.
 \layout Standard
 
-TODO: critique this heere?
+TODO: critique this here?
 \layout Standard
 
 Improving this successor state axiom for 
@@ -903,6 +911,28 @@ There is a related assumption implicit in the handling of sensing actions:
  to indicate when the result of an action is available to an agent.
 \layout Standard
 
+Since we will often want to compare what is observed by an agent in different
+ situations, we define the predicate 
+\begin_inset Formula $Observations(agt,o,e,s)$
+\end_inset 
+
+ as follows:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+Observations(agt,o,e,s)\equiv\forall a,r\,\left[<a,r>\in o\equiv\right.\\
+\exists p\, p=<a,time(e)>\wedge a\in actions(e)\\
+\wedge\, CanObs(agt,p,s)\\
+\wedge\,\left(CanSense(agt,p,s)\wedge SR(p,s)=r\right.\\
+\left.\vee\,\left.\neg CanSense(agt,p,s)\wedge r="?"\right)\right]\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
 Like their counterpart 
 \begin_inset Formula $Poss$
 \end_inset 
@@ -918,7 +948,9 @@ Like their counterpart
  may suffer from interaction problems when concurrent actions are considered
  - for example, one agent moving in front of another may mean the second
  agent's actions are no longer observable\SpecialChar \@.
- This is currently an open problem.
+ While we are confident an approach
+ similar to that used for the precondition interaction problem can be applied,
+ this remains an open problem.
 \layout Subsection
 
 Successor State Axiom for 
@@ -984,16 +1016,39 @@ admit the possibility of a sequence of actions that was totally unobservable
  by the agent
 \layout Standard
 
-First, define an abbreviation to help keep the equation readable.
- 
-\begin_inset Formula $Unobs(agt,s,s')$
+As the resulting sucessor state axiom will be quite complex, we introduce
+ it a piece at a time using abbreviations.
+ First, let us define what it means for two situations to agree on observations:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{AgreeOnObs}(agt,do(e',s'),do(e,s))\isdef\\
+\exists t,o\, t=time(e)-start(s)\,\wedge\, Observations(agt,o,e,s)\\
+\wedge\, t=time(e')-start(s')\,\wedge\, Observations(agt,o,e',s')\end{array}\]
+
 \end_inset 
 
- will be true when the agent 
+
+\layout Standard
+
+In words this requires that the same relative time has elapsed before the
+ situation was changed, and that the two situations agree on all observations
+ made by the agent.
+ The reason for the particular structure of this predicate will become clear
+ when we discuss regression.
+\layout Standard
+
+Next we define the abbreviation 
+\begin_inset Formula $\mathbf{Unobs}(agt,s,s')$
+\end_inset 
+
+, which will be true when 
 \begin_inset Formula $agt$
 \end_inset 
 
- cannot observe any of the events leading from 
+ cannot observe any of the actions leading from 
 \begin_inset Formula $s$
 \end_inset 
 
@@ -1006,36 +1061,89 @@ First, define an abbreviation to help keep the equation readable.
 
 
 \begin_inset Formula \[
-\mathbf{Unobs}(agt,s,s'')=^{def}\forall a,e,s'\, s<do(e,s')\leq s''\rightarrow a\notin actions(e)\vee\neg CanObs(agt,<a,time(e)>,s')\]
+\begin{array}{c}
+\mathbf{Unobs}(agt,s,s''))\isdef\\
+\forall a,e,s'\, s<do(e,s')\leq s''\rightarrow\\
+a\notin actions(e)\vee\neg CanObs(agt,<a,time(e)>,s')\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-By formalising each of the above considerations, the following successor
- state axiom is obtained:
+If the agent considers possible a situation 
+\begin_inset Formula $s$
+\end_inset 
+
+ then it must also consider possible any situation 
+\begin_inset Formula $s'$
+\end_inset 
+
+ such that 
+\begin_inset Formula $\mathbf{Unobs}(s,s')$
+\end_inset 
+
+, as it would be completely unaware of the world changing from 
+\begin_inset Formula $s$
+\end_inset 
+
+ to 
+\begin_inset Formula $s'$
+\end_inset 
+
+.
+ Also note that 
+\begin_inset Formula $\mathbf{Unobs}(s,s)$
+\end_inset 
+
+ is always true.
+\layout Standard
+
+The following successor state axiom is then posited, capturing the consideration
+s outlined above.
 \layout Standard
 
 
 \begin_inset Formula \[
 \begin{array}{c}
 K(agt,s'',do(e,s))\equiv\\
-\exists s',e',s_{o}\,.\, s_{o}=do(e',s')\wedge K(s',s)\wedge Legal(s_{o})\\
-\wedge Legal(s'')\wedge s_{o}\leq s''\\
-\wedge\, time(e')=start(s')+time(e)-start(s)\\
-\wedge\,\forall a\left[a\in actions(e)\wedge CanObs(agt,<a,time(e)>,s)\equiv a\in actions(e')\wedge CanObs(agt,<a,time(e')>,s')\right]\\
-\wedge\forall a,r\,\left[a\in actions(e)\wedge CanSense(agt,<a,time(e)>,s)\wedge SR(<a,time(e)>,s)=r\right.\right\\\
-\left.\equiv a\in actions(e')\wedge CanSense(agt,<a,time(e')>,s)\wedge SR(<a,time(e')>,s)=r\right]\\
-\wedge\,\mathbf{Unobs}(s_{o},s'')\end{array}\]
+\exists s',e'\, K(s',s)\wedge Legal(s'')\\
+\wedge\,\mathbf{AgreeOnObs}(agt,do(e',s'),do(e,s))\\
+\wedge\,\mathbf{Unobs}(do(e',s'),s'')\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-TODO: this is really messy! Can we clean up our terminology to clean it
- up a bit?
+This axiom is very similar in form to the axioms of 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge,scherl03conc_knowledge,shapiro01casl_feat_inter}
+
+\end_inset 
+
+, but takes into consideration a much broader range of factors.
+\layout Standard
+
+It remains to specify the 
+\begin_inset Formula $K$
+\end_inset 
+
+ fluent in the initial situation.
+ Assuming that the alternate initial situations are identified by the truth
+ of 
+\begin_inset Formula $K_{0}(s)$
+\end_inset 
+
+, then the following suffices:
+\layout Standard
+
+
+\begin_inset Formula \[
+K(s',S_{0})\equiv\exists s\, K_{0}(s)\wedge Legal(s')\wedge\mathbf{Unobs}(s,s')\]
+
+\end_inset 
+
+
 \layout Subsection
 
 Communication as Sensing
@@ -1114,8 +1222,8 @@ In particular, the appearance of
 
  on the right-hand-side of equation (TODO) means that it is doing unbounded
  quantification over situation terms.
- It is therefore not possible to use the standard regression technique,
- the the RHS of the successor state axiom is not regressible.
+ It is therefore not possible to use standard regression techniques, as
+ the RHS of the successor state axiom is not regressible.
  We investigate two solutions to this problem below.
 \layout Subsection
 
@@ -1202,8 +1310,12 @@ In a companion paper (TODO:cite ourselves) we show how to define the persistence
 
 \layout Standard
 
-In words this states that the truth of 
+The truth of 
 \begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+\end_inset 
+
+ in a situation 
+\begin_inset Formula $s$
 \end_inset 
 
  guarantees that, so long as no actions satisying 
@@ -1241,41 +1353,6 @@ In words this states that the truth of
  operator to knowledge persistence in the initial situation.
 \layout Standard
 
-For readability, let us abbreviate the parts of equation TODO that reference
- only 
-\begin_inset Formula $s$
-\end_inset 
-
-, 
-\begin_inset Formula $s'$
-\end_inset 
-
-, 
-\begin_inset Formula $e$
-\end_inset 
-
- and 
-\begin_inset Formula $e'$
-\end_inset 
-
- as 
-\begin_inset Formula $\Phi$
-\end_inset 
-
-, so that it becomes:
-\begin_inset Formula \[
-\begin{array}{c}
-K(agt,s'',do(e,s))\equiv\\
-\exists s',e',s_{o}\,.\, s_{o}=do(e',s')\wedge K(s',s)\wedge Legal(s_{o})\\
-\wedge Legal(s'')\wedge s_{o}\leq s''\\
-\wedge\,\Phi\\
-\wedge\,\mathbf{Unobs}(s_{o},s'')\end{array}\]
-
-\end_inset 
-
-
-\layout Standard
-
 Assume that the 
 \begin_inset Formula $K$
 \end_inset 
@@ -1307,17 +1384,201 @@ Employing the SSA for
 
 \begin_inset Formula \[
 \begin{array}{c}
-\mathbf{Knows}(\phi,do(e,s))\equiv\forall s''\exists s',e',s_{o}\, s_{o}=do(e',s')\wedge K(s',s')\wedge Legal(s_{o})\\
-\wedge Legal(s'')\wedge s_{o}\leq s''\\
-\wedge\,\Phi\\
-\wedge\,\mathbf{Unobs}(s_{o},s'')\end{array}\]
+\mathbf{Knows}(\phi,do(e,s))\equiv\forall s''\{\exists s',e'\, K(s',s)\wedge Legal(s'')\\
+\wedge\,\mathbf{AgreeOnObs}(agt,do(e',s'),do(e,s))\\
+\wedge\,\mathbf{Unobs}(do(e',s'),s'')\}\,\rightarrow\phi[s'']\end{array}\]
 
 \end_inset 
 
 
 \layout Standard
 
-TODO: need to work out how to justify the rearrangement..
+Rearranging to put 
+\begin_inset Formula $s'$
+\end_inset 
+
+ in the leading quantifier gives:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\forall s'\,\, K(s',s)\rightarrow\\
+\{\forall e',s''\,\mathbf{AgreeOnObs}(agt,do(e',s'),do(e,s))\\
+\wedge\, Legal(s'')\wedge\mathbf{Unobs}(do(e',s'),s'')\,\rightarrow\,\phi[s'']\}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Pushing quantification over 
+\begin_inset Formula $s''$
+\end_inset 
+
+ further into the formula:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\forall s'\,\, K(s',s)\rightarrow\\
+\{\forall e'\,\mathbf{AgreeOnObs}(agt,do(e',s'),do(e,s))\rightarrow\\
+\{\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(do(e',s'),s'')\,\rightarrow\,\phi[s'']\}\}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Suppose that 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+ singles out precisely legal, unobservable actions (TODO: define it properly),
+ then by the definition of the persistence condition operator:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\forall s'\,\, K(s',s)\rightarrow\\
+\{\forall e'\,\mathbf{AgreeOnObs}(agt,do(e',s'),do(e,s))\wedge Legal(do(e',s'))\rightarrow\mathcal{P}(\phi,\alpha)[do(e',s')]\}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+Substituting in the definition for 
+\begin_inset Formula $\mathbf{AgreeOnObs}$
+\end_inset 
+
+ and moving the parts that dont involve 
+\begin_inset Formula $e'$
+\end_inset 
+
+ or 
+\begin_inset Formula $s'$
+\end_inset 
+
+ outside the quantification:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\exists t,o\, t=time(e)-start(s)\,\wedge\, Observations(agt,o,e,s)\\
+\wedge\forall s'\,\, K(s',s)\rightarrow\\
+\{\forall e'\, t=time(e')-start(s')\,\wedge\, Observations(agt,o,e',s')\wedge Legal(e',s')\rightarrow\mathcal{P}(\phi,\alpha)[do(e',s')]\}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+By applying the regression operator, the sentence within the scope of quantifica
+tion over 
+\begin_inset Formula $e'$
+\end_inset 
+
+ can be made uniform in 
+\begin_inset Formula $s'$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\exists t,o\, t=time(e)-start(s)\,\wedge\, Observations(agt,o,e,s)\\
+\wedge\forall s'\,\, K(s',s)\rightarrow\\
+\{\forall e'\, t=time(e')-start(s')\,\wedge\, Observations(agt,o,e',s')\wedge Legal(e',s')\rightarrow\mathcal{R}(\mathcal{P}(\phi,\alpha)[do(e',s')])\}\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+The quantification over 
+\begin_inset Formula $s'$
+\end_inset 
+
+ now matches the form of the 
+\begin_inset Formula $\mathbf{Knows}$
+\end_inset 
+
+operator, so we can insert it back int the formula:
+\layout Standard
+
+
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(\phi,do(e,s))\equiv\exists t,o\, t=time(e)-start(s)\,\wedge\, Observations(agt,o,e,s)\\
+\wedge\mathbf{Knows}(\forall e'\, t=time(e')-start()\,\wedge\, Observations(agt,o,e')\wedge Legal(e')\rightarrow\mathcal{R}(\mathcal{P}(\phi,\alpha)[do(e',s')])^{-1},s)\end{array}\]
+
+\end_inset 
+
+
+\layout Standard
+
+We have thus reduced reasoning about knowledge in 
+\begin_inset Formula $do(e,s)$
+\end_inset 
+
+ to reasoning about knowledge in 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ This is precisely the behavior required by the regression operator.
+\layout Standard
+
+Additional care must be taken when dealing with knowledge in the initial
+ situation:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathbf{Knows}(\phi,S_{0})\equiv\forall s'\,\{\exists s\, K_{0}(s)\wedge Legal(s')\wedge\mathbf{Unobs}(s,s')\rightarrow\phi[s']\}\]
+
+\end_inset 
+
+
+\layout Standard
+
+By a straightforward transformation:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathbf{Knows}(\phi,S_{0})\equiv\forall s\, K_{0}(s)\rightarrow\{\forall s'\, Legal(s')\wedge\mathbf{Unobs}(s,s')\rightarrow\phi[s']\}\]
+
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathbf{Knows}(\phi,S_{0})\equiv\forall s\, K_{0}(s)\rightarrow\mathcal{P}(\phi,\alpha)[s]\]
+
+\end_inset 
+
+
+\layout Standard
+
+This is standard modal reasoning over the 
+\begin_inset Formula $K_{0}$
+\end_inset 
+
+ relation, as employed by 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset 
+
+ for determining knowledge in the initial situation.
 \layout Section
 
 Properties of Knowledge
@@ -1334,7 +1595,12 @@ Memory
 Persistance of Ignorance
 \layout Itemize
 
-Preservation of reflexivity, transitivity, symmetry etc
+Preservation of reflexivity, transitivity, symmetry etc (these will only
+ be preserved among legal situations, but we make no requirement that 
+\begin_inset Formula $do(e,s)$
+\end_inset 
+
+ be legal...)
 \layout Itemize
 
 Knowledge incorporation (including for communication actions)
@@ -1371,13 +1637,6 @@ find, read and contrast
 
 \layout Itemize
 
-What if we cant observe certain pairs of actions together? It's complicated...
-\layout Itemize
-
-Try to formulate some regression clauses, although I have my doubts because
- of the use of a situation on both sides of its SSA
-\layout Itemize
-
 Talk about the requirements for knowledge - e.g.
  symmetry, reflexivity - that we require for this to be reasonable.
 \layout Itemize
@@ -1398,6 +1657,13 @@ Make
 \end_inset 
 
  
+\layout Itemize
+
+knowledge in initial situation, using 
+\begin_inset Formula $Unobs$
+\end_inset 
+
+
 \layout Standard
 
 
