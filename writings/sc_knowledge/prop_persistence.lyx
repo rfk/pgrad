@@ -66,10 +66,10 @@ Many useful reasoning tasks in the situation calculus require universally
 
 When the situation calculus is enriched with knowledge, such reasoning becomes
  more and more important.
- Consider the case where an agent must is unable to observe certain actions
- occuring in the world.
+ Consider the case where an agent is unable to observe certain actions occuring
+ in the world.
  In order to know that some formula 
-\begin_inset Formula $\phi$
+\begin_inset Formula $\phi(s)$
 \end_inset 
 
  holds, it must determine not only that it holds in the current situation
@@ -78,64 +78,16 @@ When the situation calculus is enriched with knowledge, such reasoning becomes
 \end_inset 
 
  but that it cannot become false in any successor situations that might
- arise without it knowing:
+ arise without it being aware:
 \layout Standard
 
 
 \begin_inset Formula \[
-\forall s''\, s\leq s''\rightarrow\phi[s'']\vee\exists a,s'\, s<do(a,s')\leq s''\wedge CanObs(a,s')\]
+\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge CanObs(a,s')\]
 
 \end_inset 
 
 
-\layout Standard
-
-A note on notation: 
-\begin_inset Formula $\phi$
-\end_inset 
-
- here is a situation-suppressed formula, i.e.
- a formula uniform in a situation variable 
-\begin_inset Formula $s$
-\end_inset 
-
-, in which all references to 
-\begin_inset Formula $s$
-\end_inset 
-
- have been suppressed.
- 
-\begin_inset Formula $\phi[s]$
-\end_inset 
-
- indicates restoring the situation term to the fluents, and can be thought
- of as 
-\begin_inset Quotes eld
-\end_inset 
-
-evaluating
-\begin_inset Quotes erd
-\end_inset 
-
- the formula 
-\begin_inset Formula $\phi$
-\end_inset 
-
- at situation 
-\begin_inset Formula $s$
-\end_inset 
-
-.
- An example could be 
-\begin_inset Formula $\phi=broken(x)$
-\end_inset 
-
- and 
-\begin_inset Formula $\phi[s]=broken(x,s)$
-\end_inset 
-
-.
- 
 \layout Standard
 
 The canonical reference for such reasoning in the situation calculus is
@@ -149,7 +101,7 @@ The canonical reference for such reasoning in the situation calculus is
 
 
 \begin_inset Formula \[
-\forall P\,\left[\right(P(S_{0})\wedge\forall s,a\, P(s)\rightarrow P(do(a,s))\left)\rightarrow\forall s\, P(s)\right]\]
+\forall P\,\left[P(S_{0})\wedge\forall s,a\,\left(P(s)\rightarrow P(do(a,s))\right)\rightarrow\forall s\, P(s)\right]\]
 
 \end_inset 
 
@@ -161,20 +113,20 @@ While such an axiom makes manual verification of universal state properties
  
 \layout Standard
 
-In this paper we are specifically interested in 
+In this paper we are specifically interested in proving 
 \emph on 
 persistence
 \emph default 
  of properties in a situation.
- That is, given that some formula 
+ That is, given some formula 
 \begin_inset Formula $\phi$
 \end_inset 
 
- holds in a situation 
+, does it hold in 
 \begin_inset Formula $s$
 \end_inset 
 
-, does it continue to hold in all situations in the future of 
+ all situations in the future of 
 \begin_inset Formula $s$
 \end_inset 
 
@@ -183,37 +135,40 @@ persistence
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\]
+\forall s'\, s\leq s'\rightarrow\phi(s')\]
 
 \end_inset 
 
 
 \layout Standard
 
-For some applications, it may be desirable to limit the future situations
- to those containing a certain class of actions.
+For some applications it is desirable to limit the future situations to
+ those containing a certain class of actions.
  Suppose the formula 
-\begin_inset Formula $\alpha$
+\begin_inset Formula $\alpha(a,s)$
 \end_inset 
 
- is true for precisely those actions to be considered, then the question
- of persistence becomes:
+ is true for precisely those actions 
+\begin_inset Formula $a$
+\end_inset 
+
+ that are to be considered, then the question of persistence becomes:
 \layout Standard
 
 
 \begin_inset Formula \[
-\forall s''\, s\leq s''\rightarrow\phi[s'']\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\alpha(a,s)\]
+\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\]
 
 \end_inset 
 
 
 \layout Standard
 
-For agent-programming tasks, we would like to replace quantification over
- situations with a more tractable form of reasoning - specifically, evaluation
- of a uniform formula at a specific situation.
+For practical programming purposes, we would like to replace quantification
+ over situations with a more tractable form of reasoning - specifically,
+ evaluation of a uniform formula at a specific situation.
  That is, we would like some syntactic transformation 
-\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
 \end_inset 
 
  of a property 
@@ -229,18 +184,18 @@ For agent-programming tasks, we would like to replace quantification over
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi(s')\vee\exists a\, occurs(a,s,s')\wedge\alpha(a)\,\equiv\,\mathcal{P}(\phi,\alpha)\]
+\left[\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\right]\,\equiv\,\mathcal{P}[\phi,\alpha]\]
 
 \end_inset 
 
 
 \layout Standard
 
-We say that 
-\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+We call 
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
 \end_inset 
 
- is the 
+ the 
 \emph on 
 persistence condition
 \emph default 
@@ -253,24 +208,30 @@ persistence condition
 \end_inset 
 
 .
- Such an operation is clearly in the spirit of the regression operator 
-\begin_inset Formula $\mathcal{R}$
+ The main purpose of this paper is demonstrating an algorithm that constructs
+ the persistence condition for a given 
+\begin_inset Formula $\phi$
 \end_inset 
 
- introduced by Reiter 
-\begin_inset LatexCommand \cite{reiter91frameprob}
-
+ and 
+\begin_inset Formula $\alpha$
 \end_inset 
 
-, which allows reasoning about what holds in an arbitrary situation to be
- reduces to reasoning about the initial situation.
+.
 \layout Section
 
-Overview
+Intuitive Overview
 \layout Standard
 
-Recall the single-step regression operator 
+The construction of the persistence condition is intuitively quite straightforwa
+rd.
+ Recall the single-step regression operator 
 \begin_inset Formula $\mathcal{R}$
+\end_inset 
+
+ define by Reiter 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
 \end_inset 
 
 :
@@ -278,15 +239,15 @@ Recall the single-step regression operator
 
 
 \begin_inset Formula \[
-\phi[do(a,s)]\equiv\mathcal{R}(\phi[do(a,s)])\]
+\phi(do(a,s))\equiv\mathcal{R}[\phi(do(a,s))](s)\]
 
 \end_inset 
 
 
 \layout Standard
 
-The important point is that 
-\begin_inset Formula $\mathcal{R}(\phi[do(a,s)])$
+Note that that 
+\begin_inset Formula $\mathcal{R}[\phi(do(a,s))]$
 \end_inset 
 
  is uniform in 
@@ -294,8 +255,17 @@ The important point is that
 \end_inset 
 
 .
+ Using this operator, Reiter gives a procedure for reducing reasoning about
+ an arbitrary situation to reasoning about its preceeding situation.
+ Via repeated applications of the regression operator, reasoning about any
+ ground situation term can be reduced to reasoning about the initial situation.
+ Regression thus forms an important part of tractable reasoning in the situation
+ calculus.
+\layout Standard
+
+The regresion operator can also be employed for our purposes.
  Let 
-\begin_inset Formula $\mathcal{P}^{1}(\phi)[s]$
+\begin_inset Formula $\mathcal{P}^{1}[\phi,\alpha]$
 \end_inset 
 
  be a formula uniform in 
@@ -310,21 +280,57 @@ The important point is that
 \begin_inset Formula $s$
 \end_inset 
 
- and all its immediate successors.
- We can define such a formula as follows:
+ and all its immediate successors where the action satisfies 
+\begin_inset Formula $\alpha$
+\end_inset 
+
+.
+ A candidate defnition for such a formula would be:
 \layout Standard
 
 
 \begin_inset Formula \[
-\mathcal{P}^{1}(\phi)[s]\isdef\phi[s]\wedge\forall a\,\mathcal{R}(\phi[do(a,s)])\]
+\mathcal{P}^{1}[\phi,\alpha]\isdef\phi\wedge\forall a\,\phi(do(a,s))\vee\neg\alpha(a,s)\]
 
 \end_inset 
 
 
 \layout Standard
 
-Intuitively, if 
-\begin_inset Formula $\mathcal{P}^{1}(\phi)$
+Unfortunately, this cannot be used because the right-hand side is not uniform
+ in 
+\begin_inset Formula $s$
+\end_inset 
+
+.
+ By applying the regression operator, we can obtain an equivalent definition
+ that is uniform in 
+\begin_inset Formula $s$
+\end_inset 
+
+:
+\layout Standard
+
+
+\begin_inset Formula \[
+\mathcal{P}^{1}[\phi]\isdef\phi\wedge\forall a\,\mathcal{R}[\phi(do(a,s))]\vee\neg\alpha(a,s)\]
+
+\end_inset 
+
+
+\layout Standard
+
+We construct the operator 
+\begin_inset Formula $\mathcal{P}$
+\end_inset 
+
+ from 
+\begin_inset Formula $\mathcal{P}^{1}$
+\end_inset 
+
+ by induction.
+ Intuitively, if 
+\begin_inset Formula $\mathcal{P}^{1}[\phi]$
 \end_inset 
 
  holds in 
@@ -344,7 +350,7 @@ Intuitively, if
 
 
 \begin_inset Formula \[
-\mathcal{P}^{2}(\phi)[s]\isdef\mathcal{P}^{1}(\mathcal{P}^{1}(\phi))[s]\]
+\mathcal{P}^{2}[\phi]\isdef\mathcal{P}^{1}[\mathcal{P}^{1}[\phi],\alpha]\]
 
 \end_inset 
 
@@ -356,19 +362,19 @@ This generalises in a straightforward way to arbitrarily deep successors:
 
 
 \begin_inset Formula \[
-\mathcal{P}^{n}(\phi)[s]\equiv\mathcal{P}^{1}(\mathcal{P}^{n-1}(\phi))[s]\]
+\mathcal{P}^{n}[\phi]\isdef\mathcal{P}^{1}[\mathcal{P}^{n-1}[\phi],\alpha]\]
 
 \end_inset 
 
 
 \layout Standard
 
-It is clear that for any 
-\begin_inset Formula $n$
+By the definition of 
+\begin_inset Formula $\mathcal{P}^{1}$
 \end_inset 
 
- and 
-\begin_inset Formula $s$
+ it is clear that, for any 
+\begin_inset Formula $n$
 \end_inset 
 
 :
@@ -376,7 +382,7 @@ It is clear that for any
 
 
 \begin_inset Formula \[
-\mathcal{P}^{n}(\phi)[s]\rightarrow\mathcal{P}^{n-1}(\phi)[s]\]
+\models\mathcal{P}^{n+1}[\phi,\alpha]\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
 
 \end_inset 
 
@@ -392,7 +398,7 @@ If it is possible to show that there is an
 
 
 \begin_inset Formula \[
-\mathcal{P}^{n}(\phi)[s]\rightarrow\mathcal{P}^{n+1}(\phi)[s]\]
+\models\mathcal{P}^{n}[\phi,\alpha]\rightarrow\mathcal{P}^{n+1}[\phi,\alpha]\]
 
 \end_inset 
 
@@ -405,7 +411,7 @@ Then we have shown logical equivalence of all further applications of
 
 :
 \begin_inset Formula \[
-\forall m\, n<m\rightarrow\mathcal{P}^{n}(\phi)[s]\equiv\mathcal{P}^{m}(\phi)[s]\]
+\models\mathcal{P}^{n}[\phi,\alpha]\equiv\mathcal{P}^{m}[\phi,\alpha]\,,for\, all\, m>n\]
 
 \end_inset 
 
@@ -420,41 +426,111 @@ This
 \begin_inset Formula $\mathcal{P}^{1}$
 \end_inset 
 
-.
- We shall denote this fixed point by 
-\begin_inset Formula $\mathcal{P}(\phi)$
+, which we shall denote
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
 \end_inset 
 
 .
- It is then a simple inductive argument to show that:
+ It is then a simple inductive argument to show that, as required:
 \layout Standard
 
 
 \begin_inset Formula \[
-\forall s'\, s\leq s'\rightarrow\phi[s']\equiv\mathcal{P}(\phi)\]
+\left[\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\right]\,\equiv\,\mathcal{P}[\phi,\alpha]\]
 
 \end_inset 
 
 
 \layout Standard
 
-The following questions then remain:
-\layout Itemize
+Given the definitions of 
+\begin_inset Formula $\mathcal{R}$
+\end_inset 
 
-How can we guarantee that such a fixed-point exists?
-\layout Itemize
+ and 
+\begin_inset Formula $\mathcal{P}^{1}$
+\end_inset 
 
-How can we efficiently compute the fixed point for a given 
+, the following algorithm will thus determine the persistence condition
+ for a formula 
 \begin_inset Formula $\phi$
 \end_inset 
 
+ and class of actions 
+\begin_inset Formula $\alpha$
+\end_inset 
 
+:
+\layout Standard
+
+
+\begin_inset Formula $p_{n}=\phi$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $p_{n+1}=\mathcal{P}^{1}[\phi,\alpha]$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $while\, p_{n}\not\models p_{n+1}\, do$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\,\,\,\,\,\, p_{n}=p_{n+1}$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $\,\,\,\,\,\, p_{n+1}=\mathcal{P}^{1}[p_{n+1},\alpha]$
+\end_inset 
+
+
+\layout Standard
+
+
+\begin_inset Formula $return\, p_{n}$
+\end_inset 
+
+
+\layout Standard
+
+The remainder of this paper is dedicated formally proving that 
+\begin_inset Formula $\mathcal{P}$
+\end_inset 
+
+ operates as desired, and to answering the following questions:
+\layout Itemize
+
+When can the algorithm for determining 
+\begin_inset Formula $\mathcal{P}$
+\end_inset 
+
+ be guaranteed to terminate?
+\layout Itemize
+
+Can 
+\begin_inset Formula $\mathcal{P}$
+\end_inset 
+
+ be determined more efficiently for theories of action with a specific form?
 \layout Section
 
-Formulation
-\layout Subsection
+Formal Construction of 
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\end_inset 
 
-Preliminaries
+
 \layout Standard
 
 TODO: basic description of situation calculus here
@@ -464,7 +540,17 @@ An important definition: uniform formulae.
  TODO: look it up
 \layout Standard
 
-talk about situation suppression
+talk about the 
+\begin_inset Formula $\phi(s)$
+\end_inset 
+
+ notation.
+\layout Standard
+
+Work out how we can construct it!
+\layout Section
+
+Construction from Effect Axioms
 \layout Subsection
 
 Effect Axioms
@@ -617,6 +703,12 @@ We define operators
 \end_inset 
 
 
+\layout Section
+
+Termination
+\layout Standard
+
+?? I really have no idea at this stage...
 \layout Section
 
 TODO

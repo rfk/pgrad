@@ -2,37 +2,24 @@
 %  Determine constraint preconditions for formulae
 %
 %  Given a situation-suppressed formula  A, we aim to calculate a
-%  situation-suppressed formulae Q*(A) such that:
+%  situation-suppressed formulae P(A) such that:
 %
-%     Q*(A)[s] -->  forall(sp) s <= sp --> A
+%     P(A)[s] <->  forall(sp) s <= sp -> A
 %
-%  That is to say, is state s satisfies Q*(A), then it and all of its
+%  That is to say, if state s satisfies P(A), then it and all of its
 %  legal successors will satisfy A.  Thus we aim to reason about state
 %  constraints without needing induction.
 %
-%  We do this by defining a function Q(A) that is sufficient to ensure
+%  We do this by defining a function P1(A) that is sufficient to ensure
 %  that A holds in s and all its direct successors.  By finding a fixed
-%  point for this function based on A, Q*(A) can be determined.
+%  point for this function based on A, P(A) can be determined.
 %
 
 :- op(300,fx,~).
 :- op(400,xfy,&).
 :- op(500,xfy,v).
 
-:- dynamic nextvar/1.
-
 :- discontiguous eps_p/3, eps_n/3.
-
-nextvar(1).
-
-newvar(X) :-
-    retract(nextvar(V)),
-    V2 is V + 1,
-    assert(nextvar(V2)),
-    atom_codes(V,C1),
-    atom_codes(v,Cv),
-    append(Cv,C1,C2),
-    atom_codes(X,C2), !.
 
 
 to_leancop_form(P & Q,C) :-
@@ -126,19 +113,19 @@ consequence(P1,P2) :-
     prove(M).
 
 
-find_qcond([Qold|T],Q) :-
+find_pcond([Qold|T],Q) :-
     length(T,Len), Len < 10,
-    qcond_t(Qold,Qnew),
+    pcond_t(Qold,Qnew),
     write(Len), write(' :: '), write(Qnew), nl,
     (consequence(Qold,Qnew) ->
         joinlist(&,[Qold|T],Q)
     ; consequence(Qold,~Qnew) ->
         Q=false
     ;
-        find_qcond([Qnew,Qold|T],Q)
+        find_pcond([Qnew,Qold|T],Q)
     ).
-find_qcond(P,Q) :-
-    find_qcond([P],Q).
+find_pcond(P,Q) :-
+    find_pcond([P],Q).
     
 
 subs(_,_,T,Tr) :-
@@ -158,8 +145,8 @@ joinlist(O,[H|T],J) :-
     joinlist(O,T,TJ),
     J =.. [O,H,TJ].
 
-qcond_t(P,Q) :-
-    findall(Qt,A^qcond_t1(P,A,Qt),Qts),
+pcond_t(P,Q) :-
+    findall(Qt,A^pcond_t1(P,A,Qt),Qts),
     (
       Qts=[], Qtmp=true
     ;
@@ -167,17 +154,17 @@ qcond_t(P,Q) :-
     ),
     simplify(Qtmp,Q).
 
-qcond_t(P,0,P).
-qcond_t(P,N,Q) :-
+pcond_t(P,0,P).
+pcond_t(P,N,Q) :-
      N > 0,
      N2 is N - 1,
-     qcond_t(P,N2,Q2),
-     qcond_t(Q2,Q).
+     pcond_t(P,N2,Q2),
+     pcond_t(Q2,Q).
     
 % TODO: this doesnt handle quantification properly
 %       Because the action appears outside quantifier scope.
 %       need to rethink this a little for quantification
-qcond_t1(P,A,Q) :-
+pcond_t1(P,A,Q) :-
     eps_n(P,A,QP),
     poss(A,QA),
     Qt = ~QA v ~QP,
@@ -294,8 +281,4 @@ poss(drop(X),holding(X)).
 poss(pickup(_),true).
 poss(putdown(X),holding(X)).
 poss(repair(X),holding(X) & hasglue).
-
-getvars(A) :-
-    A =.. [_|Args],
-    maplist(newvar,Args).
 
