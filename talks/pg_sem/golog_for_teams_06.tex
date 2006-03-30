@@ -1,0 +1,433 @@
+\documentclass{beamer}
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+
+\mode<presentation>{\usetheme{Dresden}}
+
+\usepackage{fancyvrb}
+
+\title{High-Level Program Execution\\ for Multi-Agent Teams}
+\author{Ryan Kelly}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+
+\begin{frame}
+\frametitle{Multi-Agent Teams}
+Two categories of multi-agent system:
+\begin{itemize}
+  \item Open multi-agent systems
+  \item Multi-agent teams
+\end{itemize}
+\ \\
+\ \\
+Teams may be conceptualised as a single agent, with distributed sensing,
+reasoning and acting capabilities.\\
+\ \\
+\pause
+What ideas can we borrow from single-agent programming?
+\end{frame}
+
+\begin{frame}
+\frametitle{High-Level Program Execution}
+A practical alternative to planning for single-agent systems. Specify
+a program made up of:
+\begin{itemize}
+  \item Actions from the world
+  \item Connected by high-level programming constructs
+  \item Including nondeterminism where reasoning is required
+\end{itemize}
+\ \\
+\ \\
+Why?
+\begin{itemize}
+  \item Controlled Nondeterminism
+  \item Clear, simple programs
+  \item Symbolic reasoning about the world
+  \item Can prove program properties (safety/liveness/etc...)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivating Example: The Cooking Agents}
+Several robotic chefs inhabit a kitchen, along with various ingredients,
+appliances and utensils.  They must cooperate to produce a meal consisting
+of several dishes.\\
+\ \\
+Challenges:
+\begin{itemize}
+  \item Concurrent execution of tasks
+  \item Conflict over shared resources
+  \item Coordination of shared actions
+\end{itemize}
+
+Assumptions:
+\begin{itemize}
+  \item Deterministic, fully observable world ?
+  \item Complete and reliable communication ?
+\end{itemize}
+\end{frame}
+
+
+\section{The Situation Calculus and Golog(s)}
+
+\begin{frame}
+\frametitle{Why?}
+Golog has been developed primarily for Cognitive Robotics applications - agents
+which must do sophisticated reasoning about themselves, other agents, and their
+changing environment.
+\begin{itemize}
+\item Agents should explicitly represent and reason about their world
+\item Programs should reflect the domain, not the programming environment
+\item Full planning shouldn't be needed for simple tasks
+\end{itemize}
+
+And moreover, these properties should be natural and easy to obtain in the
+control program for your agent.
+\end{frame}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+
+A F.O.L. formalism for reasoning about dynamic worlds:
+
+\begin{itemize}
+\pause
+\item Actions: $wait$, $pickup(obj)$, $goto(x,y)$
+\pause
+\item Situations: $S_{0}$, $do(a_{1},S_{0})$, $do(a_{2},do(a_{1},S_{0}))$
+\pause
+\item Fluents: $holding(obj,s)$, $(x,y)=curPosition(s)$
+\pause
+\item Precondition Axioms: $Poss(drop(obj),s) \equiv holding(obj,s)$
+\pause
+\item Successor State Axioms:\[
+\begin{array}{cc}
+holding(obj,do(a,s))\equiv & a=pickup(obj)\,\vee\\
+ & \left[holding(obj,s)\wedge a\neq drop(obj)\right]\end{array}\]
+\end{itemize}
+\pause
+Successor State Axioms can provide an elegant solution to the infamous
+frame problem.
+\end{frame}
+
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+These axioms combine to give a first-order \emph{Theory of Action} $\mathbf{D}$,
+ with which agents can:
+\begin{itemize}
+  \item Reason about when actions are possible
+  \item Reason about the effects of actions
+  \item Represent sequences of actions as situations:\[
+\left[a_1, a_2, a_3, a_4\right] \rightarrow do(a_4,do(a_3,do(a_2,do(a_1,S_0))))
+\]
+\end{itemize}
+\pause
+But, what about more complex actions and procedures?
+\begin{itemize}
+  \item $\mathbf{if}\ available(Item)\ \mathbf{then}\ pickup(Item)\ \mathbf{else}\ beSad$
+  \item $\mathbf{while}\ (\exists block)\ ontable(block)\ \mathbf{do}\ remove(block)\ \mathbf{endWhile}$
+  \item $\mathbf{proc}\ remove(block)\ [pickup(block);putaway(block)]\ \mathbf{endProc}$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{GOLOG: "alGOL in LOGic"}
+Introduces programming to the S.C. by means of "complex actions" or,
+more commonly, programs:
+\begin{itemize}
+  \pause
+  \item $\delta_1;\delta_2$: Perform two programs in sequence
+  \pause
+  \item $\phi?$: Assert that a condition holds
+  \pause
+  \item $\delta_1|\delta_2$: Choose between programs to execute
+  \pause
+  \item $(\pi x)\delta(x)$: Choose suitable bindings for variables
+  \pause
+  \item $\delta^*$: Execute a program zero or more times
+  \pause
+\end{itemize}
+Composing actions by means of these operators allows complex programs
+to be defined.\\
+\ \\
+\pause
+Key Point:  programs can include \alert{nondeterminism}
+\end{frame}
+
+\begin{frame}
+\frametitle{Executing a Golog Program}
+Intuitively, an agent must find a \emph{legal execution} of its nondeterministicprogram - some set of choices for the nondeterministic components so that all
+actions performed are possible, and all test conditions are satisfied.\\
+\ \\
+Formally, the agent must find a situation $s$ such that:\[
+\mathbf{D} \models \exists s . Do(\delta,S_0,s)\]
+
+Here, $\mathbf{D}$ is the Situation Calculus theory of action, and $Do$
+encodes the semantics of the Golog operators.  Remember, a situation is a sequence of actions - in this case, the actions which must be carried out to execute the program.
+\end{frame}
+
+
+\begin{frame}
+\frametitle{A Simple Example}
+$[(\pi\ block)(goNextTo(block);pickup(block))];holding(Block1)?$\\
+\ \\
+Assuming that $\neg holding(Block1,S_0)$, this program has a unique
+legal execution:\[
+s = do(pickup(Block1),do(goNextTo(Block1),S_0)\]
+
+Corresponding to the action sequence:\[
+[goNextTo(Block1), pickup(Block1)]\]
+
+The agent reasons about the world to inform its nondeterministic choices.
+\end{frame}
+
+\begin{frame}
+\frametitle{A More Complicated Example}
+As a slightly more complex example, consider a Golog program for
+getting to uni of a morning:\[
+\begin{array}{c}
+ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
+haveShower;(\pi\ food)(edible(food)?;eat(food));\\
+(driveToUni\ |\ trainToUni);\\
+(time<9:00)?
+\end{array}\]
+
+There are potentially many legal executions, depending on which actions
+are possible in the world.
+\end{frame}
+
+\begin{frame}
+\frametitle{GOLOG: "alGOL in LOGic"}
+Semantics of operators given recursively in terms of the macro $Do$.
+$Do(\delta,s,s')$ means "program $\delta$ may begin in situation $s$ and end
+in situation $s'$"
+\begin{itemize}
+  \pause
+  \item Primitive actions: $Do(a,s,s')\ \isdef\ Poss(a,s)\wedge s'=do(a,s)$
+  \pause
+  \item Test actions: $Do(\phi?,s,s')\ \isdef\ \phi [s] \wedge s=s'$
+  \pause
+  \item Sequence: $Do(\delta_1;\delta_2)\ \isdef\ \exists s'' (Do(\delta_1,s,s'')\wedge Do(\delta_2,sxxi''^*,s'))$
+  \pause
+  \item Nondet. Choice: $Do(\delta_1|\delta_2,s,s')\ \isdef\ Do(\delta_1,s,s')\vee Do(\delta_2,s,s')$
+  \pause
+  \item Nondet. Argument: $Do((\pi x)\delta(x),s,s')\ \isdef\ \exists x Do(\delta(x),s,s')$
+  \pause
+  \item $\mathbf{if}\ \phi\ \mathbf{then}\ \delta_1\ \mathbf{else}\ \delta_2\ \mathbf{endIf}\ \isdef\ [\phi?;\delta_1]\ |\ [\neg\phi?;\delta_2]$
+  \pause
+  \item $\mathbf{while}\ \phi\ \mathbf{do}\ \delta\ \mathbf{endWhile}\ \isdef\ [[\phi?;\delta]*;\neg\phi?]$
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Programming or Planning?}
+\begin{itemize}
+  \item May require reasoning about effects of actions to resolve nondeterminism
+$\rightarrow$ Planning
+  \item Or, procedure may be completely specified $\rightarrow$ Programming
+  \item Golog occupies a middle ground $\rightarrow$ "High-Level Programming"
+\end{itemize}
+
+Full planning is possible in Golog:\[
+\mathbf{while}\ \neg Goal\ \mathbf{do}\ (\pi\ a)(a)\ \mathbf{endWhile}\]
+
+Or you can specify more of the procedure yourself, to make the agent's job
+easier.\\
+\ \\
+Key Point: \alert{Controlled} Nondeterminism
+\end{frame}
+
+\begin{frame}
+\frametitle{ConGolog: Concurrency and Interrupts}
+"Concurrent Golog" was designed to support the concurrent execution of
+several threads of control.  It also allows threads to be spawned in
+response to conditions in the environment:
+\begin{itemize}
+  \pause
+  \item $\delta_1\ ||\ \delta_2$: Execute two programs concurrently
+  \pause
+  \item $\delta_1\ \gg\ \delta_2$: Execute two programs concurrently, giving one priority over the other
+  \pause
+  \item $<\phi \rightarrow \delta>$: Execute $\delta$ when $\phi$ becomes true
+\end{itemize}
+\pause
+This requires a modification of the $Do$ semantics.  Instead, it uses
+$Trans(\delta,s,\delta',s')$ to indicate that program $\delta$ may execute
+a single step, taking the world from situation $s$ to $s'$, and leaving the
+program $\delta'$ still to be executed.\\
+\[
+Do(\delta,s,s') \isdef Trans*(\delta,s,nil,s')
+\]
+\end{frame}
+
+\begin{frame}
+\frametitle{ConGolog}
+Concurrency is achieved by interleaving steps from both programs:
+\[
+\begin{array}{cc}
+Trans(\delta_1\ ||\ \delta_2,s,\delta',s') \equiv & \exists \gamma . \delta'=(\gamma\ ||\ \delta_2)\wedge Trans(\delta_1,s,\gamma,s')\\
+& \vee\ \exists \gamma . \delta'=(\delta_1\ ||\ \gamma)\wedge Trans(\delta_2,s,\gamma,s')
+\end{array}\]
+\pause
+\ \\
+My "getting to uni" for today:
+\[
+\begin{array}{c}
+<runningLate\rightarrow panic>\\
+\gg\ stressAboutPresentation\\
+||\ (getReady;goToUni)
+\end{array}\]
+
+\end{frame}
+
+\begin{frame}
+\frametitle{IndiGolog: Online Execution and Sensing}
+In order to be sure an execution is legal, Golog must plan all the way
+to the end.  "Offline Execution" - for highly nondeterministic programs
+this may be intractable.\\
+\ \\
+Furthermore, the agent might not have all the information it needs when
+execution begins - may require \emph{sensing}.
+
+\begin{itemize}
+  \pause
+  \item Execute online, making nondet choices arbitrarily
+  \pause
+  \item Perform sensing actions when extra information is required
+  \pause
+  \item Allow planning over individual parts of the program
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{IndiGolog}
+"Getting to Uni" could fail at the final test because we snoozed too long:\[
+\begin{array}{c}
+ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
+haveShower;(\pi\ food)(edible(food)?;eat(food));\\
+(driveToUni\ |\ tramToUni\ |\ walkToUni);\\
+(time<9:00)?
+\end{array}\]\\
+\ \\
+Instead, plan over just the nondeterministic parts:\[
+\begin{array}{c}
+ringAlarm;\Sigma[(hitSnooze; ringAlarm)^*;(time<8:15)?];turnOffAlarm;\\
+haveShower;\Sigma[(\pi\ food)(edible(food)?;eat(food))];\\
+\Sigma[(driveToUni\ |\ tramToUni\ |\ walkToUni);(time<9:00)?]
+
+\end{array}\]\\
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Why is Golog popular?}
+\begin{itemize}
+  \item Good level of abstraction:
+  \begin{itemize}
+    \item Programs based directly on actions from the domain
+    \item Nondeterminism makes programs simpler and more powerful
+    \item Symbolic reasoning effortlessly available
+  \end{itemize}
+  \item Tradeoff between programming and planning:
+  \begin{itemize}
+    \item Amount of nondeterminism controlled by the programmer
+    \item Procedural knowledge easy to encode
+    \item Full planning still available
+  \end{itemize}
+  \item Logic-based:
+  \begin{itemize}
+    \item Compact implementation in Prolog
+    \item Possible to prove safety/liveness properties
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\section{Golog for Multi-Agent Teams}
+
+\begin{frame}
+\frametitle{Multi-Agent Situation Calculus}
+agent listed as first argument of actions
+concurrency, time, natural actions, continuous actions
+CASL, ReadyLog
+MIndiGolog
+knowledge/belief
+\end{frame}
+
+\begin{frame}
+\frametitle{Making a Salad}
+Consider our cooking agents domain.  How to we make a salad?
+\ \\
+\begin{columns}
+  \begin{column}{0.5\textwidth}
+\[
+\begin{array}{c}
+\mathbf{proc}\ ChopTypeInto(type,dest)\\
+\pi(obj)[IsType(obj,type)?\ ;\\
+chop(obj)\ ;\ place\_in(obj,dest)]\\
+\mathbf{end}\end{array}\]
+  \end{column}
+  \begin{column}{0.5\textwidth}
+\[
+\begin{array}{c}
+\mathbf{proc}\ MakeSalad(dest)\\
+ChopTypeInto(Lettuce,dest)\ ;\\
+ChopTypeInto(Carrot,dest)\ ;\\
+ChopTypeInto(Tomato,dest)\ ;\\
+mix(dest,1)\\
+\mathbf{end}\end{array}\]
+  \end{column}
+\end{columns}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Making a Salad}
+When making a salad, the order of ingredients doesnt matter.  This can
+be expressed using concurrency:\[
+\begin{array}{c}
+\mathbf{proc}\ MakeSalad(dest)\\
+\left[\ ChopTypeInto(Lettuce,dest)\ ||\right.\\
+ChopTypeInto(Carrot,dest)\ ||\\
+\left.ChopTypeInto(Tomato,dest)\ \right]\ ;\\
+mix(dest,1)\\
+\mathbf{end}\end{array}\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Making a Salad}
+It doesnt matter who puts what into the bowl: more nondeterminism
+\[
+\begin{array}{c}
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\pi(agt)\left[acquire(agt,dest)\,;\right.\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, begin\_ task(agt,mix(dest,1))\,;\\
+\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, end\_ task(agt,mix(dest,1))\,;\\
+\left.\,\,\,\, release(agt,dest)\right]\,\,\mathbf{end}\end{array}\]
+\end{frame}
+
+\section{Current Work}
+
+\begin{frame}
+\frametitle{Knowledge}
+
+\end{frame}
+
+
+\end{document}
