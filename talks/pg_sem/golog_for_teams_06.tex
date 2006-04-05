@@ -207,26 +207,6 @@ IndiGolog interleaves planning with action
 \end{frame}
 
 \begin{frame}
-\frametitle{Getting to Uni Reliably}
-Getting to Uni could fail at the final test because I snoozed too long:\[
-\begin{array}{c}
-ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
-(\pi\ food)(edible(food)?;eat(food)); haveShower; brushTeeth\\
-(driveToUni\ |\ trainToUni); (time<9:00)?
-\end{array}\]\\
-\ \\
-\pause
-Better to plan over just the nondeterministic parts.\\
-I could also brush my teeth while in the shower:
-\[
-\begin{array}{c}
-ringAlarm;\Sigma[(hitSnooze; ringAlarm)^*;turnOffAlarm;(time<7:30)?]\\
-(\pi\ food)(edible(food)?;eat(food)); (haveShower || brushTeeth)\\
-\Sigma[(driveToUni\ |\ trainToUni); (time<9:00)?]
-\end{array}\]\\
-\end{frame}
-
-\begin{frame}
 \frametitle{Golog Semantics}
 Single-steps of computation are specified by  $Trans(\delta,s,\delta',s')$.
 \begin{itemize}
@@ -288,7 +268,7 @@ Key Point: \alert{Controlled} Nondeterminism
     \item Nondeterminism makes programs simpler and more powerful
     \item Symbolic reasoning effortlessly available
   \end{itemize}
-  \item Tradeoff between programming and planning:
+  \item Trade-off between programming and planning:
   \begin{itemize}
     \item Amount of nondeterminism controlled by the programmer
     \item Procedural knowledge easy to encode
@@ -366,7 +346,7 @@ identify the agent performing it.
   \item $chop(Harriet,Tomato1)$
 \end{itemize}
 \pause
-Adding time to the SitCalc has a long history \cite{pinto94temporal},\cite{reiter96sc_nat_conc}.
+Adding time to the SitCalc has a long history \cite{reiter01kia}.
 We opt for a simple solution: attach an explicit time to each situation,
 indicating when it was brought about:\[
 \begin{array}{c}
@@ -381,7 +361,7 @@ start(do(a,t,s)) = t
 ConGolog provides \emph{interleaved concurrency} allowing multiple
 high-level programs to be executed together.\\
 \ \\
-With mulitple agents, the world exhibits \emph{true concurrency}. Several
+With multiple agents, the world exhibits \emph{true concurrency}. Several
 actions can occur at the same instant.\\
 \ \\
 \pause
@@ -396,7 +376,7 @@ Need to:
 \begin{frame}
 \frametitle{The Concurrent Situation Calculus}
 Replace action terms with sets of actions, all of which are performed
-at the same time \cite{reiter96sc_nat_conc}:\[
+at the same time \cite{reiter01kia}:\[
 do(\{pickup(Thomas,Lettuce1),pickup(Richard,Tomato1)\},t_1,S_0)\]
 \pause
 \ \\
@@ -424,10 +404,10 @@ any time.  Rather, it \emph{must} occur whenever it is possible.
 \begin{frame}
 \frametitle{Natural Actions}
 Natural Action:  an action that must occur whenever it is possible,
-unless some earlier action prevents it from occuring.
+unless some earlier action prevents it from occurring.
 \begin{itemize}
   \item $Poss(na,t,s)$ predicts the times at which a natural action will occur.
-  \item Legal Situation: one in which any natural actions that could have occured, did occur:\[
+  \item Legal Situation: one in which any natural actions that could have occurred, did occur:\[
 \begin{array}{c}
 legal(do(c,t,s)) \equiv legal(s) \wedge\\
 Poss(c,t,s) \wedge start(s) \leq t \wedge\\
@@ -446,7 +426,7 @@ We have created a new Golog variant that:
 \end{itemize}
 \ \\
 \ \\
-Implemented in Prolog, it functions as a \emph{centralised} mult-agent planner.
+Implemented in Prolog, it functions as a \emph{centralised} multi-agent planner.
 \ \\
 \ \\
 Using the distributed logic programming capabilities of Oz, the planning
@@ -455,7 +435,7 @@ workload can be \emph{distributed} amongst the agents.
 
 \begin{frame}
 \frametitle{Making a Salad}
-When making a salad, the order of ingredients doesnt matter.  This can
+When making a salad, the order of ingredients doesn't matter.  This can
 be expressed using concurrency:\[
 \begin{array}{c}
 \mathbf{proc}\ MakeSalad(dest)\\
@@ -464,15 +444,13 @@ ChopTypeInto(Carrot,dest)\ ||\\
 \left.ChopTypeInto(Tomato,dest)\ \right]\ ;\\
 mix(dest,1)\\
 \mathbf{end}\end{array}\]
+We must also expand the continuous $mix$ action, and specify the agent
+performing each action.
 \end{frame}
 
 \begin{frame}
 \frametitle{Making a Salad}
-We must expand the continuous $mix$ action, and specify the agent performing
-each action.
-\ \\
-\pause
-But, it doesnt matter who does what: more nondeterminism
+But, it doesn't matter who does what: more nondeterminism
 \[
 \begin{array}{c}
 \mathbf{proc}\, MakeSalad(dest)\\
@@ -481,6 +459,7 @@ But, it doesnt matter who does what: more nondeterminism
 \left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
 \pi(agt)\left[begin\_task(agt,mix(dest,1))\,;\right.\\
 \left.\,\,\,\, end\_task(agt,mix(dest,1))\right]\,\,\mathbf{end}\end{array}\]
+\pause
 Of course, we could hide this with syntactic sugar...
 \end{frame}
 
@@ -518,7 +497,7 @@ Plus:
   \item Planning workload easily shared between agents
 \end{itemize}
 \ \\
-Golog has been sucessfully used in the RoboCup simulation leage \cite{Ferrein2005readylog}.
+Golog has been successfully used for a RoboCup team \cite{Ferrein2005readylog}.
 \end{frame}
 
 
@@ -530,7 +509,7 @@ Golog has been sucessfully used in the RoboCup simulation leage \cite{Ferrein200
 The current implementation assumes the world in fully observable.
 \begin{itemize}
   \item What if agents have different ideas about the state of the world?
-  \item What is they cant see what the other agents are doing?
+  \item What is they can't see what the other agents are doing?
 \end{itemize}
 \ \\
 \ \\
@@ -538,7 +517,7 @@ Although the workload can be distributed, \emph{control} over planning
 an execution still centralised.
 
 \begin{itemize}
-  \item How can the execution be truly distributed?
+  \item How can the execution be decentralised?
 \end{itemize}
 \end{frame}
 
@@ -547,7 +526,7 @@ an execution still centralised.
 Knowledge in the S.C. is based on the standard "possible worlds" model:
 \[
 \begin{array}{c}
-\mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\ K(s',s) \rightarrow \phi(s')\\
+\mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\ K(agt,s',s) \rightarrow \phi(s')\\
 \\
 K(agt,s'',do(a,s)) \equiv \exists s'\ s''=do(a,s') \wedge K(agt,s',s)
 \end{array}
@@ -568,7 +547,7 @@ K(agt,s'',do(a,s)) \equiv \exists s'\ Unobs(agt,do(a,s'),s'') \wedge K(agt,s',s)
 \begin{frame}
 \frametitle{Reasoning about Knowledge}
 Our account of knowledge requires reasoning about all possible future
-sitations.  This typically requires second-order reasoning (Uh-Oh!)
+situations.  This typically requires second-order reasoning (Uh-Oh!)
 \pause
 \ \\
 \ \\
@@ -595,32 +574,34 @@ safe, I \emph{know} that $A$ can legally be performed concurrently with $C$
 \ \\
 As long as everyone only performs actions that they know to be safe, all
 actions performed will be legal steps of the shared program.
+\ \\
+\ \\
+We are developing a distributed coordination strategy based on these ideas.
 \end{frame}
 
-\begin{frame}
-\frametitle{The Goal}
-\begin{itemize}
-  \item Have agents cooperate to execute a shared MIndiGolog program
-  \item When the world is fully observable, they need not communicate
-  \item In partially observable worlds, they automatically communicate
- to enable cooperation
-\end{itemize}
-\end{frame}
-
-\section{Conclusion}
+\section{Conclusions}
 
 \begin{frame}
-\frametitle{Conclusion}
+\frametitle{Conclusions}
 \begin{itemize}
   \item High-Level Program Execution is a promising paradigm for multi-agent teams
-  \item Programmer specifies as much or as little of the procedure as
-desired
-  \item Agents cooperate to resolve the nondeterminism according to a
-Theory of Action
+\end{itemize}
+\pause
+Contributions so far:
+\begin{itemize}
+  \item Expanded Golog semantics to handle true concurrency, natural actions
+  \item Developed more general theory of multi-agent knowledge
+  \item Identified "tractable" reasoning procedure for knowledge
+\end{itemize}
+\pause
+Ongoing:
+\begin{itemize}
+  \item Developing knowledge-based distributed coordination strategy
+  \item Building a reusable M.A. programming system\\(Prolog? Oz? Mercury?)
 \end{itemize}
 \end{frame}
 
 \bibliography{/storage/uni/pgrad/library/references}
-\bibliographystyle{aaai}
+\bibliographystyle{plain}
 
 \end{document}
