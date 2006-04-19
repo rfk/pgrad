@@ -78,13 +78,13 @@ When a team of agents must cooperate closely in order to achieve some shared
 \begin_layout Standard
 In my thesis I adapt the idea of
 \emph on
- high-level program
-\emph default
  
-\emph on
-execution
 \emph default
- for use in such a manner.
+High-Level Program
+\emph on
+ 
+\emph default
+Execution for use in such a manner.
  A single program is written describing the desired behavior of the team.
  The individual team members then cooperate amongst themselves to find and
  perform a legal execution of this program.
@@ -129,7 +129,7 @@ Motivation
 \end_layout
 
 \begin_layout Standard
-TODO: why is this a good approach?
+TODO: why is this a good approach? why is it an important problem?
 \end_layout
 
 \begin_layout Standard
@@ -171,37 +171,37 @@ Overview and Terminology
 \begin_layout Standard
 Multi-agent systems research is a large and diverse field, with a correspondingl
 y vast literature base.
- While an overview of the entire field is beyond the scope of this report,
- articles such as 
+ While an overview of the entire field is beyond the scope of this report
+ (such an overview may be found in 
 \begin_inset LatexCommand \cite{nwana95software_agents,mataric95issues_designing_agents}
 
 \end_inset
 
- provide a useful overview for the interested reader.
- It is however necessary to situate this work within the broader field,
- which we do below.
+), it is necessary to situate this work within the broader field by describing
+ the types of multi-agent applications that it targets.
 \end_layout
 
 \begin_layout Standard
-While often implicit in the literature, there is a clear distinction between
- two types of systems involving multiple agents, typically termed Multi-Agent
- Systems (MAS) and Distributed Problem Solving (DPS) respectively 
+Although often implicit in the literature, there is a clear distinction
+ between two types of systems involving multiple agents: 
+\emph on
+Multi-Agent Systems
+\emph default
+ (MAS) and 
+\emph on
+Distributed Problem Solving
+\emph default
+ (DPS) 
 \begin_inset LatexCommand \cite{nwana95software_agents,mataric95issues_designing_agents}
 
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-MAS applications involve autonomous agents who act independently, and may
- cooperate or compete depending on their individual goals and desires.
- While arranging and coordinating teamwork in such systems is a fascinating
- and challenging topic, it is outside the scope of this research project.
- DPS applications involve a team of agents cooperating to solve a joint
- problem or perform a joint task, and are the types of application this
- research project is targeted toward.
- A detailed discussion of the field can be found in 
+ MAS applications involve autonomous agents that act independently, and
+ may cooperate or compete depending on their individual goals and desires.
+ By contrast, DPS applications involve a team of agents cooperating to solve
+ a joint problem or perform a joint task.
+ A detailed discussion of the DPS field can be found in 
 \begin_inset LatexCommand \cite{Durfee91dps}
 
 \end_inset
@@ -210,80 +210,114 @@ MAS applications involve autonomous agents who act independently, and may
 \end_layout
 
 \begin_layout Standard
-For a team of agents to form a DPS system, they must have some shared notion
- of the task to be carried out.
- The agents may have differing capabilities or expertise, they may have
- access to differing information about the world, and they may have differing
- ideas about the state of completion of the joint task.
- Somehow, they must coordinate and cooperate to carry out the joint task.
-\end_layout
-
-\begin_layout Standard
-This research project aims to develop a programming language that can be
- used to specify the tasks to be performed by a DPS system, and a coordination
- strategy that will enable a team of agents to execute such programs.
-\end_layout
-
-\begin_layout Standard
-[TODO more here]
+This research project aims to develop a programming language with which
+ one can specify the tasks to be performed by a DPS system, along with a
+ coordination strategy that will enable a team of agents to execute such
+ programs.
+ That is, we focus on specifying the behavior of a team of agents who must
+ cooperate closely to achieve some shared goal, and who are under the control
+ of a central designer.
+ While specifying and coordinating teamwork in open MAS applications is
+ a fascinating and challenging topic, it is outside the scope of this project.
 \end_layout
 
 \begin_layout Subsubsection
-Existing Approaches
+Task Representation
 \end_layout
 
 \begin_layout Standard
-HTN
+For a team of agents to form a DPS system, they require some shared notion
+ of the task to be carried out.
+ Formalisms from traditional single-agent planning are frequently used for
+ this purpose, based on a representation of actions and their effects developed
+ with the STRIPS 
+\begin_inset LatexCommand \cite{fikes71strips}
+
+\end_inset
+
+ planning system.
+ A popular choice is the 
+\emph on
+Heirarchical Task Networks
+\emph default
+ (HTN) formalism 
 \begin_inset LatexCommand \cite{obst05htn_teams}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-taems/GPGP 
-\begin_inset LatexCommand \cite{decker95designing_coordination}
-
-\end_inset
-
-,
-\end_layout
-
-\begin_layout Standard
-sharedplans
-\begin_inset LatexCommand \cite{grosz99planning_together}
-
-\end_inset
-
- (CAST 
-\begin_inset LatexCommand \cite{yen01cast}
-
-\end_inset
-
-)
-\end_layout
-
-\begin_layout Standard
-STEAM
+.
+ In this approach, the tasks to be carried out are represented as sequences
+ (or more generally, partial orders) of subtasks.
+ By replacing tasks with their constituent subtasks until only primitive
+ actions remain, a complete plan for achieving task can be developed.
+ Formalisms such as STEAM 
 \begin_inset LatexCommand \cite{tambe97flexible_teamwork}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-STAPLE
-\begin_inset LatexCommand \cite{kumar02staple_direct_exec}
+, SharedPlans 
+\begin_inset LatexCommand \cite{grosz99planning_together}
 
 \end_inset
 
+ and STAPLE 
+\begin_inset LatexCommand \cite{kumar04staple}
 
+\end_inset
+
+ combine such accounts of action with theories of mental states such as
+ beliefs and intentions to provide rigorous models of teamwork.
 \end_layout
 
 \begin_layout Standard
-CASL/ReadyLog (see below)
+Another example of this style of task specification is the TAEMS framework
+ 
+\begin_inset LatexCommand \cite{decker95designing_coordination}
+
+\end_inset
+
+.
+ It is specifically designed for DPS applications, and enriches the HTN
+ formalism with information such as time constraints and facilitates/inhibits
+ relationships between tasks.
+ Combined with a coordination system named Generalised Partial Global Planning,
+ it has been successfully applied in wide range of domains 
+\begin_inset LatexCommand \cite{Lesser04gpgp_taems}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+While the HTN approach to task representation and planning is quite powerful,
+ it is certainly not the only approach.
+ An emerging alternative for single-agent systems is 
+\emph on
+High-level Program Execution
+\emph default
+, exemplified by the Golog programming language.
+ This approach and its advantages are described in section 
+\begin_inset LatexCommand \ref{sub:Golog}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Considering its potential advantages, we aim to use the High-Level Program
+ Execution paradigm for specifying the tasks to be performed by a multi-agent
+ DPS team.
+ That this is a promising approach is highlighted in 
+\begin_inset LatexCommand \cite{Ferrein2005readylog}
+
+\end_inset
+
+, where a Golog variant is used to specify the behavior of a robotic soccer
+ team.
+ Our work will formalise and extend the approach to a broader range of multi-age
+nt systems.
 \end_layout
 
 \begin_layout Subsubsection
@@ -291,23 +325,34 @@ Coordination
 \end_layout
 
 \begin_layout Standard
+Along with their description of the tasks to be performed, a multi-agent
+ team must have some strategy to coordinate their shared execution of those
+ tasks.
+ A comprehensive overview of coordination techniques is given in 
 \begin_inset LatexCommand \cite{jennings96coordination}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-explicit/implicit coordination 
-\begin_inset LatexCommand \cite{ephrati95filtering_coord}
+.
+ Again, although there is a large body of literature on coordination in
+ multi-agent systems, much of it is well beyond the scope of this project.
+ As noted in 
+\begin_inset LatexCommand \cite{durfee05ma_plan_coordination}
 
 \end_inset
 
-
+, the coordination needs of loosely-couple multi-agent systems differ markedly
+ from multi-agent teams involved in distributed problem solving.
 \end_layout
 
 \begin_layout Standard
+Coordination strategies can be broadly categories as either implicit or
+ explicit.
+ Implicit coordination takes the form of pre-existing agreements that limit
+ when/how actions can be performed - for example, the agreement that everyone
+ drive on the left-hand side of the road.
+ Explicit coordination requires communication between agents to resolve
+ possible conflicts in their plans, for example as described in 
 \begin_inset LatexCommand \cite{durfee05ma_plan_coordination}
 
 \end_inset
@@ -315,8 +360,77 @@ explicit/implicit coordination
 
 \end_layout
 
+\begin_layout Standard
+Since DPS teams frequently have a good idea of what actions other teammembers
+ will be performing, implicit coordination can achieve more than may be
+ obvious.
+ As has been shown with both a HTN approach 
+\begin_inset LatexCommand \cite{obst05htn_teams}
+
+\end_inset
+
+ and with Golog 
+\begin_inset LatexCommand \cite{Ferrein2005readylog}
+
+\end_inset
+
+, when the world is fully observable and the agents know the entirety of
+ the joint task specification, coordination can be achieved without any
+ communication at all.
+ This is possible by having each agent independently plan a full execution
+ of the task, including the actions to be performed by other agents.
+ As long as they are all using the same planning procedure they will all
+ arrive at the same plan, removing the need to communicate.
+\end_layout
+
+\begin_layout Standard
+Clearly there are disadvantages to this approach.
+ There is significant duplication of effort as each agent plans an identical
+ execution.
+ It is also only applicable when full knowledge of the world is available,
+ so that agents are planning from the same information.
+ We will adopt ideas from this approach, but enable sharing the planning
+ workload and the ability to communicate to determine the state of the world.
+ 
+\end_layout
+
+\begin_layout Standard
+Many of the formalisms mentioned earlier provide a strategy for explicit
+ coordination among agents, including GPGP 
+\begin_inset LatexCommand \cite{decker95designing_coordination,Lesser04gpgp_taems}
+
+\end_inset
+
+, STEAM 
+\begin_inset LatexCommand \cite{tambe97flexible_teamwork}
+
+\end_inset
+
+ and SharedPlans 
+\begin_inset LatexCommand \cite{grosz99planning_together}
+
+\end_inset
+
+.
+ It has not yet been determined what aspects of these approaches can be
+ utilised to coordinate the execution of a shared Golog program.
+\end_layout
+
 \begin_layout Subsection
 The Situation Calculus
+\end_layout
+
+\begin_layout Standard
+The formal underpinnings of the most popular implementation of the High-Level
+ Program Execution idea are a first-order theory of action known as the
+ 
+\emph on
+Situation Calculus
+\emph default
+.
+ This section describes the situation calculus and a variety of extensions
+ that are necessary to properly represent multi-agent domains.
+ 
 \end_layout
 
 \begin_layout Subsubsection
@@ -324,7 +438,7 @@ The Basic Situation Calculus
 \end_layout
 
 \begin_layout Standard
-The situation calculus is a (mostly) first-order logic formalisms for describing
+The situation calculus is a (mostly) first-order logic formalism for describing
  and reasoning about dynamic worlds.
  It was introduced by McCarthy and Hayes in 
 \begin_inset LatexCommand \cite{McCHay69sitcalc}
@@ -368,8 +482,18 @@ Fluents:
 
 \begin_layout Standard
 Using these building blocks, along with some foundational axioms, it is
- possible to construct a theory of action that described the behavior of
- a dynamic world.
+ possible to construct a 
+\emph on
+theory of action
+\emph default
+ 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+, a collection of first-order logic sentences (along with a second-order
+ induction axiom) that describes the behavior of a dynamic world.
+ Queries about the state or behavior of the world can then be posed as entailmen
+t queries in first-order logic.
 \end_layout
 
 \begin_layout Standard
@@ -437,13 +561,13 @@ These papers, particularly
 , also introduce a standard mechanism for dealing with actions that have
  finite duration.
  They are split into instantaneous 
-\emph on
-begin
-\emph default
+\begin_inset Formula $begin$
+\end_inset
+
  and 
-\emph on
-end
-\emph default
+\begin_inset Formula $end$
+\end_inset
+
  actions and an accompanying fluent that indicates that the action is currently
  in progress.
 \end_layout
@@ -459,15 +583,15 @@ An explicit notion of time is introduced to the situation calculus in
 \end_inset
 
 , where the functions 
-\emph on
-start
-\emph default
+\begin_inset Formula $start(s)$
+\end_inset
+
  and 
-\emph on
-end
-\emph default
- give the starting/ending time of a given situation.
- This was again simplified somewhat by Reiter in 
+\begin_inset Formula $end(s)$
+\end_inset
+
+ denote the starting/ending time of a given situation.
+ This was simplified somewhat by Reiter in 
 \begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
 \end_inset
@@ -489,9 +613,9 @@ This mechanism interacts with the set-based representation of concurrent
 \end_inset
 
  a predicate 
-\emph on
-coherent
-\emph default
+\begin_inset Formula $coherent(c)$
+\end_inset
+
  is introduced to enforce this requirement.
  An alternate approach is demonstrated for the related fluent calculus in
  
@@ -514,6 +638,7 @@ Closely related to the temporal situation calculus is the notion of natural
 , those actions which must occur when it is possible for them to occur.
  These are typically used to represent predictable effects of nature, such
  as a dropped ball bouncing when it hits the ground.
+ 
 \end_layout
 
 \begin_layout Subsubsection
@@ -545,11 +670,30 @@ possible worlds
 
 \end_inset
 
+, and the application of this approach in a mult-agent setting is described
+ in 
+\begin_inset LatexCommand \cite{Lesperance01epi_feas_casl}
+
+\end_inset
+
 .
 \end_layout
 
 \begin_layout Standard
-[TODO: discuss limitations of these accounts?]
+There are, however, some limitations to this approach.
+ It is typically assumed that all agents are aware of all actions that occur,
+ as this allows the successor-state-axiom approach of 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
+\end_inset
+
+ to be employed.
+ When this assumption is not made, the other extreme is posited - that agents
+ are only aware of actions that they themselves perform.
+ Clearly many multi-agent domains fall somewhere between these extremes.
+ A key contribution of our research is to produce an improved account of
+ knowledge that lifts these assumptions while allowing reasoning about knowledge
+ to remain tractable.
 \end_layout
 
 \begin_layout Subsubsection
@@ -584,8 +728,8 @@ regression
 
 \end_inset
 
- how these techniques can also accommodate state constraints that must hold
- for all situations.
+ how these techniques can also accommodate declarative state constraints,
+ by accounting for them in the effects of actions.
 \end_layout
 
 \begin_layout Standard
@@ -598,8 +742,9 @@ Unfortunately, quantification over situations typically requires the use
 .
  While this is useful for proving properties of domain specifications by
  hand, it has provided problematic for automated reasoning.
- [TODO: hint at our solution? Reference the one work that actually does
- this automatically.]
+ We have developed a procedure for performing limited forms of quantification
+ over situations that relies solely on first-order reasoning, allowing us
+ to apply the regression idea to our richer account of knowledge.
 \end_layout
 
 \begin_layout Subsubsection
@@ -669,6 +814,11 @@ There is also a growing interest in using techniques from modal logic for
 
 \begin_layout Subsection
 Golog
+\begin_inset LatexCommand \label{sub:Golog}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection
@@ -703,13 +853,9 @@ complex actions
 \end_layout
 
 \begin_layout Standard
-[TODO: discuss semantics?]
-\end_layout
-
-\begin_layout Standard
 Golog is an implementation of the more general paradigm of 
 \emph on
-high-level program execution
+High-Level Program Execution
 \emph default
 .
  As explained in 
@@ -725,22 +871,52 @@ high-level program execution
  Crucially, this program may contain non-deterministic constructs where
  the agent is required to determine the sequence of actions at run-time,
  based on its knowledge of how the world behaves.
+ Such programs can thus span the range from fully deterministic programming
+ to full planning, depending on how much of the agent's plan the designer
+ wishes to prescribe ahead of time.
 \end_layout
 
 \begin_layout Standard
-[TODO: more on this, it's important]
+[TODO: detail the advantages]
 \end_layout
 
 \begin_layout Standard
-The advantages of this approach over other HTN, another popular method for
- reducing the complexity of the planning problem, are detailed in 
+This approach is contrasted with HTN in 
 \begin_inset LatexCommand \cite{son00htn_golog}
 
 \end_inset
 
+, where the following additional advantages are highlighted:
+\end_layout
+
+\begin_layout Itemize
+Provides a more natural representation of common constructs such as loops
+ and if-then-else
+\end_layout
+
+\begin_layout Itemize
+Uses a more sophisticated logic of actions
+\end_layout
+
+\begin_layout Standard
+That Golog is a viable alternative for specifying and implementing agent
+ behavior is highlighted by the many successful applications of the technique
+ in different planning tasks, such as 
+\begin_inset LatexCommand \cite{Finzi00open_world_sitcalc}
+
+\end_inset
+
+, 
+\begin_inset LatexCommand \cite{pirri00planning_nat_acts}
+
+\end_inset
+
+, and 
+\begin_inset LatexCommand \cite{baier03golog_planning}
+
+\end_inset
+
 .
- In many instances, the programming constructs of Golog allow a more natural
- and concise encoding of the procedural information than other formalisms.
 \end_layout
 
 \begin_layout Subsubsection
@@ -770,10 +946,6 @@ nt.
 \end_layout
 
 \begin_layout Standard
-[TODO: talk about altered semantics?]
-\end_layout
-
-\begin_layout Standard
 ConGolog was initially designed to operate only using basic situation calculus
  theories of action.
  The extension TConGolog is proposed in 
@@ -786,7 +958,8 @@ ConGolog was initially designed to operate only using basic situation calculus
  However, the approach taken does not fully consider the implications of
  this integration and may, in certain circumstances, call for actions to
  be executed that cannot be performed in the world.
- [TODO: mention that we have improved this?]
+ A key aspect of our work is improving this integration to be more robust,
+ and further integrating other extensions to the situation calculus.
 \end_layout
 
 \begin_layout Subsubsection
@@ -907,7 +1080,7 @@ ReadyLog
 \begin_layout Standard
 Closer in spirit to our research objectives is the work on Ferrein et.
  al.
- on applying the Golog varient ReadyLog to the control of a robotic soccer
+ on applying the Golog variant ReadyLog to the control of a robotic soccer
  team 
 \begin_inset LatexCommand \cite{Ferrein2003icpgolog_multi,Ferrein2005readylog}
 
@@ -923,7 +1096,8 @@ g the actions to be performed.
 \end_layout
 
 \begin_layout Standard
-Our aim is similar to this scenario, with several improvements:
+We aim to support scenarios such as this, but also a broader range of applicatio
+ns that:
 \end_layout
 
 \begin_layout Itemize
@@ -943,59 +1117,33 @@ Other Extensions
 \end_layout
 
 \begin_layout Standard
-other extensions - to highlight flexibility of paradigm
-\end_layout
-
-\begin_layout Standard
-cc-Golog
+There have been numerous other extensions to the Golog paradigm to adapt
+ it to different domains.
+ Because its operators are defined declaratively and recursively, new operators
+ or changed semantics can be incorporated in a straightforward manner without
+ affecting the rest of the language.
+ Examples include modifications for highly-dynamic domains 
 \begin_inset LatexCommand \cite{grosskreutz00ccgolog}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-HTN-Golog 
-\begin_inset LatexCommand \cite{son00htn_golog,Son04golog+htn+time}
-
-\end_inset
-
- (but criticize the demand for precondition information in the plan - this
- can form part of the domain, e.g.
- cant enroll in a class without the prerecs)
-\end_layout
-
-\begin_layout Standard
+, planning with explicit time 
 \begin_inset LatexCommand \cite{Reiter98seq_temp_golog}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Subsubsection
-Planning
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand \cite{Finzi00open_world_sitcalc}
+, and the integration of HTN techniques 
+\begin_inset LatexCommand \cite{son00htn_golog,Son04golog+htn+time}
 
 \end_inset
 
-
+.
+ As with DTGolog and its relatives, we do not consider these extensions
+ in our research program but are confident that they will be compatible
+ with our research.
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand \cite{pirri00planning_nat_acts}
-
-\end_inset
-
-
-\begin_inset LatexCommand \cite{baier03golog_planning}
-
-\end_inset
-
 
 \end_layout
 
