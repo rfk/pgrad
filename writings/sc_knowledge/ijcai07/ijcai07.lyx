@@ -49,15 +49,28 @@ Multi-Agent Knowledge in the Situation Caluclus with Partial Awareness of
 \end_layout
 
 \begin_layout Author
-Ryan Kelly blah blah blah
+Ryan Kelly and Adrian Pearce
+\newline
+Department of Computer Science and Software
+ Engineering
+\newline
+NICTA Victoria Laboratory
+\newline
+The University of Melbourne
+\newline
+Victoria,
+ 3010, Australia
+\newline
+{rfk,adrian}@csse.unimelb.edu.au
 \end_layout
 
 \begin_layout Abstract
-In this paper we extend the account of knowledge in the situation calculus
- to handle multi-agent domains with partial awareness of actions.s Situation
- calculus models of multi-agent domains typically make one of two assumptions:
- that all agents are aware of all actions that have been performed, or that
- each agent is completely ignorant of the actions perform by others.
+We extend the existing accounts of knowledge in the situation calculus to
+ handle multi-agent domains with partial awareness of actions.
+ Situation calculus models of multi-agent domains typically make one of
+ two assumptions: that all agents are aware of all actions that have been
+ performed, or that each agent is completely ignorant of the actions perform
+ by others.
  Many real-world systems fall between these two extremes.
  By explicitly axiomatising the conditions under which agents will be aware
  of the occurance of actions, we develop an enhanced account of knowledge
@@ -623,7 +636,7 @@ For actions that don't return sensing information, the value of
 \end_layout
 
 \begin_layout Standard
-Combining the semantics multi-agent semantics of 
+Combining the multi-agent semantics of 
 \begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
 
 \end_inset
@@ -1108,28 +1121,12 @@ admit the possibility of a sequence of actions that was totally unobservable
 \end_layout
 
 \begin_layout Standard
-As the resulting sucessor state axiom will be quite complex, we introduce
- it a piece at a time using abbreviations.
- First, let us define what it means for two situations to agree on observations:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\begin{array}{c}
-\mathbf{AgreeOnObs}(agt,do(c',s'),do(c,s))\isdef\\
-\exists o\, Observations(agt,o,c,s)\wedge Observations(agt,o,c',s')\end{array}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Next we define the abbreviation 
+As the resulting sucessor state axiom will be quite complex, we first introduce
+ the abbreviation 
 \begin_inset Formula $\mathbf{Unobs}(agt,s,s')$
 \end_inset
 
-, which will be true when 
+, which is true when 
 \begin_inset Formula $agt$
 \end_inset
 
@@ -1149,7 +1146,7 @@ Next we define the abbreviation
 \begin{array}{c}
 \mathbf{Unobs}(agt,s,s''))\isdef\\
 \forall a,c,s'\, s<do(c,s')\leq s''\rightarrow\\
-a\notin c\vee\neg CanObs(agt,c,s')\end{array}\]
+a\notin c\vee\neg CanObs(agt,a,s')\end{array}\]
 
 \end_inset
 
@@ -1186,7 +1183,7 @@ If the agent considers possible a situation
 \end_layout
 
 \begin_layout Standard
-Finally, let us introduce an additional predicate 
+Let us also introduce an additional predicate 
 \begin_inset Formula $Legal(s)$
 \end_inset
 
@@ -1206,17 +1203,18 @@ Legal(do(c,s))\equiv Poss(c,s)\wedge Legal(s)\end{array}\]
 \end_layout
 
 \begin_layout Standard
-We then posit the following successor state axiom, capturing the considerations
- outlined above.
+(TODO: explain why this is a good idea) We then posit the following successor
+ state axiom, capturing the considerations outlined above.
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
 \begin{array}{c}
 K(agt,s'',do(c,s))\equiv\\
-\exists s',c'\, K(s',s)\wedge Legal(s'')\\
-\wedge\,\mathbf{AgreeOnObs}(agt,do(c',s'),do(c,s))\\
-\wedge\,\mathbf{Unobs}(do(c',s'),s'')\end{array}\]
+\exists s',c',o\, K(s',s)\wedge Legal(s'')\\
+\wedge\, Observations(agt,o,c,s)\\
+\wedge\,\left[o=\{\}\wedge s''=s'\,\vee\,\right o\neq\{\}.\\
+\left.\wedge\, Observations(agt,o,c',s')\wedge\mathbf{Unobs}(do(c',s'),s'')\right]\end{array}\]
 
 \end_inset
 
@@ -1350,14 +1348,18 @@ notifier actions.
 \emph default
  The purpose of these actions is to inform agents that some property of
  the world has changed.
- We also modify what constitutes a legal situation, to enfore the following
- requirement: every notifier action occurs precisely when its corresponding
- condition has changed:
+ Such actions never appear in situation terms, bu are included in the list
+ of observations made by an agent as follows:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
-Legal(do(c,s))\equiv Legal(s)\wedge Poss(c,s)\wedge\forall a\,\left[notifier(a)\rightarrow a\in c\equiv\left(SR(a,s)\not\equiv SR(a,do(c,s))\right)\right]\]
+\begin{array}{c}
+Observations(agt,o,c,s)\equiv\forall a,r\,\left[<a,r>\in o\equiv\right.\\
+\wedge\left[a\in c\,\vee\, notifier(a)\wedge SR(a,s)\neq SR(a,do(c,s))\right]\\
+\wedge CanObs(agt,a,s)\\
+\wedge\,\left(CanSense(agt,a,s)\wedge SR(a,s)=r\right.\\
+\left.\vee\,\left.\neg CanSense(agt,a,s)\wedge r="?"\right)\right]\end{array}\]
 
 \end_inset
 
@@ -1365,9 +1367,7 @@ Legal(do(c,s))\equiv Legal(s)\wedge Poss(c,s)\wedge\forall a\,\left[notifier(a)\
 \end_layout
 
 \begin_layout Standard
-By making agents aware of notifier actions that monitor the properties of
- the world that they are aware of, our account of knowledge can support
- reasoning in these types of domains (TODO: toy with this some more).
+TODO: toy with this some more...
 \end_layout
 
 \begin_layout Section
@@ -1724,7 +1724,7 @@ operator, so we can insert it back into the formula:
 \end_layout
 
 \begin_layout Standard
-(TODO: replace 
+(TODO: explain 
 \begin_inset Formula $^{-1}$
 \end_inset
 
