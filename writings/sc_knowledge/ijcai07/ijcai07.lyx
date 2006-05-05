@@ -1053,15 +1053,11 @@ Since we will often want to compare what is observed by an agent in different
 sets of action-time pairs
 \emph default
 .
- We then define the predicate 
-\begin_inset Formula $Observations(agt,o,c,s)$
+ We then define the function 
+\begin_inset Formula $Observations(agt,c,s)$
 \end_inset
 
- such that 
-\begin_inset Formula $o$
-\end_inset
-
- contains precisely the 
+ which returns precisely the set of 
 \begin_inset Formula $<action,result>$
 \end_inset
 
@@ -1092,7 +1088,7 @@ sets of action-time pairs
 \begin_layout Standard
 \begin_inset Formula \[
 \begin{array}{c}
-Observations(agt,o,c,s)\equiv\forall a,r\,\left[<a,r>\in o\equiv\right.\\
+Observations(agt,c,s)=o\equiv\forall a,r\,\left[<a,r>\in o\equiv\right.\\
 \wedge a\in c\wedge CanObs(agt,a,s)\\
 \wedge\,\left(CanSense(agt,a,s)\wedge SR(a,s)=r\right.\\
 \left.\vee\,\left.\neg CanSense(agt,a,s)\wedge r="?"\right)\right]\end{array}\]
@@ -1279,10 +1275,11 @@ We then posit the following successor state axiom, capturing the considerations
 \begin_inset Formula \[
 \begin{array}{c}
 K(agt,s'',do(c,s))\equiv\\
-\exists s',c',o\, K(s',s)\wedge Legal(s'')\\
-\wedge\, Observations(agt,o,c,s)\\
-\wedge\,\left[o=\{\}\wedge s''=s'\,\vee\, o\neq\{\}\right.\\
-\left.\wedge\, Observations(agt,o,c',s')\wedge\mathbf{Unobs}(do(c',s'),s'')\right]\end{array}\]
+Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\\
+\vee\,\,\exists o\, Observations(agt,c,s)=o\wedge\\
+o\neq\{\}\wedge Legal(s'')\wedge\\
+\exists c',s'\, Observations(agt,c',s')=o\\
+\wedge K(s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\end{array}\]
 
 \end_inset
 
@@ -1373,7 +1370,9 @@ The traditional incorporation of communication actions directly into the
 
 \begin_layout Standard
 \begin_inset Formula \[
-Poss(informWhether(agt_{1},agt_{2},\phi),s)\equiv\mathbf{KWhether}(agt_{1},\phi,s)\]
+\begin{array}{c}
+Poss(informWhether(agt_{1},agt_{2},\phi),s)\equiv\\
+\mathbf{KWhether}(agt_{1},\phi,s)\end{array}\]
 
 \end_inset
 
@@ -1473,7 +1472,7 @@ change actions
 \begin_layout Standard
 \begin_inset Formula \[
 \begin{array}{c}
-Observations(agt,o,c,s)\equiv\forall a,r\,\left[<a,r>\in o\equiv\right.\\
+Observations(agt,c,s)=o\equiv\forall a,r\,\left[<a,r>\in o\equiv\right.\\
 \wedge\left[a\in c\,\vee\, changeAction(a)\wedge SR(a,s)\neq SR(a,do(c,s))\right]\\
 \wedge CanObs(agt,a,s)\\
 \wedge\,\left(CanSense(agt,a,s)\wedge SR(a,s)=r\right.\\
@@ -1659,12 +1658,12 @@ By having
 \end_inset
 
  macro.
- Then: (TODO: all needs to be redone)
+ Then:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathbf{Knows}(\phi,do(c,s))\equiv\forall s''\, K(s'',do(c,s))\rightarrow\phi[s'']\]
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\forall s''\, K(agt,s'',do(c,s))\rightarrow\phi[s'']\]
 
 \end_inset
 
@@ -1682,11 +1681,12 @@ Employing equation (TODO: SSA for
 \begin_layout Standard
 \begin_inset Formula \[
 \begin{array}{c}
-\mathbf{Knows}(\phi,do(c,s))\equiv\forall s''\{\exists s',c',o\, K(s',s)\wedge Legal(s'')\\
-\wedge\, Observations(agt,o,c,s)\\
-\wedge\,\left[o=\{\}\wedge s''=s'\,\vee\, o\neq\{\}\right.\\
-\wedge\, Observations(agt,o,c',s')\\
-\left.\wedge\,\mathbf{Unobs}(do(c',s'),s'')\right]\}\,\rightarrow\phi[s'']\end{array}\]
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\forall s''\left(Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\right.\\
+\vee\,\,\exists o\, Observations(agt,c,s)=o\wedge\\
+o\neq\{\}\wedge Legal(s'')\wedge\\
+\exists c',s'\, Observations(agt,c',s')=o\\
+\left.\wedge K(s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\right)\,\rightarrow\,\phi[s'']\end{array}\]
 
 \end_inset
 
@@ -1694,117 +1694,19 @@ Employing equation (TODO: SSA for
 \end_layout
 
 \begin_layout Standard
-Rearranging to put 
-\begin_inset Formula $s'$
+Folding the implication of 
+\begin_inset Formula $\phi$
 \end_inset
 
- in the leading quantifier gives (TODO: is this valid?):
-\end_layout
-
-\begin_layout Standard
+ inside the disjunction, this can be re-written as: 
 \begin_inset Formula \[
 \begin{array}{c}
-\mathbf{Knows}(\phi,do(c,s))\equiv\forall s'\,\, K(s',s)\rightarrow\\
-\{\forall c',o,s''\, Observations(agt,o,c,s)\wedge Legal(s'')\\
-\wedge\,\left[o=\{\}\wedge s''=s'\,\vee\, o\neq\{\}\right.\\
-\wedge\, Observations(agt,o,c',s')\\
-\wedge\,\mathbf{Unobs}(do(c',s'),s'')\,\rightarrow\,\phi[s'']\}\end{array}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Pushing quantification over 
-\begin_inset Formula $s''$
-\end_inset
-
- further into the formula:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\begin{array}{c}
-\mathbf{Knows}(\phi,do(c,s))\equiv\forall s'\,\, K(s',s)\rightarrow\\
-\{\forall c'\,\mathbf{AgreeOnObs}(agt,do(c',s'),do(c,s))\rightarrow\\
-\{\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(do(c',s'),s'')\,\rightarrow\,\phi[s'']\}\}\end{array}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Now, define 
-\begin_inset Formula $\alpha$
-\end_inset
-
- to single out precisely legal, observable actions:
-\end_layout
-
-\begin_layout Standard
-Then by the definition of the persistence condition operator:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\begin{array}{c}
-\mathbf{Knows}(\phi,do(e,s))\equiv\forall s'\,\, K(s',s)\rightarrow\\
-\{\forall c'\,\mathbf{AgreeOnObs}(agt,do(c',s'),do(c,s))\wedge Legal(do(c',s'))\rightarrow\mathcal{P}(\phi,\alpha)[do(c',s')]\}\end{array}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Substituting in the definition for 
-\begin_inset Formula $\mathbf{AgreeOnObs}$
-\end_inset
-
- and moving the parts that dont involve 
-\begin_inset Formula $e'$
-\end_inset
-
- or 
-\begin_inset Formula $s'$
-\end_inset
-
- outside the quantification:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\begin{array}{c}
-\mathbf{Knows}(\phi,do(c,s))\equiv\exists o\, Observations(agt,o,c,s)\\
-\wedge\forall s'\,\, K(s',s)\rightarrow\\
-\{\forall c'\, Observations(agt,o,c',s')\wedge Legal(c',s')\rightarrow\mathcal{P}(\phi,\alpha)[do(c',s')]\}\end{array}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-By applying the regression operator, the sentence within the scope of quantifica
-tion over 
-\begin_inset Formula $c'$
-\end_inset
-
- can be made uniform in 
-\begin_inset Formula $s'$
-\end_inset
-
-: (TODO: two-place Legal() predicate)
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\begin{array}{c}
-\mathbf{Knows}(\phi,do(c,s))\equiv\exists o\, Observations(agt,o,c,s)\\
-\wedge\forall s'\,\, K(s',s)\rightarrow\\
-\{\forall c'\, Observations(agt,o,c',s')\wedge Legal(c',s')\rightarrow\mathcal{R}(\mathcal{P}(\phi,\alpha)[do(c',s')])\}\end{array}\]
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\forall s''\,\left(Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\rightarrow\phi[s'']\right)\\
+\wedge\left(\exists o\, Observations(agt,c,s)=o\wedge\right.\\
+o\neq\{\}\wedge Legal(s'')\wedge\\
+\exists c',s'\, Observations(agt,c',s')=o\\
+\left.\wedge K(s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\right)\end{array}\]
 
 \end_inset
 
@@ -1813,25 +1715,104 @@ tion over
 
 \begin_layout Standard
 The quantification over 
-\begin_inset Formula $s'$
+\begin_inset Formula $s''$
 \end_inset
 
- now matches the form of the 
-\begin_inset Formula $\mathbf{Knows}$
+ can then be pushed inside each of the conjuncts.
+ Since 
+\series bold
+
+\begin_inset Formula $Observations(agt,c,s)$
 \end_inset
 
-operator, so we can insert it back into the formula:
+ 
+\series default
+is indepdentent of 
+\begin_inset Formula $s''$
+\end_inset
+
+, it can be moved outside the quantification.
+ Applying these (among other) observations, the equation can be further
+ re-written:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
 \begin{array}{c}
-\mathbf{Knows}(\phi,do(c,s))\equiv\exists o\, Observations(agt,o,c,s)\\
-\wedge\mathbf{Knows}(\forall c'\, Observations(agt,o,c')\wedge Legal(c')\rightarrow\mathcal{R}(\mathcal{P}(\phi,\alpha)[do(c',s')]),s)\end{array}\]
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\left(Observations(agt,c,s)=\{\}\rightarrow\forall s''\, K(agt,s'',s)\rightarrow\phi[s'']\right)\\
+\wedge\left(\exists o\, Observations(agt,c,s)=o\wedge\right.\\
+o\neq\{\}\rightarrow\forall s'\, K(s',s)\rightarrow\\
+\forall c'\, Observations(agt,c',s')=o\rightarrow\\
+\left.\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\right)\end{array}\]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Note that both of these conjuncts now contain sub-formulae matching the
+ form of the 
+\begin_inset Formula $\mathbf{Knows}$
+\end_inset
+
+ macro.
+ It can thus be subtituted back in to give:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\left(Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right)\\
+\wedge\left(\exists o\, Observations(agt,c,s)=o\wedge\right.\\
+\left.o\neq\{\}\rightarrow\mathbf{Knows}(agt,\mathbf{PK}(\phi,o),s)\right)\end{array}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where we have defined the abbreviation 
+\begin_inset Formula $\mathbf{PK}(\phi,o)$
+\end_inset
+
+ as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\begin{array}{c}
+\mathbf{PK}(\phi,o)\isdef\forall c'\, Observations(agt,c',s')=o\rightarrow\\
+\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\end{array}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+However, for 
+\begin_inset Formula $\mathbf{PK}(\phi,o)$
+\end_inset
+
+ to appear in the 
+\begin_inset Formula $\mathbf{Knows}$
+\end_inset
+
+ macro it must be uniform in the situation variable 
+\begin_inset Formula $s'$
+\end_inset
+
+.
+ This can be achieved using the regression and persistence operators.
+ TODO: relation between Unobs and P.
+\end_layout
+
+\begin_layout Standard
+TODO: this isnt finished yet...
 \end_layout
 
 \begin_layout Standard
