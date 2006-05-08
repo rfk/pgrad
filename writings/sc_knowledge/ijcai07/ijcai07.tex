@@ -1,0 +1,696 @@
+
+\documentclass[letterpaper]{article}
+
+\usepackage{ijcai07}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+\newcommand{\noun}[1]{\textsc{#1}}
+
+\newtheorem{theorem}{Theorem}
+
+\begin{document}
+
+\title{Multi-Agent Knowledge in the Situation Calculus with\\
+Partial Awareness of Actions}
+
+
+\author{Ryan Kelly and Adrian Pearce\\
+Department of Computer Science and Software Engineering\\
+NICTA Victoria Laboratory\\
+The University of Melbourne\\
+Victoria, 3010, Australia\\
+\{rfk,adrian\}@csse.unimelb.edu.au}
+
+\maketitle
+
+\begin{abstract}
+We develop significant improvements to the existing accounts of knowledge
+in the situation calculus. Situation calculus models of multi-agent
+domains typically make one of two assumptions: that all agents are
+aware of all actions that have been performed, or that each agent
+is completely ignorant of the actions performed by others. By reifying
+the observations made by each agent as the world evolves, we develop
+an enhanced account of knowledge that spans these two extremes. We
+show that our approach can naturally model agents who passively monitor
+the value of fluents in their environment, and develop a generalised
+model of communication as sensing actions. Finally, we show how to
+reason effectively in this formalism by extending the regression operator
+to accomodate limited forms of quantification over situations. 
+\end{abstract}
+
+\section{Introduction}
+
+The situation calculus \cite{McCHay69sitcalc,pirri99contributions_sitcalc}
+is one of the most popular formalisms for reasoning about dynamic
+worlds. Since its inception, many extensions have been proposed to
+enrich its ontology with concepts such as knowledge \cite{scherl03sc_knowledge}
+and concurrent actions \cite{reiter96sc_nat_conc}. These extensions
+can be combined to provide a rich formalism for modelling multi-agent
+domains.
+
+An almost universal assumption when working with the situation calculus
+is that agents are fully aware of the actions that have been performed
+in the world. Indeed, the very notion of 'situation' is formalised
+as a history of all actions that have occured. In the rare cases that
+this assumption is not employed (e.g. \cite{Lesperance99sitcalc_approach}),
+the opposing extreme is posited - that agents are completely unaware
+of any actions performed by others.
+
+Both of these assumptions are unrealistic in many real-world domains.
+Instead, we reify the notion of \emph{observations} and axiomatise
+the conditions under which an agent will observe the occurance of
+an action. By ensuring that the agents consider possible any situation
+that agrees with what they have observed, we develop an enhanced account
+of knowledge that spans these two extremes, allowing a wider range
+of domains to be modelled.
+
+It is frequently infeasible for agents to directly determine
+what actions have occured. Instead, they may be aware simply that
+the values of certain fluents have changed. By including a special
+class of actions that notify agents about fluent change, we show that
+such domains can be easily accomodated by our formalism.
+
+Multi-agent systems almost invariably require communication between
+agents, typically represented by explicit communication actions. Such
+actions are intricately connected with the knowledge states of the
+agents involved, and existing accounts of knowledge such as 
+include them explicitly in the dynamics of knowledge change \cite{shapiro01casl_feat_inter}.
+However, it should not be necessary to alter such fundamental axioms to add
+or modify communication actions. Using our generalised account of
+knowledge we propose an account of communication actions as sensing,
+allowing new communication actions to be introduced with ease.
+
+Our new semantics or knowledge utilises quantification over situation
+terms, which is traditionally problematic for automated reasoning. 
+Despite this, we
+show that the standard tool for efficient automated reasoning in the situation
+calulus - the regression operator \cite{reiter91frameprob} - can
+be extended to handle our new semantics.
+
+
+\section{The Situation Calculus for Multi-Agent Domains}
+
+We work in a version of the the situation calculus as described in
+\cite{pirri99contributions_sitcalc}, enriched with concurrent actions
+\cite{reiter96sc_nat_conc} to more realistically represent the dynamics
+of a multi-agent system. We use the approach of \cite{shapiro01casl_feat_inter}
+for representing multiple agents, and begin from the standard account
+of knowledge given by \cite{scherl03sc_knowledge,scherl03conc_knowledge}.
+A brief overview is presented below.
+
+There are a number of additional extensions to the situation calculus
+that are useful for modelling multi-agent domains, in particular explicit
+time and natural actions as described in \cite{reiter96sc_nat_conc}.
+These extensions are compatible with our approach, and have been excluded
+from this paper largely for space reasons.
+
+The situation calculus is a many-sorted language of first-order logic,
+augmented with a second-order induction axiom. Its has the following
+types: \noun{Agent} terms (variables $agt_{y}^{x}$) represent the
+agents operating in the world; \noun{Action} terms (variables $a_{y}^{x}$)
+represent individual instantaneous events that can cause the state
+of the world to change; \noun{Concurrent} terms (variables $c_{y}^{x}$)
+are sets of actions that occur simultaneously; \noun{Situation} terms
+(variables $s_{y}^{x}$) are histories of the concurrent actions that
+have occured in the world, with the initial situation represented
+by $S_{0}$ and successive situations built up using the function
+$do\,:\, Concurrent\times Situation\rightarrow Situation$; \noun{Result}
+terms (variables $r_{y}^{x}$) represent sensing results returned
+by actions, and are written inside double-quotes; \noun{Object} terms
+(variables $obj_{y}^{x}$) represent any other object in the domain.
+We also distinguish \noun{Fluents} as predicates or functions representing
+properties of the world that may change from one situation to another.
+Fluents take a situation term as their final argument.
+
+A collection of situation calculus statements that describe the behavour
+of a dynamic world is referred to as a \emph{theory of action} and
+is typically represented by $\Sigma$. Queries about the behavior
+or evolution of the world are posed as entailment queries relative
+to the theory of action.
+
+
+\subsection{Action Precondition Axioms}
+
+There is a distinguished fluent predicate $Poss(a,s)$ that indicates
+when it is possible to perform an action in a given situation. For
+example, it is only possible for an agent to drop an object if they
+are holding it:
+\footnote{We follow the convention that lower-case variables are implicitly
+universally quantified
+}
+\begin{equation}
+Poss(drop(agt,obj),s) \equiv holding(agt,obj,s)
+\end{equation}
+
+For concurrent actions, an arbitrary combination of actions $\{ a_{1},a_{2}\}$
+is not guaranteed to be possible. While the actions $moveTo(Chair)$
+and $moveTo(Table)$ may individually be possible, performing them
+concurrently clearly is not. This is known as the precondition interaction
+problem \cite{reiter96sc_nat_conc} and is an area of ongoing research.
+A simple solution is to explicitly state which actions cannot be performed
+together using a predictae $Conflicts$:
+\begin{multline}
+Poss(c,s)\equiv\\
+\forall a\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)
+\end{multline}
+
+For this work, we make no particular commitment toward a solution
+to this problem.
+
+
+\subsection{Successor State Axioms}
+
+The truth of the various fluents is specified by defining what is
+true of the initial situation, and collecting the effects of various
+actions into \emph{successor state axioms}. Such axioms provide a
+general solution to the infamous frame problem \cite{reiter91frameprob}.
+They have the general form:
+\begin{multline}
+F(\overrightarrow{x},do(c,s))\equiv\\
+\Gamma^{+}(\overrightarrow{x},c,s)\,\vee\, F(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},c,s)
+\end{multline}
+
+
+Here $F$ is a fluent with non-situation arguments $\overrightarrow{x}$,
+$\Gamma^{+}$ is a formula giving the conditions under which $F$
+will become true, and $\Gamma^{-}$ a formula giving the conditions
+under which $f$ will become false. In words, these axioms state that
+{}``$F$ is true after doing actions $c$ if $c$ causes $F$ to
+become true, or $F$ is currently true and $c$ doesn't cause $F$
+to become false''.
+
+
+\subsection{Uniform Formulae}
+
+An important class of formulae in the situation calculus are the \emph{uniform
+formulae} - those that refer to a single situation term. Such formulae
+represent a property of a single situation. Throughout this paper,
+we will use the meta-variable $\phi$ to refer to an arbitrary uniform
+formula. (TODO: find and reference an encoding so they can be passed
+into predicates). Where no confusion can arise, we supress the situation
+terms in uniform formulae.
+
+It is often useful to apply some uniform formula to a given situation
+term. The formula $\phi[s]$ represents the uniform formula $\phi$
+with all occurances of its unique situation term replaced by the situation
+$s$.
+
+
+\subsection{Communication}
+
+Inter-agent communication is typically modelled using special communication
+actions. Representative of this approach are the $informWhether(agt_{1},agt_{2},\phi)$
+and $informRef(agt_{1},agt_{2},\theta)$ actions of \cite{shapiro01casl_feat_inter},
+whereby $agt_{1}$ informs $agt_{2}$ about the truth of a formula
+or the referrent of a function respectively.  We shorten these to $infWhether$
+and $infRef$ in our presentation below.
+
+
+\subsection{Knowledge and Sensing}
+
+The semantics of knowledge in the situation calculus \cite{scherl03sc_knowledge}
+are based on the popular {}``possible worlds'' model. A knowledge
+fluent $K(agt,s',s)$ is used to indicate that {}``in situation $s$,
+the agent $agt$ considers the alternate situation $s'$ to be possible''.
+A knowledge operator $\mathbf{Knows}$ is then introduced as a macro:
+\begin{equation}
+\label{eqn:knows_def}
+\mathbf{Knows}(agt,\phi,s)\isdef\forall s'\, K(agt,s',s)\rightarrow\phi[s']
+\end{equation}
+
+Thus, an agent knows something if it is true in all situations that
+the agent considers possible. This can be specialised with further
+macros, such as an agent knowing whether or not some formula holds:
+\begin{multline}
+\mathbf{KWhether}(agt,\phi,s)\isdef\\
+\mathbf{Knows}(agt,\phi,s)\vee\mathbf{Knows}(agt,\neg\phi,s)
+\end{multline}
+
+To allow actions to return sensing information, the sensing result
+function $SR(a,s)$ is introduced which gives the result returned
+by the action $a$ when exectued in a situation $s$. This is defined
+by sensing result axioms of the form:
+\begin{equation}
+SR(a(\overrightarrow{x}),s)=r\equiv\phi_{a}(\overrightarrow{x},r,t,s)
+\end{equation}
+
+For example, consider the action $sense_{F}$ which senses whether
+fluent $F$ is true or false. Its sensing result axiom would be given
+by:
+\begin{multline}
+SR(sense_{F},s)=r\equiv\\
+(r="YES"\wedge F(s))\vee(r="NO"\wedge\neg F(s))
+\end{multline}
+
+
+For actions that don't return sensing information, the value of $SR$
+is set to some arbitrary constant such as $"OK"$.
+
+Combining the multi-agent semantics of \cite{shapiro01casl_feat_inter}
+with the handling of concurrent actions in \cite{scherl03conc_knowledge},
+the common form of successor state axiom for the knowledge fluent
+is:
+\begin{multline}
+K(agt,s'',do(c,s))\equiv\\
+\exists s'\,.\,s''=do(c,s')\,\wedge K(s',s)\wedge Poss(c,s')\\
+\wedge\,\forall a\left[a\in c\wedge agent(a)=agt\rightarrow
+  SR(a,s)=SR(a,s')\right]\\
+\wedge\,\forall agt_{2},\phi\left[infWhether(agt_{2},agt,\phi)\in c\rightarrow
+  \phi[s']\equiv\phi[s]\right]\\
+\wedge\,\forall agt_{2},\theta\left[infRef(agt_{2},agt,\theta)\in c\rightarrow
+  \theta[s']=\theta[s]\right]
+\end{multline}
+
+
+In words, this states that $s''$ is considered a possible alternative
+to $do(c,s)$ when $s''$ is the result of doing the actions in $c$
+in a situation $s'$ that is a possible alternative to $s$. The situation
+$s''$ must furthermore be possible, the sensing results must agree
+for all actions in $c$ that were carried out by the agent, and the
+situation must be consistent with what it has been informed by others.
+
+Alternate possible worlds to the initial situation are identified
+by truth of the predicate $K_{0}(s)$. This allows the $K$ fluent
+to be fully specified, by asserting that:
+\begin{equation}
+K(s,S_{0})\equiv K_{0}(s)
+\end{equation}
+
+
+While a very powerful formalism, this successor state axiom still
+suffers from several limitations:
+
+\begin{itemize}
+\item Each agent must be aware of \emph{all} actions that have occurred 
+\item The semantics of communication actions are tightly bound to the account
+of knowledge 
+\end{itemize}
+By adopting instead the form of successor state axiom proposed in
+\cite{Lesperance99sitcalc_approach}, we get the opposite extreme:
+agents are only aware of actions that they themselves perform:
+\begin{multline}
+K(agt,s'',do(c,s))\equiv\\
+\exists s',s^{*},c'\,.\, s''=do(c',s^{*})\,\wedge K(s',s)\wedge Poss(c',s^{*})\\
+\wedge\,\mathbf{ExoOnly}(agt,s',s^{*})\\
+\wedge\,\forall a\left[agent(a)=agt\rightarrow a\in c'\equiv a\in c\right]\\
+\wedge\,\forall a\left[a\in c\wedge agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\\
+\wedge\,\forall agt_{2},\phi\left[infWhether(agt_{2},agt,\phi)\in c\rightarrow\phi[s']\equiv\phi[s]\right]\\
+\wedge\,\forall agt_{2},\theta\left[infRef(agt_{2},agt,\theta)\in c\rightarrow\theta[s']=\theta[s]\right]
+\end{multline}
+
+
+Where the macro $\mathbf{ExoOnly}$ indicates that two situations
+are conected only by actions performed by other agents:
+\begin{multline}
+\mathbf{ExoOnly}(agt,s,s'')\,\isdef\, s\leq s''\wedge\\
+\forall s',c,a\left[s<do(c,s^{*})\leq s'' \wedge a\in c \rightarrow agent(a)\neq agt\right]
+\end{multline}
+
+With this modified approach, agents consider possible any situation
+which agrees on the actions that they have performed. Importantly,
+there may have been an arbitrary sequence of situations between $s'$
+and $s''$ which the agent knew nothing about, because they consisted
+entirely of exogenous (from $agt$'s point of view) actions. Again,
+there are limitations to this approach:
+
+\begin{itemize}
+\item Agents can \emph{never} be aware of the actions performed by others 
+\item After performing an action, the agent does not allow for the possibility
+that other agents have performed subsequent actions 
+\end{itemize}
+The last point involves some subtlety. Suppose that an agent $agt$
+has just performed the action $a_{1}$, so the world is in some situation
+$do(a_{1},s)$. Another agent then performs the action $a_{2}$, leaving
+the world in the situation $do(a_{2},do(a_{1},s))$. However, $agt$
+would not be aware that the state of the world has changed, so its
+set of possible situations should remain the same. Unfortunately,
+$K(s',do(a_{2},do(a_{1},s)))\not\equiv K(s',do(a_{1},s))$ under existing
+formulations. To faithfully respect this aspect of the knowledge of
+agents in the real world, the successor state axiom for $K$ must
+permit any arbitrary future of $do(a_{1},s)$ that can be brought
+about entirely through exogenous actions.
+
+We overcome these limitations with the development of an improved
+successor state axiom for $K$.
+
+
+\section{New Semantics for Knowledge}
+
+
+\subsection{Awareness of Actions}
+
+The existing accounts of knowledge presented above all employ an assumption
+about when an agent is aware of the occurance of an action - either
+{}``agents are always aware of actions'' or {}``agents are only
+aware of actions that they themselves perform''. We replace such
+assumptions with a question: {}``when will an agent be aware of the
+occurance of an action?''. By providing a way to answer this question
+within the theory of action, a more general account of knowledge is
+obtained.
+
+Another distinguished fluent is introduced, akin to $Poss$ but describing
+when actions will be observed by agents: $CanObs(agt,a,s)$ indicates
+that agent $agt$ would be able to observe action $a$ being performed
+in situation $s$. We assume that in an implemented system this {}``awareness''
+is generated by some other component of the agent's software. The
+important point is that if $CanObs(agt,a,s)$ is true and action $a$
+occurs, then $agt$ will be made aware of it. Likewise, if $agt$
+is not aware that action $a$ occured, then it did not occur. The
+axiomatisation of this predicate, like that of $Poss$, is the responsibility
+of the domain modeller.
+
+There is a related assumption implicit in the handling of sensing
+actions: that only the agent performing a sensing action is aware
+of its result. Such a restriction is common in the real world, but
+certainly not universal. Consider an agent waiting for a train who
+activates a speaker to acquire information about when it will arive.
+The results of this sensing action would be available to any other
+agents within earshot. We add an analogous predicate $CanSense(agt,a,s)$
+to indicate when the sensing information resulting from an action
+is available to an agent.
+
+Since we will often want to compare what is observed by an agent in
+different situations, we introduce a new sort for \emph{sets of action-result
+pairs}. We then define the function $Observations(agt,c,s)$ which
+returns precisely the set of $<action,result>$ pairs that $agt$
+would be aware of if the concurrent actions $c$ were performed in
+situation $s$ . The special result term {}``?'' indicates that
+the result of an action was not available.
+\begin{multline}
+Observations(agt,c,s)=o\equiv\\
+\forall a,r\,\left[<a,r>\in o\equiv a\in c\wedge CanObs(agt,a,s)\right.\\
+\wedge\,\left(CanSense(agt,a,s)\wedge SR(a,s)=r\right.\\
+\left.\vee\,\left.\neg CanSense(agt,a,s)\wedge r="?"\right)\right]
+\end{multline}
+
+Like their counterpart $Poss$, $CanObs$ and $CanSense$ may suffer
+from interaction problems when concurrent actions are considered -
+for example, one agent moving in front of another may mean the second
+agent's actions are no longer observable. While we are confident
+an approach similar to that used for precondition interaction can
+be applied, this remains an open problem.
+
+\subsection{Successor State Axiom for $K$}
+
+What, then, are the considerations required for the successor state
+axiom of $K$ for any particular agent? Generalising the considerations
+of \cite{scherl03sc_knowledge}, \cite{scherl03conc_knowledge}, \cite{Lesperance99sitcalc_approach}
+and \cite{shapiro01casl_feat_inter}, situations considered possible
+must:
+
+\begin{itemize}
+\item be successors to situations previously considered possible by the
+agent 
+\item be possible according to $Poss$ 
+\item agree on all actions that the agent observed to occur 
+\item agree with all sensing results that the agent observed 
+\item admit the possibility of a sequence of actions that was totally unobservable
+by the agent 
+\end{itemize}
+Having the observations made by each agent explicitly reified in the
+language makes formalising these considerations significantly easier. 
+
+As the resulting sucessor state axiom will be quite complex, we first
+introduce the abbreviation $\mathbf{Unobs}(agt,s,s')$, which is true
+when $agt$ would not be aware of any of the actions leading from
+$s$ to $s'$:
+\begin{multline}
+\mathbf{Unobs}(agt,s,s''))\,\isdef\,\neg\exists c',s'\,.\,s<do(c',s')\leq s''\\
+\wedge\, Observations(agt,c',s')\neq\{\}
+\end{multline}
+
+
+If the agent considers possible a situation $s$ then it must also
+consider possible any situation $s'$ such that $\mathbf{Unobs}(s,s')$,
+as it would be completely unaware of the world changing from $s$
+to $s'$. Also note that $\mathbf{Unobs}(s,s)$ is always true.
+
+Let us also introduce an additional predicate $Legal(s)$, which states
+that a situation can legally be brough about in the world. This facilitates
+the incorporation of additional extensions to the situation calculus,
+such as natural actions. For the moment, it suffices that it constrains
+actions to be possible:
+\begin{multline}
+Legal(S_{0})\equiv True\\
+\shoveleft{Legal(do(c,s))\equiv Poss(c,s)\wedge Legal(s)}\\
+\end{multline}
+
+
+We then posit the following successor state axiom, capturing the considerations
+outlined above.
+\begin{multline}
+K(agt,s'',do(c,s))\equiv\\
+Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\\
+\shoveleft{\vee\,\,\exists o\, Observations(agt,c,s)=o\,\wedge}\\
+o\neq\{\}\wedge Legal(s'')\,\wedge\\
+\exists c',s'\, Observations(agt,c',s')=o\,\wedge\\
+ K(s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')
+\end{multline}
+
+Thus the agents consider possible any legal situation that agrees
+with what they have observed. It remains to specify the truth of the
+$K$ fluent in the initial situation. Assuming that alternate initial
+situations are identified by the truth of $K_{0}(s)$ as in previous
+works, then the following captures the intended semantics:
+\begin{equation}
+K(s,S_{0})\equiv Legal(s)\wedge\exists s'\,\left[K_{0}(s')\wedge\mathbf{Unobs}(s',s)\right]
+\end{equation}
+
+
+TODO: yack about how much better it is.
+
+It is straightforward to verify the following properties of the $K$
+relation:
+
+{*} knowledge producing effects
+
+{*} memory
+
+{*} default persistence of ignorance
+
+{*} ignorance of actions affected by unobservable actions
+
+{*} persistence of transitivity, symmetriy, reflexivity, euclidianness
+
+TODO: is it? then sit down with pen and paper and do so!
+
+
+\subsection{Communication as Sensing}
+
+The traditional incorporation of communication actions directly into
+the successor state axiom for $K$ unnecessarily complicates the semantics
+of knowledge and makes it more difficult to introduce new communication
+actions. Our formulation provides a ready alternative - encode communication
+actions are sensing actions where both sender and recipient are aware
+of the outcome. Consider formulating the action $infWhether$ in
+this framework:
+\begin{multline}
+Poss(infWhether(agt_{1},agt_{2},\phi),s)\equiv\\
+\shoveright{\mathbf{KWhether}(agt_{1},\phi,s})\\
+\shoveleft{SR(infWhether(agt_{2},agt_{3},\phi),s)=r\equiv}\\
+\shoveright{(r="YES"\wedge\phi[s])\,\vee\,(r="NO"\wedge\neg\phi[s])}\\
+\shoveleft{CanObs(agt_{1},infWhether(agt_{2},agt_{3},\phi),s)\equiv}\\
+\shoveright{agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}}\\
+\shoveleft{CanSense(agt_{1},infWhether(agt_{2},agt_{3},\phi),s)\equiv}\\
+agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}
+\end{multline}
+
+It is straightforward to show that the intended semantics of this
+communication are now enforced by the general successor state axiom
+for $K$. Only sender and recipient will be aware that the communication
+has occurred, and their state of knowledge will be updated to take
+into account the communicated truth/falsity of $\phi$ in accordance
+with $SR$.
+
+
+\subsection{Awareness of Fluent Change}
+
+In some domains, it may not be feasible for an agent to infer that
+a particular action has taken place. For example, suppose that an
+agent passively monitors the state of a light bulb in its environment,
+such that it notices it changing from dark to illuminated. While it
+knows that \emph{some} action must have occured, it need not be aware
+of precisely which action took place. Indeed, some may argue that
+this is the most common case for agents operating in the physical
+world - they are not directly aware of actions, but of changes to
+fluents.
+
+To model this, we introduce a special class of actions called \emph{change
+actions}, whose sole purpose is to inform agents that some property
+of the world has changed. They can never be executed and so never
+appear in situation terms directly. Instead, they are included in
+the list of observations made by an agent by modifying the $Observations$
+predicate:
+\begin{multline}
+Observations(agt,c,s)=o\equiv\\
+\forall a,r\,\left[<a,r>\in o\equiv\right.\\
+\left[a\in c\,\vee\, changeAction(a)\wedge SR(a,s)\neq SR(a,do(c,s))\right]\\
+\wedge CanObs(agt,a,s)\\
+\wedge\,\left(CanSense(agt,a,s)\wedge SR(a,s)=r\right.\\
+\left.\vee\,\left.\neg CanSense(agt,a,s)\wedge r="?"\right)\right]
+\end{multline}
+
+
+According to this defnition, change actions appear in the list of
+observations only when the corresponding sensing result changes in
+the resulting situation. By making agents aware of these actions using
+$CanObs$ and $CanSense$, our formalism neatly handles this form
+of environmental awareness.
+
+
+\section{Reasoning}
+
+The standard approach to reasoning in the situation calculus \cite{reiter91frameprob}
+involves the regression meta-operator $\mathcal{R}$. This operator
+takes a situation calculus formula refering to a situation term $do(c,s)$
+and transforms it into an equivalent formula that refers only to situation
+$s$. By repreatedly applying this operator, a formula that refers
+only to $S_{0}$ can be obtained. As a result, many of the axioms
+from the theory of action $\Sigma$ are not needed when reasoning
+about this formula. The regression approach is employed for reasoning
+about knowledge in \cite{scherl03sc_knowledge}, with the resulting
+formula requiring modal reasoning about the intial situation.
+
+Unfortunately, regression cannot be applied to formulae that quantify
+over situations. A second-order induction axiom is required \cite{Reiter93proving},
+making such formulae problematic for automated reasoning. The appearance
+of the macro $\mathbf{Unobs}$ in equation (TODO) means that our new
+successor state axiom is not regressible using standard techniques.
+To permit an effective reasoning procedure, we appeal to the idea
+of {}``persistence conditions''.
+
+In a companion paper (TODO:cite ourselves) we show how to calculate
+the \emph{persistence condition} $\mathcal{P}(\phi,\alpha)$ of formula
+$\phi$ with respect to actions satisfying conditions $\alpha$, such
+that:
+\begin{multline}
+\mathcal{P}(\phi,\alpha)[s]\equiv\forall s''\, s\leq s''\wedge\\
+\neg\exists c',s'\, s<do(c',s')\leq s''\wedge\alpha(c',s')\rightarrow\phi[s'']
+\end{multline}
+
+
+The truth of $\mathcal{P}(\phi,\alpha)$ in a situation $s$ guarantees
+that, as long as no actions satisying $\alpha$ occur, the formula
+$\phi$ will remain true in all situations in the future of $s$.
+Like the regression operator $\mathcal{R}$, $\mathcal{P}$ is a meta-operator
+that transforms situation calculus formulae rather than a predicate
+in the language. The procedure for determining $\mathcal{P}$ replaces
+second-order induction with iterated first-order reasoning.
+
+By having $\alpha$ single out observable actions, the persistence
+condition can be combined with the techniques for regressing knowledge
+of \cite{scherl03sc_knowledge}. Assume that the $K$ fluent appears
+only in the context of a $\mathbf{Knows}$ macro. Then:
+\begin{multline}
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\forall s''\, K(agt,s'',do(c,s))\rightarrow\phi[s'']
+\end{multline}
+
+
+Employing equation (TODO: SSA for $K$ ) gives:
+\begin{multline}
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\forall s''\left(Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\right.\\
+\vee\,\,\exists o\, Observations(agt,c,s)=o\wedge\\
+o\neq\{\}\wedge Legal(s'')\wedge\\
+\exists c',s'\, Observations(agt,c',s')=o\\
+\left.\wedge K(s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\right)\,\rightarrow\,\phi[s'']
+\end{multline}
+
+Through a series of equivalence-preserving transformations, this can be
+re-written as:
+\begin{multline}
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\left(Observations(agt,c,s)=\{\}\rightarrow\forall s''\, K(agt,s'',s)\rightarrow\phi[s'']\right)\\
+\wedge\left(\exists o\,.\,Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
+\forall s'\, K(s',s)\rightarrow \forall c'\, Observations(agt,c',s')=o\rightarrow\\
+\left.\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\right)
+\end{multline}
+
+Note that both of these conjuncts now contain sub-formulae matching
+the form of the $\mathbf{Knows}$ macro. It can thus be subtituted
+back in to give:
+\begin{multline}
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
+\left(Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right)\\
+\wedge\left(\exists o\,.\,Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
+\left.\mathbf{Knows}(agt,\mathbf{PK}(\phi,o,s'),s)\right)
+\end{multline}
+
+
+Where we have defined the abbreviation $\mathbf{PK}(\phi,o,s')$ as:
+\begin{multline}
+\mathbf{PK}(\phi,o,s')\isdef\forall c'\, Observations(agt,c',s')=o\rightarrow\\
+\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']
+\end{multline}
+
+
+However, for $\mathbf{PK}(\phi,o)$ to appear in the $\mathbf{Knows}$
+macro it must be uniform in the situation variable $s'$. This can
+be achieved using the regression and persistence operators. Noting
+that equation (TODO: ref Unobs definition) matches the form of equation
+(TODO: ref persistence def), we develop the following equivalence:
+\begin{multline}
+\mathbf{PK}(\phi,o,s')\equiv\forall c'\, Observations(agt,c',s')=o\rightarrow\\
+\mathcal{P}(\phi,Legal()\wedge Observations(agt)\neq\{\})[s']
+\end{multline}
+
+TODO: regress P to put it in terms of s'
+
+We have thus reduced reasoning about knowledge in $do(c,s)$ to reasoning
+about knowledge in $s$. This is precisely the behavior required by
+the regression operator. TODO: formalise, refer back to other clauses
+
+Additional care must be taken when dealing with knowledge in the initial
+situation:
+\begin{multline}
+\mathbf{Knows}(\phi,S_{0})\equiv\\
+\forall s'\,\{\exists s\, K_{0}(s)\wedge Legal(s')\wedge\mathbf{Unobs}(s,s')\rightarrow\phi[s']\}
+\end{multline}
+
+By a straightforward transformation:
+\begin{multline}
+\mathbf{Knows}(\phi,S_{0})\equiv\\
+\forall s\, K_{0}(s)\rightarrow\{\forall s'\, Legal(s')\wedge\mathbf{Unobs}(s,s')\rightarrow\phi[s']\}
+\end{multline}
+By applying the persistence condition operator, this can be reduced to reasoning
+about a uniform formula:
+\begin{equation}
+\mathbf{Knows}(\phi,S_{0})\equiv\forall s\, K_{0}(s)\rightarrow\mathcal{P}(\phi,\alpha)[s]
+\end{equation}
+
+This is standard modal reasoning over the $K_{0}$ relation, as employed
+by \cite{scherl03sc_knowledge} for determining knowledge in the initial
+situation.
+
+\section{Conclusions}
+
+In this paper we have significantly increased the scope of the situation
+calculus for modelling knowledge in multi-agent domains. By explicitly
+reifying the observations made by each agent as the world evolves,
+we have generalised the dynamics of knowledge update to allow partial
+awareness of actions. We have shown that this can accomodate the important
+case where agents are aware that a property of their environment has
+changed, but do not know the precise actions responsible. A pleasing
+offshoot of this generalisation is that communication actions, previously
+tied intimately to the dynamics of knowledge, can now be added or
+modified with the same ease as regular actions. Despite requiring
+universal quantification over future situations, we have shown that
+the regression operator - the standard tool for efficient reasoning
+in the situation calculus - can be adapted to our new formalism.
+
+With out improved semantics of knoweldge, the situation calculus is
+well positioned for representing and reasoning about a much broader
+range of more realistic multi-agent domains.
+
+\bibliographystyle{named}
+\bibliography{/storage/uni/pgrad/library/references}
+
+
+\end{document}

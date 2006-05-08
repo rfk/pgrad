@@ -1,5 +1,7 @@
-#LyX 1.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 221
+#LyX 1.4.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
 \textclass article
 \begin_preamble
 
@@ -10,32 +12,36 @@
 \fontscheme default
 \graphics default
 \paperfontsize default
-\spacing single 
-\papersize Default
-\paperpackage a4
-\use_geometry 0
-\use_amsmath 0
-\use_natbib 0
-\use_numerical_citations 0
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
 \paperorientation portrait
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
 \defskip medskip
 \quotes_language english
-\quotes_times 2
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\tracking_changes false
+\output_changes true
+\end_header
 
-\layout Title
+\begin_body
 
+\begin_layout Title
 Property Persistence in the Situation Calculus
-\layout Author
+\end_layout
 
+\begin_layout Author
 Ryan Kelly
-\layout Abstract
+\end_layout
 
+\begin_layout Abstract
 Universally quantifying over states in the situation calculus typically
  requires the use of a second-order induction axiom, which can be problematic
  for automated reasoning.
@@ -44,215 +50,227 @@ Universally quantifying over states in the situation calculus typically
  the persistence of that property - that is, whether the property holds
  in a given situation and all future situations - can be determined without
  employing the induction axiom.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Introduction
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Many useful reasoning tasks in the situation calculus require universally
  quantifying over situations.
  For example, when reasoning about action, it is useful to determine whether
  a given condition can ever possibly be satisfied in the world:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \mathcal{D}\models\forall s\,\neg G(s)\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 When the situation calculus is enriched with knowledge, such reasoning becomes
  more and more important.
  Consider the case where an agent is unable to observe certain actions occuring
  in the world.
  In order to know that some formula 
 \begin_inset Formula $\phi(s)$
-\end_inset 
+\end_inset
 
  holds, it must determine not only that it holds in the current situation
  
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  but that it cannot become false in any successor situations that might
  arise without it being aware:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge CanObs(a,s')\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The canonical reference for such reasoning in the situation calculus is
  
 \begin_inset LatexCommand \cite{Reiter93proving}
 
-\end_inset 
+\end_inset
 
 , where a second-order induction axiom is given to allow this:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \forall P\,\left[P(S_{0})\wedge\forall s,a\,\left(P(s)\rightarrow P(do(a,s))\right)\rightarrow\forall s\, P(s)\right]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 While such an axiom makes manual verification of universal state properties
  possible, its second-order nature makes it problematic for automated reasoning.
  
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In this paper we are specifically interested in proving 
-\emph on 
+\emph on
 persistence
-\emph default 
+\emph default
  of properties in a situation.
  That is, given some formula 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
 , does it hold in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  all situations in the future of 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 ?
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \forall s'\, s\leq s'\rightarrow\phi(s')\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 For some applications it is desirable to limit the future situations to
  those containing a certain class of actions.
  Suppose the formula 
 \begin_inset Formula $\alpha(a,s)$
-\end_inset 
+\end_inset
 
  is true for precisely those actions 
 \begin_inset Formula $a$
-\end_inset 
+\end_inset
 
  that are to be considered, then the question of persistence becomes:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 For practical programming purposes, we would like to replace quantification
  over situations with a more tractable form of reasoning - specifically,
  evaluation of a uniform formula at a specific situation.
  That is, we would like some syntactic transformation 
 \begin_inset Formula $\mathcal{P}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
  of a property 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  and action conditions 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
  such that:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \left[\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\right]\,\equiv\,\mathcal{P}[\phi,\alpha]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 We call 
 \begin_inset Formula $\mathcal{P}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
  the 
-\emph on 
+\emph on
 persistence condition
-\emph default 
+\emph default
  of formula 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  with respect to the class of actions 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
 .
  The main purpose of this paper is demonstrating an algorithm that constructs
  the persistence condition for a given 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  and 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
 .
-\layout Section
+\end_layout
 
+\begin_layout Section
 Intuitive Overview
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The construction of the persistence condition is intuitively quite straightforwa
 rd.
  Recall the single-step regression operator 
 \begin_inset Formula $\mathcal{R}$
-\end_inset 
+\end_inset
 
  define by Reiter 
 \begin_inset LatexCommand \cite{reiter91frameprob}
 
-\end_inset 
+\end_inset
 
 :
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \phi(do(a,s))\equiv\mathcal{R}[\phi(do(a,s))](s)\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Note that that 
 \begin_inset Formula $\mathcal{R}[\phi(do(a,s))]$
-\end_inset 
+\end_inset
 
  is uniform in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 .
  Using this operator, Reiter gives a procedure for reducing reasoning about
@@ -261,438 +279,464 @@ Note that that
  ground situation term can be reduced to reasoning about the initial situation.
  Regression thus forms an important part of tractable reasoning in the situation
  calculus.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The regresion operator can also be employed for our purposes.
  Let 
 \begin_inset Formula $\mathcal{P}^{1}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
  be a formula uniform in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  that is true precisely when 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  holds in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  and all its immediate successors where the action satisfies 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
 .
  A candidate defnition for such a formula would be:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \mathcal{P}^{1}[\phi,\alpha]\isdef\phi\wedge\forall a\,\phi(do(a,s))\vee\neg\alpha(a,s)\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Unfortunately, this cannot be used because the right-hand side is not uniform
  in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 .
  By applying the regression operator, we can obtain an equivalent definition
  that is uniform in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 :
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \mathcal{P}^{1}[\phi]\isdef\phi\wedge\forall a\,\mathcal{R}[\phi(do(a,s))]\vee\neg\alpha(a,s)\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 We construct the operator 
 \begin_inset Formula $\mathcal{P}$
-\end_inset 
+\end_inset
 
  from 
 \begin_inset Formula $\mathcal{P}^{1}$
-\end_inset 
+\end_inset
 
  by induction.
  Intuitively, if 
 \begin_inset Formula $\mathcal{P}^{1}[\phi]$
-\end_inset 
+\end_inset
 
  holds in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  and all its immediate sucecssors, then 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  will hold in 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  and all successors up to depth two:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \mathcal{P}^{2}[\phi]\isdef\mathcal{P}^{1}[\mathcal{P}^{1}[\phi],\alpha]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This generalises in a straightforward way to arbitrarily deep successors:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \mathcal{P}^{n}[\phi]\isdef\mathcal{P}^{1}[\mathcal{P}^{n-1}[\phi],\alpha]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 By the definition of 
 \begin_inset Formula $\mathcal{P}^{1}$
-\end_inset 
+\end_inset
 
  it is clear that, for any 
 \begin_inset Formula $n$
-\end_inset 
+\end_inset
 
 :
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \models\mathcal{P}^{n+1}[\phi,\alpha]\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 If it is possible to show that there is an 
 \begin_inset Formula $n$
-\end_inset 
+\end_inset
 
  such that:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \models\mathcal{P}^{n}[\phi,\alpha]\rightarrow\mathcal{P}^{n+1}[\phi,\alpha]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Then we have shown logical equivalence of all further applications of 
 \begin_inset Formula $\mathcal{P}^{1}$
-\end_inset 
+\end_inset
 
 :
 \begin_inset Formula \[
 \models\mathcal{P}^{n}[\phi,\alpha]\equiv\mathcal{P}^{m}[\phi,\alpha]\,,for\, all\, m>n\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 This 
 \begin_inset Formula $\mathcal{P}^{n}$
-\end_inset 
+\end_inset
 
  can thus be considered a fixed-point of 
 \begin_inset Formula $\mathcal{P}^{1}$
-\end_inset 
+\end_inset
 
 , which we shall denote
 \begin_inset Formula $\mathcal{P}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
 .
  It is then a simple inductive argument to show that, as required:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \left[\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\right]\,\equiv\,\mathcal{P}[\phi,\alpha]\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Given the definitions of 
 \begin_inset Formula $\mathcal{R}$
-\end_inset 
+\end_inset
 
  and 
 \begin_inset Formula $\mathcal{P}^{1}$
-\end_inset 
+\end_inset
 
 , the following algorithm will thus determine the persistence condition
  for a formula 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  and class of actions 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
 :
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula $p_{n}=\phi$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula $p_{n+1}=\mathcal{P}^{1}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula $while\, p_{n}\not\models p_{n+1}\, do$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula $\,\,\,\,\,\, p_{n}=p_{n+1}$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula $\,\,\,\,\,\, p_{n+1}=\mathcal{P}^{1}[p_{n+1},\alpha]$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula $return\, p_{n}$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The remainder of this paper is dedicated formally proving that 
 \begin_inset Formula $\mathcal{P}$
-\end_inset 
+\end_inset
 
  operates as desired, and to answering the following questions:
-\layout Itemize
+\end_layout
 
+\begin_layout Itemize
 When can the algorithm for determining 
 \begin_inset Formula $\mathcal{P}$
-\end_inset 
+\end_inset
 
  be guaranteed to terminate?
-\layout Itemize
+\end_layout
 
+\begin_layout Itemize
 Can 
 \begin_inset Formula $\mathcal{P}$
-\end_inset 
+\end_inset
 
  be determined more efficiently for theories of action with a specific form?
-\layout Section
+\end_layout
 
+\begin_layout Section
 Formal Construction of 
 \begin_inset Formula $\mathcal{P}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 TODO: basic description of situation calculus here
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 An important definition: uniform formulae.
  TODO: look it up
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 talk about the 
 \begin_inset Formula $\phi(s)$
-\end_inset 
+\end_inset
 
  notation.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Work out how we can construct it!
-\layout Section
+\end_layout
 
+\begin_layout Section
 Construction from Effect Axioms
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Effect Axioms
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 We assume that the theory of action is specified in terms of
-\emph on 
+\emph on
  effect axioms
-\emph default 
+\emph default
 .
  For each action function 
 \begin_inset Formula $\alpha(\overrightarrow{x})$
-\end_inset 
+\end_inset
 
  that could cause a fluent 
 \begin_inset Formula $F(\overrightarrow{y})$
-\end_inset 
+\end_inset
 
  to become true, there is a positive effect axiom of the form:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \forall\overrightarrow{x},\overrightarrow{y},s\,\pi_{\alpha}(\overrightarrow{x},s)\wedge\epsilon_{F,\alpha}^{+}(\overrightarrow{x},\overrightarrow{y},s)\rightarrow F(\overrightarrow{y},do(\alpha(\overrightarrow{x}),s))\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The meta-formula 
 \begin_inset Formula $\pi_{\alpha}$
-\end_inset 
+\end_inset
 
  gives the prerequisites that must be satisfied in order to carry out the
  action 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
  in the world, and 
 \begin_inset Formula $\epsilon_{F,\alpha}$
-\end_inset 
+\end_inset
 
  gives the conditions under which action 
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
  will cause fluent 
 \begin_inset Formula $F$
-\end_inset 
+\end_inset
 
  to become true.
  Similarly, for each action that could cause a fluent to become false there
  is a negative effect axiom of the form:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \forall\overrightarrow{x},\overrightarrow{y},s\,\pi_{\alpha}(\overrightarrow{x},s)\wedge\epsilon_{F,\alpha}^{-}(\overrightarrow{x},\overrightarrow{y},s)\rightarrow\neg F(\overrightarrow{y},do(\alpha(\overrightarrow{x}),s))\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 In his landmark paper 
 \begin_inset LatexCommand \cite{reiter91frameprob}
 
-\end_inset 
+\end_inset
 
 , Reiter showed how a solution to the frame problem can be compiled from
  a collection of such effect axioms, under the assumption that they specify
  
-\emph on 
+\emph on
 all
-\emph default 
+\emph default
  the ways in which fluents can change value.
  By utilising the same assumption, we will show how the effect conditions
  
 \begin_inset Formula $\pi$
-\end_inset 
+\end_inset
 
 , 
 \begin_inset Formula $\epsilon^{+}$
-\end_inset 
+\end_inset
 
  and 
 \begin_inset Formula $\epsilon^{-}$
-\end_inset 
+\end_inset
 
  can be used in proving state properties.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 TODO: explicitly list the actions affecting a fluent? Useful for rewriting
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Compound Fluents
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Any situation-suppressed formula can be though of as describing a compound
  property of the world - that is, a property whose truth depends on the
  truth of other properties of the world.
  In other words, we may think of a situation-suppressed formula 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  as a 
-\emph on 
+\emph on
 compound fluent
-\emph default 
+\emph default
  that is true or false relative to a single situation variable 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 .
  From this perspective, it should be possible to construct compound effect
  axioms for a given compound fluent.
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 We define operators 
 \begin_inset Formula $\mathcal{E}^{+}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
  and 
 \begin_inset Formula $\mathcal{E}^{-}[\phi,\alpha]$
-\end_inset 
+\end_inset
 
  that operate on compound fluents 
 \begin_inset Formula $\phi$
-\end_inset 
+\end_inset
 
  to give their positive and negative effect axioms with respect to an action
  
 \begin_inset Formula $\alpha$
-\end_inset 
+\end_inset
 
 .
  These operators can be defined inductively on the structure of compound
  fluents:
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 \begin{array}{c}
 \mathcal{E}^{+}[F,\alpha]\isdef\epsilon_{F,\alpha}^{+}\\
@@ -700,43 +744,55 @@ We define operators
 \mathcal{E}^{+}[\phi\vee\psi,\alpha]\\
 \\\\\end{array}\]
 
-\end_inset 
+\end_inset
 
 
-\layout Section
+\end_layout
 
+\begin_layout Section
 Termination
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 ?? I really have no idea at this stage...
-\layout Section
+\end_layout
 
+\begin_layout Section
 TODO
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Dont use the word 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 state
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  anywhere, use 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 situation
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  instead
-\layout Standard
+\end_layout
+
+\begin_layout Standard
+Things this is useful for: goal infeasibility, goal futility, need for cooperati
+on, checking state constraints, knowledge under partial observability
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \bibtex[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset
 
 
-\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
+\end_layout
 
-\end_inset 
-
-
-\the_end
+\end_body
+\end_document
