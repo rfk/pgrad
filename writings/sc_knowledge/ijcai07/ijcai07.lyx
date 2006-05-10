@@ -7,13 +7,21 @@
 
 
 
+\makeatletter
+
+
+
 \usepackage{ijcai07}
+
 
 \usepackage{times}
 
+
 \usepackage{helvet}
 
+
 \usepackage{courier}
+
 
 \usepackage{amsthm}
 
@@ -24,6 +32,8 @@
 
 
 \newtheorem{theorem}{Theorem}
+
+\makeatother
 \end_preamble
 \options letterpaper
 \language english
@@ -80,16 +90,15 @@ We develop significant improvements to the existing accounts of knowledge
  in the situation calculus.
  Situation calculus models of multi-agent domains typically make one of
  two assumptions: that all agents are aware of all actions that have been
- performed, or that each agent is completely ignorant of the actions performed
+ performed, or that each agent is completely ignorant of actions performed
  by others.
- By reifying the observations made by each agent as the world evolves, we
- develop an enhanced account of knowledge that spans these two extremes.
- We show that our approach can naturally model agents who passively monitor
- the value of fluents in their environment, and develop a generalized model
- of communication as sensing actions.
- We also show how to reason effectively in this formalism by extending the
- regression operator to accommodate limited forms of quantification over
- situations.
+ By reifying the observations made by each agent, we develop an enhanced
+ account of knowledge that spans these two extremes.
+ Our approach can naturally model agents who monitor the value of fluents
+ in their environment, and provides a more modular approach to communication
+ actions.
+ We show how to reason effectively in this formalism using an extended regressio
+n operator that accommodates limited quantification over situations.
  
 \end_layout
 
@@ -98,24 +107,10 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-The situation calculus 
-\begin_inset LatexCommand \cite{McCHay69sitcalc,pirri99contributions_sitcalc}
-
-\end_inset
-
- is one of the most popular formalisms for reasoning about dynamic worlds.
- Since its inception, many extensions have been proposed to enrich its ontology
- with concepts such as knowledge 
-\begin_inset LatexCommand \cite{scherl03sc_knowledge}
-
-\end_inset
-
- and concurrent actions 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
-
-\end_inset
-
-.
+The situation calculus is one of the most popular formalisms for reasoning
+ about dynamic worlds.
+ Since its inception, many extensions have been proposed to enrich it with
+ concepts such as knowledge and concurrent actions.
  These extensions can be combined to provide a rich formalism for modeling
  multi-agent domains.
 \end_layout
@@ -126,19 +121,14 @@ An almost universal assumption when working in the situation calculus is
  the world.
  Indeed, the notion of 'situation' is formalized as a history of all actions
  that have occurred.
- In the rare cases that this is not assumed (e.g.
- 
-\begin_inset LatexCommand \cite{Lesperance99sitcalc_approach}
-
-\end_inset
-
-) the opposing extreme is posited - that agents are completely ignorant
- of any actions performed by others.
+ In the rare cases that this is not assumed, the opposing extreme is posited
+ - that agents are completely ignorant of actions performed by others.
 \end_layout
 
 \begin_layout Standard
-Both of these assumptions are unrealistic in many domains.
- Instead, we reify the notion of 
+Both of these assumptions are unrealistic in many domains, and can limit
+ the applicability of the situation calculus.
+ To overcome this, we reify the notion of 
 \emph on
 observations
 \emph default
@@ -146,41 +136,52 @@ observations
  of an action.
  By ensuring that agents consider possible any situation compatible with
  what they have observed, we develop an improved account of knowledge that
- spans these two extremes.
+ spans the two extremes.
+ We then show that this formulation can be naturally extended to model agents
+ who monitor the values of fluents in their environment, rather than directly
+ observing actions.
+ It also allows communication actions to be added or modified without altering
+ the fundamental axioms of knowledge.
 \end_layout
 
 \begin_layout Standard
-It is frequently infeasible for agents to determine what actions have occurred.
- Instead, they may simply be aware that the value of a fluents has changed.
- By including a special class of actions that notify agents about fluent
- change, we show that such domains can be easily accommodated by our formalism.
-\end_layout
-
-\begin_layout Standard
-Multi-agent systems typically require communication between agents, usually
- represented by explicit communication actions.
- Such actions are intricately connected with agents' knowledge, and existing
- accounts directly include them in the dynamics of knowledge change.
- It should not be necessary to alter such fundamental axioms to add or modify
- communication actions, and we propose a representation of communication
- actions that allows them to be introduced with ease.
-\end_layout
-
-\begin_layout Standard
-Our new semantics of knowledge utilizes quantification over situation terms,
- traditionally a roadblock for automated reasoning.
- Despite this, we show that the regression operator of 
-\begin_inset LatexCommand \cite{reiter91frameprob}
-
-\end_inset
-
- can be extended to work with our formulation.
+Our new semantics of knowledge depend on universal quantification over situation
+ terms, traditionally a roadblock for automated reasoning.
+ Despite this, we show that an extension of the regression operator permits
+ reasoning within our formulation.
  The final result is a powerful new account of multi-agent knowledge that
  still permits a suitably efficient reasoning procedure.
 \end_layout
 
+\begin_layout Standard
+The paper is organized as follows: section 
+\begin_inset LatexCommand \ref{sec:ma-sitcalc}
+
+\end_inset
+
+ gives a brief introduction to the situation calculus with knowledge and
+ concurrent actions, and highlights some of the limitations of current approache
+s; section 
+\begin_inset LatexCommand \ref{sec:New-Semantics}
+
+\end_inset
+
+ introduces our improved semantics of knowledge and shows how to reason
+ effectively with them; and section 
+\begin_inset LatexCommand \ref{sec:Conclusions}
+
+\end_inset
+
+ concludes with a summary of our results.
+\end_layout
+
 \begin_layout Section
 The Multi-Agent Situation Calculus
+\begin_inset LatexCommand \label{sec:ma-sitcalc}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -213,7 +214,7 @@ We work in a version of the the situation calculus as described in
 \begin_layout Standard
 The situation calculus is a many-sorted language of first-order logic, augmented
  with a second-order induction axiom.
- Its has the following types: 
+ Its has the following sorts: 
 \noun on
 Agent
 \noun default
@@ -229,8 +230,9 @@ Action
 \begin_inset Formula $a_{y}^{x}$
 \end_inset
 
-) represent individual instantaneous events that can cause the state of
- the world to change; 
+) are functions denoting individual instantaneous events that can cause
+ the state of the world to change, with the initiating agent indicated by
+ their first argument; 
 \noun on
 Concurrent
 \noun default
@@ -293,8 +295,8 @@ theory of action
 \end_inset
 
 .
- Queries about the behavior or evolution of the world are posed as entailment
- queries relative to the theory of action.
+ Queries about the behavior or evolution of the world are posed as logical
+ entailment queries relative to the theory of action.
 \end_layout
 
 \begin_layout Subsubsection
@@ -308,28 +310,24 @@ There is a distinguished fluent predicate
 
  that indicates when it is possible to perform an action in a given situation.
  For example, it is only possible for an agent to drop an object if they
- are holding it: 
+ are actually holding it: 
 \begin_inset Foot
 status collapsed
 
 \begin_layout Standard
-We follow the convention that lower-case variables are implicitly universally
- quantified 
+We follow the convention that lower-case names indicate variables, with
+ free variables being implicitly universally quantified 
 \end_layout
 
 \end_inset
 
  
-\begin_inset Formula \begin{equation}
-Poss(drop(agt,obj),s)\equiv holding(agt,obj,s)\end{equation}
+\begin_inset Formula \[
+Poss(drop(agt,obj),s)\equiv Holding(agt,obj,s)\]
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-For concurrent actions, an arbitrary combination of actions 
+ For concurrent actions, an arbitrary combination of actions 
 \begin_inset Formula $\{ a_{1},a_{2}\}$
 \end_inset
 
@@ -355,17 +353,13 @@ For concurrent actions, an arbitrary combination of actions
 \end_inset
 
 : 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 Poss(c,s)\equiv\\
-\forall a\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\end{multline}
+\forall a\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\end{multline*}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-For this work, we make no particular commitment toward a solution to this
+ For this paper, we make no particular commitment toward a solution to this
  problem.
 \end_layout
 
@@ -381,16 +375,17 @@ The truth of the various fluents is specified by defining what is true of
 successor state axioms
 \emph default
 .
- Such axioms provide a general solution to the infamous frame problem 
+ Such axioms provide a monotonic solution to the infamous frame problem
+ 
 \begin_inset LatexCommand \cite{reiter91frameprob}
 
 \end_inset
 
-.
+ and are a principle attraction of the situation calculus.
  They have the general form: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 F(\overrightarrow{x},do(c,s))\equiv\\
-\Gamma^{+}(\overrightarrow{x},c,s)\,\vee\, F(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},c,s)\end{multline}
+\Gamma^{+}(\overrightarrow{x},c,s)\,\vee\, F(\overrightarrow{x},s)\wedge\neg\Gamma^{-}(\overrightarrow{x},c,s)\end{multline*}
 
 \end_inset
 
@@ -460,8 +455,6 @@ Here
 \end_inset
 
 .
- This monotonic solution to the frame problem is a principle attraction
- of the situation calculus.
 \end_layout
 
 \begin_layout Subsubsection
@@ -473,8 +466,8 @@ An important class of formulae in the situation calculus are the
 \emph on
 uniform formulae
 \emph default
- - those that refer to a single situation term.
- Such formulae represent a property of a single situation.
+ - those that refer to a single situation term, so representing a property
+ of a situation.
  Throughout this paper, we will use the meta-variable 
 \begin_inset Formula $\phi$
 \end_inset
@@ -490,7 +483,7 @@ uniform formulae
 \end_inset
 
 .
- We omit such details for simplicity.
+ We omit such details for notational simplicity.
 \end_layout
 
 \begin_layout Standard
@@ -549,7 +542,9 @@ Inter-agent communication is typically modeled using special communication
 \begin_inset Formula $infRef$
 \end_inset
 
- in our presentation below.
+ in our presentation.
+ Such actions are intricately connected with knowledge, and existing accounts
+ directly include them in the dynamics of knowledge change.
 \end_layout
 
 \begin_layout Subsubsection
@@ -610,13 +605,13 @@ in situation
 \end_layout
 
 \begin_layout Standard
-Thus, an agent knows something if it is true in all situations that the
- agent considers possible.
+Thus an agent knows something if it is true in all situations that the agent
+ considers possible.
  This can be specialized with further macros, such as an agent knowing whether
  or not some formula holds: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{KWhether}(agt,\phi,s)\isdef\\
-\mathbf{Knows}(agt,\phi,s)\vee\mathbf{Knows}(agt,\neg\phi,s)\end{multline}
+\mathbf{Knows}(agt,\phi,s)\vee\mathbf{Knows}(agt,\neg\phi,s)\end{multline*}
 
 \end_inset
 
@@ -639,8 +634,8 @@ To allow actions to return sensing information, the sensing result function
 
 .
  This is defined by axioms of the form: 
-\begin_inset Formula \begin{equation}
-SR(a(\overrightarrow{x}),s)=r\equiv\phi_{a}(\overrightarrow{x},r,t,s)\end{equation}
+\begin_inset Formula \[
+SR(a(\overrightarrow{x}),s)=r\equiv\phi_{a}(\overrightarrow{x},r,t,s)\]
 
 \end_inset
 
@@ -667,9 +662,9 @@ For actions that don't return sensing information, the value of
 
  is true or false.
  Its sensing result axiom would be given by: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 SR(sense_{F},s)=r\equiv\\
-(r="YES"\wedge F(s))\vee(r="NO"\wedge\neg F(s))\end{multline}
+(r="YES"\wedge F(s))\vee(r="NO"\wedge\neg F(s))\end{multline*}
 
 \end_inset
 
@@ -687,8 +682,8 @@ Combining the multi-agent semantics of
 
 \end_inset
 
-, the common form of successor state axiom for the knowledge fluent is:
- 
+, the common form of successor state axiom for the knowledge fluent can
+ be written as:
 \begin_inset Formula \begin{multline}
 K(agt,s'',do(c,s))\equiv\\
 \exists s'\,.\, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\\
@@ -714,7 +709,7 @@ In words, this states that
 \begin_inset Formula $s''$
 \end_inset
 
- is the result of doing the actions in 
+ is the result of doing those same actions 
 \begin_inset Formula $c$
 \end_inset
 
@@ -731,8 +726,8 @@ In words, this states that
 \begin_inset Formula $s''$
 \end_inset
 
- must furthermore be possible, the sensing results must agree for all actions
- in 
+ must furthermore be possible, the sensing results must be consistent for
+ all actions in 
 \begin_inset Formula $c$
 \end_inset
 
@@ -751,7 +746,7 @@ Alternate possible worlds to the initial situation are identified by truth
 \begin_inset Formula $K$
 \end_inset
 
- fluent to be fully specified, by asserting that: 
+ fluent to be fully specified, by asserting that:
 \begin_inset Formula \begin{equation}
 K(agt,s,S_{0})\equiv K_{0}(agt,s)\end{equation}
 
@@ -761,25 +756,13 @@ K(agt,s,S_{0})\equiv K_{0}(agt,s)\end{equation}
 \end_layout
 
 \begin_layout Standard
-While a very powerful formalism, this formulation suffers from several limitatio
-ns:
-\end_layout
-
-\begin_layout Itemize
-Each agent must be aware of 
+While quite powerful, this formulation suffers from a severe limitation:
+ each agent must be aware of 
 \emph on
 all
 \emph default
- actions that have occurred 
-\end_layout
-
-\begin_layout Itemize
-The semantics of communication actions are tightly bound to the account
- of knowledge 
-\end_layout
-
-\begin_layout Standard
-No commitment is made as to how this 
+ actions that have occurred.
+ Responsibility for generating such 
 \begin_inset Quotes eld
 \end_inset
 
@@ -787,15 +770,14 @@ awareness
 \begin_inset Quotes erd
 \end_inset
 
- of action occurrances is generated, with responsibility abdicated to a
- separate component of the agent's software.
- By adopting instead the form of successor state axiom proposed in 
+ is abdicated to a separate component of the agent's software.
+ Many realistic multi-agent domains clearly do not satsify this assumption.
+ An alternate formulation from 
 \begin_inset LatexCommand \cite{Lesperance99sitcalc_approach}
 
 \end_inset
 
-, we get the opposite extreme: agents are only aware of actions that they
- themselves perform: 
+ gives the opposite extreme:
 \begin_inset Formula \begin{multline}
 K(agt,s'',do(c,s))\equiv\\
 \exists s',s^{*},c'\,.\, s''=do(c',s^{*})\,\wedge K(s',s)\wedge Poss(c',s^{*})\\
@@ -816,10 +798,10 @@ Where the macro
 \end_inset
 
  indicates that two situations are connected only by actions performed by
- other agents: 
-\begin_inset Formula \begin{multline}
+ other agents:
+\begin_inset Formula \begin{multline*}
 \mathbf{ExoOnly}(agt,s,s'')\,\isdef\, s\leq s''\wedge\\
-\forall s',c,a\left[s<do(c,s^{*})\leq s''\wedge a\in c\rightarrow agent(a)\neq agt\right]\end{multline}
+\forall s',c,a\left[s<do(c,s')\leq s''\wedge a\in c\rightarrow agent(a)\neq agt\right]\end{multline*}
 
 \end_inset
 
@@ -827,8 +809,8 @@ Where the macro
 \end_layout
 
 \begin_layout Standard
-With this modified approach, agents consider possible any situation compatible
- with the actions that they have performed.
+With this approach, agents consider possible any situation compatible with
+ the actions that they themselves have performed.
  There may have been an arbitrary sequence of situations between 
 \begin_inset Formula $s'$
 \end_inset
@@ -843,29 +825,24 @@ With this modified approach, agents consider possible any situation compatible
 \end_inset
 
 's point of view) actions.
- Again, there are limitations to this approach:
-\end_layout
-
-\begin_layout Itemize
-Agents can 
+ But this approach is also limiting, in that agents can 
 \emph on
 never
 \emph default
- be aware of the actions performed by others 
-\end_layout
-
-\begin_layout Itemize
-After performing an action, the agent does not allow for the possibility
- that other agents have performed subsequent actions 
+ be aware of the actions performed by others.
+ Full generality requires a middle ground, with agents being aware of 
+\emph on
+some
+\emph default
+ of the actions performed by others.
 \end_layout
 
 \begin_layout Standard
-The last point involves some subtlety.
- Suppose that an agent 
+Furthermore, suppose that 
 \begin_inset Formula $agt$
 \end_inset
 
- has just performed the action 
+ has just performed action 
 \begin_inset Formula $a_{1}$
 \end_inset
 
@@ -878,17 +855,21 @@ The last point involves some subtlety.
 \begin_inset Formula $a_{2}$
 \end_inset
 
-, leaving the world in the situation 
+, leaving the world in situation 
 \begin_inset Formula $do(a_{2},do(a_{1},s))$
 \end_inset
 
 .
- However, 
+ Since it cannot observe 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ occurring, 
 \begin_inset Formula $agt$
 \end_inset
 
- would not be aware that the state of the world has changed, so its set
- of possible situations should remain the same.
+ would not be aware that the state of the world has changed.
+ Its set of possible situations should therefore remain unchanged.
  Unfortunately, 
 \begin_inset Formula $K(agt,s',do(a_{2},do(a_{1},s)))\not\equiv K(agt,s',do(a_{1},s))$
 \end_inset
@@ -903,7 +884,8 @@ The last point involves some subtlety.
 \begin_inset Formula $do(a_{1},s)$
 \end_inset
 
- that can be brought about entirely through exogenous actions.
+ that can be brought about by exogenous actions, rather than any arbitrary
+ past as done above.
 \end_layout
 
 \begin_layout Standard
@@ -922,12 +904,12 @@ Regression
 \begin_layout Standard
 One of the attractions of the situation calculus is the existence of efficient
  reasoning procedures for certain types of query.
- The principle tool for such reasoning is the regression meta-operator 
+ The principle tool is the regression meta-operator 
 \begin_inset LatexCommand \cite{reiter91frameprob}
 
 \end_inset
 
-, which transforms a formula 
+ which transforms a formula 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -936,7 +918,7 @@ One of the attractions of the situation calculus is the existence of efficient
 \end_inset
 
  into a formula 
-\begin_inset Formula $\mathcal{R}(\phi)$
+\begin_inset Formula $\mathcal{R}_{\Sigma}(\phi)$
 \end_inset
 
  uniform in 
@@ -953,11 +935,8 @@ One of the attractions of the situation calculus is the existence of efficient
 \end_inset
 
  can be transformed into an equivalent formula uniform in the initial situation:
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
-\Sigma\models\phi[do(c_{1},do(c_{2},\dots,do(c_{n},S_{0}))]\equiv\mathcal{R}^{*}(\phi)[S_{0}]\]
+\Sigma\models\phi[do(c_{1},do(c_{2},\dots,do(c_{n},S_{0}))]\equiv\mathcal{R}_{\Sigma}^{*}(\phi)[S_{0}]\]
 
 \end_inset
 
@@ -971,16 +950,12 @@ Many of the axioms from
 
  are not required for reasoning about the initial situation, and so can
  be discarded when reasoning about 
-\begin_inset Formula $\mathcal{R}^{*}(\phi)[S_{0}]$
+\begin_inset Formula $\mathcal{R}_{\Sigma}^{*}(\phi)[S_{0}]$
 \end_inset
 
 .
- This is generally more efficient than directly reasoning about 
+ This is frequently more efficient than directly reasoning about 
 \begin_inset Formula $\phi$
-\end_inset
-
- using all the axioms in 
-\begin_inset Formula $\Sigma$
 \end_inset
 
 .
@@ -1024,23 +999,23 @@ modal
 
 \end_inset
 
- offer no procedure for reasoning in their formalism other than the general
- approach of using second-order induction described in 
-\begin_inset LatexCommand \cite{Reiter93proving}
-
-\end_inset
-
-.
+ offer no procedure for reasoning in their formalism other than using second-ord
+er induction.
 \end_layout
 
 \begin_layout Standard
-We show that the regression idea can be extended to limited forms of quantificat
-ion over situations, providing a purely first-order reasoning procedure
- for our improved account of knowledge.
+By using an extension of the regression idea that can handle limited forms
+ of quantification over situations, we provide a purely first-order reasoning
+ procedure for our improved account of knowledge.
 \end_layout
 
 \begin_layout Section
-New Semantics for Knowledge
+New Semantics of Knowledge
+\begin_inset LatexCommand \label{sec:New-Semantics}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsubsection
@@ -1092,7 +1067,7 @@ A new fluent is introduced, akin to
 \begin_inset Formula $agt$
 \end_inset
 
- would be able to observe action 
+ would be aware of action 
 \begin_inset Formula $a$
 \end_inset
 
@@ -1157,11 +1132,11 @@ There is a related assumption implicit in the handling of sensing actions:
 
 \begin_layout Standard
 Since we will often want to compare what is observed by an agent in different
- situations, we introduce a new sort for 
-\emph on
-sets of action-result pairs
-\emph default
-.
+ situations, we introduce a new sort 
+\noun on
+Observations
+\noun default
+ consisting of sets of action/result pairs.
  We then define the function 
 \begin_inset Formula $Observations(agt,c,s)$
 \end_inset
@@ -1191,20 +1166,16 @@ sets of action-result pairs
 \begin_inset Quotes erd
 \end_inset
 
- indicates that the result of an action was not available: 
+ indicates that the result of an action was not available:
 \begin_inset Formula \begin{multline}
 Observations(agt,c,s)=o\equiv\\
 \forall a,r\,\left[<a,r>\in o\equiv a\in c\wedge CanObs(agt,a,s)\right.\\
-\wedge\,\left(CanSense(agt,a,s)\wedge SR(a,s)=r\right.\\
+\wedge\,\left(CanSense(agt,a,s)\wedge r=SR(a,s)\right.\\
 \left.\vee\,\left.\neg CanSense(agt,a,s)\wedge r="?"\right)\right]\label{eqn:observations_orig}\end{multline}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Like their counterpart 
+ Like their counterpart 
 \begin_inset Formula $Poss$
 \end_inset
 
@@ -1303,16 +1274,17 @@ If the agent considers possible a situation
 \end_inset
 
  is always true.
- Let us also introduce the predicate 
+ Let us further introduce the predicate 
 \begin_inset Formula $Legal(s)$
 \end_inset
 
 , which states that a situation can legally be brought about in the world.
- For this basic situation calculus, it suffices that it constrains actions
+ For this basic situation calculus, it suffices to constrain all actions
  to be possible: 
-\begin_inset Formula \begin{multline}
-Legal(S_{0})\equiv True\\
-\shoveleft{Legal(do(c,s))\equiv Poss(c,s)\wedge Legal(s)}\end{multline}
+\begin_inset Formula \begin{equation}
+\begin{split} & Legal(S_{0})\equiv True\\
+ & Legal(do(c,s))\equiv Poss(c,s)\wedge Legal(s)\end{split}
+\end{equation}
 
 \end_inset
 
@@ -1320,8 +1292,8 @@ Legal(S_{0})\equiv True\\
 \end_layout
 
 \begin_layout Standard
-The following successor state axiom for knowledge capture the desired semantics:
- 
+The following successor state axiom for knowledge then captures the desired
+ semantics: 
 \begin_inset Formula \begin{multline}
 K(agt,s'',do(c,s))\equiv\\
 Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\\
@@ -1336,6 +1308,25 @@ K(agt,s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\label{eqn:new_k_ssa}\end{mult
 \end_layout
 
 \begin_layout Standard
+If 
+\begin_inset Formula $c$
+\end_inset
+
+ was totally unobservable, the agent's state of knowledge does not change.
+ Otherwise, it considers possible any legal successor to a possible situation
+ that can be brought about by actions 
+\begin_inset Formula $c'$
+\end_inset
+
+ resulting in the same set of observations 
+\begin_inset Formula $o$
+\end_inset
+
+.
+ It also considers possible any unobservable future of such a situation.
+\end_layout
+
+\begin_layout Standard
 It remains to specify the truth of the 
 \begin_inset Formula $K$
 \end_inset
@@ -1347,17 +1338,14 @@ It remains to specify the truth of the
 \end_inset
 
  as in previous works, then the following captures the intended semantics:
- 
-\begin_inset Formula \begin{equation}
-K(agt,s,S_{0})\equiv Legal(s)\wedge\exists s'\,\left[K_{0}(agt,s')\wedge\mathbf{Unobs}(agt,s',s)\right]\label{eqn:new_k_s0}\end{equation}
+\begin_inset Formula \begin{multline}
+K(agt,s,S_{0})\equiv\\
+Legal(s)\wedge\exists s'\,\left[K_{0}(agt,s')\wedge\mathbf{Unobs}(agt,s',s)\right]\label{eqn:new_k_s0}\end{multline}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-This new formulation overcomes the limitations highlighted in previous sections.
+ This new formulation overcomes the limitations highlighted in previous
+ sections.
  By appropriately axiomatizing 
 \begin_inset Formula $CanObs$
 \end_inset
@@ -1371,7 +1359,7 @@ This new formulation overcomes the limitations highlighted in previous sections.
  being aware of the actions of all agents within one's field of view, or
  all agents on one's own team.
  At the same time, it ensures that an agent's state of knowledge does not
- change if it is not aware of any actions occuring.
+ change if it is not aware of any actions occurring.
  It is thus a true generalization and improvement over previous approaches.
 \end_layout
 
@@ -1387,12 +1375,8 @@ It is straightforward to verify that important properties of the
 
  are maintained by our new formulation, including memory, default persistence
  of ignorance, knowledge producing effects, and preservation of transitive,
- symmetric, reflexive and euclidian relations.
+ symmetric, reflexive and euclidean relations.
  We omit proofs for space reasons.
-\end_layout
-
-\begin_layout Standard
-TODO: is it? then better sit down with pen and paper and do so!
 \end_layout
 
 \begin_layout Subsubsection
@@ -1400,17 +1384,17 @@ Awareness of Fluent Change
 \end_layout
 
 \begin_layout Standard
-In many domains, it may not be feasible for an agent to infer that a particular
- action has taken place.
- For example, suppose that an agent passively monitors the state of a light
- bulb in its environment, such that it notices it changing from dark to
- illuminated.
+In many domains it may be infeasible for an agent to be aware that a particular
+ action has occurred, instead only being aware that a particular fluent
+ has changed.
+ For example, suppose that an agent monitors the state of a light bulb in
+ its environment, such that it notices it changing from dark to light.
  While it knows that 
 \emph on
 some
 \emph default
- action must have occurred, it need not be aware of precisely which action
- took place.
+ action must have occurred, it is not aware of precisely which action took
+ place.
 \end_layout
 
 \begin_layout Standard
@@ -1426,7 +1410,7 @@ change actions
 \begin_inset Formula $Observations$
 \end_inset
 
- predicate: 
+ predicate like so:
 \begin_inset Formula \begin{multline}
 Observations(agt,c,s)=o\equiv\\
 \forall a,r\,\left[<a,r>\in o\equiv\right.\\
@@ -1437,13 +1421,13 @@ Observations(agt,c,s)=o\equiv\\
 
 \end_inset
 
+ According to this definition, change actions appear in the list of observations
+ only when the corresponding sensing result changes in the successor situation.
+ By defining an appropriate 
+\begin_inset Formula $SR$
+\end_inset
 
-\end_layout
-
-\begin_layout Standard
-According to this definition, change actions appear in the list of observations
- only when the corresponding sensing result changes in the resulting situation.
- By making agents aware of such actions using 
+ function, and making agents aware of such actions using 
 \begin_inset Formula $CanObs$
 \end_inset
 
@@ -1451,7 +1435,7 @@ According to this definition, change actions appear in the list of observations
 \begin_inset Formula $CanSense$
 \end_inset
 
-, our formalism neatly handles this form of environmental awareness.
+, our formalism can neatly handle this form of environmental awareness.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1459,29 +1443,29 @@ Communication as Sensing
 \end_layout
 
 \begin_layout Standard
-The traditional incorporation of communication actions directly into the
- successor state axiom for 
+The traditional inclusion of communication actions directly in the successor
+ state axiom for 
 \begin_inset Formula $K$
 \end_inset
 
- unnecessarily complicates the semantics of knowledge and makes it more
- difficult to introduce new communication actions.
+ complicates the semantics of knowledge and makes it cumbersome to introduce
+ new communication actions.
  Our formulation provides a ready alternative - encode communication actions
  are sensing actions where both sender and recipient are aware of the outcome.
  Consider formulating the action 
 \begin_inset Formula $infWhether$
 \end_inset
 
- in this framework: 
-\begin_inset Formula \begin{multline}
+ in this framework:
+\begin_inset Formula \begin{multline*}
 Poss(infWhether(agt_{1},agt_{2},\phi),s)\equiv\\
-\shoveright{\mathbf{KWhether}(agt_{1},\phi,s})\\
+\shoveright{\mathbf{KWhether}(agt_{1},\phi,s)}\\
 \shoveleft{SR(infWhether(agt_{2},agt_{3},\phi),s)=r\equiv}\\
 \shoveright{(r="YES"\wedge\phi[s])\,\vee\,(r="NO"\wedge\neg\phi[s])}\\
 \shoveleft{CanObs(agt_{1},infWhether(agt_{2},agt_{3},\phi),s)\equiv}\\
 \shoveright{agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}}\\
 \shoveleft{CanSense(agt_{1},infWhether(agt_{2},agt_{3},\phi),s)\equiv}\\
-agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{multline}
+agt_{1}=agt_{2}\,\vee\, agt_{1}=agt_{3}\end{multline*}
 
 \end_inset
 
@@ -1506,6 +1490,8 @@ ted truth/falsity of
 \end_inset
 
 .
+ This significantly improves the modularity of communication actions in
+ the situation calculus.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1529,22 +1515,22 @@ The appearance of
 persistence condition
 \emph default
  meta-operator.
- In recent unpublished work (TODO:cite ourselves) we introduce a new meta-operat
-or 
-\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+ In recent unpublished work [citation omitted] we introduce a new meta-operator
+ 
+\begin_inset Formula $\mathcal{P}_{\Sigma}(\phi,\alpha)$
 \end_inset
 
 , taking a uniform formula 
 \begin_inset Formula $\phi$
 \end_inset
 
- and some conditions 
+ and some action conditions 
 \begin_inset Formula $\alpha(c,s)$
 \end_inset
 
- on what actions may occur, such that: 
+ , such that: 
 \begin_inset Formula \begin{multline}
-\Sigma\models\mathcal{P}(\phi,\alpha)[s]\equiv\forall s''\, s\leq s''\wedge\\
+\Sigma\models\mathcal{P}_{\Sigma}(\phi,\alpha)[s]\equiv\forall s''\, s\leq s''\wedge\\
 \neg\exists c',s'\, s<do(c',s')\leq s''\wedge\neg\alpha(c',s')\rightarrow\phi[s'']\label{eqn:P_defn}\end{multline}
 
 \end_inset
@@ -1554,7 +1540,7 @@ or
 
 \begin_layout Standard
 The truth of 
-\begin_inset Formula $\mathcal{P}(\phi,\alpha)$
+\begin_inset Formula $\mathcal{P}_{\Sigma}(\phi,\alpha)$
 \end_inset
 
  in a situation 
@@ -1584,11 +1570,11 @@ persist
 \emph default
  with respect to a given class of actions.
  The procedure for determining 
-\begin_inset Formula $\mathcal{P}$
+\begin_inset Formula $\mathcal{P}_{\Sigma}$
 \end_inset
 
  replaces second-order induction with iterated first-order reasoning, and
- always gives a uniform formula.
+ always produces a uniform formula.
 \end_layout
 
 \begin_layout Standard
@@ -1616,12 +1602,19 @@ By having
 \end_inset
 
 :
+\begin_inset Formula \begin{multline*}
+\mathbf{UA}(agt,c,s)\isdef\\
+Legal(do(c,s))\wedge Observations(agt,c,s)=\{\}\end{multline*}
+
+\end_inset
+
+ 
 \begin_inset Formula \begin{multline}
-\mathcal{R}(\mathbf{Knows}(agt,\phi,do(c,s)))=\\
-\left(Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right)\\
-\wedge\left(\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
+\mathcal{R}_{\Sigma}(\mathbf{Knows}(agt,\phi,do(c,s)))=\\
+\left[Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
+\wedge\left[\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
 \mathbf{Knows}(agt,\forall c'\, Observations(agt,c',s')=o\rightarrow\\
-\left.\mathcal{R}(\mathcal{P}(\phi,Legal()\wedge Observations(agt)=\{\})[do(c',s')]),s)\right)\end{multline}
+\left.\mathcal{R}_{\Sigma}(\mathcal{P}_{\Sigma}(\phi,\mathbf{UA}(agt))[do(c',s')]),s)\right]\end{multline}
 
 \end_inset
 
@@ -1659,16 +1652,12 @@ ons,
 
  also quantifies over situations:
 \begin_inset Formula \begin{multline}
-\mathcal{R}(\mathbf{Knows}(agt,\phi,S_{0}))=\\
-\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}(\phi,Legal()\wedge Observations(agt)=\{\})[s]\end{multline}
+\mathcal{R}_{\Sigma}(\mathbf{Knows}(agt,\phi,S_{0}))=\\
+\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}_{\Sigma}(\phi,\mathbf{UA}(agt))[s]\end{multline}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-This is then standard modal reasoning over the 
+ This is standard modal reasoning over the 
 \begin_inset Formula $K_{0}$
 \end_inset
 
@@ -1698,17 +1687,14 @@ Given a theory of action
 \begin_inset Formula $\Sigma$
 \end_inset
 
- with regression and peristence operators defined relative to it, and a
+ with regression and persistence operators defined relative to it, and a
  ground situation term 
 \begin_inset Formula $s$
 \end_inset
 
-, it is always the case that:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\Sigma\models\phi[s]\equiv\mathcal{R}^{*}(\phi)[S_{0}]\]
+, it is always the case that: 
+\begin_inset Formula \begin{equation}
+\Sigma\models\phi[s]\equiv\mathcal{R}_{\Sigma}^{*}(\phi)[S_{0}]\end{equation}
 
 \end_inset
 
@@ -1749,14 +1735,19 @@ begin{proof}
 
 \begin_layout Standard
 It suffices to show that 
-\begin_inset Formula $\mathcal{R}$
+\begin_inset Formula $\mathcal{R}_{\Sigma}$
 \end_inset
 
  preserves equivalence for 
 \begin_inset Formula $\mathbf{Knows}$
 \end_inset
 
-, as that it all we have modified.
+, as that it all we have modified from 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset
+
+.
  Employing the successor state axiom from equation 
 \begin_inset LatexCommand \ref{eqn:new_k_ssa}
 
@@ -1766,19 +1757,19 @@ It suffices to show that
 \begin_inset Formula $\mathbf{Knows}$
 \end_inset
 
-operator from equation 
+ operator from equation 
 \begin_inset LatexCommand \ref{eqn:knows_def}
 
 \end_inset
 
  can be re-written in the equivalent form: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
-\forall s''\left(Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\right.\\
+\forall s''\left[Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\right.\\
 \vee\,\,\exists o\, Observations(agt,c,s)=o\wedge\\
 o\neq\{\}\wedge Legal(s'')\wedge\\
 \exists c',s'\, Observations(agt,c',s')=o\\
-\left.\wedge K(agt,s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\right)\,\rightarrow\,\phi[s'']\end{multline}
+\left.\wedge K(agt,s',s)\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\right]\,\rightarrow\,\phi[s'']\end{multline*}
 
 \end_inset
 
@@ -1788,12 +1779,12 @@ o\neq\{\}\wedge Legal(s'')\wedge\\
 \begin_layout Standard
 Through a series of equivalence-preserving transformations, this can be
  re-written as: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
-\left(Observations(agt,c,s)=\{\}\rightarrow\forall s''\, K(agt,s'',s)\rightarrow\phi[s'']\right)\\
-\wedge\left(\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
+\left[Observations(agt,c,s)=\{\}\rightarrow\forall s''\, K(agt,s'',s)\rightarrow\phi[s'']\right]\\
+\wedge\left[\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
 \forall s'\, K(agt,s',s)\rightarrow\forall c'\, Observations(agt,c',s')=o\rightarrow\\
-\left.\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\right)\end{multline}
+\left.\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\right]\end{multline*}
 
 \end_inset
 
@@ -1808,11 +1799,11 @@ Note that both of these conjuncts now contain sub-formulae matching the
 
  macro.
  It can thus be substituted back in to give: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
-\left(Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right)\\
-\wedge\left(\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
-\left.\mathbf{Knows}(agt,\mathbf{PK}(\phi,o)),s)\right)\end{multline}
+\left[Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
+\wedge\left[\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
+\left.\mathbf{Knows}(agt,\mathbf{PK}(\phi,o)),s)\right]\end{multline*}
 
 \end_inset
 
@@ -1825,9 +1816,9 @@ Where we have defined the abbreviation
 \end_inset
 
  as: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{PK}(\phi,o,s')\isdef\forall c'\, Observations(agt,c',s')=o\rightarrow\\
-\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\end{multline}
+\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\end{multline*}
 
 \end_inset
 
@@ -1863,9 +1854,9 @@ For
 \end_inset
 
 , we develop the following equivalence, which is as required: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{PK}(\phi,o,s')\equiv\forall c'\, Observations(agt,c',s')=o\rightarrow\\
-\mathcal{R}(\mathcal{P}(\phi,Legal()\wedge Observations(agt)=\{\})[do(c',s')])\end{multline}
+\mathcal{R}_{\Sigma}(\mathcal{P}_{\Sigma}(\phi,Legal()\wedge Observations(agt)=\{\})[do(c',s')])\end{multline*}
 
 \end_inset
 
@@ -1885,17 +1876,17 @@ For the initial situation, a straightforward transformation of equations
 \end_inset
 
  gives: 
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 \mathbf{Knows}(\phi,S_{0})\equiv\\
-\forall s\, K_{0}(agt,s)\rightarrow\{\forall s'\, Legal(s')\wedge\mathbf{Unobs}(s,s')\rightarrow\phi[s']\}\end{multline}
+\forall s\, K_{0}(agt,s)\rightarrow\{\forall s'\, Legal(s')\wedge\mathbf{Unobs}(s,s')\rightarrow\phi[s']\}\end{multline*}
 
 \end_inset
 
  Applying the persistence condition operator, this can easily be re-written
  in the required form: 
-\begin_inset Formula \begin{multline}
-\mathbf{Knows}(\phi,S_{0})\equiv\\
-\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}(\phi,Legal()\wedge Observations(agt)=\{\})[s]\end{multline}
+\begin_inset Formula \begin{multline*}
+\mathbf{Knows}(\phi,S_{0})\equiv\forall s\, K_{0}(agt,s)\rightarrow\\
+\mathcal{P}(\phi,Legal()\wedge Observations(agt)=\{\})[s]\end{multline*}
 
 \end_inset
 
@@ -1919,16 +1910,20 @@ end{proof}
 \end_layout
 
 \begin_layout Standard
- We can thus reduce reasoning about knowledge in a given situation to modal
- reasoning in the initial situation, as before.
+We can thus reduce reasoning about knowledge to modal reasoning in the initial
+ situation, as in previous work.
  Our extension of the regression operator thus provides a mechanical procedure
- for reasoning in our improved account of knowledge without requiring second-ord
-er induction.
- 
+ for reasoning in our improved account of knowledge, without requiring second-or
+der induction.
 \end_layout
 
 \begin_layout Section
 Conclusions
+\begin_inset LatexCommand \label{sec:Conclusions}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1950,8 +1945,8 @@ In this paper we have significantly increased the scope of the situation
 
 \begin_layout Standard
 With our improved semantics of knowledge, the situation calculus is well
- positioned for representing and reasoning about a much broader range of
- more realistic multi-agent domains.
+ positioned for representing and reasoning about much more realistic multi-agent
+ domains.
 \end_layout
 
 \begin_layout Standard
