@@ -63,10 +63,7 @@
 \begin_body
 
 \begin_layout Title
-Multi-Agent Knowledge in the Situation Calculus with
-\newline
- Partial Awareness of
- Actions
+Observation-Based Knowledge in the Multi-Agent Situation Calculus 
 \end_layout
 
 \begin_layout Author
@@ -86,16 +83,15 @@ Ryan Kelly and Adrian Pearce
 \end_layout
 
 \begin_layout Abstract
-We develop significant improvements to the existing accounts of knowledge
- in the situation calculus.
+We develop a new semantics for knowledge in the situation calculus.
  Situation calculus models of multi-agent domains typically make one of
  two assumptions: that all agents are aware of all actions that have been
  performed, or that each agent is completely ignorant of actions performed
  by others.
- By reifying the observations made by each agent, we develop an enhanced
+ By reifying the observations made by each agent, we develop an improved
  account of knowledge that spans these two extremes.
  Our approach can naturally model agents who monitor the value of fluents
- in their environment, and provides a more modular approach to communication
+ in their environment, and provides a simpler approach to communication
  actions.
  We show how to reason effectively in this formalism using an extended regressio
 n operator that accommodates limited quantification over situations.
@@ -116,9 +112,8 @@ The situation calculus is one of the most popular formalisms for reasoning
 \end_layout
 
 \begin_layout Standard
-An almost universal assumption when working in the situation calculus is
- that agents are fully aware of the actions that have been performed in
- the world.
+A common assumption when working in the situation calculus is that agents
+ are fully aware of the actions that have been performed in the world.
  Indeed, the notion of 'situation' is formalized as a history of all actions
  that have occurred.
  In the rare cases that this is not assumed, the opposing extreme is posited
@@ -146,9 +141,11 @@ observations
 
 \begin_layout Standard
 Our new semantics of knowledge depend on universal quantification over situation
- terms, traditionally a roadblock for automated reasoning.
- Despite this, we show that an extension of the regression operator permits
- reasoning within our formulation.
+ terms, which in the situation calculus requires induction using second-order
+ logic and is hence difficult to handle in automated reasoning.
+ We show that an extension of the regression operator that handles limited
+ quantification over situations can facilitate reasoning within our formulation
+ using purely first-order logic.
  The final result is a powerful new account of multi-agent knowledge that
  still permits a suitably efficient reasoning procedure.
 \end_layout
@@ -218,38 +215,22 @@ The situation calculus is a many-sorted language of first-order logic, augmented
 \noun on
 Agent
 \noun default
- terms (variables 
-\begin_inset Formula $agt_{y}^{x}$
-\end_inset
-
-) represent the agents operating in the world; 
+ terms represent the agents operating in the world; 
 \noun on
 Action
 \noun default
- terms (variables 
-\begin_inset Formula $a_{y}^{x}$
-\end_inset
-
-) are functions denoting individual instantaneous events that can cause
+ terms are functions denoting individual instantaneous events that can cause
  the state of the world to change, with the initiating agent indicated by
  their first argument; 
 \noun on
 Concurrent
 \noun default
- terms (variables 
-\begin_inset Formula $c_{y}^{x}$
-\end_inset
-
-) are sets of actions that occur simultaneously; 
+ terms are sets of actions that occur simultaneously; 
 \noun on
 Situation
 \noun default
- terms (variables 
-\begin_inset Formula $s_{y}^{x}$
-\end_inset
-
-) are histories of the concurrent actions that have occurred in the world,
- with the initial situation represented by 
+ terms are histories of the concurrent actions that have occurred in the
+ world, with the initial situation represented by 
 \begin_inset Formula $S_{0}$
 \end_inset
 
@@ -261,20 +242,12 @@ Situation
 \noun on
 Result
 \noun default
- terms (variables 
-\begin_inset Formula $r_{y}^{x}$
-\end_inset
-
-) represent sensing results returned by actions, and are written inside
+ terms represent sensing results returned by actions, and are written inside
  double-quotes; 
 \noun on
 Object
 \noun default
- terms (variables 
-\begin_inset Formula $obj_{y}^{x}$
-\end_inset
-
-) represent any other object in the domain.
+ terms represent any other object in the domain.
  We also distinguish 
 \noun on
 Fluents
@@ -756,8 +729,8 @@ K(agt,s,S_{0})\equiv K_{0}(agt,s)\end{equation}
 \end_layout
 
 \begin_layout Standard
-While quite powerful, this formulation suffers from a severe limitation:
- each agent must be aware of 
+While powerful, this formulation suffers from a severe limitation: each
+ agent must be aware of 
 \emph on
 all
 \emph default
@@ -870,7 +843,7 @@ Furthermore, suppose that
 
  would not be aware that the state of the world has changed.
  Its set of possible situations should therefore remain unchanged.
- Unfortunately, 
+ Unfortunately this is not the case: 
 \begin_inset Formula $K(agt,s',do(a_{2},do(a_{1},s)))\not\equiv K(agt,s',do(a_{1},s))$
 \end_inset
 
@@ -895,6 +868,37 @@ We overcome these limitations with the development of an improved successor
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Subsubsection
+Belief
+\end_layout
+
+\begin_layout Standard
+We note that this point that we are interested in a logic of 
+\emph on
+knowledge
+\emph default
+ - everything known by and agent must actually be true in the world.
+ There has also been significant work on modelling 
+\emph on
+belief
+\series bold
+\emph default
+ 
+\series default
+in the situation calculus, where agents may be mistaken about what is true.
+ 
+\begin_inset LatexCommand \cite{shapiro04sc_belief_exog}
+
+\end_inset
+
+ show how agents may hypothesise the occurance of exogenous actions when
+ they discover that they are mistaken, neatly avoiding the issue of being
+ aware of the actions performed by others.
+ This approach cannot be applied when dealing with knowledge.
+ However, we believe that the concrete notion of observations we develop
+ below will also be useful for belief-based systems.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1019,7 +1023,7 @@ New Semantics of Knowledge
 \end_layout
 
 \begin_layout Subsubsection
-Awareness of Actions
+Observations
 \end_layout
 
 \begin_layout Standard
@@ -1281,10 +1285,9 @@ If the agent considers possible a situation
 , which states that a situation can legally be brought about in the world.
  For this basic situation calculus, it suffices to constrain all actions
  to be possible: 
-\begin_inset Formula \begin{equation}
-\begin{split} & Legal(S_{0})\equiv True\\
- & Legal(do(c,s))\equiv Poss(c,s)\wedge Legal(s)\end{split}
-\end{equation}
+\begin_inset Formula \begin{multline}
+Legal(s)\equiv\exists c',s'\, s=do(c',s')\rightarrow\\
+Poss(c',s')\wedge Legal(s')\end{multline}
 
 \end_inset
 
@@ -1380,7 +1383,7 @@ It is straightforward to verify that important properties of the
 \end_layout
 
 \begin_layout Subsubsection
-Awareness of Fluent Change
+Observing Fluent Change
 \end_layout
 
 \begin_layout Standard
@@ -1439,7 +1442,7 @@ Observations(agt,c,s)=o\equiv\\
 \end_layout
 
 \begin_layout Subsubsection
-Communication as Sensing
+Communication
 \end_layout
 
 \begin_layout Standard
@@ -1578,13 +1581,20 @@ persist
 \end_layout
 
 \begin_layout Standard
-By having 
-\begin_inset Formula $\alpha$
+By singling out unobservable actions, the persistence condition can be used
+ to augment existing techniques for regressing formulae about knowledge.
+ Define the macro 
+\begin_inset Formula $\mathbf{UA}$
 \end_inset
 
- single out unobservable actions, the persistence condition can be used
- to augment existing techniques for regressing formulae about knowledge.
- Assuming that the 
+ to identify legal, unobservable sets of actions:
+\begin_inset Formula \begin{multline*}
+\mathbf{UA}(agt,c,s)\isdef\\
+Legal(do(c,s))\wedge Observations(agt,c,s)=\{\}\end{multline*}
+
+\end_inset
+
+Assuming that the 
 \begin_inset Formula $K$
 \end_inset
 
@@ -1592,7 +1602,7 @@ By having
 \begin_inset Formula $\mathbf{Knows}$
 \end_inset
 
- macro, we propose the following to replace the regression of 
+ macro, we then propose the following to replace the regression of 
 \begin_inset Formula $\mathbf{Knows}$
 \end_inset
 
@@ -1601,14 +1611,7 @@ By having
 
 \end_inset
 
-:
-\begin_inset Formula \begin{multline*}
-\mathbf{UA}(agt,c,s)\isdef\\
-Legal(do(c,s))\wedge Observations(agt,c,s)=\{\}\end{multline*}
-
-\end_inset
-
- 
+: 
 \begin_inset Formula \begin{multline}
 \mathcal{R}_{\Sigma}(\mathbf{Knows}(agt,\phi,do(c,s)))=\\
 \left[Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
@@ -1618,10 +1621,6 @@ Legal(do(c,s))\wedge Observations(agt,c,s)=\{\}\end{multline*}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 As required, this reduces reasoning about knowledge in 
 \begin_inset Formula $do(c,s)$
 \end_inset
@@ -1657,13 +1656,13 @@ ons,
 
 \end_inset
 
- This is standard modal reasoning over the 
+ This is standard first-order modal reasoning over the 
 \begin_inset Formula $K_{0}$
 \end_inset
 
  relation.
- It remains of course to prove that the regression operator works as required,
- and we sketch the highlights of such a proof below:
+ We sketch below the highlights of a proof that our modified regression
+ operator preserve equivalence.
 \end_layout
 
 \begin_layout Standard
@@ -1781,7 +1780,7 @@ Through a series of equivalence-preserving transformations, this can be
  re-written as: 
 \begin_inset Formula \begin{multline*}
 \mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
-\left[Observations(agt,c,s)=\{\}\rightarrow\forall s''\, K(agt,s'',s)\rightarrow\phi[s'']\right]\\
+\left[Observations(agt,c,s)=\{\}\rightarrow\forall s''K(agt,s'',s)\rightarrow\phi[s'']\right]\\
 \wedge\left[\exists o\,.\, Observations(agt,c,s)=o\wedge o\neq\{\}\rightarrow\right.\\
 \forall s'\, K(agt,s',s)\rightarrow\forall c'\, Observations(agt,c',s')=o\rightarrow\\
 \left.\forall s''\, Legal(s'')\wedge\mathbf{Unobs}(agt,do(c',s'),s'')\,\rightarrow\,\phi[s'']\right]\end{multline*}
@@ -1912,7 +1911,7 @@ end{proof}
 \begin_layout Standard
 We can thus reduce reasoning about knowledge to modal reasoning in the initial
  situation, as in previous work.
- Our extension of the regression operator thus provides a mechanical procedure
+ Our extension of the regression operator provides a mechanical procedure
  for reasoning in our improved account of knowledge, without requiring second-or
 der induction.
 \end_layout
@@ -1930,8 +1929,7 @@ Conclusions
 In this paper we have significantly increased the scope of the situation
  calculus for modeling knowledge in multi-agent domains.
  By explicitly reifying the observations made by each agent as the world
- evolves, we have generalized the dynamics of knowledge update to allow
- partial awareness of actions.
+ evolves, we have generalized the dynamics of knowledge update.
  We have shown that this can accommodate the important case where agents
  are aware that a property of their environment has changed, but do not
  know the precise actions responsible.
@@ -1944,9 +1942,8 @@ In this paper we have significantly increased the scope of the situation
 \end_layout
 
 \begin_layout Standard
-With our improved semantics of knowledge, the situation calculus is well
- positioned for representing and reasoning about much more realistic multi-agent
- domains.
+With our new semantics of knowledge, the situation calculus is well positioned
+ for representing and reasoning about much more realistic multi-agent domains.
 \end_layout
 
 \begin_layout Standard
