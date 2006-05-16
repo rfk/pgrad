@@ -4,24 +4,8 @@
 \begin_header
 \textclass llncs
 \begin_preamble
-%% LyX 1.4.1 created this file.  For more info, see http://www.lyx.org/.
-%% Do not edit unless you really know what you are doing.
-
-
-
-
-\makeatletter
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
-%% Bold symbol macro for standard LaTeX users
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
 
 \newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
-
-\makeatother
 \end_preamble
 \language english
 \inputencoding latin1
@@ -31,7 +15,7 @@
 \spacing single
 \papersize default
 \use_geometry false
-\use_amsmath 0
+\use_amsmath 2
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
@@ -105,21 +89,125 @@ The situation calculus is one of the most popular formalisms for reasoning
  about dynamics worlds.
  Among its attractive features are an elegant monotonic solution to the
  frame problem, and an effective reasoning procedure for the projection
- problem (TODO: define these).
- However, a complete axiomatisation of a dynamic world requires a second-order
- induction axiom.
+ problem.
+ However, a complete axiomatisation of a dynamic world in the situation
+ calculus requires a second-order induction axiom to define the set of all
+ situations.
 \end_layout
 
 \begin_layout Standard
-Many useful reasoning tasks in the situation calculus require universally
- quantifying over situations.
- For example, when reasoning about action, it is useful to determine whether
- a given condition can ever possibly be satisfied in the world:
+It has been shown that existential reasoning about situations does not require
+ the induction axioms, and is therefore amenable to automated theorem-proving
+ techniques.
+ Unofrtunately, many useful reasoning tasks require universal quantification
+ over situations.
+ For example, it is often useful to determine whether 
+\emph on
+any
+\emph default
+ situation exists that satisfies a given goal.
+ The need for second-order logic has traditionally limited automated reasoning
+ about such queries.
+\end_layout
+
+\begin_layout Standard
+In this paper we introduce a reasoning procedure for a special class of
+ universal query: 
+\emph on
+persistence
+\emph default
+ of a property in a situation.
+ This is the problem of determining, given some formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ and situation 
+\begin_inset Formula $s$
+\end_inset
+
+, whether 
+\begin_inset Formula $\phi$
+\end_inset
+
+ will hold in all situations in the future of 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ We show that this query can be answered using iterated first-order reasoning.
+ Importantly, we limit the axioms required at each reasoning step.
+ TODO: explain why this is better, in the spirit of regression.
+\end_layout
+
+\begin_layout Section
+Background
+\end_layout
+
+\begin_layout Standard
+We work in a version of the the situation calculus as described in 
+\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
+
+\end_inset
+
+.
+ A brief overview is presented below.
+\end_layout
+
+\begin_layout Standard
+The situation calculus is a many-sorted language of first-order logic, augmented
+ with a second-order induction axiom.
+ Its has the following sorts: 
+\noun on
+Action
+\noun default
+ terms are functions denoting individual instantaneous events that can cause
+ the state of the world to change; 
+\noun on
+Situation
+\noun default
+ terms are histories of the actions that have occurred in the world, with
+ the initial situation represented by 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+ and successive situations built up using the function 
+\begin_inset Formula $do\,:\, Concurrent\times Situation\rightarrow Situation$
+\end_inset
+
+; 
+\noun on
+Object
+\noun default
+ terms represent any other object in the domain.
+ We also distinguish 
+\noun on
+Fluents
+\noun default
+ as predicates or functions representing properties of the world that may
+ change from one situation to another.
+ Fluents take a situation term as their final argument.
+\end_layout
+
+\begin_layout Standard
+A collection of situation calculus statements that describe the behavior
+ of a dynamic world is referred to as a 
+\emph on
+basic action theory
+\emph default
+ and is typically represented by 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+.
+ It consists of seperate sets of statements that capture some foundational
+ axioms of the situation calculus, successor state axioms for fluents, action
+ precondition axioms, unique names axioms for actions, and axioms describing
+ the initial situation:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{D}\models\forall s\,\neg G(s)\]
+\mathcal{D}=\Sigma\cup\mathcal{D}_{ss}\cup\mathcal{D}_{ap}\cup\mathcal{D}_{una}\cup\mathcal{D}_{S_{0}}\]
 
 \end_inset
 
@@ -127,40 +215,95 @@ Many useful reasoning tasks in the situation calculus require universally
 \end_layout
 
 \begin_layout Standard
-When the situation calculus is enriched with knowledge, such reasoning becomes
- more and more important.
- Consider the case where an agent is unable to observe certain actions occuring
- in the world.
- In order to know that some formula 
-\begin_inset Formula $\phi(s)$
+An action theory must also satisfy some basic consistency constraints, described
+ in detail in 
+\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
+
 \end_inset
 
- holds, it must determine not only that it holds in the current situation
+.
+ Queries about the behavior or evolution of the world are posed as logical
+ entailment queries relative to the theory of action.
+\end_layout
+
+\begin_layout Subsubsection
+Uniform Formulae
+\end_layout
+
+\begin_layout Standard
+An important class of formulae in the situation calculus are the 
+\emph on
+uniform formulae
+\emph default
+ - those that refer to a single situation term, so representing a property
+ of a situation.
+ Throughout this paper, we will use the meta-variable 
+\begin_inset Formula $\phi$
+\end_inset
+
+ to refer to an arbitrary uniform formula.
+ Where no confusion can arise, we suppress the situation terms in uniform
+ formulae to simplify the presentation.
+ It is also standard practice to pass uniform formulae as arguments to other
+ functions or predicates - this technically requires an encoding of formulae
+ as terms, as discussed in 
+\begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
+
+\end_inset
+
+.
+ We omit such details for notational simplicity.
+\end_layout
+
+\begin_layout Standard
+It is often useful to determine the truth of a uniform formula at a given
+ situation term.
+ The formula 
+\begin_inset Formula $\phi[s]$
+\end_inset
+
+ represents the uniform formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ with all occurrences of its unique situation term replaced by the situation
  
 \begin_inset Formula $s$
 \end_inset
 
- but that it cannot become false in any successor situations that might
- arise without it being aware:
+.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \[
-\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge CanObs(a,s')\]
-
+Clearly uniform formulae describe a 
+\emph on
+property 
+\emph default
+of a particular situation, and we shall use this term in the following rather
+ than the more cumbersome 
+\begin_inset Quotes eld
 \end_inset
 
+uniform formula
+\begin_inset Quotes erd
+\end_inset
 
+.
+\end_layout
+
+\begin_layout Subsubsection
+Foundational Axioms
 \end_layout
 
 \begin_layout Standard
-The canonical reference for such reasoning in the situation calculus is
- 
-\begin_inset LatexCommand \cite{Reiter93proving}
-
+The foundational axioms 
+\begin_inset Formula $\Sigma$
 \end_inset
 
-, where a second-order induction axiom is given to allow this:
+ are a set of four axioms that describe the basic behavior of a situation
+ calculus domain, and are independent of any particular domain application.
+ Of most import here is the induction axiom that defines the set of all
+ situations:
 \end_layout
 
 \begin_layout Standard
@@ -173,29 +316,249 @@ The canonical reference for such reasoning in the situation calculus is
 \end_layout
 
 \begin_layout Standard
-While such an axiom makes manual verification of universal state properties
- possible, its second-order nature makes it problematic for automated reasoning.
+The fundamental importance of this axiom is described in 
+\begin_inset LatexCommand \cite{Reiter93proving}
+
+\end_inset
+
+.
+ Since it is second-order and thus traditionally hard to handle for automated
+ reasoning systems, much research has focussed on identifying sentences
+ of the situation calculus that can be proved without induction.
+\end_layout
+
+\begin_layout Subsubsection
+Successor State Axioms
 \end_layout
 
 \begin_layout Standard
-In this paper we are specifically interested in proving 
-\emph on
-persistence
-\emph default
- of properties in a situation.
- That is, given some formula 
-\begin_inset Formula $\phi$
+The truth of fluents from one situation to the next is specified by collecting
+ the effects of various actions into a set of successor state axioms 
+\begin_inset Formula $\mathcal{D}_{ss}$
 \end_inset
 
-, does it hold in 
+, one per fluent.
+ These axioms provide a monotonic solution to the infamous frame problem
+ 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
+\end_inset
+
+ and are a principle attraction of the situation calculus.
+ They have the general form:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+F(\overrightarrow{x},do(c,s))\equiv\Phi_{F}(\overrightarrow{x},c,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\Phi_{F}$
+\end_inset
+
+ is uniform in 
 \begin_inset Formula $s$
 \end_inset
 
- all situations in the future of 
-\begin_inset Formula $s$
+.
+ TODO: talk about the common substructure of 
+\begin_inset Formula $\Phi_{F}$
 \end_inset
 
 ?
+\end_layout
+
+\begin_layout Subsubsection
+Action Precondition Axioms
+\end_layout
+
+\begin_layout Standard
+There is a distinguished fluent predicate 
+\begin_inset Formula $Poss(a,s)$
+\end_inset
+
+ that indicates when it is possible to perform an action in a given situation.
+ For example, it is only possible to drop an object if one is actually holding
+ it: 
+\begin_inset Formula \[
+Poss(drop(obj),s)\equiv Holding(obj,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The set of action precondition axioms 
+\begin_inset Formula $\mathcal{D}_{ap}$
+\end_inset
+
+ contains one such axiom for each action function 
+\begin_inset Formula $A$
+\end_inset
+
+, of the general form:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+Poss(A(\overrightarrow{x}),s)\equiv\Pi_{A}(\overrightarrow{x},s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where 
+\begin_inset Formula $\Pi_{A}$
+\end_inset
+
+ is uniform in 
+\begin_inset Formula $s$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Unique Names Axioms for Actions
+\end_layout
+
+\begin_layout Standard
+The unique names axioms 
+\begin_inset Formula $D_{una}$
+\end_inset
+
+ consists of statements of the following form, for each pair of distinct
+ action symbols 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $B$
+\end_inset
+
+ :
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+A(\overrightarrow{x})\neq B(\overrightarrow{y})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+A(\overrightarrow{x})=A(\overrightarrow{y})\rightarrow\overrightarrow{x}=\overrightarrow{y}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+These ensure that each action function is in fact a unique way in which
+ the state of the worl can be changed.
+ For example, dropping an object is never the same thing as picking it up.
+\end_layout
+
+\begin_layout Subsubsection
+Initial Situation Axioms
+\end_layout
+
+\begin_layout Standard
+TODO: fill this in
+\end_layout
+
+\begin_layout Subsubsection
+Regression
+\end_layout
+
+\begin_layout Standard
+One of the attractions of the situation calculus is the existence of efficient
+ reasoning procedures for certain types of query.
+ The principle tool is the regression meta-operator 
+\begin_inset LatexCommand \cite{reiter91frameprob}
+
+\end_inset
+
+ which transforms a formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ uniform in 
+\begin_inset Formula $do(c,s)$
+\end_inset
+
+ into a formula 
+\begin_inset Formula $\mathcal{R}_{\Sigma}(\phi)$
+\end_inset
+
+ uniform in 
+\begin_inset Formula $s$
+\end_inset
+
+, such that the two are equivalent relative to the theory of action 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+.
+ By repeatedly applying the regression operator, 
+\begin_inset Formula $\phi$
+\end_inset
+
+ can be transformed into an equivalent formula uniform in the initial situation:
+\begin_inset Formula \[
+\Sigma\models\phi[do(c_{1},do(c_{2},\dots,do(c_{n},S_{0}))]\equiv\mathcal{R}_{\Sigma}^{*}(\phi)[S_{0}]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Many of the axioms from 
+\begin_inset Formula $\Sigma$
+\end_inset
+
+ are not required for reasoning about the initial situation, and so can
+ be discarded when reasoning about 
+\begin_inset Formula $\mathcal{R}_{\Sigma}^{*}(\phi)[S_{0}]$
+\end_inset
+
+.
+ This is frequently more efficient than directly reasoning about 
+\begin_inset Formula $\phi$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+TODO: define regressible sentences.
+ Talk about single-step operator vs multi-step operator
+\end_layout
+
+\begin_layout Subsubsection
+Axiom Reduction
+\end_layout
+
+\begin_layout Subsubsection
+Property Persistence
+\end_layout
+
+\begin_layout Standard
+TODO: define it in words.
 \end_layout
 
 \begin_layout Standard
@@ -219,15 +582,16 @@ For some applications it is desirable to limit the future situations to
 \end_inset
 
  that are to be considered, then the question of persistence becomes:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\]
+\begin_inset Formula \begin{multline}
+\forall s''\, s\leq s''\wedge\neg\exists a',s'\, s<do(a',s')\leq s''\wedge\neg\alpha(a',s')\rightarrow\phi[s'']\end{multline}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Section
+Persistence Condition
 \end_layout
 
 \begin_layout Standard
@@ -286,10 +650,6 @@ persistence condition
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Section
-Intuitive Overview
 \end_layout
 
 \begin_layout Standard
@@ -610,6 +970,167 @@ Can
  
 \end_layout
 
+\begin_layout Subsubsection
+Goal Impossibility
+\end_layout
+
+\begin_layout Standard
+Given a goal 
+\begin_inset Formula $G$
+\end_inset
+
+, establish that there is no possible situation in which that goal is satisfied:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\Sigma\models\forall s\, S_{0}\leq s\rightarrow\neg G(s)\,\, iff\,\, D_{una}\models\mathcal{P}[\neg G,Poss]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That is to say, if the persistence condition of 
+\begin_inset Formula $\neg G$
+\end_inset
+
+ is a tautology, then the goal 
+\begin_inset Formula $G$
+\end_inset
+
+ can never be satisfied.
+\end_layout
+
+\begin_layout Subsubsection
+Goal Futility
+\end_layout
+
+\begin_layout Standard
+Given a goal 
+\begin_inset Formula $G$
+\end_inset
+
+ and situation 
+\begin_inset Formula $s$
+\end_inset
+
+, establish that the goal cannot be satisfied in any situation in the future
+ of 
+\begin_inset Formula $s$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\Sigma\models\forall s'\, s\leq s'\rightarrow\neg G(s')\,\, iff\,\,\Sigma\models\mathcal{P}[\neg G,Poss](s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That is to say, if the persistence condition of 
+\begin_inset Formula $\neg G$
+\end_inset
+
+ is true in 
+\begin_inset Formula $s$
+\end_inset
+
+, that goal can no longer be achieved.
+ This example highlights the utility of calculation the persistence condition
+ in advance - the agent could check for 
+\begin_inset Formula $\mathcal{P}[\neg G,Poss](do(a,s))$
+\end_inset
+
+ for any action 
+\begin_inset Formula $a$
+\end_inset
+
+ it is considering performing, and avoid situations which would make its
+ goal futile.
+\end_layout
+
+\begin_layout Subsubsection
+Checking State Constraints
+\end_layout
+
+\begin_layout Standard
+The persistence condition of any state constraint should be a tautology
+ given the unique names axioms - otherwise, there would be situations in
+ which the constraints did not hold.
+\end_layout
+
+\begin_layout Subsubsection
+Need for Cooperation
+\end_layout
+
+\begin_layout Standard
+To establish that it needs to cooperate with another agent, an agent could
+ examine persistence with respect to actions performed by itself:
+\begin_inset Formula \begin{multline}
+\Sigma\models\forall s''\, s\leq s''\wedge\neg\exists a',s'\, s<do(c',s')\leq s''\wedge\neg agent(a)=agt\rightarrow\neg G[s'']\end{multline}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In words this states that no situation in the future of 
+\begin_inset Formula $s$
+\end_inset
+
+ can satisfy 
+\begin_inset Formula $G$
+\end_inset
+
+, if all the actions that brought about that situation were performed by
+ 
+\begin_inset Formula $agt$
+\end_inset
+
+.
+ This is of course equivalent to the persistence condition:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\Sigma\models\mathcal{P}[\neg G,Poss\wedge agent()=agt](s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If this is valid, then 
+\begin_inset Formula $agt$
+\end_inset
+
+ will need to cooperate with another agent in order to achieve its goal.
+\end_layout
+
+\begin_layout Subsubsection
+Knowledge under Partial Observability
+\end_layout
+
+\begin_layout Standard
+In recent unpublished work, we develop a new account of knowledge in the
+ situation calculus when not all actions are observable by all agents.
+ To facilitate reasoning in this formalism, agents must be able to reason
+ about what cannot be changed by actions that they cannot observe:
+\end_layout
+
+\begin_layout Standard
+TODO: put equation here.
+\end_layout
+
 \begin_layout Section
 Formal Construction of 
 \begin_inset Formula $\mathcal{P}[\phi,\alpha]$
@@ -618,29 +1139,12 @@ Formal Construction of
 
 \end_layout
 
-\begin_layout Standard
-TODO: basic description of situation calculus here
-\end_layout
-
-\begin_layout Standard
-An important definition: uniform formulae.
- TODO: look it up
-\end_layout
-
-\begin_layout Standard
-talk about the 
-\begin_inset Formula $\phi(s)$
-\end_inset
-
- notation.
-\end_layout
-
-\begin_layout Standard
-Work out how we can construct it!
-\end_layout
-
 \begin_layout Section
 Construction from Effect Axioms
+\end_layout
+
+\begin_layout Standard
+TODO: do we have room for this?
 \end_layout
 
 \begin_layout Subsection
@@ -836,8 +1340,17 @@ situation
 \end_layout
 
 \begin_layout Standard
-Things this is useful for: goal infeasibility, goal futility, need for cooperati
-on, checking state constraints, knowledge under partial observability
+Formal assumption to make this workable: finite number of action types?
+ fluents affected by finite number of actions?
+\end_layout
+
+\begin_layout Standard
+Reference 
+\begin_inset LatexCommand \cite{bertossi96automating}
+
+\end_inset
+
+ in related work
 \end_layout
 
 \begin_layout Standard
