@@ -140,9 +140,9 @@ any
 \emph default
  situation exists that satisfies a given goal.
  In this paper we are interested in a subset of such queries which we refer
- to as the 
+ to as 
 \emph on
-persistence problem
+persistence queries
 \emph default
 : given some formula 
 \begin_inset Formula $\phi$
@@ -670,6 +670,131 @@ This means such formulae are among the most straightforward to prove.
 \end_layout
 
 \begin_layout Subsubsection
+Ordering over Situations
+\end_layout
+
+\begin_layout Standard
+It is clear that situations form a tree structure, with 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+ being the root of the tree and 
+\begin_inset Formula $do$
+\end_inset
+
+ constructing child situations from parents.
+ The basic ordering relation on situations is represente by 
+\begin_inset Formula $\sqsubset$
+\end_inset
+
+ and defined by the following axioms:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\neg s\sqsubset S_{0}\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+s\sqsubset do(a,s')\equiv s\sqsubseteq s'\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where, naturally, 
+\begin_inset Formula $s\sqsubseteq s'$
+\end_inset
+
+ is an abbreviation for 
+\begin_inset Formula $s\sqsubset s'\vee s=s'$
+\end_inset
+
+.
+ It is frequently useful to restrict the situations under consideration
+ to those that are possible in the real world, so it is customery to define
+ an ordering over executable situations:
+\begin_inset Formula \[
+\neg s<S_{0}\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+s<do(a,s')\equiv s\leq s'\wedge Poss(a,s')\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Many results of the situation calculus are derived relative to the executable
+ situations - for example, 
+\begin_inset LatexCommand \cite{Reiter93proving}
+
+\end_inset
+
+ develops an induction principle over situations where 
+\begin_inset Formula $S_{0}\leq s$
+\end_inset
+
+.
+ This notation is so useful that we propose it be parameterised like so:
+ suppose 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ is an arbitrary action-indexed fluent restricting the actions that are
+ to be considered.
+ Define the 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $\alpha$
+\end_inset
+
+-ordering
+\begin_inset Quotes erd
+\end_inset
+
+ over situations as follows:
+\begin_inset Formula \[
+\neg s<_{\alpha}S_{0}\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Clearly the standard ordering over executable situations is 
+\begin_inset Formula $<_{Poss}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+TODO: establish that the whole 
+\begin_inset Formula $\neg\exists a,s$
+\end_inset
+
+ thing is equivalent to this notation.
+\end_layout
+
+\begin_layout Subsubsection
 Property Persistence
 \end_layout
 
@@ -693,7 +818,7 @@ all future situations
 
  itself:
 \begin_inset Formula \[
-\mathcal{D}\models\forall s'\, s\leq s'\rightarrow\phi(s')\]
+\mathcal{D}\models\forall s'\, s\sqsubseteq s'\rightarrow\phi(s')\]
 
 \end_inset
 
@@ -713,7 +838,7 @@ More generally, we way wish to limit the futures considered to those brought
 
  that are to be considered, then we are intereted in whether:
 \begin_inset Formula \begin{multline}
-\mathcal{D}\models\forall s''\,\left(s\leq s''\wedge\neg\exists a',s'\, s<do(a',s')\leq s''\wedge\neg\alpha(a',s')\right)\rightarrow\phi[s'']\end{multline}
+\mathcal{D}\models\forall s'\, s\le_{\alpha}s'\rightarrow\phi[s']\end{multline}
 
 \end_inset
 
@@ -725,7 +850,7 @@ In words this states
 \begin_inset Quotes eld
 \end_inset
 
-given that no actions occur that do not match 
+given that all subsequent actions satisfy 
 \begin_inset Formula $\alpha$
 \end_inset
 
@@ -761,7 +886,7 @@ Given a goal
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{D}\models\forall s\,\left(S_{0}\leq s\wedge\neg\exists a',s'\, S_{0}<do(a',s')\leq s\wedge\neg Poss(a',s')\right)\rightarrow\neg G(s)\]
+\mathcal{D}\models\forall s\, S_{0}\leq s\rightarrow\neg G(s)\]
 
 \end_inset
 
@@ -791,7 +916,7 @@ Given a goal
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{D}\models\forall s''\,\left(s\leq s''\wedge\neg\exists a',s'\, s<do(a',s')\leq s''\wedge\neg Poss(a',s')\right)\rightarrow\neg G(s)\]
+\mathcal{D}\models\forall s'\, s\leq s'\rightarrow\neg G(s')\]
 
 \end_inset
 
@@ -799,9 +924,9 @@ Given a goal
 \end_layout
 
 \begin_layout Standard
-Note that this is subtly different from goal impossibility - while the agent
- may have initially been able to achieve the goal, the actions that have
- subsequently been performed have rendered the goal unachievable.
+Note how this is different from goal impossibility: while the agent may
+ have initially been able to achieve the goal, the actions that have subsequentl
+y been performed have rendered the goal unachievable.
  Agents would be well advised to avoid such situations.
 \end_layout
 
@@ -822,7 +947,7 @@ Need for Cooperation:
 To establish that it needs to cooperate with another agent, an agent must
  determine persistence with respect to actions performed by itself:
 \begin_inset Formula \begin{multline}
-\mathcal{D}\models\forall s''\,\left(S_{0}\leq s\wedge\neg\exists a',s'\, S_{0}<do(a',s')\leq s\wedge\neg agent(a)=agt\right)\rightarrow\neg G[s'']\end{multline}
+\mathcal{D}\models\forall s'\, s\leq_{agent()=agt}s'\rightarrow\neg G[s']\end{multline}
 
 \end_inset
 
@@ -844,7 +969,7 @@ In words this states that no situation in the future of
 \end_inset
 
 .
- If this is valid, then 
+ If this is the case, then 
 \begin_inset Formula $agt$
 \end_inset
 
@@ -896,7 +1021,7 @@ For implementing practial agent systems, we need to replace quantification
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{D}\models\left[\forall s''\,\left(s\leq s''\wedge\neg\exists a',s'\, s<do(a',s')\leq s''\wedge\neg\alpha(a',s')\rightarrow\phi[s]\right)\right]\,\equiv\,\mathcal{P}_{\mathcal{D}}[\phi,\alpha]\]
+\mathcal{D}\models\left[\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\right]\,\equiv\,\mathcal{P}_{\mathcal{D}}[\phi,\alpha][s]\]
 
 \end_inset
 
@@ -933,108 +1058,143 @@ persistence condition
 .
 \end_layout
 
-\begin_layout Standard
-The construction of the persistence condition is intuitively straightforward.
- Let 
-\begin_inset Formula $\mathcal{P}_{\mathcal{D}}^{1}[\phi,\alpha]$
-\end_inset
+\begin_layout Section
+Work in Progress
+\end_layout
 
- be a formula uniform in 
-\begin_inset Formula $s$
-\end_inset
-
- that is true precisely when 
-\begin_inset Formula $\phi$
-\end_inset
-
- holds in 
-\begin_inset Formula $s$
-\end_inset
-
- and all its immediate successors where the action satisfies 
+\begin_layout Proposition
+For any action-indexed fluent 
 \begin_inset Formula $\alpha$
 \end_inset
 
-.
- A candidate defnition for such a formula would be:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{P}_{\mathcal{D}}^{1}[\phi,\alpha]\isdef\phi\wedge\forall a\,\phi(do(a,s))\vee\neg\alpha(a,s)\]
+, the foundational axioms of the situation calculus entail:
+\begin_inset Formula \begin{multline*}
+\forall W,s\,\, W(s)\wedge\left[\forall a,s'\,\,\alpha(a,s')\wedge s\leq_{\alpha}s'\wedge W(s')\rightarrow W(do(a,s'))\right]\\
+\rightarrow\forall s'\,\, s\leq_{\alpha}s'\rightarrow W(s')\end{multline*}
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Standard
-Unfortunately, this cannot be used because the right-hand side is not uniform
- in 
-\begin_inset Formula $s$
+\begin_layout Proof
+A straightforward adaptation of the proof of Theorem 1 in 
+\begin_inset LatexCommand \cite{Reiter93proving}
+
 \end_inset
 
 .
- By applying the regression operator, we can obtain an equivalent definition
- that is uniform in 
-\begin_inset Formula $s$
+\end_layout
+
+\begin_layout Lemma
+For any basic action theory 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+, uniform formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ and action-indexed fluent 
+\begin_inset Formula $\alpha$
 \end_inset
 
 :
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
-\mathcal{P}_{\mathcal{D}}^{1}[\phi,\alpha]\isdef\phi\wedge\forall a\,\mathcal{R}_{\mathcal{D}}[\phi(do(a,s))]\vee\neg\alpha(a,s)\]
+\mathcal{D}\models\forall s\,\,\phi[s]\rightarrow\left(\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\]
+
+\end_inset
+
+iff
+\begin_inset Formula \[
+\mathcal{D}_{una}\models\forall s,a\,\,\phi[s]\wedge\alpha(a,s)\rightarrow\mathcal{R}_{\mathcal{D}}[\phi[do(a,s)]]\]
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Standard
-We construct the operator 
-\begin_inset Formula $\mathcal{P}$
+\begin_layout Proof
+A straightforward adaptation of the proof of Lemma 5 in 
+\begin_inset LatexCommand \cite{Lin94-StateConstraints}
+
 \end_inset
 
- from 
-\begin_inset Formula $\mathcal{P}^{1}$
+, using proposition TODO for induction.
+\end_layout
+
+\begin_layout Definition
+A uniform formula 
+\begin_inset Formula $\phi$
 \end_inset
 
- by induction.
- Intuitively, if 
-\begin_inset Formula $\mathcal{P}^{1}[\phi]$
+ 
+\begin_inset Quotes eld
+\end_inset
+
+persists to depth 1 under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ in situation 
+\begin_inset Formula $s$
+\end_inset
+
+ when the formula 
+\begin_inset Formula $\mathcal{P}^{1}[\phi,\alpha]$
 \end_inset
 
  holds in 
 \begin_inset Formula $s$
 \end_inset
 
- and all its immediate sucecssors, then 
+, as defined by:
+\begin_inset Formula \[
+\mathcal{P}^{1}[\phi,\alpha][s]\isdef\phi[s]\,\wedge\,\forall a\,\alpha(a,s)\rightarrow\mathcal{R}[\phi[do(a,s)]]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Definition
+A uniform formula 
 \begin_inset Formula $\phi$
 \end_inset
 
- will hold in 
+ 
+\begin_inset Quotes eld
+\end_inset
+
+persists to depth 
+\begin_inset Formula $n$
+\end_inset
+
+ under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ in situation 
 \begin_inset Formula $s$
 \end_inset
 
- and all successors up to depth two:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{P}^{2}[\phi,\alpha]\isdef\mathcal{P}^{1}[\mathcal{P}^{1}[\phi,\alpha],\alpha]\]
-
+ when the formula 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
 \end_inset
 
+ holds in 
+\begin_inset Formula $s$
+\end_inset
 
-\end_layout
-
-\begin_layout Standard
-This generalises in a straightforward way to arbitrarily deep successors:
-\end_layout
-
-\begin_layout Standard
+, as defined by:
 \begin_inset Formula \[
 \mathcal{P}^{n}[\phi,\alpha]\isdef\mathcal{P}^{1}[\mathcal{P}^{n-1}[\phi,\alpha],\alpha]\]
 
@@ -1043,108 +1203,260 @@ This generalises in a straightforward way to arbitrarily deep successors:
 
 \end_layout
 
-\begin_layout Standard
-By the definition of 
-\begin_inset Formula $\mathcal{P}^{1}$
-\end_inset
-
- it is clear that, for any 
-\begin_inset Formula $n$
-\end_inset
-
-:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{D}\models\mathcal{P}^{n+1}[\phi,\alpha]\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-If it is possible to show that there is an 
-\begin_inset Formula $n$
-\end_inset
-
- such that:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{D}\models\mathcal{P}^{n}[\phi,\alpha]\rightarrow\mathcal{P}^{n+1}[\phi,\alpha]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Then we have shown logical equivalence of all further applications of 
-\begin_inset Formula $\mathcal{P}^{1}$
-\end_inset
-
-:
-\begin_inset Formula \[
-\mathcal{D}\models\mathcal{P}^{n}[\phi,\alpha]\equiv\mathcal{P}^{m}[\phi,\alpha]\,,for\, all\, m>n\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This 
+\begin_layout Definition
+TODO: not sure this is the neatest definition, but we definitely want 
 \begin_inset Formula $\mathcal{P}^{n}$
 \end_inset
 
- can thus be considered a fixed-point of 
-\begin_inset Formula $\mathcal{P}^{1}$
-\end_inset
-
-, which we shall denote
-\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
-\end_inset
-
-.
- It is a simple inductive argument to show that, as required:
+ for later use...
 \end_layout
 
-\begin_layout Standard
-\begin_inset Formula \[
-\left[\forall s''\, s\leq s''\rightarrow\phi(s'')\vee\exists a,s'\, s<do(a,s')\leq s''\wedge\neg\alpha(a,s)\right]\,\equiv\,\mathcal{P}[\phi,\alpha]\]
-
+\begin_layout Lemma
+Given a basic action theory 
+\begin_inset Formula $\mathcal{D}$
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Given the definitions of 
-\begin_inset Formula $\mathcal{R}$
-\end_inset
-
- and 
-\begin_inset Formula $\mathcal{P}^{1}$
-\end_inset
-
-, the following algorithm will determine the persistence condition for a
- formula 
-\begin_inset Formula $\phi$
-\end_inset
-
- and class of actions 
+, action-indexed fluent 
 \begin_inset Formula $\alpha$
 \end_inset
 
+ and situation term 
+\begin_inset Formula $s$
+\end_inset
+
+, then for any 
+\begin_inset Formula $n$
+\end_inset
+
 :
+\begin_inset Formula \[
+\mathcal{D}\models\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s]\,\,\equiv\,\,\forall s'\, s\leq_{\alpha}s'\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
+
+\end_inset
+
+That is, 
+\begin_inset Formula $\phi$
+\end_inset
+
+ persists under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ precisely when 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\end_inset
+
+ persists under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Proof
+Trivial, from the definition of 
+\begin_inset Formula $\mathcal{P}^{n}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Definition
+The persistence condition 
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\end_inset
+
+ is the weakest precondition for the persistence of 
+\begin_inset Formula $\phi$
+\end_inset
+
+ under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+ That is:
+\end_layout
+
+\begin_layout Definition
+\begin_inset Formula \[
+\mathcal{D}\models\forall s\,\,\mathcal{P}[\phi,\alpha][s]\,\equiv\,\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Lemma
+Given a basic action theory 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+, then for any 
+\begin_inset Formula $n$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathcal{D}\models\forall s\,\,\mathcal{P}[\phi,\alpha][s]\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\end_inset
+
+ implies the persistence of 
+\begin_inset Formula $\phi$
+\end_inset
+
+ by definition, which in turn implies 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\end_inset
+
+ by Lemma TODO.
+\end_layout
+
+\begin_layout Theorem
+Given a basic action theory 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+ and action-indexed fluent 
+\begin_inset Formula $\alpha$
+\end_inset
+
+, then for any 
+\begin_inset Formula $n$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathcal{D}_{una}\models\forall s,a\,\mathcal{P}^{n}[\phi,\alpha][s]\wedge\alpha(a,s)\rightarrow\mathcal{R}[\mathcal{P}^{n}[\phi,\alpha][do(a,s)]]\]
+
+\end_inset
+
+iff
+\begin_inset Formula \[
+\mathcal{D}\models\forall s\,\,\mathcal{P}^{n}[\phi,\alpha][s]\equiv\mathcal{P}[\phi,\alpha][s]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+For the 
+\emph on
+if 
+\emph default
+direction, we see by Lemma TODO that TODO:first_bit implies the persistence
+ of 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\end_inset
+
+ under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+ By Lemma TODO this implies the persistence of 
+\begin_inset Formula $\phi$
+\end_inset
+
+ under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+, which in turn implies 
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\end_inset
+
+ by definition, giving 
+\begin_inset Formula $\mathcal{D}\models\forall s\,\,\mathcal{P}^{n}[\phi,\alpha][s]\rightarrow\mathcal{P}[\phi,\alpha][s]$
+\end_inset
+
+.
+ By Lemma TODO we have 
+\begin_inset Formula $\mathcal{D}\models\forall s\,\,\mathcal{P}[\phi,\alpha][s]\rightarrow\mathcal{P}^{n}[\phi,\alpha][s]$
+\end_inset
+
+, yielding the required equivlance.
+\end_layout
+
+\begin_layout Proof
+The 
+\emph on
+only if
+\emph default
+ direction is a straightforward reversal of this reasoning - 
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\end_inset
+
+ implies the persistence of 
+\begin_inset Formula $\phi$
+\end_inset
+
+, which implies the persistence of 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\end_inset
+
+, which implies TODO:first_bit by Lemma TODO.
+\end_layout
+
+\begin_layout Proof
+
+\end_layout
+
+\begin_layout Standard
+Since we can calculuate 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\end_inset
+
+ for any 
+\begin_inset Formula $n$
+\end_inset
+
+, we can develop a straightforward algorithm for determining 
+\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\end_inset
+
+: search for an 
+\begin_inset Formula $n$
+\end_inset
+
+ such that 
+\begin_inset Formula \[
+\mathcal{D}_{una}\models\forall s,a\,\mathcal{P}^{n}[\phi,\alpha][s]\wedge\alpha(a,s)\rightarrow\mathcal{R}[\mathcal{P}^{n}[\phi,\alpha][do(a,s)]]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Since we expect 
+\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\end_inset
+
+ to be simpler than 
+\begin_inset Formula $\mathcal{P}^{n+1}[\phi,\alpha]$
+\end_inset
+
+, we should look for the smallest such 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ Algorithm TODO presents just such a procedure.
 \end_layout
 
 \begin_layout Standard
 \begin_inset ERT
-status collapsed
+status open
 
 \begin_layout Standard
 
@@ -1159,9 +1471,7 @@ begin{algorithm}
 \backslash
 caption{Calculate $
 \backslash
-mathcal{P}_
-\backslash
-mathcal{D}[
+mathcal{P}[
 \backslash
 phi,
 \backslash
@@ -1179,26 +1489,9 @@ begin{algorithmic}
 
 
 \backslash
-STATE $p_n 
+STATE $n 
 \backslash
-Leftarrow 
-\backslash
-phi$
-\end_layout
-
-\begin_layout Standard
-
-
-\backslash
-STATE $p_{n+1} 
-\backslash
-Leftarrow 
-\backslash
-mathcal{P}^1[
-\backslash
-phi,
-\backslash
-alpha]$
+Leftarrow 0$
 \end_layout
 
 \begin_layout Standard
@@ -1216,31 +1509,63 @@ IF{$
 \backslash
 mathcal{D}_{una} 
 \backslash
-models p_n 
+models 
 \backslash
-rightarrow p_{n+1}$}
+forall s,a 
+\backslash
+mathcal{P}^n[
+\backslash
+phi
+\backslash
+alpha][s]
+\backslash
+wedge 
+\backslash
+alpha(a,s) 
+\backslash
+rightarrow 
+\backslash
+mathcal{R}[
+\backslash
+mathcal{P}^n[
+\backslash
+phi
+\backslash
+alpha][do(a,s)]]$}
 \end_layout
 
 \begin_layout Standard
 
-    
+     
 \backslash
-STATE return $p_n$
+STATE return $
+\backslash
+mathcal{P}^n[
+\backslash
+phi
+\backslash
+alpha]$
 \end_layout
 
 \begin_layout Standard
 
-  
+ 
 \backslash
 ELSIF{$
 \backslash
 mathcal{D}_{una} 
 \backslash
-models p_n 
+models 
 \backslash
-rightarrow 
+forall s 
 \backslash
-neg p_{n+1}$}
+neg 
+\backslash
+mathcal{P}^n[
+\backslash
+phi,
+\backslash
+alpha][s]$}
 \end_layout
 
 \begin_layout Standard
@@ -1261,24 +1586,9 @@ ENDIF
 
   
 \backslash
-STATE $p_n 
+STATE $n 
 \backslash
-Leftarrow p_{n+1}$
-\end_layout
-
-\begin_layout Standard
-
-  
-\backslash
-STATE $p_{n+1} 
-\backslash
-Leftarrow 
-\backslash
-mathcal{P}^1[
-\backslash
-phi,
-\backslash
-alpha]$
+Leftarrow n + 1$
 \end_layout
 
 \begin_layout Standard
@@ -1309,10 +1619,6 @@ end{algorithm}
 
 \begin_layout Section
 TODO
-\end_layout
-
-\begin_layout Standard
-
 \end_layout
 
 \begin_layout Standard
