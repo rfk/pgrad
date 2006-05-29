@@ -129,16 +129,14 @@ existential
 \end_layout
 
 \begin_layout Standard
-Unfortunately, there are many useful reasoning tasks that require 
+Unfortunately, there are many other useful reasoning tasks that require
+ 
 \emph on
 universal
 \emph default
  quantification over situations.
- For example, it is often useful to determine whether 
-\emph on
-any
-\emph default
- situation exists that satisfies a given goal.
+ For example, it is often useful to determine whether any situation exists
+ that satisfies a given goal.
  In this paper we are interested in a subset of such queries which we refer
  to as 
 \emph on
@@ -391,7 +389,18 @@ There is a distinguished fluent predicate
 
  that indicates when it is possible to perform an action in a given situation.
  For example, it is only possible to drop an object if one is actually holding
- it: 
+ it
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+We follow the convention that lower-case roman names represent variables,
+ with free variables implicitly universally quantified
+\end_layout
+
+\end_inset
+
+: 
 \begin_inset Formula \[
 Poss(drop(obj),s)\equiv Holding(obj,s)\]
 
@@ -577,11 +586,7 @@ for every acton-indexed fluent mentioned by the formula, its argument has
 \end_layout
 
 \begin_layout Standard
-TODO: explain why these are needed, briefly
-\end_layout
-
-\begin_layout Standard
-TODO: somewhere define ordering on situations
+TODO: explain why these are needed, briefly.
 \end_layout
 
 \begin_layout Subsubsection
@@ -656,7 +661,7 @@ To assist their work on state constraints in the situation calculus,
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{D}\models_{SOL}\forall s\,\phi[s]\,\,\, iff\,\,\,\mathcal{D}_{una}\models_{FOL}\forall s\,\phi[s]\]
+\mathcal{D}\models_{SOL}\,\phi[s]\,\,\, iff\,\,\,\mathcal{D}_{una}\models_{FOL}\,\phi[s]\]
 
 \end_inset
 
@@ -665,8 +670,8 @@ To assist their work on state constraints in the situation calculus,
 
 \begin_layout Standard
 This means such formulae are among the most straightforward to prove.
- We will use this result frequently to justify of our algorithm for the
- persistence condition operator.
+ We use this result to justify our algorithm for the persistence condition
+ operator.
 \end_layout
 
 \begin_layout Subsubsection
@@ -687,7 +692,7 @@ It is clear that situations form a tree structure, with
 \begin_inset Formula $\sqsubset$
 \end_inset
 
- and defined by the following axioms:
+ and defined by the following foundational axioms:
 \end_layout
 
 \begin_layout Standard
@@ -706,7 +711,7 @@ s\sqsubset do(a,s')\equiv s\sqsubseteq s'\]
 \end_layout
 
 \begin_layout Standard
-Where, naturally, 
+Where 
 \begin_inset Formula $s\sqsubseteq s'$
 \end_inset
 
@@ -716,7 +721,7 @@ Where, naturally,
 
 .
  It is frequently useful to restrict the situations under consideration
- to those that are possible in the real world, so it is customery to define
+ to those that are possible in the real world, so it is customary to define
  an ordering over executable situations:
 \begin_inset Formula \[
 \neg s<S_{0}\]
@@ -744,8 +749,8 @@ Many results of the situation calculus are derived relative to the executable
 \end_inset
 
 .
- This notation is so useful that we propose it be parameterised like so:
- suppose 
+ This notation is so useful that we propose a parameterization of it: suppose
+ 
 \begin_inset Formula $\alpha$
 \end_inset
 
@@ -779,7 +784,7 @@ s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s)\]
 \end_layout
 
 \begin_layout Standard
-Clearly the standard ordering over executable situations is 
+The standard ordering over executable situations is clearly 
 \begin_inset Formula $<_{Poss}$
 \end_inset
 
@@ -832,7 +837,7 @@ More generally, we way wish to limit the futures considered to those brought
 \begin_inset Formula $\alpha(a,s)$
 \end_inset
 
- is a formula that is true for precisely those actions 
+ is true for precisely those actions 
 \begin_inset Formula $a$
 \end_inset
 
@@ -991,6 +996,10 @@ In recent unpublished work, we develop a new account of knowledge in the
 TODO: put equation here.
 \end_layout
 
+\begin_layout Standard
+
+\end_layout
+
 \begin_layout Section
 Persistence Condition
 \begin_inset LatexCommand \label{sec:Persistence-Condition}
@@ -1004,11 +1013,7 @@ Persistence Condition
 For implementing practial agent systems, we need to replace quantification
  over situations with a more tractable form of reasoning - specifically,
  evaluation of a uniform formula at a specific situation.
- That is, we would like some syntactic transformation 
-\begin_inset Formula $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$
-\end_inset
-
- of a property 
+ We seek some syntactic transformation of a property 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1016,12 +1021,47 @@ For implementing practial agent systems, we need to replace quantification
 \begin_inset Formula $\alpha$
 \end_inset
 
- such that:
+ into a uniform formula 
+\begin_inset Formula $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$
+\end_inset
+
+ that is true at precisely the situations in which 
+\begin_inset Formula $\phi$
+\end_inset
+
+ persists under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
 \end_layout
 
-\begin_layout Standard
+\begin_layout Definition
+The persistence condition 
+\begin_inset Formula $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$
+\end_inset
+
+ is a uniform formula that is the weakest precondition for the persistence
+ of 
+\begin_inset Formula $\phi$
+\end_inset
+
+ under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+ That is:
+\begin_inset LatexCommand \label{def:persistence-condition}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Definition
 \begin_inset Formula \[
-\mathcal{D}\models\left[\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\right]\,\equiv\,\mathcal{P}_{\mathcal{D}}[\phi,\alpha][s]\]
+\mathcal{D}\models\mathcal{P_{D}}[\phi,\alpha][s]\,\equiv\,\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\]
 
 \end_inset
 
@@ -1029,37 +1069,44 @@ For implementing practial agent systems, we need to replace quantification
 \end_layout
 
 \begin_layout Standard
-We call 
+Intuitively, we approximate 
 \begin_inset Formula $\mathcal{P}[\phi,\alpha]$
 \end_inset
 
- the 
-\emph on
-persistence condition
-\emph default
- of formula 
+ by asserting that 
 \begin_inset Formula $\phi$
 \end_inset
 
- with respect to the class of actions 
-\begin_inset Formula $\alpha$
+ persists for all situations up to 
+\begin_inset Formula $n$
 \end_inset
 
-.
- The main purpose of this paper is to develop an algorithm that constructs
- the persistence condition for a given 
-\begin_inset Formula $\phi$
+ deep in the future of 
+\begin_inset Formula $s$
 \end_inset
 
- and 
-\begin_inset Formula $\alpha$
+, increasing 
+\begin_inset Formula $n$
 \end_inset
 
-.
+ until such an assertion becomes a consequence of the basic action theory.
 \end_layout
 
-\begin_layout Section
-Work in Progress
+\begin_layout Subsection
+Formal Development
+\end_layout
+
+\begin_layout Standard
+We begin by adapting two existing results involving induction to operate
+ with the generalised 
+\begin_inset Formula $<_{\alpha}$
+\end_inset
+
+ notation, and be based at situations other than 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+:
 \end_layout
 
 \begin_layout Proposition
@@ -1068,6 +1115,11 @@ For any action-indexed fluent
 \end_inset
 
 , the foundational axioms of the situation calculus entail:
+\begin_inset LatexCommand \label{prop:a-order-induction}
+
+\end_inset
+
+
 \begin_inset Formula \begin{multline*}
 \forall W,s\,\, W(s)\wedge\left[\forall a,s'\,\,\alpha(a,s')\wedge s\leq_{\alpha}s'\wedge W(s')\rightarrow W(do(a,s'))\right]\\
 \rightarrow\forall s'\,\, s\leq_{\alpha}s'\rightarrow W(s')\end{multline*}
@@ -1078,7 +1130,7 @@ For any action-indexed fluent
 \end_layout
 
 \begin_layout Proof
-A straightforward adaptation of the proof of Theorem 1 in 
+A straightforward adaptation of Theorem 1 in 
 \begin_inset LatexCommand \cite{Reiter93proving}
 
 \end_inset
@@ -1086,7 +1138,7 @@ A straightforward adaptation of the proof of Theorem 1 in
 .
 \end_layout
 
-\begin_layout Lemma
+\begin_layout Proposition
 For any basic action theory 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
@@ -1100,6 +1152,11 @@ For any basic action theory
 \end_inset
 
 :
+\begin_inset LatexCommand \label{prop:a-order-reduction}
+
+\end_inset
+
+
 \begin_inset Formula \[
 \mathcal{D}\models\forall s\,\,\phi[s]\rightarrow\left(\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\]
 
@@ -1115,12 +1172,63 @@ iff
 \end_layout
 
 \begin_layout Proof
-A straightforward adaptation of the proof of Lemma 5 in 
+A straightforward adaptation of Lemma 5 in 
 \begin_inset LatexCommand \cite{Lin94-StateConstraints}
 
 \end_inset
 
-, using proposition TODO for induction.
+.
+\end_layout
+
+\begin_layout Proof
+Proposition 
+\begin_inset LatexCommand \ref{prop:a-order-reduction}
+
+\end_inset
+
+ will be key in the development of our algorithm.
+ It allows one to establish the result 
+\begin_inset Quotes eld
+\end_inset
+
+if 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds in 
+\begin_inset Formula $s$
+\end_inset
+
+, then 
+\begin_inset Formula $\phi$
+\end_inset
+
+ persists in 
+\begin_inset Formula $s$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ by checking entailment of a uniform fomula by the unique names axioms,
+ a quite straightforward first-order reasoning task.
+\end_layout
+
+\begin_layout Proof
+Next, we must formally define the notion of a property 
+\begin_inset Quotes eld
+\end_inset
+
+persisting to depth 
+\begin_inset Formula $n$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+:
 \end_layout
 
 \begin_layout Definition
@@ -1128,16 +1236,8 @@ A uniform formula
 \begin_inset Formula $\phi$
 \end_inset
 
- 
-\begin_inset Quotes eld
-\end_inset
-
-persists to depth 1 under 
+ persists to depth 1 under 
 \begin_inset Formula $\alpha$
-\end_inset
-
-
-\begin_inset Quotes erd
 \end_inset
 
  in situation 
@@ -1145,7 +1245,7 @@ persists to depth 1 under
 \end_inset
 
  when the formula 
-\begin_inset Formula $\mathcal{P}^{1}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P}_{D}^{1}[\phi,\alpha]$
 \end_inset
 
  holds in 
@@ -1153,8 +1253,13 @@ persists to depth 1 under
 \end_inset
 
 , as defined by:
+\begin_inset LatexCommand \label{def:persists-depth-n}
+
+\end_inset
+
+
 \begin_inset Formula \[
-\mathcal{P}^{1}[\phi,\alpha][s]\isdef\phi[s]\,\wedge\,\forall a\,\alpha(a,s)\rightarrow\mathcal{R}[\phi[do(a,s)]]\]
+\mathcal{P}_{D}^{1}[\phi,\alpha][s]\isdef\phi[s]\,\wedge\,\forall a\,\alpha(a,s)\rightarrow\mathcal{R_{D}}[\phi[do(a,s)]]\]
 
 \end_inset
 
@@ -1162,7 +1267,11 @@ persists to depth 1 under
 \end_layout
 
 \begin_layout Definition
-A uniform formula 
+For any 
+\begin_inset Formula $n\geq0$
+\end_inset
+
+, a uniform formula 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1187,7 +1296,7 @@ persists to depth
 \end_inset
 
  when the formula 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
  holds in 
@@ -1196,19 +1305,26 @@ persists to depth
 
 , as defined by:
 \begin_inset Formula \[
-\mathcal{P}^{n}[\phi,\alpha]\isdef\mathcal{P}^{1}[\mathcal{P}^{n-1}[\phi,\alpha],\alpha]\]
+\mathcal{P_{D}}^{n}[\phi,\alpha]\isdef\mathcal{P_{D}}^{1}[\mathcal{P}_{D}^{n-1}[\phi,\alpha],\alpha]\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\mathcal{P_{D}}^{0}[\phi,\alpha]\isdef\phi\]
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Definition
-TODO: not sure this is the neatest definition, but we definitely want 
-\begin_inset Formula $\mathcal{P}^{n}$
+\begin_layout Standard
+Clearly persistence to depth 
+\begin_inset Formula $n$
 \end_inset
 
- for later use...
+ is closely related to persistence in general, as the following two lemmas
+ formalize.
 \end_layout
 
 \begin_layout Lemma
@@ -1229,8 +1345,13 @@ Given a basic action theory
 \end_inset
 
 :
+\begin_inset LatexCommand \label{lem:p-equiv-p(pn)}
+
+\end_inset
+
+
 \begin_inset Formula \[
-\mathcal{D}\models\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s]\,\,\equiv\,\,\forall s'\, s\leq_{\alpha}s'\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
+\mathcal{D}\models\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s]\,\,\equiv\,\,\forall s'\, s\leq_{\alpha}s'\rightarrow\mathcal{P}_{D}^{n}[\phi,\alpha]\]
 
 \end_inset
 
@@ -1243,7 +1364,7 @@ That is,
 \end_inset
 
  precisely when 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
  persists under 
@@ -1255,36 +1376,17 @@ That is,
 
 \begin_layout Proof
 Trivial, from the definition of 
-\begin_inset Formula $\mathcal{P}^{n}$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Definition
-The persistence condition 
-\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
-\end_inset
-
- is the weakest precondition for the persistence of 
-\begin_inset Formula $\phi$
-\end_inset
-
- under 
-\begin_inset Formula $\alpha$
+\begin_inset Formula $\mathcal{P}_{D}^{n}$
 \end_inset
 
 .
- That is:
-\end_layout
-
-\begin_layout Definition
-\begin_inset Formula \[
-\mathcal{D}\models\forall s\,\,\mathcal{P}[\phi,\alpha][s]\,\equiv\,\forall s'\, s\leq_{\alpha}s'\rightarrow\phi[s']\]
-
+ Note that any 
+\begin_inset Formula $s'$
 \end_inset
 
-
+ that falsifies the right-hand side of the equivalence will also falsify
+ the left-hand side.
+ 
 \end_layout
 
 \begin_layout Lemma
@@ -1297,8 +1399,13 @@ Given a basic action theory
 \end_inset
 
 :
+\begin_inset LatexCommand \label{lem:p-implies-pn}
+
+\end_inset
+
+
 \begin_inset Formula \[
-\mathcal{D}\models\forall s\,\,\mathcal{P}[\phi,\alpha][s]\rightarrow\mathcal{P}^{n}[\phi,\alpha]\]
+\mathcal{D}\models\forall s\,\,\mathcal{P_{D}}[\phi,\alpha][s]\rightarrow\mathcal{P_{D}}^{n}[\phi,\alpha][s]\]
 
 \end_inset
 
@@ -1306,18 +1413,43 @@ Given a basic action theory
 \end_layout
 
 \begin_layout Proof
-\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}[\phi,\alpha]$
 \end_inset
 
  implies the persistence of 
 \begin_inset Formula $\phi$
 \end_inset
 
- by definition, which in turn implies 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+ by definition, which implies 
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
- by Lemma TODO.
+ by lemma 
+\begin_inset LatexCommand \ref{lem:p-equiv-p(pn)}
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Proof
+We are now equipped to prove the major theorem of this paper: that if 
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
+\end_inset
+
+ will always persist when it holds, then 
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
+\end_inset
+
+ is equivalent to the persistence condition for 
+\begin_inset Formula $\phi$
+\end_inset
+
+ under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Theorem
@@ -1334,14 +1466,19 @@ Given a basic action theory
 \end_inset
 
 :
+\begin_inset LatexCommand \label{thm:p(pn)-equiv-p}
+
+\end_inset
+
+
 \begin_inset Formula \[
-\mathcal{D}_{una}\models\forall s,a\,\mathcal{P}^{n}[\phi,\alpha][s]\wedge\alpha(a,s)\rightarrow\mathcal{R}[\mathcal{P}^{n}[\phi,\alpha][do(a,s)]]\]
+\mathcal{D}_{una}\models\forall s,a\,\mathcal{P_{D}}^{n}[\phi,\alpha][s]\wedge\alpha(a,s)\rightarrow\mathcal{R}[\mathcal{P_{D}}^{n}[\phi,\alpha][do(a,s)]]\]
 
 \end_inset
 
 iff
 \begin_inset Formula \[
-\mathcal{D}\models\forall s\,\,\mathcal{P}^{n}[\phi,\alpha][s]\equiv\mathcal{P}[\phi,\alpha][s]\]
+\mathcal{D}\models\forall s\,\,\mathcal{P_{D}}^{n}[\phi,\alpha][s]\equiv\mathcal{P_{D}}[\phi,\alpha][s]\]
 
 \end_inset
 
@@ -1353,9 +1490,13 @@ For the
 \emph on
 if 
 \emph default
-direction, we see by Lemma TODO that TODO:first_bit implies the persistence
- of 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+direction, we see by proposition 
+\begin_inset LatexCommand \ref{prop:a-order-reduction}
+
+\end_inset
+
+ that equation TODO:first_bit implies the persistence of 
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
  under 
@@ -1363,7 +1504,12 @@ direction, we see by Lemma TODO that TODO:first_bit implies the persistence
 \end_inset
 
 .
- By Lemma TODO this implies the persistence of 
+ By lemma 
+\begin_inset LatexCommand \ref{lem:p-equiv-p(pn)}
+
+\end_inset
+
+ this implies the persistence of 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1372,19 +1518,24 @@ direction, we see by Lemma TODO that TODO:first_bit implies the persistence
 \end_inset
 
 , which in turn implies 
-\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}[\phi,\alpha]$
 \end_inset
 
  by definition, giving 
-\begin_inset Formula $\mathcal{D}\models\forall s\,\,\mathcal{P}^{n}[\phi,\alpha][s]\rightarrow\mathcal{P}[\phi,\alpha][s]$
+\begin_inset Formula $\mathcal{D}\models\forall s\,\,\mathcal{P_{D}}^{n}[\phi,\alpha][s]\rightarrow\mathcal{P_{D}}[\phi,\alpha][s]$
 \end_inset
 
 .
- By Lemma TODO we have 
-\begin_inset Formula $\mathcal{D}\models\forall s\,\,\mathcal{P}[\phi,\alpha][s]\rightarrow\mathcal{P}^{n}[\phi,\alpha][s]$
+ By lemma 
+\begin_inset LatexCommand \ref{lem:p-implies-pn}
+
 \end_inset
 
-, yielding the required equivlance.
+ we have 
+\begin_inset Formula $\mathcal{D}\models\forall s\,\,\mathcal{P_{D}}[\phi,\alpha][s]\rightarrow\mathcal{P_{D}}^{n}[\phi,\alpha][s]$
+\end_inset
+
+, yielding the required equivlance in equation TODO:second_bit.
 \end_layout
 
 \begin_layout Proof
@@ -1392,8 +1543,8 @@ The
 \emph on
 only if
 \emph default
- direction is a straightforward reversal of this reasoning - 
-\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+ direction is a straightforward reversal of this reasoning: 
+\begin_inset Formula $\mathcal{P_{D}}[\phi,\alpha]$
 \end_inset
 
  implies the persistence of 
@@ -1401,27 +1552,32 @@ only if
 \end_inset
 
 , which implies the persistence of 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
-, which implies TODO:first_bit by Lemma TODO.
+, which implies TODO:first_bit by proposition 
+\begin_inset LatexCommand \ref{prop:a-order-reduction}
+
+\end_inset
+
+.
 \end_layout
 
-\begin_layout Proof
-
+\begin_layout Subsection
+Algorithm Determining the Persistence Condition
 \end_layout
 
 \begin_layout Standard
 Since we can calculuate 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
  for any 
 \begin_inset Formula $n$
 \end_inset
 
-, we can develop a straightforward algorithm for determining 
-\begin_inset Formula $\mathcal{P}[\phi,\alpha]$
+, we have a straightforward algorithm for determining 
+\begin_inset Formula $\mathcal{P_{D}}[\phi,\alpha]$
 \end_inset
 
 : search for an 
@@ -1430,20 +1586,20 @@ Since we can calculuate
 
  such that 
 \begin_inset Formula \[
-\mathcal{D}_{una}\models\forall s,a\,\mathcal{P}^{n}[\phi,\alpha][s]\wedge\alpha(a,s)\rightarrow\mathcal{R}[\mathcal{P}^{n}[\phi,\alpha][do(a,s)]]\]
+\mathcal{D}_{una}\models\forall s,a\,\mathcal{P_{D}}^{n}[\phi,\alpha][s]\wedge\alpha(a,s)\rightarrow\mathcal{R_{D}}[\mathcal{P_{D}}^{n}[\phi,\alpha][do(a,s)]]\]
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Proof
+\begin_layout Standard
 Since we expect 
-\begin_inset Formula $\mathcal{P}^{n}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
 \end_inset
 
  to be simpler than 
-\begin_inset Formula $\mathcal{P}^{n+1}[\phi,\alpha]$
+\begin_inset Formula $\mathcal{P_{D}}^{n+1}[\phi,\alpha]$
 \end_inset
 
 , we should look for the smallest such 
@@ -1451,12 +1607,17 @@ Since we expect
 \end_inset
 
 .
- Algorithm TODO presents just such a procedure.
+ Algorithm 
+\begin_inset LatexCommand \ref{alg:calc_p}
+
+\end_inset
+
+ presents an iterative procedure for doing just that.
 \end_layout
 
 \begin_layout Standard
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -1476,6 +1637,13 @@ mathcal{P}[
 phi,
 \backslash
 alpha]$}
+\end_layout
+
+\begin_layout Standard
+
+
+\backslash
+label{alg:calc_p}
 \end_layout
 
 \begin_layout Standard
@@ -1549,30 +1717,6 @@ alpha]$
 
 \begin_layout Standard
 
- 
-\backslash
-ELSIF{$
-\backslash
-mathcal{D}_{una} 
-\backslash
-models 
-\backslash
-forall s 
-\backslash
-neg 
-\backslash
-mathcal{P}^n[
-\backslash
-phi,
-\backslash
-alpha][s]$}
-\end_layout
-
-\begin_layout Standard
-
-    
-\backslash
-STATE return $false$
 \end_layout
 
 \begin_layout Standard
@@ -1617,6 +1761,336 @@ end{algorithm}
 
 \end_layout
 
+\begin_layout Subsubsection
+Correctness
+\end_layout
+
+\begin_layout Standard
+If algorithm 
+\begin_inset LatexCommand \ref{alg:calc_p}
+
+\end_inset
+
+ terminates, it terminates returning the persistence condition of 
+\begin_inset Formula $\phi$
+\end_inset
+
+ with respect to 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+ This correctness is guaranteed by theorem 
+\begin_inset LatexCommand \ref{thm:p(pn)-equiv-p}
+
+\end_inset
+
+ and the fact the the algorithm only terminates for an 
+\begin_inset Formula $n$
+\end_inset
+
+ where equation TODO:first_bit is valid.
+\end_layout
+
+\begin_layout Standard
+Note that equation TODO:first_bit is valid when 
+\begin_inset Formula $\mathcal{P_{D}}^{n}[\phi,\alpha]$
+\end_inset
+
+ is unsatisfiable for any situation, as it appears in the antecedent of
+ the implication.
+ The algorithm thus correctly returns an unsatisfiable condition (equivalent
+ to 
+\begin_inset Formula $false$
+\end_inset
+
+) when the formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ can never persist under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Completeness
+\end_layout
+
+\begin_layout Standard
+As theorem 
+\begin_inset LatexCommand \ref{thm:p(pn)-equiv-p}
+
+\end_inset
+
+ is an equivalence, the only source of incompleteness will be failure to
+ terminate.
+ Algorithm 
+\begin_inset LatexCommand \ref{alg:calc_p}
+
+\end_inset
+
+ may fail to terminate for two reasons: the return condition may never be
+ satisfied and so the algorithm may loop forever, or the first-order logical
+ inference in the loop condition may be undecidable and fail to terminate.
+\end_layout
+
+\begin_layout Standard
+The later indicates that the basic action theory 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+ is undecidable.
+ While this is a concern, it affects more than just our algorithm - any
+ system implemented on top of such an action theory maybe incomplete.
+ Thus, with respect to this feature, our algorithm is no more incomplete
+ than the larger system it would form a part of.
+\end_layout
+
+\begin_layout Standard
+The former is of more direct consequence to our work: for a decidable action
+ theory, when can the loop condition be guaranteed to be met? Or, in other
+ words, when can we guarantee that persistence can be verified at finite
+ depth?
+\end_layout
+
+\begin_layout Standard
+TODO: so, when can it? Come up with something convincing.
+\end_layout
+
+\begin_layout Subsubsection
+Efficiency
+\end_layout
+
+\begin_layout Standard
+Our algorithm has replaced a single reasoning task based on the full action
+ theory 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+ with a (potentially large) number of reasoning tasks based on the unique
+ names axioms 
+\begin_inset Formula $\mathcal{D}_{una}$
+\end_inset
+
+.
+ We believe the increased number of reasoning tasks is offset by several
+ clear increases in efficiency.
+\end_layout
+
+\begin_layout Standard
+First and foremost, we avoid the need for the second-order induction axiom.
+ All the reasoning tasks can be performed using standard first-order reasoning,
+ for which there are many high-quality automated proovers.
+ In addition, we have greatly reduced the number of axioms required for
+ the reasoning task.
+ Similarly to the regression operator, we have removed the need for the
+ foundational axioms, successor state axioms and possibility axioms by compiling
+ their effects into the formula under consideration.
+ 
+\end_layout
+
+\begin_layout Standard
+Of course, we also inherit the potential disadvantage of the regression
+ operator: the formula 
+\begin_inset Formula $\mathcal{P_{D}}[\phi,\alpha]$
+\end_inset
+
+ may be exponential in the length of 
+\begin_inset Formula $\phi$
+\end_inset
+
+.
+ As with regression, our experience has been that this is rarely a problem,
+ and is compensated for by the reduced number of axioms required for reasoning.
+ Unlike regression, this tradeoff is improved even more by the transition
+ from second-order to first-order logic.
+\end_layout
+
+\begin_layout Subsection
+Applications
+\end_layout
+
+\begin_layout Paragraph
+Goal Impossibility:
+\end_layout
+
+\begin_layout Standard
+Given a goal 
+\begin_inset Formula $G$
+\end_inset
+
+, establish that there is no possible situation in which that goal is satisfied:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathcal{D}\models\mathcal{P_{D}}[\neg G,Poss][S_{0}]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The persistence condition of 
+\begin_inset Formula $\neg G$
+\end_inset
+
+ with respect to all possible situations allows goal impossibility to be
+ checked easily.
+\end_layout
+
+\begin_layout Paragraph
+Goal Futility:
+\end_layout
+
+\begin_layout Standard
+Given a goal 
+\begin_inset Formula $G$
+\end_inset
+
+ and situation 
+\begin_inset Formula $s$
+\end_inset
+
+, establish that the goal cannot be satisfied in any possible situation
+ in the future of 
+\begin_inset Formula $s$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathcal{D}\models\mathcal{P_{D}}[\neg G,Poss][s]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Precisely the same formula is required for checking goal impossibility and
+ goal futility.
+ This highlights an important advantage of our approach - the persistence
+ condition can be cached and re-used.
+ This would make it feasible for an agent to check for goal futility each
+ time it considers performing an action, and avoid situations that would
+ make its goals unachievable.
+ 
+\end_layout
+
+\begin_layout Paragraph
+Checking State Constraints:
+\end_layout
+
+\begin_layout Standard
+This can be handled as per goal impossibility above.
+\end_layout
+
+\begin_layout Paragraph
+Need for Cooperation:
+\end_layout
+
+\begin_layout Standard
+To establish that it needs to cooperate with another agent, an agent must
+ determine persistence with respect to actions performed by itself:
+\begin_inset Formula \begin{multline}
+\mathcal{D}\models\mathcal{P_{D}}[\neg G,agent()=agt][s]\end{multline}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Knowledge under Partial Observability:
+\end_layout
+
+\begin_layout Standard
+TODO: put equation here.
+\end_layout
+
+\begin_layout Section
+Related Work
+\end_layout
+
+\begin_layout Standard
+While there is a rich and diverse literature base on the situation calculus,
+ there appears to have been little work on automating universally quantified
+ queries.
+ That which we are aware of focusses exclusively on verifying pre-existing
+ integrity constraints - uniform formulae that must hold in every possible
+ situation.
+ 
+\begin_inset LatexCommand \cite{Lin94-StateConstraints}
+
+\end_inset
+
+ show how the induction axiom can be 
+\begin_inset Quotes eld
+\end_inset
+
+compiled away
+\begin_inset Quotes erd
+\end_inset
+
+ when verifying that an integrity constraint holds, with the development
+ of (a less general form of) proposition 
+\begin_inset LatexCommand \ref{prop:a-order-reduction}
+
+\end_inset
+
+.
+ 
+\begin_inset LatexCommand \cite{bertossi96automating}
+
+\end_inset
+
+ describe an automated system for checking integrity constraints based on
+ an induction theorem prover.
+\end_layout
+
+\begin_layout Standard
+Our approach generalises such work in several important ways.
+ It can consider an arbitrary 
+\begin_inset Formula $\alpha$
+\end_inset
+
+-ordering over situations, not just the standard ordering over possibility,
+ enabling us to treat problems such as need for cooperation and knowledge
+ under partial observability.
+ It can prove that properties hold in the future of an arbitrary situation,
+ not necessary the initial situation, enabling us to answer the question
+ of goal futility.
+ And the results of calculating the persistence condition can be cached
+ for later re-use - this allows, for example, the goal futility question
+ to be efficiently posed on a large number of situations once the persistence
+ condition has been calculated.
+\end_layout
+
+\begin_layout Standard
+Another advantage of the persistence condition approach is its similarity
+ to the regression operator, an established technique for reasoning in the
+ situation calculus.
+ The two operators can interact very successfully.
+ In [TODO:cite ourselves] we use the persistence condition operator to define
+ regression over an account of knowledge that requires universal quantification
+ over situations.
+\end_layout
+
+\begin_layout Section
+Conclusions
+\end_layout
+
+\begin_layout Standard
+TODO: we've done good work, very useful, blah blah blah blah
+\end_layout
+
 \begin_layout Section
 TODO
 \end_layout
@@ -1624,15 +2098,6 @@ TODO
 \begin_layout Standard
 Formal assumption to make this workable: finite number of action types?
  fluents affected by finite number of actions?
-\end_layout
-
-\begin_layout Standard
-Reference 
-\begin_inset LatexCommand \cite{bertossi96automating}
-
-\end_inset
-
- in related work
 \end_layout
 
 \begin_layout Standard
