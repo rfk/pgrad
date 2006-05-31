@@ -19,31 +19,36 @@
 :- op(400,xfy,&).
 :- op(500,xfy,v).
 
-:- discontiguous eps_p/3, eps_n/3.
+:- discontiguous eps_pd/3, eps_nd/3.
+
+%% NOT WORKING ALL OF A SUDDEN, I THINK IT'S THE USE OF THE FRINGE...
+
+calc_p1(P,P1) :-
+    ( setof(Cn,(eps_n(P,_,Cn1), Cn = ~Cn1),Cns) ->
+        joinlist(&,Cns,P1tmp),
+        simplify(P1tmp,P1)
+    ;
+        P1=true
+    ).
+
+calc_p(P,PC) :-
+    calc_p1(P,F),
+    calc_p_aux(P,F,PC).
+
+calc_p_aux(P,F,PC) :-
+    ( consequence(P,F) ->
+        ( consequence(P,false) ->
+            PC = false
+        ;
+            PC=P
+        )
+    ;
+        calc_p1(F,F1),
+        calc_p_aux(P & F,F1,PC)
+    ).
 
 
-to_leancop_form(P & Q,C) :-
-    to_leancop_form(P,PC),
-    to_leancop_form(Q,QC),
-    C = ','(PC,QC), !.
-to_leancop_form(P v Q,C) :-
-    to_leancop_form(P,PC),
-    to_leancop_form(Q,QC),
-    C = ';'(PC,QC), !.
-to_leancop_form(all(X,P),C) :-
-    to_leancop_form(P,P2),
-    subs(X,X1,P2,PC),
-    C = all(X1:PC), !.
-to_leancop_form(ex(X,P),C) :-
-    to_leancop_form(P,P2),
-    subs(X,X1,P2,PC),
-    C = ex(X1:PC), !.
-to_leancop_form(~P,C) :-
-    to_leancop_form(P,PC),
-    C = ~PC, !.
-to_leancop_form(P,P).
-
-simplify(P & Q,S) :-
+simplify((P,Q),S) :-
     simplify(P,SP),
     simplify(Q,SQ),
     (
@@ -57,9 +62,9 @@ simplify(P & Q,S) :-
     ;
         ground(SP), ground(SQ), SP=SQ, S=SP
     ;
-        S=SP & SQ
+        S=(SP,SQ)
     ), !.
-simplify(P v Q,S) :-
+simplify((P;Q),S) :-
     simplify(P,SP),
     simplify(Q,SQ),
     (
@@ -73,7 +78,7 @@ simplify(P v Q,S) :-
     ;
         ground(SP), ground(SQ), SP=SQ, S=SP
     ;
-        S=SP v SQ
+        S=(SP;SQ)
     ), !.
 simplify(~P,S) :-
     simplify(P,SP),
@@ -86,58 +91,32 @@ simplify(~P,S) :-
     ;
         S = ~SP
     ), !.
-simplify(all(X,P),S) :-
+simplify(all(X:P),S) :-
     simplify(P,SP),
     (
         SP=false, S=false
     ;
         SP=true, S=true
     ;
-        S=all(X,SP)
+        S=all(X:SP)
     ), !.
-simplify(ex(X,P),S) :-
+simplify(ex(X:P),S) :-
     simplify(P,SP),
     (
         SP=false, S=false
     ;
         SP=true, S=true
     ;
-        S=ex(X,SP)
+        S=ex(X:SP)
     ), !.
 simplify(P,P).
 
+
 consequence(P1,P2) :-
-    Fml = ~(true & ~false & P1) v P2,
-    to_leancop_form(Fml,C),
-    make_matrix(C,M),
+    Fml = (~(true , ~false , P1) ; P2),
+    make_matrix(Fml,M),
     prove(M).
 
-
-find_pcond([Qold|T],Q) :-
-    length(T,Len), Len < 10,
-    pcond_t(Qold,Qnew),
-    write(Len), write(' :: '), write(Qnew), nl,
-    (consequence(Qold,Qnew) ->
-        joinlist(&,[Qold|T],Q)
-    ; consequence(Qold,~Qnew) ->
-        Q=false
-    ;
-        find_pcond([Qnew,Qold|T],Q)
-    ).
-find_pcond(P,Q) :-
-    find_pcond([P],Q).
-    
-
-subs(_,_,T,Tr) :-
-    var(T), Tr = T.
-subs(X,Y,T,Tr) :-
-    \+ var(T), T = X, Tr = Y.
-subs(X,Y,T,Tr) :-
-    T \= X, T =.. [F|Ts], sub_list(X,Y,Ts,Trs), Tr =.. [F|Trs].
-
-sub_list(_,_,[],[]).
-sub_list(X,Y,[T|Ts],[Tr|Trs]) :-
-    subs(X,Y,T,Tr), sub_list(X,Y,Ts,Trs).
 
 joinlist(_,[H],H).
 joinlist(O,[H|T],J) :-
@@ -145,140 +124,125 @@ joinlist(O,[H|T],J) :-
     joinlist(O,T,TJ),
     J =.. [O,H,TJ].
 
-pcond_t(P,Q) :-
-    findall(Qt,A^pcond_t1(P,A,Qt),Qts),
-    (
-      Qts=[], Qtmp=true
-    ;
-      joinlist(&,Qts,Qp), Qtmp=Qp
-    ),
-    simplify(Qtmp,Q).
-
-pcond_t(P,0,P).
-pcond_t(P,N,Q) :-
-     N > 0,
-     N2 is N - 1,
-     pcond_t(P,N2,Q2),
-     pcond_t(Q2,Q).
-    
-% TODO: this doesnt handle quantification properly
-%       Because the action appears outside quantifier scope.
-%       need to rethink this a little for quantification
-pcond_t1(P,A,Q) :-
-    eps_n(P,A,QP),
-    poss(A,QA),
-    Qt = ~QA v ~QP,
-    simplify(Qt,Q).
-
-affected(P,A) :-
-    eps_p(P,A,_) ; eps_n(P,A,_).
 
 eps_p(P,A,E) :-
     setof(Et,eps_p1(P,A,Et),Ets),
-    joinlist(v,Ets,E).
+    joinlist(v,Ets,Etmp),
+    simplify(Etmp,E).
+
 eps_n(P,A,E) :-
     setof(Et,eps_n1(P,A,Et),Ets),
-    joinlist(v,Ets,E).
+    joinlist(v,Ets,Etmp),
+    simplify(Etmp,E).
 
-eps_p1(P & Q,A,E) :-
+eps_p1((P,Q),A,E) :-
     eps_p(P,A,EP),
     eps_p(Q,A,EQ),
-    E = EP & EQ.
-eps_p1(P & Q,A,E) :-
+    E = (EP,EQ).
+eps_p1((P,Q),A,E) :-
     eps_p(P,A,EP),
     eps_n(Q,A,EQn),
-    E = EP & Q & ~EQn.
-eps_p1(P & Q,A,E) :-
+    E = (EP,Q,~EQn).
+eps_p1((P,Q),A,E) :-
     eps_n(P,A,EPn),
     eps_p(Q,A,EQ),
-    E = P & ~EPn & EQ.
-eps_p1(P & Q,A,E) :-
+    E = (P,~EPn,EQ).
+eps_p1((P,Q),A,E) :-
     eps_p(P,A,EP),
     \+ eps_n(Q,A,_),
-    E = EP & Q.
-eps_p1(P & Q,A,E) :-
+    E = (EP,Q).
+eps_p1((P,Q),A,E) :-
     eps_p(Q,A,EQ),
     \+ eps_n(P,A,_),
-    E = P & EQ.
+    E = (P,EQ).
 
-eps_p1(P v _,A,E) :-
+eps_p1((P;_),A,E) :-
     eps_p(P,A,E).
-eps_p1(_ v Q,A,E) :-
+eps_p1((_;Q),A,E) :-
     eps_p(Q,A,E).
 
 eps_p1(~P,A,E) :-
     eps_n(P,A,E).
 
-eps_p1(all(X,P),A,E) :-
+eps_p1(all(X:P),A,E) :-
     eps_p(P,A,EP),
     eps_n(P,A,EPn),
-    E = all(X,(P & ~EPn) v EP).
-eps_p1(all(X,P),A,E) :-
+    E = all(X:((P,~EPn);EP)).
+eps_p1(all(X:P),A,E) :-
     eps_p(P,A,EP),
     \+ eps_n(P,A,_),
-    E = all(X,P v EP).
+    E = all(X:(P;EP)).
 
-eps_p1(ex(X,P),A,E) :-
+eps_p1(ex(X:P),A,E) :-
     eps_p(P,A,EP),
-    E = ex(X,EP).
+    E = ex(X:EP).
+
+eps_p1(P,A,E) :-
+    eps_pd(P,A,Et),
+    alpha(A,Ea),
+    E = (Ea,Et).
 
 
-eps_n1(P & _,A,E) :-
+eps_n1((P,_),A,E) :-
     eps_n(P,A,E).
-eps_n1(_ & Q,A,E) :-
+eps_n1((_,Q),A,E) :-
     eps_n(Q,A,E).
 
-eps_n1(P v Q,A,E) :-
+eps_n1((P;Q),A,E) :-
     eps_n(P,A,EP),
     eps_n(Q,A,EQ),
-    E = EP & EQ.
-eps_n1(P v Q,A,E) :-
+    E = (EP,EQ).
+eps_n1((P;Q),A,E) :-
     eps_n(P,A,EP),
     eps_p(Q,A,EQp),
-    E = EP & ~Q & ~EQp.
-eps_n1(P v Q,A,E) :-
+    E = (EP,~Q,~EQp).
+eps_n1((P;Q),A,E) :-
     eps_p(P,A,EPp),
     eps_n(Q,A,EQ),
-    E = ~P & ~EPp & EQ.
-eps_n1(P v Q,A,E) :-
+    E = (~P,~EPp,EQ).
+eps_n1((P;Q),A,E) :-
     eps_n(P,A,EP),
     \+ eps_p(Q,A,_),
-    E = EP & ~Q.
-eps_n1(P & Q,A,E) :-
+    E = (EP,~Q).
+eps_n1((P;Q),A,E) :-
     eps_n(Q,A,EQ),
     \+ eps_p(P,A,_),
-    E = ~P & EQ.
+    E = (~P,EQ).
 
 eps_n1(~P,A,E) :-
     eps_p(P,A,E).
 
-eps_n1(all(X,P),A,E) :-
+eps_n1(all(X:P),A,E) :-
     eps_n(P,A,EP),
-    E = ex(X,EP).
+    E = ex(X:EP).
 
-eps_n1(ex(X,P),A,E) :-
+eps_n1(ex(X:P),A,E) :-
     eps_n(P,A,EP),
     eps_p(P,A,EPp),
-    E = all(X,(~P & ~EPp) v EP).
-eps_n1(ex(X,P),A,E) :-
+    E = all(X:((~P , ~EPp) ; EP)).
+eps_n1(ex(X:P),A,E) :-
     eps_n(P,A,EP),
     \+ eps_p(P,A,_),
-    E = all(X,~P v EP).
+    E = all(X:(~P , EP)).
 
+eps_n1(P,A,E) :-
+    eps_nd(P,A,Et),
+    alpha(A,Ea),
+    E = (Ea , Et).
 
 
 %%%%%%%%%%%%%%%%%
 
 
-eps_p(broken(X),drop(X),fragile(X)).
-eps_n(broken(X),repair(X),true).
+eps_pd(broken(X),drop(X),fragile(X)).
+eps_nd(broken(X),repair(X),true).
 
-eps_p(holding(X),pickup(X),true).
-eps_n(holding(X),drop(X),true).
-eps_n(holding(X),putdown(X),true).
+eps_pd(holding(X),pickup(X),true).
+eps_nd(holding(X),drop(X),true).
+eps_nd(holding(X),putdown(X),true).
 
-poss(drop(X),holding(X)).
-poss(pickup(_),true).
-poss(putdown(X),holding(X)).
-poss(repair(X),holding(X) & hasglue).
+alpha(drop(X),holding(X)).
+alpha(pickup(_),true).
+alpha(putdown(X),holding(X)).
+alpha(repair(X),(holding(X) , hasglue)).
 
