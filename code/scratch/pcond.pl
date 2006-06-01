@@ -21,11 +21,9 @@
 
 :- discontiguous eps_pd/3, eps_nd/3.
 
-%% NOT WORKING ALL OF A SUDDEN, I THINK IT'S THE USE OF THE FRINGE...
-
 calc_p1(P,P1) :-
-    ( setof(Cn,(eps_n(P,_,Cn1), Cn = ~Cn1),Cns) ->
-        joinlist(&,Cns,P1tmp),
+    ( setof(Cn,A^Cn1^(eps_n(P,A,Cn1), Cn = ~Cn1),Cns) ->
+        joinlist((,),Cns,P1tmp),
         simplify(P1tmp,P1)
     ;
         P1=true
@@ -44,7 +42,7 @@ calc_p_aux(P,F,PC) :-
         )
     ;
         calc_p1(F,F1),
-        calc_p_aux(P & F,F1,PC)
+        calc_p_aux((P,F),F1,PC)
     ).
 
 
@@ -113,7 +111,7 @@ simplify(P,P).
 
 
 consequence(P1,P2) :-
-    Fml = (~(true , ~false , P1) ; P2),
+    Fml = ((true , ~false , P1) => P2),
     make_matrix(Fml,M),
     prove(M).
 
