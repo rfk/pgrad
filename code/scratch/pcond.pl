@@ -15,16 +15,16 @@
 %  point for this function based on A, P(A) can be determined.
 %
 
-:- op(300,fx,~).
-:- op(400,xfy,&).
-:- op(500,xfy,v).
+:- [leancop_swi].
+:- [nnf_mm].
 
 :- discontiguous eps_pd/3, eps_nd/3.
 
 calc_p1(P,P1) :-
     ( setof(Cn,A^Cn1^(eps_n(P,A,Cn1), Cn = ~Cn1),Cns) ->
         joinlist((,),Cns,P1tmp),
-        simplify(P1tmp,P1)
+        simplify(P1tmp,P1t),
+        copy_term(P1t,P1)
     ;
         P1=true
     ).
@@ -112,8 +112,7 @@ simplify(P,P).
 
 consequence(P1,P2) :-
     Fml = ((true , ~false , P1) => P2),
-    make_matrix(Fml,M),
-    prove(M).
+    prove(Fml).
 
 
 joinlist(_,[H],H).
@@ -125,12 +124,12 @@ joinlist(O,[H|T],J) :-
 
 eps_p(P,A,E) :-
     setof(Et,eps_p1(P,A,Et),Ets),
-    joinlist(v,Ets,Etmp),
+    joinlist((;),Ets,Etmp),
     simplify(Etmp,E).
 
 eps_n(P,A,E) :-
     setof(Et,eps_n1(P,A,Et),Ets),
-    joinlist(v,Ets,Etmp),
+    joinlist((;),Ets,Etmp),
     simplify(Etmp,E).
 
 eps_p1((P,Q),A,E) :-
