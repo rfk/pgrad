@@ -27,7 +27,8 @@ prove(Mat,PathLim) :-
      prove([!],[[-!|Cla]|Mat1],[],PathLim).
 
 prove(Mat,PathLim) :-
-     \+ground(Mat), PathLim1 is PathLim+1, prove(Mat,PathLim1).
+     % Modified by rfk: set a maximum pathlimit of 10
+     \+ground(Mat), PathLim < 10, PathLim1 is PathLim+1, prove(Mat,PathLim1).
 
 prove([],_,_,_).
 
