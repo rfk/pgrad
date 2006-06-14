@@ -53,21 +53,12 @@ Knowledge and Observations in the Situation Calculus
 \end_layout
 
 \begin_layout Author
-Ryan F.
- Kelly and Adrian R.
- Pearce
+Content Areas:
 \newline
-NICTA Victoria Laboratory
+Knowledge Representation and Reasoning/Autonomous Agents
 \newline
- Department of Computer Science and Software
- Engineering
-\newline
- The University of Melbourne
-\newline
- Victoria, 3010, Australia
-\newline
- {rfk,adrian}@
-csse.unimelb.edu.au
+Planning
+ and Scheduling/Reasoning about Actions and Change
 \end_layout
 
 \begin_layout Abstract
@@ -76,16 +67,20 @@ We develop a new semantics for knowledge in the situation calculus by reifying
  Our approach is strictly more general than previous formalisms, and can
  easily model agents who monitor the value of fluents in their environment.
  We develop a technique for effective reasoning in this formalism using
- an extended regression operator that facilitates quantification over situations
-, and show how it allows agents to reason from their internal history of
- observations rather than requiring a full history of the world.
- This makes the situation calculus more suitable for implementation in complex
+ an extended regression operator that facilitates quantification over situations.
+ This technique also allows agents to reason from their internal history
+ of observations, rather than requiring a full history of the world.
+ This makes the situation calculus more suitable for implementing complex
  real-world systems.
  
 \end_layout
 
 \begin_layout Standard
 
+\end_layout
+
+\begin_layout Section*
+Content Areas
 \end_layout
 
 \begin_layout Section
@@ -127,39 +122,51 @@ A common assumption when working with knowledge in the situation calculus
 \end_inset
 
 .
+ However, neither approach accounts for knowledge with 
+\emph on
+partial 
+\emph default
+awareness of actions - for example, agents who are only aware of actions
+ performed within their own field of view, or by agents on their own team.
+ 
 \end_layout
 
 \begin_layout Standard
-Both of these assumptions are unrealistic in many domains.
- To overcome this, we reify (that is, treat as concrete objects in the logic)
- the notion of 
+To overcome this limitation, we reify (that is, treat as concrete objects
+ in the logic) the notion of 
 \emph on
 observations
 \emph default
- and axiomatize the conditions under which an agent will observe the occurrence
+ and use the predicate 
+\begin_inset Formula $CanObs(agt,a,s)$
+\end_inset
+
+ to axiomatize the conditions under which an agent will observe the occurrence
  of an action.
  By ensuring that agents consider possible any situation compatible with
  what they have observed, we develop an improved account of knowledge that
  spans the two extremes.
-\end_layout
-
-\begin_layout Standard
-We introduce the predicate 
-\begin_inset Formula $CanObs(agt,a,s)$
-\end_inset
-
- to indicate when an agent would be aware of an action occurring.
  Appropriate axiomatisation of 
 \begin_inset Formula $CanObs$
 \end_inset
 
- can model both total awareness of actions and total ignorance.
- It also enables previously unaccounted-for circumstances, such as being
- aware of all actions performed within one's field of view, or by all agents
- on one's own team.
+ can model both total awareness of actions and total ignorance, as well
+ as previously unaccounted-for circumstances such as those described above.
  The formalism can also be extended to model agents who monitor the values
  of fluents in their environment, rather than directly observing actions.
- It is thus a true generalization of previous approaches.
+ It is thus a true generalization of previous situation calculus approaches
+ to knowledge.
+\end_layout
+
+\begin_layout Standard
+An alternate approach to handling domains with partial observability of
+ actions is to appeal to belief instead of knowledge - agents can simply
+ assume that no actions have occurred other than those they have observed,
+ and later correct their beliefs if they were mistaken.
+ The applications of interest to us require that agents are never mistaken,
+ so we focus on knowledge in this paper.
+ However, we believe that belief-based approaches can also benefit from
+ a concrete representation of precisely what was observed by each agent.
 \end_layout
 
 \begin_layout Standard
@@ -182,8 +189,8 @@ on, we show how to transform queries about knowledge into a form amenable
 \end_layout
 
 \begin_layout Standard
-Reasoning in the situation calculus is traditionally performed from an omniscien
-t viewpoint, with queries posed relative to the current situation.
+Reasoning in the situation calculus traditionally requires an omniscient
+ viewpoint, with queries posed relative to the current situation.
  While this works well for modeling and simulation where a full world history
  is available, it makes it difficult for agents to reason about their own
  world based on their limited observations of what has occurred.
@@ -235,7 +242,7 @@ The Multi-Agent Situation Calculus
 \end_layout
 
 \begin_layout Standard
-Our work is based in the situation calculus as described by 
+Our work utilizes the situation calculus as described by 
 \begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
 
 \end_inset
@@ -253,7 +260,7 @@ Our work is based in the situation calculus as described by
 \end_inset
 
  for representing multiple agents, and begin from the standard account of
- knowledge given by 
+ knowledge due to 
 \begin_inset LatexCommand \cite{scherl03sc_knowledge}
 
 \end_inset
@@ -348,28 +355,7 @@ Poss(drop(agt,obj),s)\equiv Holding(agt,obj,s)\]
 
 \end_inset
 
- For concurrent actions, an arbitrary combination of possible actions may
- not always be possible.
- This is known as the precondition interaction problem 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
-\end_inset
-
-.
- While this paper requires no particular commitment toward a solution to
- this problem, a simple option is to explicitly state which actions cannot
- be performed concurrently using a predicate 
-\begin_inset Formula $Conflicts$
-\end_inset
-
-: 
-\begin_inset Formula \begin{multline*}
-Poss(c,s)\equiv\\
-\forall a\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\end{multline*}
-
-\end_inset
-
- 
 \end_layout
 
 \begin_layout Standard
@@ -539,11 +525,11 @@ Combining the multi-agent semantics of
 status collapsed
 
 \begin_layout Standard
-We use the standard abbreviation 
+Using the standard abbreviation 
 \begin_inset Formula $\forall a\in c\,.\,\psi\,\isdef\,\forall a\,.a\in c\rightarrow\psi$
 \end_inset
 
- throughout
+
 \end_layout
 
 \end_inset
@@ -825,13 +811,13 @@ One of the attractions of the situation calculus is the existence of effective
 status collapsed
 
 \begin_layout Standard
-One can also define a regression operator that reduces to 
+An alternate definition of the regression operator reduces to 
 \begin_inset Formula $S_{0}$
 \end_inset
 
  in a single pass.
- The two approaches are essentially equivalent, but the repeated-application
- version is simpler to extend for our purposes.
+ The two are essentially equivalent, but the repeated-application version
+ is simpler to extend for our purposes.
 \end_layout
 
 \end_inset
@@ -850,19 +836,13 @@ One can also define a regression operator that reduces to
 
 \end_inset
 
- Many of the axioms from 
-\begin_inset Formula $\mathcal{D}$
-\end_inset
-
- are not required for reasoning about the initial situation, and so can
- be discarded when reasoning about 
+ The induction, successor state and action precondition axioms are not required
+ for reasoning about 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}^{*}(\phi)[S_{0}]$
 \end_inset
 
-.
- Most importantly, the induction axiom is not needed so the reasoning is
- purely first-order.
- The successor state and action precondition axioms are also not required.
+, so such queries require only first-order reasoning from a limited number
+ of axioms.
  The trade-off is that the length of 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}^{*}(\phi)$
 \end_inset
@@ -1075,9 +1055,16 @@ Observations(agt,c,s)=o\equiv\\
 \begin_inset Formula $CanSense$
 \end_inset
 
- may suffer from interaction problems when concurrent actions are considered.
- While we are confident an approach similar to that used for precondition
- interaction can be applied, this remains an open problem.
+ may suffer from interaction problems when concurrent actions are considered
+ - for example, one action may alter the observability of another if performed
+ concurrently.
+ This is an instance of the precondition interaction problem 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+
+\end_inset
+
+, which can be addressed by several techniques that are outside the scope
+ of this paper.
 \end_layout
 
 \begin_layout Standard
@@ -1471,12 +1458,12 @@ s.
 persistence condition
 \emph default
  meta-operator.
- In 
+ We develop in recent work 
 \begin_inset LatexCommand \cite{kelly07sc_persistence}
 
 \end_inset
 
- we develop a new meta-operator 
+ a new meta-operator 
 \begin_inset Formula $\mathcal{P}_{\mathcal{D}}(\phi,\alpha)$
 \end_inset
 
