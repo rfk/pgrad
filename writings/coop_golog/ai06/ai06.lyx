@@ -67,7 +67,7 @@ lly designed for multi-agent teams.
  represent the dynamics of multi-agent teams: a combination of true concurrency
  of actions with the interleaved concurrency of ConGolog; an explicit notion
  of time to enrich the world model and assist coordination; and strong semantic
- support for predictable exogenous actions (or 
+ support for predictable exogenous actions (also called 
 \begin_inset Quotes eld
 \end_inset
 
@@ -83,13 +83,13 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-When a team of agents must cooperate closely in order to achieve some shared
+When a team of agents must cooperate closely in order to achieve a shared
  goal, they can often be conceptualized as a single agent with distributed
  sensing, reasoning and acting capabilities.
- This insight leads to a two-stage technique for programming such teams:
+ This insight leads to a two-part technique for programming such teams:
  adapt a formalism from single-agent programming to specify the tasks to
  be performed, then provide a coordination strategy allowing the team to
- execute them cooperatively.
+ execute it cooperatively.
  This approach has been successfully employed by platforms such as STEAM
  
 \begin_inset LatexCommand \cite{tambe97flexible_teamwork}
@@ -111,7 +111,7 @@ When a team of agents must cooperate closely in order to achieve some shared
 
 \begin_layout Standard
 While HTN is a powerful approach, other task-representation formalisms are
- also popular in single-agent programming.
+ also popular for single-agent programming.
  In this paper we adapt the 
 \emph on
 high-level program execution
@@ -149,16 +149,16 @@ The primary advantage of this approach is
 \emph on
 controlled nondeterminism
 \emph default
-, allowing some aspects of the program to be fully specified while others
+, allowing some parts of the program to be fully specified while others
  may involve arbitrary amounts of nondeterminism, even open-ended planning.
- Golog has the following additional advantages 
+ Golog has the following additional advantages over HTN: it provides a more
+ natural representation of many tasks thanks to common programming constructs;
+ and it is based on a more sophisticated logic of action 
 \begin_inset LatexCommand \cite{son00htn_golog}
 
 \end_inset
 
- over HTN: it provides a more natural representation of many tasks thanks
- to common programming constructs; and it is based on a more sophisticated
- logic of action.
+.
  Motivated by such advantages, our research program aims to build a Golog-based
  system suitable for programming a wide variety of multi-agent teams.
 \end_layout
@@ -217,9 +217,9 @@ The paper proceeds as follows: section
 \end_inset
 
  concludes with a summary of our results and ongoing research.
- The work is motivated and illustrated throughout by small examples from
- a simple multi-agent domain, in which a team of robotic chefs must be programme
-d to cooperatively prepare a meal.
+ The work is motivated and illustrated throughout by examples from a simple
+ multi-agent domain, in which a team of robotic chefs must be programmed
+ to cooperatively prepare a meal.
  
 \end_layout
 
@@ -267,14 +267,13 @@ Object
 Fluents
 \emph default
  as predicates or functions representing properties of the world that may
- change from one situation to another, and so take a situation term as their
- final argument.
+ change from one situation to another.
  The special fluent 
 \begin_inset Formula $Poss(a,s)$
 \end_inset
 
  indicates when it is possible to perform an action in a situation.
- For a detailed description consult 
+ For a detailed description see 
 \begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
 
 \end_inset
@@ -385,8 +384,8 @@ Time.
 \begin_layout Standard
 An explicit notion of time can make coordination between agents easier,
  as joint actions may be performed at a particular time.
- It also allows a richer description of the world, for example stating the
- required baking time of a cake.
+ It also allows a richer description of the world, for example when stating
+ the baking time of a cake.
 \end_layout
 
 \begin_layout Standard
@@ -416,8 +415,7 @@ A temporal component was incorporated into the situation calculus by
 
  are introduced to give the performance time of an action and the starting
  time of a situation respectively.
- The start time of the initial situation may be defined as appropriate for
- the application.
+ The start time of the initial situation may be defined arbitrarily.
 \end_layout
 
 \begin_layout Standard
@@ -427,7 +425,7 @@ All members in a set of concurrent actions are clearly required to be performed
 \begin_inset Formula $Coherent$
 \end_inset
 
- is defined to ensure this:
+ ensures this:
 \begin_inset Formula \[
 Coherent(c)\equiv\exists t\,\,\forall a\left[a\in c\rightarrow time(a)=t\right]\]
 
@@ -547,9 +545,8 @@ Legal(S_{0})\equiv True\label{eqn:legal_def}\\
 An important concept when dealing with natural actions it the least natural
  time point (LNTP) of a situation, defined as the earliest time at which
  a natural action may occur.
- We will assume that the domain axiomatisation is designed to avoid certain
- pathological cases, so that absence of an LNTP implies that no natural
- actions are possible.
+ We assume that the theory of action avoids certain pathological cases,
+ so that absence of an LNTP implies that no natural actions are possible.
 \begin_inset Formula \begin{align}
 Lntp(s,t)\equiv\,\, & \exists a\,\left[Natural(a)\wedge Poss(a,s)\wedge time(a)=t\right]\wedge\nonumber \\
  & \forall a\,\left[Natural(a)\wedge Poss(a,s)\rightarrow t\leq time(a)\right]\label{eqn:lntp_def}\end{align}
@@ -572,7 +569,7 @@ Golog
  is a declarative agent programming language based on the situation calculus.
  Testimony to its success are its wide range of applications and many extensions
  to provide additional functionality (
-\begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog,boutilier00dtgolog,Ferrein2005readylog}
+\begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog,Ferrein2005readylog}
 
 \end_inset
 
@@ -919,7 +916,7 @@ Some Golog Operators
 \begin_layout Standard
 In line with the idea of high-level program execution, the agent's control
  program may be nondeterministic.
- It is the task of the agent to find a deterministic instantiation of the
+ It is the task of the agent to plan a deterministic instantiation of the
  program, a sequence of actions that can legally be performed in the world.
  Such a sequence is called a 
 \begin_inset Quotes eld
@@ -941,7 +938,7 @@ Two predicates
 \begin_inset Formula $Final$
 \end_inset
 
- are define the semantics for each operator.
+ define the semantics for each operator.
  
 \begin_inset Formula $Trans(\delta,s,\delta',s')$
 \end_inset
@@ -977,14 +974,19 @@ Two predicates
 \end_inset
 
 .
- The full semantics on which we base our work are those of IndiGolog and
- can be found in 
-\begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
+ The full semantics on which we base our work are those of IndiGolog 
+\begin_inset LatexCommand \cite{giacomo99indigolog}
 
 \end_inset
 
-.
- As an example consider equation (
+, which builds on ConGolog 
+\begin_inset LatexCommand \cite{giacomo00congolog}
+
+\end_inset
+
+ and is the most feature-full of the standard Golog variants.
+ See the references for the full semantics, but as an example consider equation
+ (
 \begin_inset LatexCommand \ref{eqn:trans_conc_orig}
 
 \end_inset
@@ -1048,12 +1050,12 @@ If the theory of action
 \begin_inset Formula $Trans*$
 \end_inset
 
- indicates reflexive transitive closure as usual.
+ indicates reflexive transitive closure.
  The situation 
 \begin_inset Formula $s$
 \end_inset
 
- gives the actions that must be performed.
+ gives the actions forming a legal execution of the program.
 \begin_inset Formula \begin{equation}
 \mathcal{D}\models\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]\label{eqn:golog_execution}\end{equation}
 
@@ -1100,15 +1102,15 @@ The procedure
 \end_layout
 
 \begin_layout Standard
-While this program could be executed using the existing semantics of ConGolog
- or IndiGolog, the result would be suboptimal.
- As these languages lack true concurrency, only a single agent could act
+While this program could be executed using the existing semantics of IndiGolog,
+ the result would be suboptimal.
+ As this languages lack true concurrency, only a single agent could act
  at each step.
  Predictable exogenous actions such as 
-\begin_inset Formula $end\_task$
+\begin_inset Formula $endTask$
 \end_inset
 
- also require special handling in these languages.
+ also require special handling in this language.
  Our new variant MIndiGolog is designed to produce executions of such programs
  that are more suitable for multi-agent teams.
 \end_layout
@@ -1142,7 +1144,7 @@ interleaved concurrency
 
 \end_inset
 
- by modifying ConGolog to incorporate sets of concurrent actions.
+ by modifying Golog to incorporate sets of concurrent actions.
  However, as we shall see below, their semantics may call for actions to
  be performed that are not possible and may also result in unintuitive program
  behavior.
@@ -1284,8 +1286,8 @@ While it is straightforward to modify the IndiGolog
 
  rule for primitive actions to accept sets of concurrent actions, there
  are deeper implications for the concurrency operator.
- In ConGolog and its descendants, this is implemented by accepting a transition
- from either of the two programs as a transition for the pair.
+ This is implemented by accepting a transition from either of the two programs
+ as a transition for the pair.
  In the presence of true concurrency, this is insufficient.
  Suppose program 
 \begin_inset Formula $\delta_{1}$
@@ -1393,8 +1395,8 @@ Taking these factors into account, we develop the improved transition rule
  true concurrency.
  This robust combination allows the language to more accurately reflect
  the concurrency present in multi-agent teams.
- As with ConGolog, the semantics make no attempt to maximize concurrency
- or otherwise differentiate the potential legal executions.
+ As with ConGolog and IndiGolog, the semantics make no attempt to maximize
+ concurrency or otherwise differentiate the potential legal executions.
  
 \begin_inset Formula \begin{multline}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\label{eqn:trans_conc_new}\\
@@ -1689,8 +1691,8 @@ From lemma
 \begin_layout Standard
 This means that MIndiGolog, like standard IndiGolog, will only call for
  actions to be executed if they are possible in the world.
- Moreover, the execution will contain any and all natural actions that will
- occur, regardless of whether they were considered explicitly by the programmer.
+ Moreover, the execution will contain all natural actions that will occur,
+ regardless of whether they were considered explicitly by the programmer.
 \end_layout
 
 \begin_layout Standard
@@ -1699,7 +1701,7 @@ The effect of our enhancements can be seen in Figure
 
 \end_inset
 
-, which shows one possible legal execution
+, which shows
 \begin_inset Foot
 status collapsed
 
@@ -1710,7 +1712,7 @@ A Prolog implementation of the MIndiGolog semantics, from which this trace
 
 \end_inset
 
- of the 
+ one possible legal execution of the 
 \begin_inset Formula $MakeSalad$
 \end_inset
 
@@ -1868,8 +1870,8 @@ Our work integrates several important extensions to the situation calculus
 
 \begin_layout Standard
 Since the semantics of MIndiGolog are based on first-order logic, existing
- techniques for distributed logic programming can be used to share the planning
- workload between agents.
+ techniques for distributed logic programming can be used to share the execution
+-planning workload between agents.
  We are currently developing a coordination strategy to augment these techniques
  and allow cooperative execution of the program.
  Our ultimate goal is the distributed execution of programs such as 
