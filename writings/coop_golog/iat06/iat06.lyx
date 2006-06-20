@@ -87,7 +87,7 @@ Introduction
 When a team of agents must cooperate closely in order to achieve a shared
  goal, they can often be conceptualized as a single agent with distributed
  sensing, reasoning and acting capabilities.
- This insight leads to a two-part technique for programming such teams:
+ This insight leads to a two-stage technique for programming such teams:
  adapt a formalism from single-agent programming to specify the tasks to
  be performed, then provide a coordination strategy allowing the team to
  execute it cooperatively.
@@ -161,7 +161,7 @@ controlled nondeterminism
 
 .
  Motivated by such advantages, our research program aims to build a Golog-based
- system suitable for programming a wide variety of multi-agent teams.
+ system suitable for programming the behavior of multi-agent teams.
 \end_layout
 
 \begin_layout Standard
@@ -348,7 +348,7 @@ This seemingly simple modification introduces a complication - a combination
 
  and is an area of ongoing research.
  For our purposes it is addressed by introducing a predicate 
-\begin_inset Formula $Conflicts(c,t,s)$
+\begin_inset Formula $Conflicts(c,s)$
 \end_inset
 
  which is true when the actions in 
@@ -361,15 +361,15 @@ This seemingly simple modification introduces a complication - a combination
 status collapsed
 
 \begin_layout Standard
-Throughout the paper, lower-case free variables are implicitly universally
- quantified
+We follow the convention that lower-case free variables are implicitly universal
+ly quantified
 \end_layout
 
 \end_inset
 
 
-\begin_inset Formula \begin{equation}
-Poss(c,s)\equiv\forall a\,\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\label{eqn:poss_conc_acts}\end{equation}
+\begin_inset Formula \[
+Poss(c,s)\equiv\forall a.\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\]
 
 \end_inset
 
@@ -426,11 +426,11 @@ All members in a set of concurrent actions are clearly required to be performed
 
  ensures this:
 \begin_inset Formula \[
-Coherent(c)\equiv\exists t\,\,\forall a\left[a\in c\rightarrow time(a)=t\right]\]
+Coherent(c)\equiv\exists t.\forall a.\left[a\in c\rightarrow time(a)=t\right]\]
 
 \end_inset
 
- These authors also introduce a standard approach to actions with a finite
+ These authors also utilize a standard approach to actions with a finite
  duration - they are decomposed into instantaneous 
 \begin_inset Formula $start$
 \end_inset
@@ -517,8 +517,9 @@ Natural actions are indicated by the truth of the predicate
 \end_inset
 
  action would be:
-\begin_inset Formula \begin{equation}
-Poss(ringTimer(t),s)\equiv\exists m\left[TimerSet(m,s)\wedge t=start(s)+m\right]\label{eqn:poss_ring_timer}\end{equation}
+\begin_inset Formula \begin{multline}
+Poss(ringTimer(t),s)\equiv\\
+\exists m.\left[TimerSet(m,s)\wedge t=start(s)+m\right]\label{eqn:poss_ring_timer}\end{multline}
 
 \end_inset
 
@@ -536,8 +537,9 @@ must
  the real world:
 \begin_inset Formula \begin{multline}
 Legal(S_{0})\equiv True\label{eqn:legal_def}\\
-\shoveleft{Legal(do(c,s))\equiv Legal(s)\wedge Poss(c,s)\wedge Coherent(c)\wedge start(s)\leq time(c)}\\
-\wedge\,\forall a\,\, Natural(a)\wedge Poss(a,s)\rightarrow\left[a\in c\vee t<time(a)\right]\end{multline}
+\shoveleft{Legal(do(c,s))\equiv Legal(s)\wedge Poss(c,s)}\\
+\wedge Coherent(c)\wedge start(s)\leq time(c)\\
+\wedge\,\forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow\left[a\in c\vee t<time(a)\right]\right]\end{multline}
 
 \end_inset
 
@@ -546,9 +548,10 @@ Legal(S_{0})\equiv True\label{eqn:legal_def}\\
  a natural action may occur.
  We assume that the theory of action avoids certain pathological cases,
  so that absence of an LNTP implies that no natural actions are possible.
-\begin_inset Formula \begin{align}
-Lntp(s,t)\equiv\,\, & \exists a\,\left[Natural(a)\wedge Poss(a,s)\wedge time(a)=t\right]\wedge\nonumber \\
- & \forall a\,\left[Natural(a)\wedge Poss(a,s)\rightarrow t\leq time(a)\right]\label{eqn:lntp_def}\end{align}
+\begin_inset Formula \begin{multline}
+Lntp(s,t)\equiv\\
+\exists a.\left[Natural(a)\wedge Poss(a,s)\wedge time(a)=t\right]\wedge\\
+\forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow t\leq time(a)\right]\label{eqn:lntp_def}\end{multline}
 
 \end_inset
 
@@ -594,10 +597,11 @@ To program an agent using Golog one specifies a situation calculus theory
 \end_inset
 
  lists some of the operators available in various incarnations of the language.
+ (TODO: put search operator back in) 
 \begin_inset Float table
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \align center
@@ -918,13 +922,9 @@ In line with the idea of high-level program execution, the agent's control
  It is the task of the agent to plan a deterministic instantiation of the
  program, a sequence of actions that can legally be performed in the world.
  Such a sequence is called a 
-\begin_inset Quotes eld
-\end_inset
-
+\emph on
 legal execution
-\begin_inset Quotes erd
-\end_inset
-
+\emph default
  of the Golog program.
 \end_layout
 
@@ -973,7 +973,7 @@ Two predicates
 \end_inset
 
 .
- The full semantics on which we base our work are those of IndiGolog 
+ We base our work on the semantics of IndiGolog 
 \begin_inset LatexCommand \cite{giacomo99indigolog}
 
 \end_inset
@@ -984,8 +984,8 @@ Two predicates
 \end_inset
 
  and is the most feature-full of the standard Golog variants.
- See the references for the full semantics, but as an example consider equation
- (
+ The full semantics are available in the references, but as an example consider
+ equation (
 \begin_inset LatexCommand \ref{eqn:trans_conc_orig}
 
 \end_inset
@@ -1017,13 +1017,14 @@ interleaving
 \end_inset
 
  left to execute concurrently with the other program:
-\begin_inset Formula \begin{align}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \,\,\,\exists\gamma.Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\nonumber \\
- & \vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)\label{eqn:trans_conc_orig}\end{align}
+\begin_inset Formula \begin{multline}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
+\shoveright{\exists\gamma.Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})}\\
+\vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)\label{eqn:trans_conc_orig}\end{multline}
 
 \end_inset
 
- If the theory of action 
+If the theory of action 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
@@ -1054,7 +1055,8 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \,\,\,\exists\gamma.Trans(\de
 \begin_inset Formula $s$
 \end_inset
 
- gives the actions forming a legal execution of the program.
+ gives a sequence of actions forming a legal execution of the program.
+ (TODO: talk about online execution?)
 \begin_inset Formula \begin{equation}
 \mathcal{D}\models\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]\label{eqn:golog_execution}\end{equation}
 
@@ -1076,7 +1078,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv & \,\,\,\exists\gamma.Trans(\de
 
 \end_inset
 
- The procedure 
+ The sub-procedure 
 \begin_inset Formula $ChopTypeInto$
 \end_inset
 
@@ -1105,49 +1107,19 @@ While this program could be executed using the existing semantics of IndiGolog,
  the result would be suboptimal.
  As this languages lack true concurrency, only a single agent could act
  at each step.
- Predictable exogenous actions such as 
+ There is also no guarantee that the special requirements of natural actions
+ such as 
 \begin_inset Formula $endTask$
 \end_inset
 
- also require special handling in this language.
+ would be respected.
  Our new variant MIndiGolog is designed to produce executions of such programs
- that are more suitable for multi-agent teams.
+ that overcome these limitations, and so are more suitable for multi-agent
+ teams
 \end_layout
 
 \begin_layout Subsection
 Related Work
-\end_layout
-
-\begin_layout Standard
-As seen above, the term 
-\begin_inset Quotes eld
-\end_inset
-
-concurrency
-\begin_inset Quotes erd
-\end_inset
-
- can refer to two distinct ideas: the possibility of performing several
- actions at the same instant, and the possibility of interleaving the execution
- of several programs, referred to as 
-\emph on
-true concurrency
-\emph default
- and 
-\emph on
-interleaved concurrency
-\emph default
- respectively.
- These two notions of concurrency were combined by 
-\begin_inset LatexCommand \cite{pinto99tcongolog}
-
-\end_inset
-
- by modifying Golog to incorporate sets of concurrent actions.
- However, as we shall see below, their semantics may call for actions to
- be performed that are not possible and may also result in unintuitive program
- behavior.
- We develop a more robust integration of these notions of concurrency.
 \end_layout
 
 \begin_layout Standard
@@ -1157,13 +1129,21 @@ That Golog shows promise for multi-agent teams is evidenced by the success
 
 \end_inset
 
- with a RoboCup soccer team programmed in the Golog variant ReadyLog.
- However, the semantics of ReadyLog itself remain largely single-agent and
- do not address concerns such as: the possibility of performing actions
- concurrently and the coordination of concurrent actions; differing knowledge
- or beliefs between team members; sharing the computational workload of
- planning; and predicting the behavior of teams members and the environment
- in the face of many concurrently-executing tasks.
+ with a RoboCup soccer team executing a shared Golog program.
+ However, the semantics of their Golog variant 
+\begin_inset Quotes eld
+\end_inset
+
+ReadyLog
+\begin_inset Quotes erd
+\end_inset
+
+ remain largely single-agent and do not address concerns such as: the possibilit
+y of performing actions concurrently and the coordination of concurrent
+ actions; differing knowledge or beliefs between team members; sharing the
+ computational workload of planning; and predicting the behavior of teams
+ members and the environment in the face of many concurrently-executing
+ tasks.
  MIndiGolog overcomes some of these limitations, while our ongoing work
  on cooperative execution will address the others.
 \end_layout
@@ -1179,6 +1159,30 @@ Note that this paper focuses on task specification using Golog and does
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+A key aspect of our work is the integration of two distinct notions of concurren
+cy: the possibility of performing several actions at the same instant (
+\emph on
+true concurrency
+\emph default
+), and the possibility of interleaving the execution of several programs
+ (
+\emph on
+interleaved concurrency
+\emph default
+).
+ These two notions of concurrency were combined in 
+\begin_inset LatexCommand \cite{pinto99tcongolog}
+
+\end_inset
+
+ by modifying Golog to incorporate sets of concurrent actions.
+ However, as we shall see below, their semantics may call for actions to
+ be performed that are not possible and may also result in unintuitive program
+ behavior.
+ We develop a more robust integration of these notions of concurrency.
 \end_layout
 
 \begin_layout Section
@@ -1336,20 +1340,22 @@ However, this introduces several complications not addressed in
  Another issue arises when two programs can legitimately be transitioned
  by executing the same action.
  Consider the following programs which add ingredients to a bowl:
-\begin_inset Formula \begin{gather*}
-\delta_{1}=place\_in(Thomas,Flour,Bowl)\,;\, place\_in(Thomas,Sugar,Bowl)\\
-\delta_{2}=place\_in(Thomas,Flour,Bowl)\,;\, place\_in(Thomas,Egg,Bowl)\end{gather*}
+\begin_inset Formula \begin{multline*}
+\delta_{1}=placeIn(Thomas,Flour,Bowl)\,;\\
+\shoveright{placeIn(Thomas,Sugar,Bowl)}\\
+\shoveleft{\delta_{2}=placeIn(Thomas,Flour,Bowl)\,;}\\
+placeIn(Thomas,Egg,Bowl)\end{multline*}
 
 \end_inset
 
- Executing 
+Executing 
 \begin_inset Formula $\delta_{1}||\delta_{2}$
 \end_inset
 
  should result in the bowl containing two units of flour, one unit of sugar
  and an egg.
  However, an individual transition for both programs is 
-\begin_inset Formula $c_{1}=c_{2}=place\_in(Thomas,Flour,Bowl)$
+\begin_inset Formula $c_{1}=c_{2}=placeIn(Thomas,Flour,Bowl)$
 \end_inset
 
 .
@@ -1359,15 +1365,17 @@ However, this introduces several complications not addressed in
 
  to transition both programs would add only one unit of flour.
  Alternately, consider two programs waiting for a timer to ring:
-\begin_inset Formula \begin{gather*}
-\delta_{1}=ring\_timer(OvenTimer)\,;\, acquire(Thomas,Bowl)\\
-\delta_{2}=ring\_timer(OvenTimer)\,;\, acquire(Richard,Board)\end{gather*}
+\begin_inset Formula \begin{multline*}
+\delta_{1}=ringTimer(OvenTimer)\,;\\
+\shoveright{acquire(Thomas,Bowl)}\\
+\shoveleft{\delta_{2}=ringTimer(OvenTimer)\,;}\\
+acquire(Richard,Board)\end{multline*}
 
 \end_inset
 
- Both programs should be allowed to proceed with a single occurrence of
- the 
-\begin_inset Formula $ring\_timer$
+Both programs should be allowed to proceed with a single occurrence of the
+ 
+\begin_inset Formula $ringTimer$
 \end_inset
 
  action, because it is an aspect of the environment.
@@ -1394,15 +1402,18 @@ Taking these factors into account, we develop the improved transition rule
  true concurrency.
  This robust combination allows the language to more accurately reflect
  the concurrency present in multi-agent teams.
- As with ConGolog and IndiGolog, the semantics make no attempt to maximize
- concurrency or otherwise differentiate the potential legal executions.
- 
+ As with ConGolog and IndiGolog, our semantics make no attempt to maximize
+ concurrency or otherwise differentiate between potential executions, they
+ only state what transitions are legal.
 \begin_inset Formula \begin{multline}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\label{eqn:trans_conc_new}\\
-\vee\exists\gamma\,\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)\\
-\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,\,\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\\
-\shoveright{\wedge Poss(c_{1}\cup c_{2},t,s)\wedge\forall a\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]}\\
-\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\end{multline}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
+\shoveright{\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})}\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
+\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\\
+\wedge Poss(c_{1}\cup c_{2},t,s)\\
+\shoveright{\wedge\forall a.\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]}\\
+\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\label{eqn:trans_conc_new}\end{multline}
 
 \end_inset
 
@@ -1414,7 +1425,7 @@ Natural Actions.
 \end_layout
 
 \begin_layout Standard
-The methodology of 
+The formalism of 
 \begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
 \end_inset
@@ -1470,11 +1481,11 @@ This is achieved using a new
 \begin_inset Formula $t_{n}$
 \end_inset
 
- (third line), perform it along with the natural actions at 
+ (fourth line), perform it along with the natural actions at 
 \begin_inset Formula $t_{n}$
 \end_inset
 
- (fourth line), or wait for the natural actions to occur (fifth line).
+ (fifth line), or wait for the natural actions to occur (sixth line).
  If there is no LNTP, then 
 \begin_inset Formula $c$
 \end_inset
@@ -1485,20 +1496,17 @@ This is achieved using a new
 
 .
 \begin_inset Formula \begin{multline}
-Trans(c,s,\delta',s')\equiv\,\,\,\exists t,t_{n},c_{n}\,\, Lntp(s,t_{n})\wedge t\geq start(s)\wedge\label{eqn:trans_prim_new}\\
-\forall a\,\,\left[Natural(a)\wedge Poss(a,t_{n},s)\equiv c\in c_{n}\right]\wedge\\
+Trans(c,s,\delta',s')\equiv\\
+\exists t,t_{n},c_{n}\,.\, Lntp(s,t_{n})\wedge t\geq start(s)\wedge\\
+\forall a.\left[Natural(a)\wedge Poss(a,t_{n},s)\equiv c\in c_{n}\right]\wedge\\
 \left[t<t_{n}\wedge Poss(c,t,s)\wedge s'=do(c,t,s)\wedge\delta'=Nil\right.\\
 \vee Poss(c\cup c_{n},t_{n},s)\wedge s'=do(c\cup c_{n},t,s)\wedge\delta'=Nil\\
 \vee\left.s'=do(c_{n},t_{n},s)\wedge\delta'=c\right]\\
-\vee\,\neg\exists t_{n}.\, Lntp(s,t_{n})\wedge\exists t.\, Poss(c,t,s)\wedge\\
-t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=Nil\end{multline}
+\vee\,\neg\exists t_{n}\,.\, Lntp(s,t_{n})\wedge\exists t\,.\, Poss(c,t,s)\wedge\\
+t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=Nil\label{eqn:trans_prim_new}\end{multline}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 Let a 
 \emph on
 MIndiGolog Theory of Action
@@ -1540,7 +1548,7 @@ Let
 
 
 \begin_inset Formula \[
-\mathcal{D}\models\forall s,s',\delta,\delta'\,\, Legal(s)\wedge Trans(\delta,s,\delta',s')\rightarrow Legal(s')\]
+\mathcal{D}\models\forall s,s',\delta,\delta'\,.\, Legal(s)\wedge Trans(\delta,s,\delta',s')\rightarrow Legal(s')\]
 
 \end_inset
 
@@ -1591,7 +1599,7 @@ begin{theorem}
  be a MIndiGolog theory of action.
  Then: 
 \begin_inset Formula \[
-\mathcal{D}\models\forall s',\delta,\delta'.\, Trans*(\delta,S_{0},\delta',s')\rightarrow Legal(s')\]
+\mathcal{D}\models\forall s',\delta,\delta'\,.\, Trans*(\delta,S_{0},\delta',s')\rightarrow Legal(s')\]
 
 \end_inset
 
@@ -1631,43 +1639,8 @@ This means that MIndiGolog, like standard IndiGolog, will only call for
  actions to be executed if they are possible in the world.
  Moreover, the execution will contain all natural actions that will occur,
  regardless of whether they were considered explicitly by the programmer.
-\end_layout
-
-\begin_layout Standard
-The effect of our enhancements can be seen in Figure 
-\begin_inset LatexCommand \ref{cap:example_trace}
-
-\end_inset
-
-, which shows
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-A Prolog implementation of the MIndiGolog semantics, from which this trace
- was obtained, is available at http://www.csse.unimelb.edu.au/~rfk/golog/
-\end_layout
-
-\end_inset
-
- one possible legal execution of the 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
- program.
- Note the occurrence of several actions within each 
-\series bold
-do
-\series default
- statement, demonstrating the integration of true concurrency into the language.
- Note also the explicit occurrence time for each step, allowing the agents
- to properly synchronize their actions.
- This time is not fixed, but constrained to synchronize with the natural
- actions included in the program.
-\end_layout
-
-\begin_layout Standard
 \begin_inset Float figure
+placement t
 wide true
 sideways false
 status collapsed
@@ -1790,6 +1763,232 @@ One possible execution of the
 
 \end_layout
 
+\begin_layout Standard
+The effect of our enhancements can be seen in Figure 
+\begin_inset LatexCommand \ref{cap:example_trace}
+
+\end_inset
+
+, which shows one possible legal execution of the 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+ program
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+A Prolog implementation of the MIndiGolog semantics, from which this trace
+ was obtained, is available at http://www.csse.unimelb.edu.au/~rfk/golog/
+\end_layout
+
+\end_inset
+
+ .
+ Note the occurrence of several actions within each  
+\series bold
+do
+\series default
+ statement, demonstrating the integration of true concurrency into the language.
+ Note also the explicit occurrence time for each step, allowing the agents
+ to properly synchronize their actions.
+ This time is not fixed, but constrained according to the occurrence times
+ of the natural actions.
+\end_layout
+
+\begin_layout Section
+Distributed Execution
+\end_layout
+
+\begin_layout Standard
+As the existing languages based on Golog have demonstrated, an interpreter
+ can be conveniently constructed using a logic programming language such
+ a Prolog.
+ We have followed the style of 
+\begin_inset LatexCommand \cite{giacomo00congolog,giacomo99indigolog}
+
+\end_inset
+
+, to build interpreters for our language in CIAO Prolog 
+\begin_inset LatexCommand \cite{iclp99ciao}
+
+\end_inset
+
+ and Mozart 
+\begin_inset LatexCommand \cite{vanroy03mozart_logic}
+
+\end_inset
+
+.
+ The Mozart implementation is highlighted in this paper as it provides strong
+ support for distributed execution.
+\end_layout
+
+\begin_layout Standard
+Programs are encoded in Mozart as record terms, with the name of the record
+ representing an operator and its features the arguments.
+ Actions are also encoded as records.
+ In line with convention in both Prolog and Mozart, uppercase terms now
+ represent variables.
+ For example, the program:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\pi(agt)\left[acquire(agt,Bowl);acquire(agt,Knife)\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Is represented as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+
+\backslash
+small 
+\backslash
+verbatiminput{listings/goloz_ex_prog.txt}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The predicates 
+\begin_inset Formula $Trans$
+\end_inset
+
+ and 
+\begin_inset Formula $Final$
+\end_inset
+
+ have a straightforward encoding as Mozart procedures:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \verbatiminput{listings/goloz_trans.oz}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \verbatiminput{listings/goloz_final.oz}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The block 
+\series bold
+proc...end 
+\series default
+defines a new procedure, the 
+\series bold
+case 
+\series default
+statement performs pattern matching, and the 
+\series bold
+choice
+\series default
+ statement indicates that the procedure can choose one of several evaluation
+ paths.
+\end_layout
+
+\begin_layout Standard
+By defining a procedure 
+\begin_inset Formula $Do(\delta,s,s')\leftrightarrow Trans*(\delta,s,\delta',s')\wedge Final(\delta',s')$
+\end_inset
+
+ it is possible to use the inbuilt depth-first search procedure to find
+ a legal execution for a given program:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \verbatiminput{listings/goloz_do.oz}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The actions thus determined can then be communicated to the team members
+ for execution.
+ This can be viewed as a centralised planner for the multi-agent team.
+\end_layout
+
+\begin_layout Standard
+Of course, a centralised planner fails to utilise all the resources available
+ to the team.
+ While a legal execution is being found, other agents are idle.
+ An important aspect of the Mozart system is that it provides a parallel
+ search procedure that can take advantage of networked machines to speed
+ up the search.
+ Utilising this, our implementation can be used to form a distributed multi-agen
+t planner.
+ In the following, 
+\begin_inset Quotes eld
+\end_inset
+
+agent1
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+agent2
+\begin_inset Quotes erd
+\end_inset
+
+ are names mapping to the IP-addresses of agents in the team, and 
+\begin_inset Quotes eld
+\end_inset
+
+Goloz
+\begin_inset Quotes erd
+\end_inset
+
+ is a Mozart functor that encapsulates the EvalOffline procedure defined
+ above:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Include \verbatiminput{listings/goloz_do_parallel.oz}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The result is the same as the centralised case, a sequence of actions that
+ can be communicated to the team members for execution.
+ Agents can thus plan the execution of their shared program both individually
+ and collectively.
+ 
+\end_layout
+
 \begin_layout Section
 Conclusions and Future Work
 \begin_inset LatexCommand \label{sec:Conclusions}
@@ -1821,9 +2020,8 @@ Since the semantics of MIndiGolog are based on first-order logic, existing
 
 \begin_layout Standard
 This paper thus represents a first step towards providing the advantages
- of high-level program execution - such as controlled nondeterminism, powerful
- programming constructs, and a rich logic of action - for the programming
- of multi-agent teams.
+ of Golog (such as controlled nondeterminism, powerful programming constructs,
+ and a rich logic of action) for task specification  for multi-agent teams.
 \end_layout
 
 \begin_layout Standard
