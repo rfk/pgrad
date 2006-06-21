@@ -178,7 +178,7 @@ trans(C,S,Dp,Sp) :-
           % This requires that no actions in the set are natural
           ( 
             \+ ( member(A,CA), natural(A) ),
-            T .>=. SStart, T .<. LNTP, poss(CA,T,S),
+            T .>=. SStart+1, T .<. LNTP, poss(CA,T,S),
             Sp = do(CA,T,S), Dp = nil
           )
           ;
@@ -198,13 +198,18 @@ trans(C,S,Dp,Sp) :-
         )
       )
     ;
-      poss(CA,T,S), T .>=. SStart, Sp = do(CA,T,S), Dp = nil
-    ).
+      poss(CA,T,S), T .>=. SStart+1, Sp = do(CA,T,S), Dp = nil
+    )
+    .
 
 %%  A test may transition to the empty program if it holds, leaving the
 %%  situation unaltered.
-trans(test(Cond),S,nil,S) :-
-    holds(Cond,S).
+trans(test(Cond),S,Dp,Sp) :-
+    holds(Cond,S), S=Sp, Dp=nil
+    ;
+    lntp(S,LNTP),
+    findall(NA,(natural(NA),poss(NA,LNTP,S)),NActs),
+    Sp = do(NActs,LNTP,S), Dp = test(Cond).
 
 %%  Sequential execution of two programs may transition by transitioning
 %%  the first program, leaving the remainder the be executed in sequence

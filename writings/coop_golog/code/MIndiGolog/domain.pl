@@ -567,11 +567,16 @@ proc(makeSalad(Dest),
 
 
 %%  Main control program - prepare a nice meal
+%proc(control,
+%     makeSalad(bowl1) // makeCake(bowl2)
+%     : ?(and(history_length(L,now),L<30))
+%    ).
 proc(control,
-     makeSalad(bowl1) // makeCake(bowl2)
-     : ?(and(history_length(L,now),L<30))
+     ?neg(some(d,timer_set(timer1,d,now))) :
+     makeSalad(bowl1)
     ).
 
+testsit1(do([set_timer(richard,timer1,5)],0,s0)).
 
 %%  Tests the operation of the LNTP condition
 proc(timerTest,
