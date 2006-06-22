@@ -12,6 +12,3 @@ proc {Do D S Sp}
   end
 end
 
-proc {EvalOffline D Exec}
-  Exec={Search.base.one proc {$ E} {Do D s0 E} end}
-end 

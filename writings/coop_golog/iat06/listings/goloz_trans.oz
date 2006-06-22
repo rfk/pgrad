@@ -1,6 +1,6 @@
 proc {Trans D S Dp Sp}
   case D of nil then fail
-  [] test(Cond) then {Holds.yes Cond S} Sp=S Dp=nil
+  [] test(C) then {Holds.yes C S} Sp=S Dp=nil
   [] seq(D1 D2) then choice D1r in
                             {Trans D1 S D1r Sp}
                             Dp=seq(D1r D2)

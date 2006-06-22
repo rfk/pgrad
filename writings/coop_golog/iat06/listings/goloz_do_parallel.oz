@@ -1,4 +1,4 @@
-proc {EvalOfflineDistrib D Exec}
+proc {ParallelDo D Exec}
     PS={New Search.parallel
         init(agent1:1#ssh agent2:1#ssh)}
   in
