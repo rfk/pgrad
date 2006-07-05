@@ -37,7 +37,9 @@
 \begin_body
 
 \begin_layout Title
-Towards High-Level Programming for Distributed Problem Solving
+Towards High-Level Programming for
+\newline
+Distributed Problem Solving
 \end_layout
 
 \begin_layout Author
@@ -126,6 +128,17 @@ high-level program execution
 \end_inset
 
 .
+ By 
+\begin_inset Quotes eld
+\end_inset
+
+high-level program
+\begin_inset Quotes erd
+\end_inset
+
+ is meant a program whose primitive components are domain-specific actions,
+ connected by standard programming constructs, and that potentially contains
+ nondeterministic operators.
  The primary advantage of this approach is 
 \emph on
 controlled nondeterminism
@@ -193,8 +206,14 @@ The paper proceeds as follows: section
 
 \end_inset
 
- gives the semantics of MIndiGolog and demonstrates their utility; and section
- 
+ gives the semantics of MIndiGolog, demonstrates their utility, and shows
+ how techniques for distributed logic programming can facilitate the shared
+ execution of MIndiGolog programs; section 
+\begin_inset LatexCommand \ref{sec:Related-Work}
+
+\end_inset
+
+ discusses related work and section 
 \begin_inset LatexCommand \ref{sec:Conclusions}
 
 \end_inset
@@ -246,7 +265,7 @@ Object
  terms represent any other object in the domain.
  It further distinguishes 
 \emph on
-Fluents
+fluents
 \emph default
  as predicates or functions representing properties of the world that may
  change from one situation to another.
@@ -279,7 +298,7 @@ theory of action
 \end_layout
 
 \begin_layout Subsubsection
-Concurrency.
+Concurrency
 \end_layout
 
 \begin_layout Standard
@@ -321,8 +340,8 @@ The work of
 
 \begin_layout Standard
 This seemingly simple modification introduces a complication - a combination
- of actions is not guaranteed to be possible even if the individual actions
- are.
+ of actions is not guaranteed to be possible even if each of the individual
+ actions are.
  For example, two agents may not be able to acquire the same resource at
  the same time.
  This is known as the precondition interaction problem 
@@ -361,7 +380,7 @@ Poss(c,s)\equiv\forall a.\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conf
 \end_layout
 
 \begin_layout Subsubsection
-Time.
+Time
 \end_layout
 
 \begin_layout Standard
@@ -398,7 +417,7 @@ A temporal component was incorporated into the situation calculus by
 
  are introduced to give the performance time of an action and the starting
  time of a situation respectively.
- The start time of the initial situation may be defined arbitrarily.
+ The starting time of the initial situation may be defined arbitrarily.
 \end_layout
 
 \begin_layout Standard
@@ -414,7 +433,23 @@ Coherent(c)\equiv\exists t.\forall a.\left[a\in c\rightarrow time(a)=t\right]\]
 
 \end_inset
 
- These authors also utilize a standard approach to actions with a finite
+
+\end_layout
+
+\begin_layout Standard
+The 
+\begin_inset Formula $Poss$
+\end_inset
+
+ fluent for concurrent actions can then be modified to ensure that the temporal
+ relation between past and future situations is respected:
+\begin_inset Formula \begin{multline*}
+Poss(c,s)\equiv\forall a.\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\\
+\wedge\, time(c)>start(s)\,\wedge\, Coherent(c)\end{multline*}
+
+\end_inset
+
+These authors also utilize a standard approach to actions with a finite
  duration - they are decomposed into instantaneous 
 \begin_inset Formula $start$
 \end_inset
@@ -432,7 +467,7 @@ Coherent(c)\equiv\exists t.\forall a.\left[a\in c\rightarrow time(a)=t\right]\]
 \begin_inset Formula $endTask$
 \end_inset
 
- and a fluent 
+ along with a fluent 
 \begin_inset Formula $doingTask$
 \end_inset
 
@@ -442,7 +477,7 @@ Coherent(c)\equiv\exists t.\forall a.\left[a\in c\rightarrow time(a)=t\right]\]
 \end_layout
 
 \begin_layout Subsubsection
-Natural Actions.
+Natural Actions
 \end_layout
 
 \begin_layout Standard
@@ -467,7 +502,8 @@ These are a special class of exogenous actions, those actions which occur
 \begin_inset Formula $endTask$
 \end_inset
 
- from above is another example - it must occur whenever it is possible.
+ from above is another example - it must occur whenever it is possible,
+ which is at the time when the agent finishes the task.
  In domains where many agents may be simultaneously engaged in many long-running
  tasks, strong semantic support for such natural actions will therefore
  be of significant benefit.
@@ -479,12 +515,11 @@ Natural actions are indicated by the truth of the predicate
 \end_inset
 
 .
- As usual, the times at which natural actions may occur are specified by
- the 
+ The times at which natural actions may occur are specified by the 
 \begin_inset Formula $Poss$
 \end_inset
 
- predicate.
+ predicate as usual.
  For example, suppose that the fluent 
 \begin_inset Formula $TimerSet(m,s)$
 \end_inset
@@ -518,7 +553,7 @@ must
 \begin_inset Formula $Legal(s)$
 \end_inset
 
- is introduced which is true only for situations which respect this requirement.
+ is introduced which is true only for situations that respect this requirement.
  Legal situations are the only situations that could be brought about in
  the real world:
 \begin_inset Formula \begin{multline}
@@ -575,8 +610,9 @@ Golog
 
 \begin_layout Standard
 To program an agent using Golog one specifies a situation calculus theory
- of action, and a program consisting of actions connected by programming
- constructs such as if-then-else, while loops, and nondeterministic choice.
+ of action, and a program consisting of actions from the theory connected
+ by programming constructs such as if-then-else, while loops, and nondeterminist
+ic choice.
  Table 
 \begin_inset LatexCommand \ref{tbl:Golog-Operators}
 
@@ -1097,7 +1133,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 
 \end_inset
 
-There are thus two notions of concurrency to be considered: the possibility
+Clearly there are two notions of concurrency to be considered: the possibility
  of performing several actions at the same instant (
 \emph on
 true concurrency
@@ -1108,14 +1144,14 @@ true concurrency
 interleaved concurrency
 \emph default
 ).
- These two notions of concurrency were combined in 
+ These were combined in 
 \begin_inset LatexCommand \cite{pinto99tcongolog}
 
 \end_inset
 
  by modifying Golog to incorporate sets of concurrent actions.
- However, their semantics may call for actions to be performed that are
- not possible and may also result in unintuitive program behavior.
+ However, they give a semantics which may call for actions to be performed
+ that are not possible and which can result in unintuitive program behavior.
  A key aspect of our work is a more robust integration of these two notions
  of concurrency.
 \end_layout
@@ -1158,8 +1194,8 @@ If the theory of action
 
 \end_inset
 
-In IndiGolog agents can also proceed without planning a full execution of
- their program, by searching for a legal 
+In IndiGolog agents can also proceed without planning a full terminating
+ execution of their program, by searching for a legal 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1181,7 +1217,8 @@ next step
 \end_inset
 
 ) controls which parts of the program are subject to full execution planning,
- providing fine-grained control over the nondeterminism in the program.
+ providing fine-grained control over nondeterminism and the amount of planning
+ work required.
 \end_layout
 
 \begin_layout Standard
@@ -1255,14 +1292,14 @@ While this is a valid program in standard IndiGolog, executing it using
 \begin_inset Formula $endTask$
 \end_inset
 
- will occur and enable to program to finish.
+ will occur after one minute and enable to program to finish.
 \end_layout
 
 \begin_layout Standard
-Our new Golog variant, MIndiGolog, is designed to execute such programs
- in a manner that overcome these limitations and is thus suitable for specifying
- tasks to be performed by multi-agent teams in distributued problem solving
- applications.
+Our new Golog variant, MIndiGolog, is designed to produce executions of
+ such programs in a manner that overcome these limitations, and is thus
+ suitable for specifying tasks to be performed by multi-agent teams in distribut
+ued problem solving applications.
 \end_layout
 
 \begin_layout Section
@@ -1282,7 +1319,7 @@ We have integrated three extensions to the situation calculus with the semantics
 \end_layout
 
 \begin_layout Subsection
-Time.
+Time
 \end_layout
 
 \begin_layout Standard
@@ -1336,7 +1373,7 @@ action
 \end_inset
 
 .
- The semantics of IndiGolog are trivially modified to accommodate this change.
+ The semantics of IndiGolog trivially accommodate this change.
  
 \begin_inset Formula $Coherent$
 \end_inset
@@ -1359,7 +1396,7 @@ start(do(a,t,s))=t\]
 \end_layout
 
 \begin_layout Subsection
-Concurrency.
+Concurrency
 \end_layout
 
 \begin_layout Standard
@@ -1371,7 +1408,7 @@ While it is straightforward to modify the IndiGolog
  are deeper implications for the concurrency operator.
  This is implemented by accepting a transition from either of the two programs
  as a transition for the pair.
- In the presence of true concurrency, this is insufficient.
+ I[levesque97golog]n the presence of true concurrency, this is insufficient.
  Suppose program 
 \begin_inset Formula $\delta_{1}$
 \end_inset
@@ -1401,6 +1438,18 @@ ously, i.e.
 \end_inset
 
 .
+ They give the following transition rule to permit this:
+\begin_inset Formula \begin{multline}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
+\shoveright{\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})}\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
+\shoveright{\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))}\\
+\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\end{multline}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1445,11 +1494,9 @@ Executing
 
  to transition both programs would add only one unit of flour.
  Alternately, consider two programs waiting for a timer to ring:
-\begin_inset Formula \begin{multline*}
-\delta_{1}=ringTimer(OvenTimer)\,;\\
-\shoveright{acquire(Thomas,Bowl)}\\
-\shoveleft{\delta_{2}=ringTimer(OvenTimer)\,;}\\
-acquire(Richard,Board)\end{multline*}
+\begin_inset Formula \begin{gather*}
+\delta_{1}=ringTimer\,;\, acquire(Thomas,Bowl)\\
+\delta_{2}=ringTimer\,;\, acquire(Richard,Board)\end{gather*}
 
 \end_inset
 
@@ -1501,7 +1548,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 \end_layout
 
 \begin_layout Subsection
-Natural Actions.
+Natural Actions
 \end_layout
 
 \begin_layout Standard
@@ -1510,7 +1557,7 @@ The formalism of
 
 \end_inset
 
- is adopted, suitably modified for our handling of time.
+ is adopted, with simple modifications for our handling of time.
  While planning with natural actions has previously been done in Golog 
 \begin_inset LatexCommand \cite{pirri00planning_nat_acts}
 
@@ -1519,7 +1566,7 @@ The formalism of
 , the programmer was required to explicitly check for any possible natural
  actions and ensure that they appear in the execution.
  We significantly lower the burden on the programmer by guaranteeing that
- all program executions produce legal situations.
+ all legal program executions result in legal situations.
  MIndiGolog agents will plan for the occurrence of natural actions without
  having them explicitly mentioned in the program.
  They may optionally be included in the program, instructing the agents
@@ -1670,6 +1717,36 @@ predictable
  exogenous actions.
  Our approach allows the agents to directly predict the natural actions
  that will occur, without extra burden on the programmer.
+\end_layout
+
+\begin_layout Standard
+For example, consider the case where a timer is set to ring in one minute
+ in the initial situation and the agents are required to make a salad once
+ there are no timers set, as in the following program: 
+\begin_inset Formula \[
+\left(\neg\exists m\,.\, TimerSet(m)\right)?\,;\, MakeSalad(Bowl1)\]
+
+\end_inset
+
+Existing Golog implementations must wait for the 
+\begin_inset Formula $ringTimer$
+\end_inset
+
+ action to actually occur before they can plan the execution of 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+, as until it does they will treat the test condition as unsatisfied.
+ MIndiGolog agents will predict the occurrence of 
+\begin_inset Formula $ringTimer$
+\end_inset
+
+ and corresponding satisfaction of the test condition, and can proceed directly
+ to planning the execution of 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+.
 \newline
 
 \end_layout
@@ -1708,8 +1785,8 @@ MIndiGolog Theory of Action
 \end_inset
 
 ).
- All legal executions of a MIndiGolog program derived from such a theory
- of action produce legal situations.
+ All legal executions of a MIndiGolog program derived from such [levesque97golog
+]a theory of action produce legal situations.
 \newline
 
 \end_layout
@@ -1826,8 +1903,9 @@ The effect of our new semantics can be seen in figure
 status collapsed
 
 \begin_layout Standard
-A Prolog implementation of the MIndiGolog semantics, from which this trace
- was obtained, is available at http://www.csse.unimelb.edu.au/~rfk/golog/
+A (centralised) Prolog implementation of the MIndiGolog semantics, from
+ which this trace was obtained, is available at http://www.csse.unimelb.edu.au/~rfk/
+golog/
 \end_layout
 
 \end_inset
@@ -1838,12 +1916,12 @@ A Prolog implementation of the MIndiGolog semantics, from which this trace
 do
 \series default
  statement, demonstrating the integration of true concurrency into the language.
- Note also the incorporation of natural actions 
+ Note also the incorporation of natural 
 \begin_inset Formula $endTask$
 \end_inset
 
- into the progrom, and the explicit occurrance time for each action.
- (in this trace the occurance times have been instantiated to their earliest
+ actions into the program, and the explicit occurrence time for each action.
+ (in this trace the occurence times have been instantiated to their earliest
  possible value).
 \end_layout
 
@@ -1947,6 +2025,12 @@ One possible execution of the
 \end_inset
 
  program with three agents, using the semantics of MIndiGolog.
+ Note the occurrence of multiple actions within each 
+\series bold
+do
+\series default
+ statement, at specific time instants, demonstrating the integration of
+ true concurrency in MIndiGolog.
 \end_layout
 
 \begin_layout Standard
@@ -1963,7 +2047,7 @@ One possible execution of the
 \end_layout
 
 \begin_layout Standard
-For comparion purposes, we added a temporal element and inserted explicit
+For comparison purposes, we added a temporal element and inserted explicit
  
 \begin_inset Formula $endTask$
 \end_inset
@@ -1991,7 +2075,7 @@ For comparion purposes, we added a temporal element and inserted explicit
 placement t
 wide true
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \begin_inset Box Boxed
@@ -2086,6 +2170,8 @@ One possible execution of the
 \end_inset
 
  program with three agents, using the semantics of IndiGolog.
+ Note that the lack of true concurrency in IndiGolog means only one agent
+ can act at each step, leaving the other two agents idle.
 \end_layout
 
 \begin_layout Standard
@@ -2128,8 +2214,8 @@ As the existing languages based on Golog have demonstrated, an interpreter
 One powerful feature of Oz is the ability to use several networked computers
  to search for solutions to a logic program in parallel.
  Since the task of planning a MIndiGolog execution is encoded as a logic
- program, this immediately allows a team of agents to distribute the planning
- workload in the case of fully observable domains.
+ program, this immediately allows a team of agents to distribute the execution
+ planning workload.
  Below we briefly summarise our implementation; the full version is available
  from the author's website
 \begin_inset Foot
@@ -2146,7 +2232,7 @@ http://www.csse.unimelb.edu.au/~rfk/golog/
 
 \begin_layout Standard
 MIndiGolog programs are represented in Oz as record terms (which are similar
- to prolog data terms) with the name of the record representing an operator
+ to Prolog data terms) with the name of the record representing an operator
  and its features the arguments.
  Actions are also encoded as records.
  As in Prolog, uppercase terms in Oz represent variables.
@@ -2249,7 +2335,20 @@ A procedure
 \begin_inset Formula $Do(\delta,s,s')\equiv Trans*(\delta,s,\delta',s')\wedge Final(\delta',s')$
 \end_inset
 
- is defined that determines a legal execution for a given program:
+ is defined that determines a legal execution 
+\series bold
+\emph on
+Sp
+\series default
+ 
+\emph default
+for a given program 
+\series bold
+\emph on
+D
+\series default
+\emph default
+:
 \end_layout
 
 \begin_layout Standard
@@ -2275,8 +2374,10 @@ normalsize
 \begin_layout Standard
 This 
 \series bold
+\emph on
 Do
 \series default
+\emph default
  procedure can then be passed to the parallel search functionality to plan
  a program execution.
  Here 
@@ -2306,8 +2407,10 @@ Goloz
  is an Oz functor (basically, a portable piece of code) that exports the
  
 \series bold
+\emph on
 Do
 \series default
+\emph default
  procedure defined above:
 \end_layout
 
@@ -2336,14 +2439,17 @@ When this code is run, it will utilise the computational resources of both
  agents to plan a legal execution of a given MIndiGolog program.
  This requires that the same information is available to each agent, which
  restricts the technique to fully-observable domains.
- We are currently developing more sophisticated means for distributing the
- planning and execution of MIndiGolog programs, based on an explicit account
- of what each agent knows.
- 
+ We are currently developing an algorithm for cooperative execution of MIndiGolo
+g programs that utilizes such distribution of the planning workload.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Section
 Related Work
+\begin_inset LatexCommand \label{sec:Related-Work}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2373,16 +2479,65 @@ y of performing actions concurrently and the coordination of concurrent
 \end_layout
 
 \begin_layout Standard
-This paper focuses on task specification using Golog and does not deal with
- coordination between team members.
- We are currently developing techniques for cooperative execution of MIndiGolog
- programs, based on successful approaches to executing HTN task specifications
- such as 
-\begin_inset LatexCommand \cite{tambe97flexible_teamwork,grosz99planning_together,decker95designing_coordination}
+As stated in the introduction, there has been a great deal of promising
+ work on distributed problem solving systems using the Hierarchical Task
+ Networks formalism for task specification.
+ Such projects include, among others, STEAM 
+\begin_inset LatexCommand \cite{tambe97flexible_teamwork}
+
+\end_inset
+
+, SharedPlans 
+\begin_inset LatexCommand \cite{grosz99planning_together}
+
+\end_inset
+
+, and TAEMS 
+\begin_inset LatexCommand \cite{decker95designing_coordination}
 
 \end_inset
 
 .
+ We believe high-level program execution to have several clear advantages
+ over HTN 
+\begin_inset LatexCommand \cite{Gabaldon02htn_in_golog,son00htn_golog}
+
+\end_inset
+
+, the key one being fine control over the nondeterminism in a program.
+ For example, Golog's powerful support for controlled nondeterminism allows
+ full goal-based planning to be inserted into an otherwise deterministic
+ program by using the 
+\begin_inset Formula $\pi$
+\end_inset
+
+ construct to nondeterministically select appropriate actions until the
+ goal is satisfied.
+ Combined with familiar high-level programming constructs such as loops
+ and if-then-else, it provides a very powerful formalism for expressing
+ complex behaviors and tasks.
+ Golog also benefits from a logic of action rich enough to capture many
+ difficult aspects of multi-agent domains (such as time and true concurrency)
+ while remaining computationally feasible.
+\end_layout
+
+\begin_layout Standard
+One advantage of HTN is that if an entire sub-task is delegated to a particular
+ agent, other members of the team can avoid further consideration of that
+ task.
+ In Golog, the other team members would still need to consider and plan
+ for the actions to be performed by that agent.
+ We thus consider MIndiGolog more suitable for teams which must cooperate
+ closely to execute a single task and thus must be intimately aware of each
+ other's actions and intentions, while HTN may be more effective for teams
+ cooperating to perform several loosely-coupled tasks.
+\end_layout
+
+\begin_layout Standard
+Note that this paper focuses on task specification using Golog and does
+ not deal with coordination between team members.
+ We are currently developing techniques for cooperative execution of MIndiGolog
+ programs based on these successful approaches to executing HTN specifications.
 \end_layout
 
 \begin_layout Section
@@ -2395,19 +2550,24 @@ Conclusions and Future Work
 \end_layout
 
 \begin_layout Standard
-Our work integrates several important extensions to the situation calculus
- and Golog to better model the dynamics of multi-agent teams.
+Our work integrates several important extensions to the
+\begin_inset LatexCommand \cite{levesque97golog}
+
+\end_inset
+
+ situation calculus and Golog to better model the dynamics of multi-agent
+ teams.
  Specifically, MIndiGolog combines true and interleaved concurrency, an
  explicit account of time, and seamless integration of natural actions.
  It defines legal executions of high-level programs that are suitable for
  cooperative execution by a multi-agent team, as in distributed problem
- solving applicartions.
+ solving.
 \end_layout
 
 \begin_layout Standard
 Since the semantics of MIndiGolog are based on first-order logic, existing
- techniques for distributed logic programming can be used to share the execution
--planning workload between agents.
+ techniques for distributed logic programmmodeling can be used to share
+ the execution-planning workload between agents.
  In fully-observable domains, the parallel search capabilities of Oz can
  be used directly.
  We are currently developing a more sophisticated coordination strategy
@@ -2420,9 +2580,45 @@ Since the semantics of MIndiGolog are based on first-order logic, existing
 \end_layout
 
 \begin_layout Standard
+Such coordination strategies are typically based on explicit mental attitudes
+ such as knowledge and intention.
+ A key aspect of our recent work has been the development of a computationally-f
+easible account of knowledge in the situation calculus that can handle partially
+ observable domains 
+\begin_inset LatexCommand \cite{kelly07sc_know_obs}
+
+\end_inset
+
+.
+ Such an account requires efficient reasoning about what cannot be changed
+ by certain types of action, and we have developed a technique for answering
+ such 
+\begin_inset Quotes eld
+\end_inset
+
+persistence queries
+\begin_inset Quotes erd
+\end_inset
+
+ under some simple assumptions 
+\begin_inset LatexCommand \cite{kelly07sc_persistence}
+
+\end_inset
+
+.
+ An implementation of these techniques is in progress and will form the
+ base of our distributed problem solving system.
+\end_layout
+
+\begin_layout Standard
 This paper thus represents a first step towards providing the advantages
  of Golog (such as controlled nondeterminism, powerful programming constructs,
  and a rich logic of action) for task specification  for multi-agent teams.
+ While significant work remains to be done to produce a full distributed
+ problem solving system, our current implementations of MIndiGolog in Prolog
+ and Oz, particularly combined with distributed logic programming techniques,
+ have already proven useful for programming the behavior of multi-agent
+ teams in fully observable domains.
 \end_layout
 
 \begin_layout Standard
