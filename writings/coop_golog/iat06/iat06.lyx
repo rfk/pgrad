@@ -2,14 +2,17 @@
 \lyxformat 245
 \begin_document
 \begin_header
-\textclass IEEEtran
+\textclass latex8
 \begin_preamble
-
-
-\newtheorem{theorem}{Theorem}
-\usepackage{verbatim}
+\usepackage{calc}
+\usepackage{subfigure}
+\usepackage{latex8}
+\usepackage{times}
+\usepackage{amsthm}
+\newtheorem{lemma}{Lemma}
+\newtheorem{thm}{Theorem}
 \end_preamble
-\options letterpaper
+\options times, 10pt, twocolumn
 \language english
 \inputencoding latin1
 \fontscheme default
@@ -22,6 +25,15 @@
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
+\paperwidth 0cm
+\paperheight 0cm
+\leftmargin 0cm
+\topmargin 0cm
+\rightmargin 0cm
+\bottommargin 0cm
+\headheight 0cm
+\headsep 0cm
+\footskip 0cm
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
@@ -29,7 +41,7 @@
 \quotes_language english
 \papercolumns 1
 \papersides 1
-\paperpagestyle default
+\paperpagestyle empty
 \tracking_changes false
 \output_changes false
 \end_header
@@ -37,9 +49,7 @@
 \begin_body
 
 \begin_layout Title
-Towards High-Level Programming for
-\newline
-Distributed Problem Solving
+Towards High-Level Programming for Distributed Problem Solving
 \end_layout
 
 \begin_layout Author
@@ -58,6 +68,22 @@ Ryan F.
 \newline
  {rfk,adrian}@
 csse.unimelb.edu.au
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Abstract
@@ -81,6 +107,7 @@ natural actions
 ).
  The result is MIndiGolog, a new Golog variant suitable for distributed,
  cooperative execution by a multi-agent team.
+ 
 \end_layout
 
 \begin_layout Section
@@ -91,11 +118,10 @@ Introduction
 In distributed problem solving applications, a team of agents must cooperate
  closely to achieve a shared goal.
  Such teams can often be conceptualized as a single agent with distributed
- sensing, reasoning and acting capabilities, an insight which leads to a
- two-stage technique for programming such teams: adapt a formalism from
- single-agent programming to specify the tasks to be performed, then provide
- a coordination strategy allowing the team to execute the specification
- cooperatively.
+ sensing, reasoning and acting capabilities, which leads to a two-stage
+ technique for programming such teams: adapt a formalism from single-agent
+ programming to specify the tasks to be performed, then provide a coordination
+ strategy allowing the team to execute the specification cooperatively.
  This approach has been successfully employed by platforms such as STEAM
  
 \begin_inset LatexCommand \cite{tambe97flexible_teamwork}
@@ -112,7 +138,7 @@ In distributed problem solving applications, a team of agents must cooperate
 
 \end_inset
 
-, which specify tasks using variants of the Hierarchical Task Networks (HTN)
+, which specify tasks with variants of the Hierarchical Task Networks (HTN)
  formalism.
 \end_layout
 
@@ -153,7 +179,6 @@ controlled nondeterminism
 \end_inset
 
 .
- 
 \end_layout
 
 \begin_layout Standard
@@ -174,7 +199,7 @@ l program.
  to assist in coordination between agents.
  The concept of natural actions is also tightly integrated into the language,
  to allow agents to predict the behavior of their teammates and environment.
- We name the resulting language 
+ We name the new language 
 \begin_inset Quotes eld
 \end_inset
 
@@ -238,36 +263,30 @@ The Situation Calculus
 \end_layout
 
 \begin_layout Standard
-The situation calculus is a many-sorted language of first-order logic augmented
- with a second-order induction axiom.
- It has the following sorts: 
+The situation calculus is a first-order logic formalism with the following
+ key features: 
 \emph on
-Action
+Actions
 \emph default
- terms are functions denoting individual instantaneous events that can cause
- the state of the world to change; 
+ are functions denoting individual instantaneous events that can cause the
+ state of the world to change; 
 \emph on
-Situation
+Situations
 \emph default
- terms are histories of the actions that have occurred in the world, with
- the initial situation represented by 
+ are histories of the actions that have occurred, with 
 \begin_inset Formula $S_{0}$
 \end_inset
 
- and successive situations built up using the function 
-\begin_inset Formula $do\,:\, Action\times Situation\rightarrow Situation$
+ being the initial situation and successive situations built up using the
+ function 
+\begin_inset Formula $do(a,s)$
 \end_inset
 
 ; 
 \emph on
-Object
+Fluents
 \emph default
- terms represent any other object in the domain.
- It further distinguishes 
-\emph on
-fluents
-\emph default
- as predicates or functions representing properties of the world that may
+ are predicates or functions representing properties of the world that may
  change from one situation to another.
  The special fluent 
 \begin_inset Formula $Poss(a,s)$
@@ -293,16 +312,16 @@ theory of action
 \emph default
 , and queries about the behavior or evolution of the world are posed as
  logical entailment queries relative to this theory.
-\newline
-
-\end_layout
-
-\begin_layout Subsubsection
-Concurrency
 \end_layout
 
 \begin_layout Standard
-In the basic situation calculus only a single action can occur at any instant.
+
+\series bold
+\emph on
+Concurrency:
+\series default
+\emph default
+ In the basic situation calculus only a single action can occur at any instant.
  While suitable for most single-agent domains, this limitation is emphatically
  not suitable for multi-agent systems - several actions can easily occur
  simultaneously if performed by different agents.
@@ -359,45 +378,24 @@ This seemingly simple modification introduces a complication - a combination
 \end_inset
 
  are in conflict and cannot be performed together.
- The possibility axiom for concurrent actions is then:
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-We follow the convention that lower-case free variables are implicitly universal
-ly quantified
-\end_layout
-
-\end_inset
-
-
-\begin_inset Formula \[
-Poss(c,s)\equiv\forall a.\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsubsection
-Time
 \end_layout
 
 \begin_layout Standard
-An explicit notion of time can make coordination between agents easier,
+
+\series bold
+\emph on
+Time:
+\series default
+\emph default
+ An explicit notion of time can make coordination between agents easier,
  as joint actions may be performed at a particular time.
  It also allows a richer description of the world, for example when stating
  the baking time of a cake.
 \end_layout
 
 \begin_layout Standard
-A temporal component was incorporated into the situation calculus by 
-\begin_inset LatexCommand \cite{pinto94temporal}
-
-\end_inset
-
- and simplified somewhat by 
-\begin_inset LatexCommand \cite{reiter96sc_nat_conc}
+The standard approach to time in the situation calculus is that of 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc,pinto94temporal}
 
 \end_inset
 
@@ -421,36 +419,27 @@ A temporal component was incorporated into the situation calculus by
 \end_layout
 
 \begin_layout Standard
-All members in a set of concurrent actions are clearly required to be performed
- at the same time.
- An additional predicate 
+An additional predicate 
 \begin_inset Formula $Coherent$
 \end_inset
 
- is used to ensure this:
-\begin_inset Formula \[
-Coherent(c)\equiv\exists t.\forall a.\left[a\in c\rightarrow time(a)=t\right]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The 
+ is defined to ensure that the performance time is the same for all members
+ in a set of concurrent actions.
+ The 
 \begin_inset Formula $Poss$
 \end_inset
 
- fluent for concurrent actions can then be modified to ensure that the temporal
- relation between past and future situations is respected:
+ fluent for concurrent actions can then be defined to ensure that the temporal
+ relation between past and future situations is respected, as well as accounting
+ for conflicting actions:
 \begin_inset Formula \begin{multline*}
-Poss(c,s)\equiv\forall a.\left[a\in c\rightarrow Poss(a,s)\right]\wedge\neg Conflicts(c,s)\\
-\wedge\, time(c)>start(s)\,\wedge\, Coherent(c)\end{multline*}
+Poss(c,s)\equiv\forall a.\left[a\in c\rightarrow Poss(a,s)\right]\\
+\wedge\,\neg Conflicts(c,s)\,\wedge\, time(c)>start(s)\,\wedge\, Coherent(c)\end{multline*}
 
 \end_inset
 
-These authors also utilize a standard approach to actions with a finite
- duration - they are decomposed into instantaneous 
+ This representation is accompanied by a standard approach to actions with
+ a finite duration: they are decomposed into instantaneous 
 \begin_inset Formula $start$
 \end_inset
 
@@ -472,28 +461,23 @@ These authors also utilize a standard approach to actions with a finite
 \end_inset
 
 .
-\newline
-
-\end_layout
-
-\begin_layout Subsubsection
-Natural Actions
 \end_layout
 
 \begin_layout Standard
-These are a special class of exogenous actions, those actions which occur
- outside of an agent's control.
- Introduced to the situation calculus by 
-\begin_inset LatexCommand \cite{pinto94temporal}
 
-\end_inset
-
- and expanded by 
+\series bold
+\emph on
+Natural Actions:
+\series default
+\emph default
+ These are a special class of exogenous actions, those actions which occur
+ outside of an agent's control 
 \begin_inset LatexCommand \cite{reiter96sc_nat_conc}
 
 \end_inset
 
-, they are classified according to the following requirement: natural actions
+.
+ They are classified according to the following requirement: natural actions
  must occur at their predicted times, provided no earlier actions prevent
  them from occurring.
  For example, a timer will ring at the time it was set for, unless it is
@@ -505,8 +489,8 @@ These are a special class of exogenous actions, those actions which occur
  from above is another example - it must occur whenever it is possible,
  which is at the time when the agent finishes the task.
  In domains where many agents may be simultaneously engaged in many long-running
- tasks, strong semantic support for such natural actions will therefore
- be of significant benefit.
+ tasks, strong semantic support for natural actions will therefore be of
+ significant benefit.
 \end_layout
 
 \begin_layout Standard
@@ -538,9 +522,9 @@ Natural actions are indicated by the truth of the predicate
 \end_inset
 
  action would be:
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 Poss(ringTimer(t),s)\equiv\\
-\exists m.\left[TimerSet(m,s)\wedge t=start(s)+m\right]\label{eqn:poss_ring_timer}\end{multline}
+\exists m.\left[TimerSet(m,s)\wedge t=start(s)+m\right]\end{multline*}
 
 \end_inset
 
@@ -556,11 +540,10 @@ must
  is introduced which is true only for situations that respect this requirement.
  Legal situations are the only situations that could be brought about in
  the real world:
-\begin_inset Formula \begin{multline}
-Legal(S_{0})\equiv True\label{eqn:legal_def}\\
+\begin_inset Formula \begin{multline*}
+Legal(S_{0})\equiv True\\
 \shoveleft{Legal(do(c,s))\equiv Legal(s)\wedge Poss(c,s)}\\
-\wedge Coherent(c)\wedge start(s)\leq time(c)\\
-\wedge\,\forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow\left[a\in c\vee t<time(a)\right]\right]\end{multline}
+\wedge\,\forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow\left[a\in c\vee t<time(a)\right]\right]\end{multline*}
 
 \end_inset
 
@@ -569,10 +552,10 @@ Legal(S_{0})\equiv True\label{eqn:legal_def}\\
  a natural action may occur.
  We assume that the theory of action avoids certain pathological cases,
  so that absence of an LNTP implies that no natural actions are possible.
-\begin_inset Formula \begin{multline}
+\begin_inset Formula \begin{multline*}
 Lntp(s,t)\equiv\\
 \exists a.\left[Natural(a)\wedge Poss(a,s)\wedge time(a)=t\right]\wedge\\
-\forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow t\leq time(a)\right]\label{eqn:lntp_def}\end{multline}
+\forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow t\leq time(a)\right]\end{multline*}
 
 \end_inset
 
@@ -597,7 +580,7 @@ Golog
 \end_inset
 
 ).
- We use the term 
+ We use 
 \begin_inset Quotes eld
 \end_inset
 
@@ -629,10 +612,10 @@ status collapsed
 \begin_inset Tabular
 <lyxtabular version="3" rows="13" columns="2">
 <features>
-<column alignment="center" valignment="top" leftline="true" width="0">
 <column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" rightline="true" width="0">
 <row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -641,7 +624,7 @@ Operator
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -652,7 +635,7 @@ Meaning
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -664,7 +647,7 @@ Meaning
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -679,7 +662,7 @@ Execute action
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -691,7 +674,7 @@ Execute action
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -706,7 +689,7 @@ Proceed only if condition
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -718,7 +701,7 @@ Proceed only if condition
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -737,7 +720,7 @@ followed by
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -749,7 +732,7 @@ followed by
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -768,7 +751,7 @@ Execute either
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -780,7 +763,7 @@ Execute either
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -796,7 +779,7 @@ Nondet.
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -808,7 +791,7 @@ Nondet.
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -823,7 +806,7 @@ Execute
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -835,7 +818,7 @@ Execute
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -859,7 +842,7 @@ Exec.
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -871,7 +854,7 @@ Exec.
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -890,7 +873,7 @@ Execute
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -902,7 +885,7 @@ Execute
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -921,7 +904,7 @@ and
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -933,7 +916,7 @@ and
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -954,7 +937,7 @@ Conc.
 </cell>
 </row>
 <row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -966,7 +949,7 @@ Conc.
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -982,7 +965,7 @@ Find and perform legal exec.
 </cell>
 </row>
 <row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -994,7 +977,7 @@ Find and perform legal exec.
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Standard
@@ -1022,7 +1005,7 @@ Some Golog Operators
 
 \end_inset
 
- 
+
 \end_layout
 
 \begin_layout Standard
@@ -1133,7 +1116,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 
 \end_inset
 
-Clearly there are two notions of concurrency to be considered: the possibility
+ Clearly there are two notions of concurrency to be considered: the possibility
  of performing several actions at the same instant (
 \emph on
 true concurrency
@@ -1194,7 +1177,7 @@ If the theory of action
 
 \end_inset
 
-In IndiGolog agents can also proceed without planning a full terminating
+ In IndiGolog agents can also proceed without planning a full terminating
  execution of their program, by searching for a legal 
 \begin_inset Quotes eld
 \end_inset
@@ -1233,7 +1216,8 @@ As an example of a multi-agent task specification in Golog, consider a program
 \left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
 \pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
 \left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
-\pi(agt)\left[acquire(agt,dest)\,;\, beginTask(agt,mix(dest,1))\,;\right.\\
+\pi(agt)\left[acquire(agt,dest)\,;\,\right.\\
+beginTask(agt,mix(dest,1))\,;\\
 \left.\, release(agt,dest)\right]\,\,\mathbf{end}\end{multline}
 
 \end_inset
@@ -1269,7 +1253,7 @@ As an example of a multi-agent task specification in Golog, consider a program
 While this is a valid program in standard IndiGolog, executing it using
  the existing semantics would be far from ideal.
  The explicit temporal component described above must to added to IndiGolog
- to accomodate the 
+ to accommodate the 
 \begin_inset Formula $mix(dest,1)$
 \end_inset
 
@@ -1299,7 +1283,7 @@ While this is a valid program in standard IndiGolog, executing it using
 Our new Golog variant, MIndiGolog, is designed to produce executions of
  such programs in a manner that overcome these limitations, and is thus
  suitable for specifying tasks to be performed by multi-agent teams in distribut
-ued problem solving applications.
+ed problem solving applications.
 \end_layout
 
 \begin_layout Section
@@ -1373,26 +1357,16 @@ action
 \end_inset
 
 .
- The semantics of IndiGolog trivially accommodate this change.
+ The semantics of IndiGolog trivially accommodate this change, and predicate
  
 \begin_inset Formula $Coherent$
 \end_inset
 
- and 
+ and function 
 \begin_inset Formula $time$
 \end_inset
 
- are no longer needed, and the definition of 
-\begin_inset Formula $start$
-\end_inset
-
- becomes simply:
-\begin_inset Formula \[
-start(do(a,t,s))=t\]
-
-\end_inset
-
-
+ are no longer needed.
 \end_layout
 
 \begin_layout Subsection
@@ -1438,28 +1412,11 @@ ously, i.e.
 \end_inset
 
 .
- They give the following transition rule to permit this:
-\begin_inset Formula \begin{multline}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
-\shoveright{\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})}\\
-\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
-\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
-\shoveright{\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))}\\
-\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\end{multline}
-
-\end_inset
-
-
+ However, this introduces several complications that they do not address.
 \end_layout
 
 \begin_layout Standard
-However, this introduces several complications not addressed in 
-\begin_inset LatexCommand \cite{pinto99tcongolog}
-
-\end_inset
-
-.
- First, precondition interaction means that 
+First, precondition interaction means that 
 \begin_inset Formula $c_{1}\cup c_{2}$
 \end_inset
 
@@ -1477,7 +1434,7 @@ placeIn(Thomas,Egg,Bowl)\end{multline*}
 
 \end_inset
 
-Executing 
+ Executing 
 \begin_inset Formula $\delta_{1}||\delta_{2}$
 \end_inset
 
@@ -1500,8 +1457,8 @@ Executing
 
 \end_inset
 
-Both programs should be allowed to proceed with a single occurrence of the
- 
+ Both programs should be allowed to proceed with a single occurrence of
+ the 
 \begin_inset Formula $ringTimer$
 \end_inset
 
@@ -1537,8 +1494,7 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 \shoveright{\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})}\\
 \shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
 \shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
-\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\\
-\wedge Poss(c_{1}\cup c_{2},t,s)\\
+\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge Poss(c_{1}\cup c_{2},t,s)\\
 \shoveright{\wedge\forall a.\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]}\\
 \wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)\label{eqn:trans_conc_new}\end{multline}
 
@@ -1638,8 +1594,8 @@ t\geq start(s)\wedge s'=do(c,t,s)\wedge\delta'=Nil\label{eqn:trans_prim_new}\end
 \end_layout
 
 \begin_layout Standard
-The occurance of natural actions may also cause test conditions within the
- program to become satisfied, so a new 
+The occurrence of natural actions may also cause test conditions within
+ the program to become satisfied, so a new 
 \begin_inset Formula $Trans$
 \end_inset
 
@@ -1708,7 +1664,7 @@ Contrast this with the standard handling of exogenous events in IndiGolog,
 
 \end_inset
 
-This allows the program to make a legal transition regardless of what exogenous
+ This allows the program to make a legal transition regardless of what exogenous
  actions occur - an approach suitable for dealing with arbitrary exogenous
  actions which may occur at any time, but suboptimal for handling 
 \emph on
@@ -1716,39 +1672,7 @@ predictable
 \emph default
  exogenous actions.
  Our approach allows the agents to directly predict the natural actions
- that will occur, without extra burden on the programmer.
-\end_layout
-
-\begin_layout Standard
-For example, consider the case where a timer is set to ring in one minute
- in the initial situation and the agents are required to make a salad once
- there are no timers set, as in the following program: 
-\begin_inset Formula \[
-\left(\neg\exists m\,.\, TimerSet(m)\right)?\,;\, MakeSalad(Bowl1)\]
-
-\end_inset
-
-Existing Golog implementations must wait for the 
-\begin_inset Formula $ringTimer$
-\end_inset
-
- action to actually occur before they can plan the execution of 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
-, as until it does they will treat the test condition as unsatisfied.
- MIndiGolog agents will predict the occurrence of 
-\begin_inset Formula $ringTimer$
-\end_inset
-
- and corresponding satisfaction of the test condition, and can proceed directly
- to planning the execution of 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
-.
-\newline
-
+ that will occur and automatically include them in a planned execution.
 \end_layout
 
 \begin_layout Subsection
@@ -1787,12 +1711,22 @@ MIndiGolog Theory of Action
 ).
  All legal executions of a MIndiGolog program derived from such [levesque97golog
 ]a theory of action produce legal situations.
-\newline
-
 \end_layout
 
-\begin_layout Lemma
-Let 
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{lemma}
+\end_layout
+
+\end_inset
+
+ Let 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
@@ -1811,8 +1745,33 @@ Let
 
 \end_layout
 
-\begin_layout Proof
-By induction on the structure of 
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{lemma}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{proof}
+\end_layout
+
+\end_inset
+
+ By induction on the structure of 
 \begin_inset Formula $\delta$
 \end_inset
 
@@ -1837,15 +1796,36 @@ By induction on the structure of
 \end_inset
 
 ) is straightforward, and no other clause constructs new situation terms.
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{proof}
+\end_layout
+
+\end_inset
+
+ 
 \end_layout
 
 \begin_layout Standard
-\InsetSpace ~
+\begin_inset ERT
+status collapsed
 
+\begin_layout Standard
+
+
+\backslash
+begin{thm}
 \end_layout
 
-\begin_layout Theorem
-Let 
+\end_inset
+
+ Let 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
@@ -1857,10 +1837,33 @@ Let
 \end_inset
 
  Thus, all legal executions of a MIndiGolog program produce legal situations.
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{thm}
 \end_layout
 
-\begin_layout Proof
-From lemma 
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{proof}
+\end_layout
+
+\end_inset
+
+ From lemma 
 \begin_inset LatexCommand \ref{thm:trans_legal}
 
 \end_inset
@@ -1870,11 +1873,20 @@ From lemma
 \end_inset
 
 , and the properties of transitive closure.
-\end_layout
+ 
+\begin_inset ERT
+status collapsed
 
 \begin_layout Standard
-\InsetSpace ~
 
+
+\backslash
+end{proof}
+\end_layout
+
+\end_inset
+
+ 
 \end_layout
 
 \begin_layout Standard
@@ -1903,7 +1915,7 @@ The effect of our new semantics can be seen in figure
 status collapsed
 
 \begin_layout Standard
-A (centralised) Prolog implementation of the MIndiGolog semantics, from
+A (centralized) Prolog implementation of the MIndiGolog semantics, from
  which this trace was obtained, is available at http://www.csse.unimelb.edu.au/~rfk/
 golog/
 \end_layout
@@ -1921,7 +1933,7 @@ do
 \end_inset
 
  actions into the program, and the explicit occurrence time for each action.
- (in this trace the occurence times have been instantiated to their earliest
+ (in this trace the occurrence times have been instantiated to their earliest
  possible value).
 \end_layout
 
@@ -1933,19 +1945,76 @@ sideways false
 status open
 
 \begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100text%"
-special "none"
-height "100in"
-height_special "depth"
-status open
+\begin_inset ERT
+status collapsed
 
 \begin_layout Standard
+
+
+\backslash
+centering
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+subfigure[One possible execution of the $MakeSalad$ program with three agents,
+\end_layout
+
+\begin_layout Standard
+
+using MIndiGolog.
+ Note the occurrence of multiple
+\end_layout
+
+\begin_layout Standard
+
+actions within each do statement.]{
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset LatexCommand \label{cap:example_trace}
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+framebox{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+makebox[1
+\backslash
+textwidth]{
+\end_layout
+
+\end_inset
+
+
 \begin_inset Box Frameless
 position "t"
 hor_pos "c"
@@ -1959,17 +2028,10 @@ height_special "totalheight"
 status open
 
 \begin_layout Standard
-\begin_inset ERT
-status open
 
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/output_makeSalad_1.txt}
-\end_layout
+\size small
+\begin_inset Include \verbatiminput{listings/output_makeSalad_1.txt}
+preview false
 
 \end_inset
 
@@ -1992,53 +2054,202 @@ height_special "totalheight"
 status open
 
 \begin_layout Standard
+
+\size small
+\begin_inset Include \verbatiminput{listings/output_makeSalad_2.txt}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Standard
 
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/output_makeSalad_2.txt}
+}
 \end_layout
 
 \end_inset
 
 
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Caption
-One possible execution of the 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
- program with three agents, using the semantics of MIndiGolog.
- Note the occurrence of multiple actions within each 
-\series bold
-do
-\series default
- statement, at specific time instants, demonstrating the integration of
- true concurrency in MIndiGolog.
-\end_layout
+\begin_inset ERT
+status collapsed
 
 \begin_layout Standard
-\begin_inset LatexCommand \label{cap:example_trace}
+
+}
+\end_layout
 
 \end_inset
 
  
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+subfigure[One possible execution of the $MakeSalad$ program with three
+\end_layout
+
+\begin_layout Standard
+
+agents, using IndiGolog.
+ Note that only one agent acts at
+\end_layout
+
+\begin_layout Standard
+
+each step.]{
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset LatexCommand \label{cap:indigolog_trace}
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+framebox{
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+makebox[1
+\backslash
+textwidth]{
+\end_layout
+
+\end_inset
+
+
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "50text%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\size small
+\begin_inset Include \verbatiminput{listings/output_makeSalad_ig_1.txt}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "45text%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\size small
+\begin_inset Include \verbatiminput{listings/output_makeSalad_ig_2.txt}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Caption
+Example executions of the 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+ program
 \end_layout
 
 \end_inset
@@ -2067,124 +2278,6 @@ For comparison purposes, we added a temporal element and inserted explicit
  at each step, leaving the other two agents completely idle.
  The ability to reduce idle time by performing actions concurrency is clearly
  an advantage for distributed problem solving applications.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-placement t
-wide true
-sideways false
-status collapsed
-
-\begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 0
-inner_pos "t"
-use_parbox 0
-width "100text%"
-special "none"
-height "100in"
-height_special "depth"
-status open
-
-\begin_layout Standard
-\begin_inset Box Frameless
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "50text%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/output_makeSalad_ig_1.txt}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\begin_inset Box Frameless
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "45text%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/output_makeSalad_ig_2.txt}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Caption
-One possible execution of the 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
- program with three agents, using the semantics of IndiGolog.
- Note that the lack of true concurrency in IndiGolog means only one agent
- can act at each step, leaving the other two agents idle.
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand \label{cap:indigolog_trace}
-
-\end_inset
-
- 
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -2207,7 +2300,6 @@ As the existing languages based on Golog have demonstrated, an interpreter
 
 , a multi-paradigm programming language with strong support for distributed
  computing.
- 
 \end_layout
 
 \begin_layout Standard
@@ -2216,7 +2308,7 @@ One powerful feature of Oz is the ability to use several networked computers
  Since the task of planning a MIndiGolog execution is encoded as a logic
  program, this immediately allows a team of agents to distribute the execution
  planning workload.
- Below we briefly summarise our implementation; the full version is available
+ Below we briefly summarize our implementation; the full version is available
  from the author's website
 \begin_inset Foot
 status collapsed
@@ -2250,23 +2342,14 @@ is represented as follows:
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
 
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/goloz_ex_prog.oz} 
-\backslash
-normalsize
-\end_layout
+\size small
+\begin_inset Include \verbatiminput{listings/goloz_ex_prog.oz}
+preview false
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Standard
@@ -2280,10 +2363,10 @@ The predicates
 
  have a straightforward encoding as Oz procedures, using the 
 \series bold
-case 
+case
 \series default
-statement to encode each individual clause using pattern matching, and the
- 
+ statement to encode each individual clause using pattern matching, and
+ the 
 \series bold
 choice
 \series default
@@ -2291,43 +2374,25 @@ choice
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
 
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/goloz_trans.oz} 
-\backslash
-normalsize
-\end_layout
+\size small
+\begin_inset Include \verbatiminput{listings/goloz_trans.oz}
+preview false
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
 
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/goloz_final.oz} 
-\backslash
-normalsize
-\end_layout
+\size small
+\begin_inset Include \verbatiminput{listings/goloz_final.oz}
+preview false
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Standard
@@ -2340,9 +2405,8 @@ A procedure
 \emph on
 Sp
 \series default
- 
 \emph default
-for a given program 
+ for a given program 
 \series bold
 \emph on
 D
@@ -2352,23 +2416,14 @@ D
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
 
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/goloz_do.oz} 
-\backslash
-normalsize
-\end_layout
+\size small
+\begin_inset Include \verbatiminput{listings/goloz_do.oz}
+preview false
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Standard
@@ -2415,27 +2470,18 @@ Do
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
 
-\begin_layout Standard
-
-
-\backslash
-small 
-\backslash
-verbatiminput{listings/goloz_do_parallel.oz} 
-\backslash
-normalsize
-\end_layout
+\size small
+\begin_inset Include \verbatiminput{listings/goloz_do_parallel.oz}
+preview false
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Standard
-When this code is run, it will utilise the computational resources of both
+When this code is run, it will utilize the computational resources of both
  agents to plan a legal execution of a given MIndiGolog program.
  This requires that the same information is available to each agent, which
  restricts the technique to fully-observable domains.
@@ -2479,58 +2525,26 @@ y of performing actions concurrently and the coordination of concurrent
 \end_layout
 
 \begin_layout Standard
-As stated in the introduction, there has been a great deal of promising
- work on distributed problem solving systems using the Hierarchical Task
- Networks formalism for task specification.
- Such projects include, among others, STEAM 
-\begin_inset LatexCommand \cite{tambe97flexible_teamwork}
+As stated earlier, there has been much promising work on distributed problem
+ solving systems using the Hierarchical Task Networks formalism (
+\begin_inset LatexCommand \cite{tambe97flexible_teamwork,decker95designing_coordination,grosz99planning_together}
 
 \end_inset
 
-, SharedPlans 
-\begin_inset LatexCommand \cite{grosz99planning_together}
-
-\end_inset
-
-, and TAEMS 
-\begin_inset LatexCommand \cite{decker95designing_coordination}
-
-\end_inset
-
-.
+, among others).
  We believe high-level program execution to have several clear advantages
- over HTN 
+ over HTN, in particular the ready availability of controlled nondeterminism.
+ Combined with familiar high-level programming constructs such as loops
+ and if-then-else, it provides a very powerful formalism for expressing
+ complex behaviors and tasks 
 \begin_inset LatexCommand \cite{Gabaldon02htn_in_golog,son00htn_golog}
 
 \end_inset
 
-, the key one being fine control over the nondeterminism in a program.
- For example, Golog's powerful support for controlled nondeterminism allows
- full goal-based planning to be inserted into an otherwise deterministic
- program by using the 
-\begin_inset Formula $\pi$
-\end_inset
-
- construct to nondeterministically select appropriate actions until the
- goal is satisfied.
- Combined with familiar high-level programming constructs such as loops
- and if-then-else, it provides a very powerful formalism for expressing
- complex behaviors and tasks.
+.
  Golog also benefits from a logic of action rich enough to capture many
- difficult aspects of multi-agent domains (such as time and true concurrency)
+ challenging aspects of multi-agent domains (such as time and concurrency)
  while remaining computationally feasible.
-\end_layout
-
-\begin_layout Standard
-One advantage of HTN is that if an entire sub-task is delegated to a particular
- agent, other members of the team can avoid further consideration of that
- task.
- In Golog, the other team members would still need to consider and plan
- for the actions to be performed by that agent.
- We thus consider MIndiGolog more suitable for teams which must cooperate
- closely to execute a single task and thus must be intimately aware of each
- other's actions and intentions, while HTN may be more effective for teams
- cooperating to perform several loosely-coupled tasks.
 \end_layout
 
 \begin_layout Standard
@@ -2560,39 +2574,32 @@ Our work integrates several important extensions to the
  Specifically, MIndiGolog combines true and interleaved concurrency, an
  explicit account of time, and seamless integration of natural actions.
  It defines legal executions of high-level programs that are suitable for
- cooperative execution by a multi-agent team, as in distributed problem
- solving.
+ cooperative execution by a multi-agent team.
 \end_layout
 
 \begin_layout Standard
 Since the semantics of MIndiGolog are based on first-order logic, existing
- techniques for distributed logic programmmodeling can be used to share
- the execution-planning workload between agents.
+ techniques for distributed logic programming can be used to share the execution
+-planning workload between agents.
  In fully-observable domains, the parallel search capabilities of Oz can
  be used directly.
  We are currently developing a more sophisticated coordination strategy
  to augment these techniques and allow cooperative execution of MIndiGolog
- programs such as 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
- by a team of autonomous agents in partially observable domains.
+ programs by a team of autonomous agents in partially observable domains.
 \end_layout
 
 \begin_layout Standard
 Such coordination strategies are typically based on explicit mental attitudes
  such as knowledge and intention.
  A key aspect of our recent work has been the development of a computationally-f
-easible account of knowledge in the situation calculus that can handle partially
- observable domains 
+easible account of knowledge in partially observable domains 
 \begin_inset LatexCommand \cite{kelly07sc_know_obs}
 
 \end_inset
 
 .
- Such an account requires efficient reasoning about what cannot be changed
- by certain types of action, and we have developed a technique for answering
- such 
+ This requires efficient reasoning about what cannot be changed by certain
+ types of action, and we have developed a technique for answering such 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2606,36 +2613,20 @@ persistence queries
 \end_inset
 
 .
- An implementation of these techniques is in progress and will form the
- base of our distributed problem solving system.
+ An implementation of these techniques will form the base of our distributed
+ problem solving system.
 \end_layout
 
 \begin_layout Standard
 This paper thus represents a first step towards providing the advantages
  of Golog (such as controlled nondeterminism, powerful programming constructs,
- and a rich logic of action) for task specification  for multi-agent teams.
+ and a rich logic of action) for task specification for multi-agent teams.
  While significant work remains to be done to produce a full distributed
  problem solving system, our current implementations of MIndiGolog in Prolog
  and Oz, particularly combined with distributed logic programming techniques,
  have already proven useful for programming the behavior of multi-agent
  teams in fully observable domains.
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-bibliographystyle{IEEEtran}
-\end_layout
-
-\end_inset
-
- 
-\begin_inset LatexCommand \bibtex[IEEEtran]{../../../library/references}
+\begin_inset LatexCommand \bibtex[latex8]{../../../library/references}
 
 \end_inset
 
