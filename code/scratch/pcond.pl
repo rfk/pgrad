@@ -15,16 +15,15 @@
 %  point for this function based on A, P(A) can be determined.
 %
 
-:- [leancop_swi].
-:- [nnf_mm].
+:- [pred].
 
 :- discontiguous eps_pd/3, eps_nd/3.
 
 calc_p1(P,P1) :-
-    ( setof(Cn,A^Cn1^(eps_n(P,A,Cn1), Cn = ~Cn1),Cns) ->
-        joinlist((,),Cns,P1tmp),
-        simplify(P1tmp,P1t),
-        copy_term(P1t,P1)
+    ( setof(Cn,A^Cn1^(eps_n(P,A,Cn1), Cn = -Cn1),Cns) ->
+        joinlist((&),Cns,P1tmp),
+        simplify(P1tmp,P1)
+        %copy_term(P1t,P1)
     ;
         P1=true
     ).
@@ -42,11 +41,11 @@ calc_p_aux(P,F,PC) :-
         )
     ;
         calc_p1(F,F1),
-        calc_p_aux((P,F),F1,PC)
+        calc_p_aux((P & F),F1,PC)
     ).
 
 
-simplify((P,Q),S) :-
+simplify(P & Q,S) :-
     simplify(P,SP),
     simplify(Q,SQ),
     (
@@ -60,9 +59,9 @@ simplify((P,Q),S) :-
     ;
         ground(SP), ground(SQ), SP=SQ, S=SP
     ;
-        S=(SP,SQ)
+        S= SP & SQ
     ), !.
-simplify((P;Q),S) :-
+simplify(P | Q,S) :-
     simplify(P,SP),
     simplify(Q,SQ),
     (
@@ -76,43 +75,43 @@ simplify((P;Q),S) :-
     ;
         ground(SP), ground(SQ), SP=SQ, S=SP
     ;
-        S=(SP;SQ)
+        S= SP | SQ
     ), !.
-simplify(~P,S) :-
+simplify(-P,S) :-
     simplify(P,SP),
     (
         SP=false, S=true
     ;
         SP=true, S=false
     ;
-        SP = ~P2, S=P2
+        SP = -P2, S=P2
     ;
-        S = ~SP
+        S = -SP
     ), !.
-simplify(all(X:P),S) :-
+simplify(all(X,P),S) :-
     simplify(P,SP),
     (
         SP=false, S=false
     ;
         SP=true, S=true
     ;
-        S=all(X:SP)
+        S=all(X,SP)
     ), !.
-simplify(ex(X:P),S) :-
+simplify(exists(X,P),S) :-
     simplify(P,SP),
     (
         SP=false, S=false
     ;
         SP=true, S=true
     ;
-        S=ex(X:SP)
+        S=exists(X,SP)
     ), !.
 simplify(P,P).
 
 
 consequence(P1,P2) :-
-    Fml = ((true , ~false , P1) => P2),
-    prove(Fml).
+    Fml = ((true & -false & P1) -> P2),
+    tautology(Fml).
 
 
 joinlist(_,[H],H).
@@ -124,108 +123,108 @@ joinlist(O,[H|T],J) :-
 
 eps_p(P,A,E) :-
     setof(Et,eps_p1(P,A,Et),Ets),
-    joinlist((;),Ets,Etmp),
+    joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
 
 eps_n(P,A,E) :-
     setof(Et,eps_n1(P,A,Et),Ets),
-    joinlist((;),Ets,Etmp),
+    joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
 
-eps_p1((P,Q),A,E) :-
+eps_p1((P & Q),A,E) :-
     eps_p(P,A,EP),
     eps_p(Q,A,EQ),
-    E = (EP,EQ).
-eps_p1((P,Q),A,E) :-
+    E = (EP & EQ).
+eps_p1((P & Q),A,E) :-
     eps_p(P,A,EP),
     eps_n(Q,A,EQn),
-    E = (EP,Q,~EQn).
-eps_p1((P,Q),A,E) :-
+    E = (EP & Q & -EQn).
+eps_p1((P & Q),A,E) :-
     eps_n(P,A,EPn),
     eps_p(Q,A,EQ),
-    E = (P,~EPn,EQ).
-eps_p1((P,Q),A,E) :-
+    E = (P & -EPn & EQ).
+eps_p1((P & Q),A,E) :-
     eps_p(P,A,EP),
     \+ eps_n(Q,A,_),
-    E = (EP,Q).
-eps_p1((P,Q),A,E) :-
+    E = (EP & Q).
+eps_p1((P & Q),A,E) :-
     eps_p(Q,A,EQ),
     \+ eps_n(P,A,_),
-    E = (P,EQ).
+    E = (P & EQ).
 
-eps_p1((P;_),A,E) :-
+eps_p1((P | _),A,E) :-
     eps_p(P,A,E).
-eps_p1((_;Q),A,E) :-
+eps_p1((_ | Q),A,E) :-
     eps_p(Q,A,E).
 
-eps_p1(~P,A,E) :-
+eps_p1(-P,A,E) :-
     eps_n(P,A,E).
 
-eps_p1(all(X:P),A,E) :-
+eps_p1(all(X,P),A,E) :-
     eps_p(P,A,EP),
     eps_n(P,A,EPn),
-    E = all(X:((P,~EPn);EP)).
-eps_p1(all(X:P),A,E) :-
+    E = all(X,((P & -EPn) | EP)).
+eps_p1(all(X,P),A,E) :-
     eps_p(P,A,EP),
     \+ eps_n(P,A,_),
-    E = all(X:(P;EP)).
+    E = all(X,(P | EP)).
 
-eps_p1(ex(X:P),A,E) :-
+eps_p1(exists(X,P),A,E) :-
     eps_p(P,A,EP),
-    E = ex(X:EP).
+    E = exists(X,EP).
 
 eps_p1(P,A,E) :-
     eps_pd(P,A,Et),
     alpha(A,Ea),
-    E = (Ea,Et).
+    E = (Ea & Et).
 
 
-eps_n1((P,_),A,E) :-
+eps_n1((P & _),A,E) :-
     eps_n(P,A,E).
-eps_n1((_,Q),A,E) :-
+eps_n1((_ & Q),A,E) :-
     eps_n(Q,A,E).
 
-eps_n1((P;Q),A,E) :-
+eps_n1((P | Q),A,E) :-
     eps_n(P,A,EP),
     eps_n(Q,A,EQ),
-    E = (EP,EQ).
-eps_n1((P;Q),A,E) :-
+    E = (EP & EQ).
+eps_n1((P | Q),A,E) :-
     eps_n(P,A,EP),
     eps_p(Q,A,EQp),
-    E = (EP,~Q,~EQp).
-eps_n1((P;Q),A,E) :-
+    E = (EP & -Q & -EQp).
+eps_n1((P | Q),A,E) :-
     eps_p(P,A,EPp),
     eps_n(Q,A,EQ),
-    E = (~P,~EPp,EQ).
-eps_n1((P;Q),A,E) :-
+    E = (-P & -EPp & EQ).
+eps_n1((P | Q),A,E) :-
     eps_n(P,A,EP),
     \+ eps_p(Q,A,_),
-    E = (EP,~Q).
-eps_n1((P;Q),A,E) :-
+    E = (EP & -Q).
+eps_n1((P | Q),A,E) :-
     eps_n(Q,A,EQ),
     \+ eps_p(P,A,_),
-    E = (~P,EQ).
+    E = (-P & EQ).
 
-eps_n1(~P,A,E) :-
+eps_n1(-P,A,E) :-
     eps_p(P,A,E).
 
-eps_n1(all(X:P),A,E) :-
+eps_n1(all(X,P),A,E) :-
     eps_n(P,A,EP),
-    E = ex(X:EP).
+    E = exists(X,EP).
 
-eps_n1(ex(X:P),A,E) :-
+eps_n1(exists(X,P),A,E) :-
     eps_n(P,A,EP),
     eps_p(P,A,EPp),
-    E = all(X:((~P , ~EPp) ; EP)).
-eps_n1(ex(X:P),A,E) :-
+    E = all(X,((-P & -EPp) | EP)).
+eps_n1(exists(X,P),A,E) :-
     eps_n(P,A,EP),
     \+ eps_p(P,A,_),
-    E = all(X:(~P , EP)).
+    E = all(X,(-P & EP)).
 
 eps_n1(P,A,E) :-
     eps_nd(P,A,Et),
     alpha(A,Ea),
-    E = (Ea , Et).
+    E = (Ea & Et).
 
 
 %%%%%%%%%%%%%%%%%
@@ -241,5 +240,5 @@ eps_nd(holding(X),putdown(X),true).
 alpha(drop(X),holding(X)).
 alpha(pickup(_),true).
 alpha(putdown(X),holding(X)).
-alpha(repair(X),(holding(X) , hasglue)).
+alpha(repair(X),(holding(X) & hasglue)).
 
