@@ -1,5 +1,5 @@
 %
-%  Determine constraint preconditions for formulae
+%  Determine persistence conditions for formulae
 %
 %  Given a situation-suppressed formula  A, we aim to calculate a
 %  situation-suppressed formulae P(A) such that:
@@ -17,31 +17,30 @@
 
 :- [pred].
 
-:- discontiguous eps_pd/3, eps_nd/3.
-
-calc_p1(P,P1) :-
-    ( setof(Cn,A^Cn1^(eps_n(P,A,Cn1), Cn = -Cn1),Cns) ->
+calc_p1(P,C,P1) :-
+    ( setof(Cn,A^Cn1^(eps_n(P,C,A,Cn1), Cn = -Cn1),Cns) ->
         joinlist((&),Cns,P1tmp),
         simplify(P1tmp,P1)
-        %copy_term(P1t,P1)
     ;
         P1=true
     ).
 
-calc_p(P,PC) :-
-    calc_p1(P,F),
-    calc_p_aux(P,F,PC).
+calc_p(P,C,PC) :-
+    calc_p1(P,C,F),
+    calc_p_aux(P,0,C,F,PC,N),
+    write(N), nl.
 
-calc_p_aux(P,F,PC) :-
+calc_p_aux(P,N0,C,F,PC,N) :-
     ( consequence(P,F) ->
         ( consequence(P,false) ->
             PC = false
         ;
             PC=P
-        )
+        ), N=N0
     ;
-        calc_p1(F,F1),
-        calc_p_aux((P & F),F1,PC)
+        calc_p1(F,C,F1),
+        N1 is N0 + 1,
+        calc_p_aux((P & F),N1,C,F1,PC,N)
     ).
 
 
@@ -59,7 +58,7 @@ simplify(P & Q,S) :-
     ;
         ground(SP), ground(SQ), SP=SQ, S=SP
     ;
-        S= SP & SQ
+        S= (SP & SQ)
     ), !.
 simplify(P | Q,S) :-
     simplify(P,SP),
@@ -75,7 +74,7 @@ simplify(P | Q,S) :-
     ;
         ground(SP), ground(SQ), SP=SQ, S=SP
     ;
-        S= SP | SQ
+        S= (SP | SQ)
     ), !.
 simplify(-P,S) :-
     simplify(P,SP),
@@ -121,108 +120,112 @@ joinlist(O,[H|T],J) :-
     J =.. [O,H,TJ].
 
 
-eps_p(P,A,E) :-
-    setof(Et,eps_p1(P,A,Et),Ets),
+eps_p(P,C,A,E) :-
+    setof(Et,eps_p1(P,C,A,Et),Ets),
     joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
 
-eps_n(P,A,E) :-
-    setof(Et,eps_n1(P,A,Et),Ets),
+eps_n(P,C,A,E) :-
+    setof(Et,eps_n1(P,C,A,Et),Ets),
     joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
 
-eps_p1((P & Q),A,E) :-
-    eps_p(P,A,EP),
-    eps_p(Q,A,EQ),
+eps_p1((P & Q),C,A,E) :-
+    eps_p(P,C,A,EP),
+    eps_p(Q,C,A,EQ),
     E = (EP & EQ).
-eps_p1((P & Q),A,E) :-
-    eps_p(P,A,EP),
-    eps_n(Q,A,EQn),
+eps_p1((P & Q),C,A,E) :-
+    eps_p(P,C,A,EP),
+    eps_n(Q,C,A,EQn),
     E = (EP & Q & -EQn).
-eps_p1((P & Q),A,E) :-
-    eps_n(P,A,EPn),
-    eps_p(Q,A,EQ),
+eps_p1((P & Q),C,A,E) :-
+    eps_n(P,C,A,EPn),
+    eps_p(Q,C,A,EQ),
     E = (P & -EPn & EQ).
-eps_p1((P & Q),A,E) :-
-    eps_p(P,A,EP),
-    \+ eps_n(Q,A,_),
+eps_p1((P & Q),C,A,E) :-
+    eps_p(P,C,A,EP),
+    \+ eps_n(Q,C,A,_),
     E = (EP & Q).
-eps_p1((P & Q),A,E) :-
-    eps_p(Q,A,EQ),
-    \+ eps_n(P,A,_),
+eps_p1((P & Q),C,A,E) :-
+    eps_p(Q,C,A,EQ),
+    \+ eps_n(P,C,A,_),
     E = (P & EQ).
 
-eps_p1((P | _),A,E) :-
-    eps_p(P,A,E).
-eps_p1((_ | Q),A,E) :-
-    eps_p(Q,A,E).
+eps_p1((P | _),C,A,E) :-
+    eps_p(P,C,A,E).
+eps_p1((_ | Q),C,A,E) :-
+    eps_p(Q,C,A,E).
 
-eps_p1(-P,A,E) :-
-    eps_n(P,A,E).
+eps_p1(-P,C,A,E) :-
+    eps_n(P,C,A,E).
 
-eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    eps_n(P,A,EPn),
+eps_p1(all(X,P),C,A,E) :-
+    eps_p(P,C,A,EP),
+    eps_n(P,C,A,EPn),
     E = all(X,((P & -EPn) | EP)).
-eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    \+ eps_n(P,A,_),
+eps_p1(all(X,P),C,A,E) :-
+    eps_p(P,C,A,EP),
+    \+ eps_n(P,C,A,_),
     E = all(X,(P | EP)).
 
-eps_p1(exists(X,P),A,E) :-
-    eps_p(P,A,EP),
+eps_p1(exists(X,P),C,A,E) :-
+    eps_p(P,C,A,EP),
     E = exists(X,EP).
 
-eps_p1(P,A,E) :-
+eps_p1(P,C,A,E) :-
+    % construct eps_p for basic fluent
     eps_pd(P,A,Et),
+    % look up conditions from C
     alpha(A,Ea),
     E = (Ea & Et).
 
 
-eps_n1((P & _),A,E) :-
-    eps_n(P,A,E).
-eps_n1((_ & Q),A,E) :-
-    eps_n(Q,A,E).
+eps_n1((P & _),C,A,E) :-
+    eps_n(P,C,A,E).
+eps_n1((_ & Q),C,A,E) :-
+    eps_n(Q,C,A,E).
 
-eps_n1((P | Q),A,E) :-
-    eps_n(P,A,EP),
-    eps_n(Q,A,EQ),
+eps_n1((P | Q),C,A,E) :-
+    eps_n(P,C,A,EP),
+    eps_n(Q,C,A,EQ),
     E = (EP & EQ).
-eps_n1((P | Q),A,E) :-
-    eps_n(P,A,EP),
-    eps_p(Q,A,EQp),
+eps_n1((P | Q),C,A,E) :-
+    eps_n(P,C,A,EP),
+    eps_p(Q,C,A,EQp),
     E = (EP & -Q & -EQp).
-eps_n1((P | Q),A,E) :-
-    eps_p(P,A,EPp),
-    eps_n(Q,A,EQ),
+eps_n1((P | Q),C,A,E) :-
+    eps_p(P,C,A,EPp),
+    eps_n(Q,C,A,EQ),
     E = (-P & -EPp & EQ).
-eps_n1((P | Q),A,E) :-
-    eps_n(P,A,EP),
-    \+ eps_p(Q,A,_),
+eps_n1((P | Q),C,A,E) :-
+    eps_n(P,C,A,EP),
+    \+ eps_p(Q,C,A,_),
     E = (EP & -Q).
-eps_n1((P | Q),A,E) :-
-    eps_n(Q,A,EQ),
-    \+ eps_p(P,A,_),
+eps_n1((P | Q),C,A,E) :-
+    eps_n(Q,C,A,EQ),
+    \+ eps_p(P,C,A,_),
     E = (-P & EQ).
 
-eps_n1(-P,A,E) :-
-    eps_p(P,A,E).
+eps_n1(-P,C,A,E) :-
+    eps_p(P,C,A,E).
 
-eps_n1(all(X,P),A,E) :-
-    eps_n(P,A,EP),
+eps_n1(all(X,P),C,A,E) :-
+    eps_n(P,C,A,EP),
     E = exists(X,EP).
 
-eps_n1(exists(X,P),A,E) :-
-    eps_n(P,A,EP),
-    eps_p(P,A,EPp),
+eps_n1(exists(X,P),C,A,E) :-
+    eps_n(P,C,A,EP),
+    eps_p(P,C,A,EPp),
     E = all(X,((-P & -EPp) | EP)).
-eps_n1(exists(X,P),A,E) :-
-    eps_n(P,A,EP),
-    \+ eps_p(P,A,_),
-    E = all(X,(-P & EP)).
+eps_n1(exists(X,P),C,A,E) :-
+    eps_n(P,C,A,EP),
+    \+ eps_p(P,C,A,_),
+    E = all(X,(-P | EP)).
 
-eps_n1(P,A,E) :-
+eps_n1(P,C,A,E) :-
+    % construct eps_n for basic fluent
     eps_nd(P,A,Et),
+    % construct conditions from C
     alpha(A,Ea),
     E = (Ea & Et).
 
