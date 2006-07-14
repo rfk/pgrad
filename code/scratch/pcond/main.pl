@@ -1,0 +1,5 @@
+
+:- [pred].
+:- [domain].
+:- [sitcalc].
+
