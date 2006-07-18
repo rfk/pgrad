@@ -19,15 +19,23 @@ prim_action(acquire(Agt,Res)) :-
     agent(Agt), resource(Res).
 prim_action(release(Agt,Res)) :-
     agent(Agt), resource(Res).
+prim_action(drop(Agt,Res)) :-
+    agent(Agt), resource(Res).
 
 % Enumerates primitive fluents
 prim_fluent(has_resource(Agt,Res)) :-
     agent(Agt), resource(Res).
+prim_fluent(fragile(Res)) :-
+    resource(Res).
+prim_fluent(broken(Res)) :-
+    resource(Res).
 
 % Enumerates conditions for action description predicate fluents
 adp_fluent(poss,acquire(_,Res),C) :-
     C = -exists(A,has_resource(A,Res)).
 adp_fluent(poss,release(Agt,Res),C) :-
+    C = has_resource(Agt,Res).
+adp_fluent(poss,drop(Agt,Res),C) :-
     C = has_resource(Agt,Res).
 
 % Enumerates the fluents holding in the initial situation
@@ -37,4 +45,8 @@ initially(_) :-
 % Causal rules for each fluent/action combo
 causes_true(has_resource(Agt,Res),acquire(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
 causes_false(has_resource(Agt,Res),release(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
+causes_false(has_resource(Agt,Res),drop(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
+
+causes_true(broken(Res),drop(_,Res2),(Res=Res2) & fragile(Res2)).
+
 

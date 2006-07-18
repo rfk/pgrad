@@ -76,10 +76,32 @@ simplify(P,P).
 %  This predicate employs full first-order reasoning to determine whether
 %  the fluent expression F1 logically entails the fluent expression F2.
 %
-consequence(P1,P2) :-
+consequence(F1,F2) :-
+    copy_term(F1,F1p),
+    copy_term(F2,F2p),
+    fluent2term(F1p,0,N),
+    fluent2term(F2p,N,_),
     % TODO: unique names axioms, etc
-    Fml = ((true & -false & P1) -> P2),
+    Fml = ((true & -false & F1p) -> F2p),
     tautology(Fml).
+
+
+fluent2term(F,N,N2) :-
+    var(F),
+    concat_atom([x,N],F),
+    N2 is N + 1.
+fluent2term(F,N,N) :-
+    ground(F).
+fluent2term(F,N,N2) :-
+    nonvar(F), \+ ground(F),
+    F =.. [_|Args],
+    fluent2term_list(Args,N,N2).
+
+fluent2term_list([],N,N).
+fluent2term_list([H|T],N,N2) :-
+    fluent2term(H,N,N3),
+    fluent2term_list(T,N3,N2).
+    
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator

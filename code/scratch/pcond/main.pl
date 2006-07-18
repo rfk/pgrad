@@ -2,4 +2,5 @@
 :- [pred].
 :- [domain].
 :- [sitcalc].
+:- [pcond].
 
