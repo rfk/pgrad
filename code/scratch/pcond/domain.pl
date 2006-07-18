@@ -26,7 +26,7 @@ prim_fluent(has_resource(Agt,Res)) :-
 
 % Enumerates conditions for action description predicate fluents
 adp_fluent(poss,acquire(_,Res),C) :-
-    C = -exists(xA,has_resource(xA,Res)).
+    C = -exists(A,has_resource(A,Res)).
 adp_fluent(poss,release(Agt,Res),C) :-
     C = has_resource(Agt,Res).
 
@@ -35,6 +35,6 @@ initially(_) :-
     fail.
 
 % Causal rules for each fluent/action combo
-causes_true(has_resource(Agt,Res),acquire(Agt,Res),true).
-causes_false(has_resource(Agt,Res),release(Agt,Res),true).
+causes_true(has_resource(Agt,Res),acquire(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
+causes_false(has_resource(Agt,Res),release(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
 
