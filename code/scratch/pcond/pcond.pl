@@ -4,20 +4,23 @@
 %
 
 pcond_d1(F,C,P1) :-
-    ( setof(Cn,A^pcond_d1_setof(F,C,A,Cn),Cns) ->
+    ( bagof(Cn,pcond_d1_bagof(F,C,Cn),Cns) ->
         joinlist((&),Cns,P1tmp),
         simplify(P1tmp,P1)
     ;
         P1=true
     ).
 
-pcond_d1_setof(F,C,A,Cn) :-
+pcond_d1_bagof(F,C,Cn) :-
+    action_term(A),
     eps_n(F,A,En),
     adp_fluent(C,A,Ec),
     free_vars(A,Vars),
     ex_multi(Vars,(En & Ec),Cn1),
-    Cn = -Cn1.
+    Cn = -Cn1,
+    write('Found it for action: '), write(A), nl.
 
+tovar(_,_).
 
 free_vars(V,[V]) :-
     var(V).

@@ -1,10 +1,44 @@
 
+
+action_term(pickup(_,_)).
+action_term(putdown(_,_)).
+action_term(drop(_,_)).
+
+copy_action_term(A,At) :-
+    A =.. [Af|Args],
+    maplist(tovar,Args,VArgs),
+    At =.. [Af|VArgs].
+
+struct_equiv(P,Q) :-
+    P==Q.
+struct_equiv(A=B,C=D) :-
+    A==D, B==C.
+struct_equiv(P,Q) :-
+    P =.. [F,P1,P2],
+    Q =.. [F,Q1,Q2],
+    member(F,['&','|','->','<->']),
+    struct_equiv(P1,Q1),
+    struct_equiv(P2,Q2).
+struct_equiv(-P,-Q) :-
+    struct_equiv(P,Q).
+struct_equiv(all(X,P),all(Y,Q)) :-
+    subs(Y,X,Q,Q2),
+    struct_equiv(P,Q2).
+struct_equiv(exists(X,P),exists(Y,Q)) :-
+    subs(Y,X,Q,Q2),
+    struct_equiv(P,Q2).
+
+struct_oppos(P,Q) :-
+    P = -P1, struct_equiv(P1,Q)
+    ;
+    Q = -Q1, struct_equiv(P,Q1).
+
 %
 %  simplify(+F1,-F2) - simpfily a fluent expression
 %  
 %  This predicate applies some basic simplification rules to a fluent
 %  to eliminate redundancy and (hoepfully) speed up future reasoning.
-%
+%  
 simplify(P & Q,S) :-
     simplify(P,SP),
     simplify(Q,SQ),
@@ -17,7 +51,9 @@ simplify(P & Q,S) :-
     ;
         SQ=true, S=SP
     ;
-        ground(SP), ground(SQ), SP=SQ, S=SP
+        struct_equiv(SP,SQ), S=SP
+    ;
+        struct_oppos(SP,SQ), S=false
     ;
         S= (SP & SQ)
     ), !.
@@ -33,7 +69,9 @@ simplify(P | Q,S) :-
     ;
         SQ=false, S=SP
     ;
-        ground(SP), ground(SQ), SP=SQ, S=SP
+        struct_equiv(SP,SQ), S=SP
+    ;
+        struct_oppos(SP,SQ), S=true
     ;
         S= (SP | SQ)
     ), !.
@@ -106,11 +144,11 @@ consequence(Axioms,Conc) :-
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
 %
-joinlist(_,[H],H).
 joinlist(O,[H|T],J) :-
     T \= [],
     joinlist(O,T,TJ),
     J =.. [O,H,TJ].
+joinlist(_,[H],H).
 
 %
 %  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true
@@ -119,7 +157,7 @@ joinlist(O,[H|T],J) :-
 %  under which the fluent F will be made true by the action Act.
 %
 eps_p(P,A,E) :-
-    setof(Et,eps_p1(P,A,Et),Ets),
+    bagof(Et,eps_p1(P,A,Et),Ets),
     joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
 
@@ -130,7 +168,7 @@ eps_p(P,A,E) :-
 %  under which the fluent F will be made false by the action Act.
 %
 eps_n(P,A,E) :-
-    setof(Et,eps_n1(P,A,Et),Ets),
+    bagof(Et,eps_n1(P,A,Et),Ets),
     joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
 
@@ -171,6 +209,7 @@ eps_p1(-P,A,E) :-
 
 eps_p1(all(X,P),A,E) :-
     subs(X,X1,P,P1),
+    copy_action_term(A,At),
     eps_p(P1,At,EPt),
     eps_n(P1,At,EPnt),
     subs(X1,X2,At,A),
@@ -184,6 +223,7 @@ eps_p1(all(X,P),A,E) :-
     E = all(X1,((P1 & -EPn) | EP)).
 eps_p1(all(X,P),A,E) :-
     subs(X,X1,P,P1),
+    copy_action_term(A,At),
     eps_p(P1,At,EPt),
     \+ eps_n(P1,At,_),
     subs(X1,X2,At,A),
@@ -196,6 +236,7 @@ eps_p1(all(X,P),A,E) :-
 
 eps_p1(exists(X,P),A,E) :-
     subs(X,X1,P,P1),
+    copy_action_term(A,At),
     eps_p(P1,At,EPt),
     subs(X1,X2,At,A),
     ( At == A ->
@@ -248,6 +289,7 @@ eps_n1(-P,A,E) :-
 
 eps_n1(all(X,P),A,E) :-
     subs(X,X1,P,P1),
+    copy_action_term(A,At),
     eps_n(P1,At,EPt),
     subs(X1,X2,At,A),
     ( At == A ->
@@ -259,6 +301,7 @@ eps_n1(all(X,P),A,E) :-
 
 eps_n1(exists(X,P),A,E) :-
     subs(X,X1,P,P1),
+    copy_action_term(A,At),
     eps_n(P1,At,EPt),
     eps_p(P1,At,EPpt),
     subs(X1,X2,At,A),
@@ -272,6 +315,7 @@ eps_n1(exists(X,P),A,E) :-
     E = all(X1,(-P1 & -EPp) | EP).
 eps_n1(exists(X,P),A,E) :-
     subs(X,X1,P,P1),
+    copy_action_term(A,At),
     eps_n(P1,At,EPt),
     \+ eps_p(P1,At,_),
     subs(X1,X2,At,A),
@@ -299,7 +343,8 @@ eps_n1(P,A,E) :-
 %  If A is non-free, regression1 will succeed only once.
 regression(F,A,Fr) :-
     nonvar(A),
-    regression1(F,A,Fr).
+    regression1(F,A,Frt),
+    simplify(Frt,Fr).
 
 %  If A is free, find all actions which could affect it.
 regression(F,A,Fr) :-
