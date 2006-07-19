@@ -1,5 +1,4 @@
 
-
 %
 %  simplify(+F1,-F2) - simpfily a fluent expression
 %  
@@ -71,36 +70,37 @@ simplify(P,P).
 
 
 %
-%  consequence(+F1,+F2) - Fluent F2 is a consequence of fluent F1
+%  consequence(+[Axioms],+Conc) - Fluent Conc is a consequence of the Axioms
 %
 %  This predicate employs full first-order reasoning to determine whether
-%  the fluent expression F1 logically entails the fluent expression F2.
+%  the fluent expression Conc is logically entailed by the set of fluents
+%  in Axioms.
 %
-consequence(F1,F2) :-
-    copy_term(F1,F1p),
-    copy_term(F2,F2p),
-    fluent2term(F1p,0,N),
-    fluent2term(F2p,N,_),
-    % TODO: unique names axioms, etc
-    Fml = ((true & -false & F1p) -> F2p),
-    tautology(Fml).
+consequence([],Conc) :-
+    consequence([true],Conc), !.
+consequence(F,Conc) :-
+    F \= [_|_],
+    consequence([F],Conc).
+consequence(Axioms,Conc) :-
+    % TODO: automatically unique names axioms?
+    eprove([true,-false|Axioms],Conc,yes).
 
 
-fluent2term(F,N,N2) :-
-    var(F),
-    concat_atom([x,N],F),
-    N2 is N + 1.
-fluent2term(F,N,N) :-
-    ground(F).
-fluent2term(F,N,N2) :-
-    nonvar(F), \+ ground(F),
-    F =.. [_|Args],
-    fluent2term_list(Args,N,N2).
-
-fluent2term_list([],N,N).
-fluent2term_list([H|T],N,N2) :-
-    fluent2term(H,N,N3),
-    fluent2term_list(T,N3,N2).
+%fluent2term(F,N,N2) :-
+%    var(F),
+%    concat_atom([x,N],F),
+%    N2 is N + 1.
+%fluent2term(F,N,N) :-
+%    ground(F).
+%fluent2term(F,N,N2) :-
+%    nonvar(F), \+ ground(F),
+%    F =.. [_|Args],
+%    fluent2term_list(Args,N,N2).
+%
+%fluent2term_list([],N,N).
+%fluent2term_list([H|T],N,N2) :-
+%    fluent2term(H,N,N3),
+%    fluent2term_list(T,N3,N2).
     
 
 %
@@ -170,17 +170,40 @@ eps_p1(-P,A,E) :-
     eps_n(P,A,E).
 
 eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    eps_n(P,A,EPn),
-    E = all(X,(P & -EPn) | EP).
+    subs(X,X1,P,P1),
+    eps_p(P1,At,EPt),
+    eps_n(P1,At,EPnt),
+    subs(X1,X2,At,A),
+    ( At == A ->
+        EP = EPt,
+        EPn = EPnt
+    ;
+        EP = EPt & (X1=X2),
+        EPn = EPnt & (X1=X2)
+    ),
+    E = all(X1,((P1 & -EPn) | EP)).
 eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    \+ eps_n(P,A,_),
-    E = all(X,P | EP).
+    subs(X,X1,P,P1),
+    eps_p(P1,At,EPt),
+    \+ eps_n(P1,At,_),
+    subs(X1,X2,At,A),
+    ( At == A ->
+        EP = EPt
+    ;
+        EP = EPt & (X1=X2)
+    ),
+    E = all(X1,P1 | EP).
 
 eps_p1(exists(X,P),A,E) :-
-    eps_p(P,A,EP),
-    E = exists(X,EP).
+    subs(X,X1,P,P1),
+    eps_p(P1,At,EPt),
+    subs(X1,X2,At,A),
+    ( At == A ->
+        EP = EPt
+    ;
+        EP = EPt & (X1=X2)
+    ),
+    E = exists(X1,EP).
 
 eps_p1(P,A,E) :-
     causes_true(P,A,E).
@@ -224,17 +247,40 @@ eps_n1(-P,A,E) :-
     eps_p(P,A,E).
 
 eps_n1(all(X,P),A,E) :-
-    eps_n(P,A,EP),
-    E = exists(X,EP).
+    subs(X,X1,P,P1),
+    eps_n(P1,At,EPt),
+    subs(X1,X2,At,A),
+    ( At == A ->
+        EP = EPt
+    ;
+        EP = EPt & (X1=X2)
+    ),
+    E = exists(X1,EP).
 
 eps_n1(exists(X,P),A,E) :-
-    eps_n(P,A,EP),
-    eps_p(P,A,EPp),
-    E = all(X,(-P & -EPp) | EP).
+    subs(X,X1,P,P1),
+    eps_n(P1,At,EPt),
+    eps_p(P1,At,EPpt),
+    subs(X1,X2,At,A),
+    ( At == A ->
+        EP = EPt,
+        EPp = EPpt
+    ;
+        EP = EPt & (X1=X2),
+        EPp = EPpt & (X1=X2)
+    ),
+    E = all(X1,(-P1 & -EPp) | EP).
 eps_n1(exists(X,P),A,E) :-
-    eps_n(P,A,EP),
-    \+ eps_p(P,A,_),
-    E = all(X,-P | EP).
+    subs(X,X1,P,P1),
+    eps_n(P1,At,EPt),
+    \+ eps_p(P1,At,_),
+    subs(X1,X2,At,A),
+    ( At == A ->
+        EP = EPt
+    ;
+        EP = EPt & (X1=X2)
+    ),
+    E = all(X1,-P1 | EP).
 
 eps_n1(P,A,E) :-
     causes_false(P,A,E).
@@ -298,6 +344,8 @@ regression1(F,A,Fr) :-
 holds(true,_).
 holds(A=B,_) :-     % no functional fluents, so equality does not vary
     A=B.
+holds(-(A=B),_) :-
+    A \= B.
 holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
@@ -335,12 +383,12 @@ holds(-F,s0) :-
 %
 %      subs(now,S,fluent(now),fluent(S)).
 %
-subs(_,_,T,Tr) :-
-    var(T), Tr = T.
 subs(X,Y,T,Tr) :-
-    \+ var(T), T = X, Tr = Y.
+    T == X, Tr = Y.
+subs(X,_,T,Tr) :-
+    T \== X, var(T), T=Tr.
 subs(X,Y,T,Tr) :-
-    T \= X, T =.. [F|Ts], subs_list(X,Y,Ts,Trs), Tr =.. [F|Trs].
+    T \== X, nonvar(T), T =.. [F|Ts], subs_list(X,Y,Ts,Trs), Tr =.. [F|Trs].
 
 %
 %  subs_list(Name,Value,Old,New):  value substitution in a list
@@ -353,4 +401,13 @@ subs_list(_,_,[],[]).
 subs_list(X,Y,[T|Ts],[Tr|Trs]) :-
     subs(X,Y,T,Tr), subs_list(X,Y,Ts,Trs).
 
+
+
+knows(Agt,F,[]) :-
+    pcond(F,legObs(Agt),P),
+    holds(P,s0).
+knows(Agt,F,[A|T]) :-
+    pcond(F,legObs(Agt),P),
+    regression(P,A,R),
+    knows(agt,R,T).
 

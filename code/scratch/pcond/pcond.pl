@@ -1,42 +1,56 @@
 
 %
-%  calc_p1(F,C,P1)  -  calculate P1 condition for fluent F under ADP C
+%  pcond_d1(F,C,P1)  -  depth 1 persistence condition for fluent F
 %
 
-calc_p1(F,C,P1) :-
-    ( setof(Cn,A^calc_p1_setof(F,C,A,Cn),Cns) ->
+pcond_d1(F,C,P1) :-
+    ( setof(Cn,A^pcond_d1_setof(F,C,A,Cn),Cns) ->
         joinlist((&),Cns,P1tmp),
         simplify(P1tmp,P1)
     ;
         P1=true
     ).
 
-calc_p1_setof(F,C,A,Cn) :-
+pcond_d1_setof(F,C,A,Cn) :-
     eps_n(F,A,En),
     adp_fluent(C,A,Ec),
-    A =.. [_|Args],
-    ex_multi(Args,(En & Ec),Cn1),
+    free_vars(A,Vars),
+    ex_multi(Vars,(En & Ec),Cn1),
     Cn = -Cn1.
+
+
+free_vars(V,[V]) :-
+    var(V).
+free_vars(T,Vars) :-
+    nonvar(T),
+    T =.. [_|Args],
+    maplist(free_vars,Args,VarsT),
+    flatten(VarsT,Vars).
 
 ex_multi([],F,F).
 ex_multi([H|T],F,exists(H,E)) :-
     ex_multi(T,F,E).
 
-calc_p(P,C,PC) :-
-    calc_p1(P,C,F),
-    calc_p_aux(P,0,C,F,PC,N),
-    nl, write('Persistence Depth: '), write(N), nl.
 
-calc_p_aux(P,N0,C,F,PC,N) :-
-    ( consequence(P,F) ->
-        ( consequence(P,false) ->
-            PC = false
+%
+%  pcond(F,C,P)  -  persistence condition for F under C
+%
+
+pcond(F,C,P) :-
+    pcond_d1(F,C,Fp),
+    pcond_aux([F],C,Fp,P).
+
+pcond_aux(Fs,C,F,P) :-
+    length(Fs,Depth),
+    write('Up to depth: '), write(Depth), nl,
+    ( consequence(Fs,F) ->
+        ( consequence(Fs,false) ->
+            P = false
         ;
-            PC=P
-        ), N=N0
+            joinlist('&',Fs,P)
+        )
     ;
-        calc_p1(F,C,F1),
-        N1 is N0 + 1,
-        calc_p_aux((P & F),N1,C,F1,PC,N)
-    ).
+        pcond_d1(F,C,F1),
+        pcond_aux([F|Fs],C,F1,P)
+   ).
 

@@ -374,7 +374,7 @@ proposition(Expression) :-
 
 			% We don't know
 			format('warning: unable to determine whether ~w is a tautology', 
-				[Formula]), fail
+				['Formula']), nl, fail
 		).
 
 	counter_example(Formula, Model) :-
@@ -389,7 +389,7 @@ proposition(Expression) :-
 
 			% We don't know
 			format('warning: unable to determine whether ~w is inconsistent', 
-				[Formula]), fail
+				['Formula']), nl, fail
 		).
 
 
