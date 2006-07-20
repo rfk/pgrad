@@ -17,8 +17,7 @@ pcond_d1_bagof(F,C,Cn) :-
     adp_fluent(C,A,Ec),
     free_vars(A,Vars),
     ex_multi(Vars,(En & Ec),Cn1),
-    Cn = -Cn1,
-    write('Found it for action: '), write(A), nl.
+    Cn = -Cn1.
 
 tovar(_,_).
 
@@ -46,6 +45,7 @@ pcond(F,C,P) :-
 pcond_aux(Fs,C,F,P) :-
     length(Fs,Depth),
     write('Up to depth: '), write(Depth), nl,
+    write('Fml is:      '), write(F), nl, nl,
     ( consequence(Fs,F) ->
         ( consequence(Fs,false) ->
             P = false

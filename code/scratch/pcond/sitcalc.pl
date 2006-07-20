@@ -157,9 +157,14 @@ joinlist(_,[H],H).
 %  under which the fluent F will be made true by the action Act.
 %
 eps_p(P,A,E) :-
-    bagof(Et,eps_p1(P,A,Et),Ets),
+    bagof(Et,eps_p_bagof(P,A,Et),Ets),
     joinlist((|),Ets,Etmp),
     simplify(Etmp,E).
+
+eps_p_bagof(P,A,E) :-
+    copy_term(A,B),
+    eps_p1(P,A,E),
+    A=B.
 
 %
 %  eps_n(+F,?Act,?Cond) - conditions for a fluent becoming false
@@ -208,43 +213,17 @@ eps_p1(-P,A,E) :-
     eps_n(P,A,E).
 
 eps_p1(all(X,P),A,E) :-
-    subs(X,X1,P,P1),
-    copy_action_term(A,At),
-    eps_p(P1,At,EPt),
-    eps_n(P1,At,EPnt),
-    subs(X1,X2,At,A),
-    ( At == A ->
-        EP = EPt,
-        EPn = EPnt
-    ;
-        EP = EPt & (X1=X2),
-        EPn = EPnt & (X1=X2)
-    ),
-    E = all(X1,((P1 & -EPn) | EP)).
+    eps_p(P,A,EP),
+    eps_n(P,A,EPn),
+    E = all(X,((P & -EPn) | EP)).
 eps_p1(all(X,P),A,E) :-
-    subs(X,X1,P,P1),
-    copy_action_term(A,At),
-    eps_p(P1,At,EPt),
-    \+ eps_n(P1,At,_),
-    subs(X1,X2,At,A),
-    ( At == A ->
-        EP = EPt
-    ;
-        EP = EPt & (X1=X2)
-    ),
-    E = all(X1,P1 | EP).
+    eps_p(P,A,EP),
+    \+ eps_n(P,A,_),
+    E = all(X,P | EP).
 
 eps_p1(exists(X,P),A,E) :-
-    subs(X,X1,P,P1),
-    copy_action_term(A,At),
-    eps_p(P1,At,EPt),
-    subs(X1,X2,At,A),
-    ( At == A ->
-        EP = EPt
-    ;
-        EP = EPt & (X1=X2)
-    ),
-    E = exists(X1,EP).
+    eps_p(P,A,EP),
+    E = exists(X,EP).
 
 eps_p1(P,A,E) :-
     causes_true(P,A,E).
@@ -288,43 +267,17 @@ eps_n1(-P,A,E) :-
     eps_p(P,A,E).
 
 eps_n1(all(X,P),A,E) :-
-    subs(X,X1,P,P1),
-    copy_action_term(A,At),
-    eps_n(P1,At,EPt),
-    subs(X1,X2,At,A),
-    ( At == A ->
-        EP = EPt
-    ;
-        EP = EPt & (X1=X2)
-    ),
-    E = exists(X1,EP).
+    eps_n(P,A,EP),
+    E = exists(X,EP).
 
 eps_n1(exists(X,P),A,E) :-
-    subs(X,X1,P,P1),
-    copy_action_term(A,At),
-    eps_n(P1,At,EPt),
-    eps_p(P1,At,EPpt),
-    subs(X1,X2,At,A),
-    ( At == A ->
-        EP = EPt,
-        EPp = EPpt
-    ;
-        EP = EPt & (X1=X2),
-        EPp = EPpt & (X1=X2)
-    ),
-    E = all(X1,(-P1 & -EPp) | EP).
+    eps_n(P,A,EP),
+    eps_p(P,A,EPp),
+    E = all(X,(-P & -EPp) | EP).
 eps_n1(exists(X,P),A,E) :-
-    subs(X,X1,P,P1),
-    copy_action_term(A,At),
-    eps_n(P1,At,EPt),
-    \+ eps_p(P1,At,_),
-    subs(X1,X2,At,A),
-    ( At == A ->
-        EP = EPt
-    ;
-        EP = EPt & (X1=X2)
-    ),
-    E = all(X1,-P1 | EP).
+    eps_n(P,A,EP),
+    \+ eps_p(P,A,_),
+    E = all(X,-P | EP).
 
 eps_n1(P,A,E) :-
     causes_false(P,A,E).
