@@ -16,7 +16,7 @@ eprove(Axioms,Conc,Result) :-
     write_ln(').'),
     told,
     % Call E and have it write its conclusions in output file
-    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=256 --cpu-limit=30 --tstp-format -s ~w > ~w',[InFile,OutFile]),
+    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=256 --cpu-limit=60 --tstp-format -s ~w > ~w',[InFile,OutFile]),
     shell(ECmd,_),
     % Grep output file for "Proof found!" indicating truth
     sformat(TCmd,'grep "Proof found!" ~w > /dev/null',[OutFile]),

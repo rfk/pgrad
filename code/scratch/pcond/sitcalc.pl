@@ -88,19 +88,57 @@ simplify(all(X,P),S) :-
     ;
         SP=true, S=true
     ;
+        subs(X,X2,SP,SP2), SP == SP2, S=SP
+    ;
         S=all(X,SP)
     ), !.
 simplify(exists(X,P),S) :-
-    simplify(P,SP),
-    (
-        SP=false, S=false
-    ;
-        SP=true, S=true
-    ;
-        S=exists(X,SP)
-    ), !.
+   simplify(P,SP),
+   list_and_clauses(SP,Cs),
+   (
+       member((T1=T2),Cs),
+       (
+           T1 == X, nonvar(T2), subs(X,T2,SP,St), simplify(St,S)
+       ;
+           T2 == X, nonvar(T1), subs(X,T1,SP,St), simplify(St,S)
+       )
+   ;
+       (
+           SP=false, S=false
+       ;
+           SP=true, S=true
+       ;
+           subs(X,X2,SP,SP2), SP == SP2, S=SP
+       ;
+           S=exists(X,SP)
+       )
+   ), !.
+simplify((A=B),S) :-
+   (
+        A == B, S=true
+   ;
+        ground(A), ground(B), A \= B, S=false
+   ;
+        nonvar(A), nonvar(B),
+        A =.. [FA|ArgsA],
+        B =.. [FB|ArgsB],
+        length(ArgsA,NA), length(ArgsB,NB),
+        (
+            FA \= FB, S=false
+        ;
+            NA \= NB, S=false
+        )
+   ), !.
+   
 simplify(P,P).
 
+
+list_and_clauses(T,[T]) :-
+    (var(T) ; T =.. [F|_], F\='&'), !.
+list_and_clauses((A & B),Cs) :-
+    list_and_clauses(A,CsA),
+    list_and_clauses(B,CsB),
+    append(CsA,CsB,Cs).
 
 %
 %  consequence(+[Axioms],+Conc) - Fluent Conc is a consequence of the Axioms
@@ -140,7 +178,8 @@ joinlist(O,[H|T],J) :-
 eps_p((_=_),_,_) :- !, fail.
 eps_p(P,A,E) :-
     bagof(Et,eps_p1(P,A,Et),Ets),
-    joinlist((|),Ets,E).
+    joinlist((|),Ets,Ep),
+    simplify(Ep,E).
 
 %
 %  eps_n(+F,?Act,?Cond) - conditions for a fluent becoming false
@@ -151,7 +190,8 @@ eps_p(P,A,E) :-
 eps_n((_=_),_,_) :- !, fail.
 eps_n(P,A,E) :-
     bagof(Et,eps_n1(P,A,Et),Ets),
-    joinlist((|),Ets,E).
+    joinlist((|),Ets,Ep),
+    simplify(Ep,E).
 
 %
 %  eps_p1(+F,?Act,?Cond) - individual conditions for truthifying a fluent

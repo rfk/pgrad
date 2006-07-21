@@ -38,20 +38,25 @@ ex_multi([H|T],F,exists(H,E)) :-
 %  pcond(F,C,P)  -  persistence condition for F under C
 %
 
+pcond((A & B),C,(PA & PB)) :-
+    pcond(A,C,PA), pcond(B,C,PB), !.
+pcond(all(X,P),C,all(X,PC)) :-
+    pcond(P,C,PC), !.
 pcond(F,C,P) :-
     pcond_d1(F,C,Fp),
     pcond_aux([F],C,Fp,P).
 
 pcond_aux(Fs,C,F,P) :-
     length(Fs,Depth),
-    write('Up to depth: '), write(Depth), nl,
+    write('Up to depth: '), write(Depth),
     ( consequence(Fs,F) ->
         ( consequence(Fs,false) ->
             P = false
         ;
             joinlist('&',Fs,P)
-        )
+        ), write('...done'), nl
     ;
+        write('...continuing'), nl,
         pcond_d1(F,C,F1),
         pcond_aux([F|Fs],C,F1,P)
    ).
