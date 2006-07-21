@@ -52,10 +52,13 @@ initially(_) :-
     fail.
 
 % Causal rules for each fluent/action combo
-causes_true(holding(Agt,Res),pickup(Agt,Res),true).
-causes_false(holding(Agt,Res),putdown(Agt,Res),true).
-causes_false(holding(Agt,Res),drop(Agt,Res),true).
+causes_true(holding(Agt,Res),pickup(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
+causes_false(holding(Agt,Res),putdown(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
+causes_false(holding(Agt,Res),drop(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
 
 causes_true(broken(Res),drop(_,Res2),(Res=Res2) & fragile(Res2)).
 
+
+% Specify domain constraints as additional background knowledge
+constraint(all(Agt1,all(Agt2,all(Obj,-(holding(Agt1,Obj) & holding(Agt2,Obj)) | Agt1=Agt2)))).
 

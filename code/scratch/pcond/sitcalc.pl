@@ -4,11 +4,6 @@ action_term(pickup(_,_)).
 action_term(putdown(_,_)).
 action_term(drop(_,_)).
 
-copy_action_term(A,At) :-
-    A =.. [Af|Args],
-    maplist(tovar,Args,VArgs),
-    At =.. [Af|VArgs].
-
 struct_equiv(P,Q) :-
     P==Q.
 struct_equiv(A=B,C=D) :-
@@ -114,41 +109,26 @@ simplify(P,P).
 %  the fluent expression Conc is logically entailed by the set of fluents
 %  in Axioms.
 %
-consequence([],Conc) :-
-    consequence([true],Conc), !.
 consequence(F,Conc) :-
-    F \= [_|_],
-    consequence([F],Conc).
+    F \= [_|_], F \= [],
+    consequence([F],Conc), !.
 consequence(Axioms,Conc) :-
-    % TODO: automatically unique names axioms?
-    eprove([true,-false|Axioms],Conc,yes).
+    % TODO: automatically add unique names axioms?
+    findall(C,constraint(C),Cs),
+    append(Axioms,[true,-false|Cs],Bg),
+    eprove(Bg,Conc,yes).
 
 
-%fluent2term(F,N,N2) :-
-%    var(F),
-%    concat_atom([x,N],F),
-%    N2 is N + 1.
-%fluent2term(F,N,N) :-
-%    ground(F).
-%fluent2term(F,N,N2) :-
-%    nonvar(F), \+ ground(F),
-%    F =.. [_|Args],
-%    fluent2term_list(Args,N,N2).
-%
-%fluent2term_list([],N,N).
-%fluent2term_list([H|T],N,N2) :-
-%    fluent2term(H,N,N3),
-%    fluent2term_list(T,N3,N2).
-    
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
 %
+
+joinlist(_,[H],H) :- !.
 joinlist(O,[H|T],J) :-
     T \= [],
-    joinlist(O,T,TJ),
-    J =.. [O,H,TJ].
-joinlist(_,[H],H).
+    J =.. [O,H,TJ],
+    joinlist(O,T,TJ).
 
 %
 %  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true
@@ -156,15 +136,11 @@ joinlist(_,[H],H).
 %  This predicate unifies Cond with a fluent expression giving the conditions
 %  under which the fluent F will be made true by the action Act.
 %
-eps_p(P,A,E) :-
-    bagof(Et,eps_p_bagof(P,A,Et),Ets),
-    joinlist((|),Ets,Etmp),
-    simplify(Etmp,E).
 
-eps_p_bagof(P,A,E) :-
-    copy_term(A,B),
-    eps_p1(P,A,E),
-    A=B.
+eps_p((_=_),_,_) :- !, fail.
+eps_p(P,A,E) :-
+    bagof(Et,eps_p1(P,A,Et),Ets),
+    joinlist((|),Ets,E).
 
 %
 %  eps_n(+F,?Act,?Cond) - conditions for a fluent becoming false
@@ -172,10 +148,10 @@ eps_p_bagof(P,A,E) :-
 %  This predicate unifies Cond with a fluent expression giving the conditions
 %  under which the fluent F will be made false by the action Act.
 %
+eps_n((_=_),_,_) :- !, fail.
 eps_n(P,A,E) :-
     bagof(Et,eps_n1(P,A,Et),Ets),
-    joinlist((|),Ets,Etmp),
-    simplify(Etmp,E).
+    joinlist((|),Ets,E).
 
 %
 %  eps_p1(+F,?Act,?Cond) - individual conditions for truthifying a fluent
@@ -183,26 +159,24 @@ eps_n(P,A,E) :-
 %  This preciate enumerates the different ways in which the fluent F can become
 %  true, which are collected by eps_p/4.
 %
+
 eps_p1((P & Q),A,E) :-
     eps_p(P,A,EP),
-    eps_p(Q,A,EQ),
-    E = (EP & EQ).
-eps_p1((P & Q),A,E) :-
-    eps_p(P,A,EP),
-    eps_n(Q,A,EQn),
-    E = (EP & Q & -EQn).
-eps_p1((P & Q),A,E) :-
-    eps_n(P,A,EPn),
-    eps_p(Q,A,EQ),
-    E = (P & -EPn & EQ).
-eps_p1((P & Q),A,E) :-
-    eps_p(P,A,EP),
-    \+ eps_n(Q,A,_),
-    E = (EP & Q).
+    ( eps_p(Q,A,EQ) ->
+        E = ((EP & EQ) | (EP & Q) | (P & EQ))
+    ;
+      eps_n(Q,A,EQn) ->
+        E = (EP & Q & -EQn)
+    ;
+        E = (EP & Q)
+    ).
 eps_p1((P & Q),A,E) :-
     eps_p(Q,A,EQ),
-    \+ eps_n(P,A,_),
-    E = (P & EQ).
+    ( eps_n(P,A,EPn) ->
+        E = (P & -EPn & EQ)
+    ;
+        E = (P & EQ)
+    ).
 
 eps_p1((P | _),A,E) :-
     eps_p(P,A,E).
@@ -214,12 +188,11 @@ eps_p1(-P,A,E) :-
 
 eps_p1(all(X,P),A,E) :-
     eps_p(P,A,EP),
-    eps_n(P,A,EPn),
-    E = all(X,((P & -EPn) | EP)).
-eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    \+ eps_n(P,A,_),
-    E = all(X,P | EP).
+    ( eps_n(P,A,EPn) ->
+        E = all(X,((P & -EPn) | EP))
+    ;
+        E = all(X,P | EP)
+    ).
 
 eps_p1(exists(X,P),A,E) :-
     eps_p(P,A,EP),
@@ -237,47 +210,21 @@ eps_p1(P,A,E) :-
 %  This preciate enumerates the different ways in which the fluent F can become
 %  false, which are collected by eps_n/4.
 %
-eps_n1((P & _),A,E) :-
-    eps_n(P,A,E).
-eps_n1((_ & Q),A,E) :-
-    eps_n(Q,A,E).
+
+eps_n1((P & Q),A,E) :-
+    eps_p((-P) | (-Q),A,E).
 
 eps_n1((P | Q),A,E) :-
-    eps_n(P,A,EP),
-    eps_n(Q,A,EQ),
-    E = (EP & EQ).
-eps_n1((P | Q),A,E) :-
-    eps_n(P,A,EP),
-    eps_p(Q,A,EQp),
-    E = (EP & -Q & -EQp).
-eps_n1((P | Q),A,E) :-
-    eps_p(P,A,EPp),
-    eps_n(Q,A,EQ),
-    E = (-P & -EPp & EQ).
-eps_n1((P | Q),A,E) :-
-    eps_n(P,A,EP),
-    \+ eps_p(Q,A,_),
-    E = (EP & -Q).
-eps_n1((P | Q),A,E) :-
-    eps_n(Q,A,EQ),
-    \+ eps_p(P,A,_),
-    E = (-P & EQ).
+    eps_p(-(P & Q),A,E).
 
 eps_n1(-P,A,E) :-
     eps_p(P,A,E).
 
 eps_n1(all(X,P),A,E) :-
-    eps_n(P,A,EP),
-    E = exists(X,EP).
+    eps_p(exists(X,-P),A,E).
 
 eps_n1(exists(X,P),A,E) :-
-    eps_n(P,A,EP),
-    eps_p(P,A,EPp),
-    E = all(X,(-P & -EPp) | EP).
-eps_n1(exists(X,P),A,E) :-
-    eps_n(P,A,EP),
-    \+ eps_p(P,A,_),
-    E = all(X,-P | EP).
+    eps_p(all(X,-P),A,E).
 
 eps_n1(P,A,E) :-
     causes_false(P,A,E).

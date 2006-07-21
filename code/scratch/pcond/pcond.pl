@@ -45,7 +45,6 @@ pcond(F,C,P) :-
 pcond_aux(Fs,C,F,P) :-
     length(Fs,Depth),
     write('Up to depth: '), write(Depth), nl,
-    write('Fml is:      '), write(F), nl, nl,
     ( consequence(Fs,F) ->
         ( consequence(Fs,false) ->
             P = false
