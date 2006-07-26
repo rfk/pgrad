@@ -387,12 +387,179 @@ subs_list(X,Y,[T|Ts],[Tr|Trs]) :-
     subs(X,Y,T,Tr), subs_list(X,Y,Ts,Trs).
 
 
-
 knows(Agt,F,[]) :-
     pcond(F,legObs(Agt),P),
     holds(P,s0).
 knows(Agt,F,[A|T]) :-
     pcond(F,legObs(Agt),P),
     regression(P,A,R),
-    knows(agt,R,T).
+    adp_fluent(poss,A,Poss),
+    knows(agt,(-Poss | R),T).
+
+
+equiv(P,Q) :-
+    consequence(P,Q), consequence(Q,P).
+
+
+
+fml2nnf(-(P & Q),N) :-
+   fml2nnf((-P) | (-Q),N), !.
+fml2nnf(-(P | Q),N) :-
+   fml2nnf((-P) & (-Q),N), !.
+fml2nnf(-(all(X,P)),N) :-
+   fml2nnf(exists(X,-P),N), !.
+fml2nnf(-(exists(X,P)),N) :-
+   fml2nnf(all(X,-P),N), !.
+fml2nnf(-(-P),N) :-
+    fml2nnf(P,N), !.
+fml2nnf(P & Q,Np & Nq) :-
+    fml2nnf(P,Np), fml2nnf(Q,Nq), !.
+fml2nnf(P | Q,Np | Nq) :-
+    fml2nnf(P,Np), fml2nnf(Q,Nq), !.
+fml2nnf(all(X,P),all(X,N)) :-
+    fml2nnf(P,N), !.
+fml2nnf(exists(X,P),exists(X,N)) :-
+    fml2nnf(P,N), !.
+fml2nnf(P,P).
+
+rename_vars(all(X,P),all(X1,P1)) :-
+    subs(X,X1,P,Pt),
+    rename_vars(Pt,P1), !.
+rename_vars(exists(X,P),exists(X1,P1)) :-
+    subs(X,X1,P,Pt),
+    rename_vars(Pt,P1), !.
+rename_vars(-P,-P1) :-
+    rename_vars(P,P1), !.
+rename_vars(P & Q,P1 & Q1) :-
+    rename_vars(P,P1),
+    rename_vars(Q,Q1), !.
+rename_vars(P | Q,P1 | Q1) :-
+    rename_vars(P,P1),
+    rename_vars(Q,Q1), !.
+rename_vars(P,P).
+
+occurs_in(A,B) :-
+    subs(A,X,B,B2),
+    B \== B2.
+
+nnf2qlf(all(X,P) & all(X,Q),all(X,R)) :-
+    nnf2qlf(P & Q,R), !.
+nnf2qlf(exists(X,P) | exists(X,Q),exists(X,R)) :-
+    nnf2qlf(P | Q,R), !.
+nnf2qlf(F1 & F2,F3) :-
+    F1 =.. [Q1,V1,P1],
+    F2 =.. [Q2,V2t,P2t],
+    member(Q1,[all,exists]),
+    member(Q2,[all,exists]),
+    ( V1 == V2t ->
+        subs(V2t,V2,P2t,P2)
+    ;
+        V2 = V2t, P2=P2t
+    ),
+    F3t =.. [Q2,V2,R],
+    F3 =.. [Q1,V1,F3t],
+    nnf2qlf(P1 & P2,R), !.
+nnf2qlf(F1 | F2,F3) :-
+    F1 =.. [Q1,V1,P1],
+    F2 =.. [Q2,V2t,P2t],
+    member(Q1,[all,exists]),
+    member(Q2,[all,exists]),
+    ( V1 == V2t ->
+        subs(V2t,V2,P2t,P2)
+    ;
+        V2 = V2t, P2=P2t
+    ),
+    F3t =.. [Q2,V2,R],
+    F3 =.. [Q1,V1,F3t],
+    nnf2qlf(P1 | P2,R), !.
+nnf2qlf(all(X,P) & Q,all(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(P & Q,R), !.
+nnf2qlf(Q & all(X,P),all(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(Q & P,R), !.
+nnf2qlf(all(X,P) | Q,all(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(P | Q,R), !.
+nnf2qlf(Q | all(X,P),all(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(Q | P,R), !.
+nnf2qlf(exists(X,P) & Q,exists(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(P & Q,R), !.
+nnf2qlf(Q & exists(X,P),exists(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(Q & P,R), !.
+nnf2qlf(exists(X,P) | Q,exists(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(P | Q,R), !.
+nnf2qlf(Q | exists(X,P),exists(X,R)) :-
+    \+ occurs_in(X,Q),
+    nnf2qlf(Q | P,R), !.
+
+nnf2qlf(all(X,P),all(X,R)) :-
+    nnf2qlf(P,R), !.
+nnf2qlf(exists(X,P),exists(X,R)) :-
+    nnf2qlf(P,R), !.
+nnf2qlf(P & Q,R) :-
+    nnf2qlf(P,Rp), nnf2qlf(Q,Rq),
+    ( (P \== Rp ; Q \== Rq) ->
+        nnf2qlf(Rp & Rq,R)
+    ;
+        R = (P & Q)
+    ), !.
+nnf2qlf(P | Q,R) :-
+    nnf2qlf(P,Rp), nnf2qlf(Q,Rq),
+    ( (P \== Rp ; Q \== Rq) ->
+        nnf2qlf(Rp | Rq,R)
+    ;
+        R = (P | Q)
+    ), !.
+nnf2qlf(P,P).
+
+qlf2pnf(all(X,P),all(X,Q)) :-
+    qlf2pnf(P,Q), !.
+qlf2pnf(exists(X,P),exists(X,Q)) :-
+    qlf2pnf(P,Q), !.
+qlf2pnf(P & Q,R) :-
+    qlf2pnf(P,Rp),
+    qlf2pnf(Q,Rq),
+    R = (Rp & Rq), !.
+qlf2pnf((P | Q),R) :-
+    qlf2pnf(P,Rp),
+    qlf2pnf(Q,Rq),
+    (
+       Rp = (A & B), Rq \= (_ & _), qlf2pnf((A | Rq) & (B | Rq),R)
+    ;
+       Rp \= (_ & _), Rq = (A & B), qlf2pnf((Rp | A) & (Rp | B),R)
+    ;
+       Rp = (A & B), Rq = (C & D), qlf2pnf((A|C) & (A|D) & (B|C) & (B|D),R)
+    ;
+       Rp \= (_ & _), Rq \= (_ & _), R = (Rp | Rq)
+    ), !.
+qlf2pnf(P,P).
+ 
+fml2pnf(F,P) :-
+    rename_vars(F,F1),
+    fml2nnf(F1,N),
+    nnf2qlf(N,Q),
+    qlf2pnf(Q,P).
+
+pnf2cls(all(X,P),C) :-
+    pnf2cls(P,C), !.
+pnf2cls(exists(X,P),C) :-
+    pnf2cls(P,C), !.
+pnf2cls(P & Q,C) :-
+    pnf2cls(P,Cp),
+    pnf2cls(Q,Cq),
+    append(Cp,Cq,C), !.
+pnf2cls(P | Q,[C]) :-
+    pnf2cls(P,[Cp]),
+    pnf2cls(Q,[Cq]),
+    append(Cp,Cq,C), !.
+pnf2cls(P,[[P]]).
+
+simplify_cls(C,S) :-
+    maplist(sort,C,Cs),
+    sort(Cs,S).
 
