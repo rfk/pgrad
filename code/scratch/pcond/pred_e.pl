@@ -16,7 +16,7 @@ eprove(Axioms,Conc,Result) :-
     write_ln(').'),
     told,
     % Call E and have it write its conclusions in output file
-    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=256 --cpu-limit=60 --tstp-format -s ~w > ~w',[InFile,OutFile]),
+    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=256 --tstp-format -s ~w > ~w',[InFile,OutFile]),
     shell(ECmd,_),
     % Grep output file for "Proof found!" indicating truth
     sformat(TCmd,'grep "Proof found!" ~w > /dev/null',[OutFile]),
@@ -79,14 +79,14 @@ term2tstp_write(P | Q) :-
     term2tstp_write(Q),
     write(')'), !.
 term2tstp_write(all(X,P)) :-
-    write('( ! [V'),
-    write(X),
+    write('( ! ['),
+    term2tstp_write_vars(X),
     write('] : ('),
     term2tstp_write(P),
     write('))'), !.
 term2tstp_write(exists(X,P)) :-
-    write('( ? [V'),
-    write(X),
+    write('( ? ['),
+    term2tstp_write_vars(X),
     write('] : ('),
     term2tstp_write(P),
     write('))'), !.
@@ -105,3 +105,11 @@ term2tstp_write_args([H,H2|T]) :-
     write(','),
     term2tstp_write_args([H2|T]).
 
+term2tstp_write_vars(V) :-
+    \+ is_list(V), write('V'), write(V), !.
+term2tstp_write_vars([]).
+term2tstp_write_vars([V]) :-
+    write('V'), write(V).
+term2tstp_write_vars([V|T]) :-
+    T \= [], write('V'), write(V), write(', '),
+    term2tstp_write_vars(T).

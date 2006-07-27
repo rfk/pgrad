@@ -30,9 +30,11 @@ free_vars(V,Bound,Free) :-
         Free = [V]
     ), !.
 free_vars(all(X,P),Bound,Free) :-
-    free_vars(P,[X|Bound],Free), !.
+    append(X,Bound,Bound2),
+    free_vars(P,Bound2,Free), !.
 free_vars(exists(X,P),Bound,Free) :-
-    free_vars(P,[X|Bound],Free), !.
+    append(X,Bound,Bound2),
+    free_vars(P,Bound2,Free), !.
 free_vars(T,Bound,Free) :-
     nonvar(T),
     T =.. [_|Args],
@@ -61,8 +63,15 @@ ex_multi([H|T],F,exists(H,E)) :-
 %
 
 pcond(F,C,P) :-
-    pcond_d1(F,C,Fp),
-    pcond_aux([F],C,Fp,P).
+    % Don't waste time on falsehoods or tautologies
+    ( consequence(F,false) ->
+        P=false
+    ; consequence([],F) ->
+        P=true
+    ;
+        pcond_d1(F,C,Fp),
+        pcond_aux([F],C,Fp,P)
+    ).
 
 pcond_aux(Fs,C,F,P) :-
     length(Fs,Depth),

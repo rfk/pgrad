@@ -4,29 +4,105 @@ action_term(pickup(_,_)).
 action_term(putdown(_,_)).
 action_term(drop(_,_)).
 
+fml_compare('=',F1,F2) :-
+    struct_equiv(F1,F2), !.
+fml_compare(Ord,F1,F2) :-
+    ( F1 @< F2 ->
+        Ord = '<'
+    ;
+        Ord = '>'
+    ).
+
+
+reallysimplify(P,S) :-
+    rs_aux([],P,S).
+
+rs_aux(Prevs,C,S) :-
+    member(C2,Prevs), C2 =@= C, C=S, !.
+rs_aux(Prevs,Cur,Simp) :-
+    normalize(Cur,Norm),
+    fml2qlf(Norm,Cur2),
+    rs_aux([Cur|Prevs],Cur2,Simp).
+
+normalize((A=B),(A=B)) :-
+    A @< B, !.
+normalize((A=B),(B=A)) :-
+    B @< A, !.
+normalize((A=B),true) :-
+    A == B, !.
+normalize(exists(X,P),exists(X,Q)) :-
+    normalize(P,Q), !.
+normalize(all(X,P),all(X,Q)) :-
+    normalize(P,Q), !.
+normalize(-P,-Q) :-
+    normalize(P,Q), !.
+normalize((P1 & Q1),(P2 & Q2)) :-
+    normalize(P1,P2),
+    normalize(Q1,Q2), !.
+normalize((P1 | Q1),(P2 | Q2)) :-
+    normalize(P1,P2),
+    normalize(Q1,Q2), !.
+normalize(P,P). 
+
 struct_equiv(P,Q) :-
-    P==Q.
-struct_equiv(A=B,C=D) :-
-    A==D, B==C.
-struct_equiv(P,Q) :-
-    P =.. [F,P1,P2],
-    Q =.. [F,Q1,Q2],
-    member(F,['&','|','->','<->']),
-    struct_equiv(P1,Q1),
-    struct_equiv(P2,Q2).
-struct_equiv(-P,-Q) :-
-    struct_equiv(P,Q).
-struct_equiv(all(X,P),all(Y,Q)) :-
-    subs(Y,X,Q,Q2),
-    struct_equiv(P,Q2).
-struct_equiv(exists(X,P),exists(Y,Q)) :-
-    subs(Y,X,Q,Q2),
-    struct_equiv(P,Q2).
+    P =@= Q.
 
 struct_oppos(P,Q) :-
     P = -P1, struct_equiv(P1,Q)
     ;
     Q = -Q1, struct_equiv(P,Q1).
+
+
+flatten_terms(O,Ts,Res) :-
+    flatten_terms(O,Ts,[],Res).
+
+flatten_terms(_,[],Res,Res).
+flatten_terms(O,[T|Ts],Acc,Res) :-
+    ( T =.. [O|Args] ->
+        append(Args,Ts,Ts2),
+        flatten_terms(O,Ts2,Acc,Res)
+    ;
+        flatten_terms(O,Ts,[T|Acc],Res)
+    ).
+
+flatten_quants(Q,T,Vars,Vars,T) :-
+    \+ functor(T,Q,2), !.
+flatten_quants(Q,T,Acc,Vars,Body) :-
+    T =.. [Q,V,T2],
+    flatten_quants(Q,T2,[V|Acc],Vars,Body).
+
+listdel([],_,[]).
+listdel([H|T],E,L) :-
+    ( H == E ->
+        listdel(T,E,L)
+    ;
+        L = [H|L2],
+        listdel(T,E,L2)
+    ).
+
+expand_quants(all(X,P),E) :- 
+    \+ is_list(X), expand_quants(P,E), !.
+expand_quants(all([],P),E) :- 
+    expand_quants(P,E), !.
+expand_quants(all([H|T],P),E) :-
+    E=all(H,P2),
+    expand_quants(all(T,P),P2), !.
+expand_quants(exists(X,P),E) :-
+    \+ is_list(X), expand_quants(P,E), !.
+expand_quants(exists([],P),E) :-
+    expand_quants(P,E), !.
+expand_quants(exists([H|T],P),E) :-
+    E=exists(H,P2),
+    expand_quants(exists(T,P),P2), !.
+expand_quants(-P,-E) :-
+    expand_quants(P,E), !.
+expand_quants(P & Q,Ep & Eq) :-
+    expand_quants(P,Ep),
+    expand_quants(Q,Eq), !.
+expand_quants(P | Q,Ep | Eq) :-
+    expand_quants(P,Ep),
+    expand_quants(Q,Eq), !.
+expand_quants(P,P).
 
 %
 %  simplify(+F1,-F2) - simpfily a fluent expression
@@ -35,40 +111,32 @@ struct_oppos(P,Q) :-
 %  to eliminate redundancy and (hoepfully) speed up future reasoning.
 %  
 simplify(P & Q,S) :-
-    simplify(P,SP),
-    simplify(Q,SQ),
+    flatten_terms('&',[P,Q],TermsT),
+    maplist(simplify,TermsT,TermsS),
+    sublist(\=(true),TermsS,TermsF),
+    predsort(fml_compare,TermsF,Terms),
     (
-        SP=false, S=false
+        member(false,Terms), S=false
     ;
-        SQ=false, S=false
+        length(Terms,0), S=true
     ;
-        SP=true, S=SQ
+        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2), S=false
     ;
-        SQ=true, S=SP
-    ;
-        struct_equiv(SP,SQ), S=SP
-    ;
-        struct_oppos(SP,SQ), S=false
-    ;
-        S= (SP & SQ)
+        joinlist('&',Terms,S)
     ), !.
 simplify(P | Q,S) :-
-    simplify(P,SP),
-    simplify(Q,SQ),
+    flatten_terms('|',[P,Q],TermsT),
+    maplist(simplify,TermsT,TermsS),
+    sublist(\=(false),TermsS,TermsF),
+    predsort(fml_compare,TermsF,Terms),
     (
-        SP=true, S=true
+        member(true,Terms), S=true
     ;
-        SQ=true, S=true
+        length(Terms,0), S=false
     ;
-        SP=false, S=SQ
+        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2), S=true
     ;
-        SQ=false, S=SP
-    ;
-        struct_equiv(SP,SQ), S=SP
-    ;
-        struct_oppos(SP,SQ), S=true
-    ;
-        S= (SP | SQ)
+        joinlist('|',Terms,S)
     ), !.
 simplify(-P,S) :-
     simplify(P,SP),
@@ -82,35 +150,59 @@ simplify(-P,S) :-
         S = -SP
     ), !.
 simplify(all(X,P),S) :-
-    simplify(P,SP),
+    X == [],
+    simplify(P,S), !.
+simplify(all(X,P),S) :-
+    ( is_list(X) -> V=X ; V=[X] ),
+    flatten_quants('all',P,V,Vars,BodyP),
+    simplify(BodyP,Body),
     (
-        SP=false, S=false
+        functor(Body,'all',2), simplify(all(Vars,Body),S)
     ;
-        SP=true, S=true
+        Body=false, S=false
     ;
-        subs(X,X2,SP,SP2), SP == SP2, S=SP
+        Body=true, S=true
     ;
-        S=all(X,SP)
+        member(X2,Vars), subs(X2,_,Body,Body2), Body == Body2,
+        listdel(Vars,X2,Vars2), simplify(all(Vars2,Body),S)
+    ;
+        S=all(Vars,Body)
     ), !.
 simplify(exists(X,P),S) :-
-   simplify(P,SP),
-   list_and_clauses(SP,Cs),
+    X == [],
+    simplify(P,S), !.
+simplify(exists(X,P),S) :-
+   ( is_list(X) -> V=X ; V=[X] ),
+   flatten_quants('exists',P,V,Vars,BodyP),
+   simplify(BodyP,Body),
+   list_and_clauses(Body,Cs),
    (
+       Vars = [], S=Body
+   ;
+       functor(Body,exists,2), simplify(exists(Vars,Body),S)
+   ;
        member((T1=T2),Cs),
        (
-           T1 == X, nonvar(T2), subs(X,T2,SP,St), simplify(St,S)
+           member(X2,Vars), T1 == X2, nonvar(T2), subs(X2,T2,Body,St),
+           listdel(Vars,X2,Vars2), simplify(exists(Vars2,St),S)
        ;
-           T2 == X, nonvar(T1), subs(X,T1,SP,St), simplify(St,S)
+           member(X2,Vars), T2 == X2, nonvar(T1), subs(X2,T1,Body,St),
+           listdel(Vars,X2,Vars2), simplify(exists(Vars2,St),S)
+       ;
+           member(X2,Vars), member(X3,Vars), X2 \== X3, T1 == X2, T2 == X3,
+           subs(X2,X3,Body,St),
+           listdel(Vars,X2,Vars2), simplify(exists(Vars2,St),S)
        )
    ;
        (
-           SP=false, S=false
+           Body=false, S=false
        ;
-           SP=true, S=true
+           Body=true, S=true
        ;
-           subs(X,X2,SP,SP2), SP == SP2, S=SP
+           member(X2,Vars), subs(X2,_,Body,Body2), Body == Body2,
+           listdel(Vars,X2,Vars2), simplify(exists(Vars2,Body),S)
        ;
-           S=exists(X,SP)
+           S=exists(Vars,Body)
        )
    ), !.
 simplify((A=B),S) :-
@@ -178,8 +270,7 @@ joinlist(O,[H|T],J) :-
 eps_p((_=_),_,_) :- !, fail.
 eps_p(P,A,E) :-
     bagof(Et,eps_p1(P,A,Et),Ets),
-    joinlist((|),Ets,Ep),
-    simplify(Ep,E).
+    joinlist((|),Ets,E).
 
 %
 %  eps_n(+F,?Act,?Cond) - conditions for a fluent becoming false
@@ -190,8 +281,7 @@ eps_p(P,A,E) :-
 eps_n((_=_),_,_) :- !, fail.
 eps_n(P,A,E) :-
     bagof(Et,eps_n1(P,A,Et),Ets),
-    joinlist((|),Ets,Ep),
-    simplify(Ep,E).
+    joinlist((|),Ets,E).
 
 %
 %  eps_p1(+F,?Act,?Cond) - individual conditions for truthifying a fluent
@@ -255,7 +345,7 @@ eps_n1((P & Q),A,E) :-
     eps_p((-P) | (-Q),A,E).
 
 eps_n1((P | Q),A,E) :-
-    eps_p(-(P & Q),A,E).
+    eps_p((-P) & (-Q),A,E).
 
 eps_n1(-P,A,E) :-
     eps_p(P,A,E).
@@ -538,10 +628,22 @@ qlf2pnf((P | Q),R) :-
        Rp \= (_ & _), Rq \= (_ & _), R = (Rp | Rq)
     ), !.
 qlf2pnf(P,P).
+
+fml2qlf(F,Q) :-
+    writeln('expanding...'),
+    expand_quants(F,F1),
+    writeln('renaming...'),
+    rename_vars(F1,F2),
+    writeln('converting...'),
+    fml2nnf(F2,N),
+    nnf2qlf(N,Qt),
+    writeln('simplifying...'),
+    simplify(Qt,Q).
  
 fml2pnf(F,P) :-
-    rename_vars(F,F1),
-    fml2nnf(F1,N),
+    expand_quants(F,F1),
+    rename_vars(F1,F2),
+    fml2nnf(F2,N),
     nnf2qlf(N,Q),
     qlf2pnf(Q,P).
 
