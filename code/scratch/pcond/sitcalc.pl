@@ -372,7 +372,7 @@ eps_n1(P,A,E) :-
 
 %  If A is non-free, regression1 will succeed only once.
 regression(F,A,Fr) :-
-    nonvar(A),
+    nonvar(A), !,
     regression1(F,A,Frt),
     simplify(Frt,Fr).
 
@@ -394,6 +394,24 @@ regression_bagof(F,A,B,Ft) :-
       nonvar(B), Ft=(Ftp & (A=B))
     ).
 
+
+%%  Regression is special-cased for the logical operators, as this
+%%  produces smaller formulae than using eps_p/eps_n directly.
+%%
+regression1(all(X,P),A,all(X,R)) :-
+    regression1(P,A,R), !.
+regression1(exists(X,P),A,exists(X,R)) :-
+    regression1(P,A,R), !.
+regression1(-P,A,-R) :-
+    regression1(P,A,R), !.
+regression1((C=B),A,(C=B)) :- !.
+regression1((P & Q),A,(R & S)) :-
+    regression1(P,A,R),
+    regression1(Q,A,S), !.
+regression1((P | Q),A,(R | S)) :-
+    regression1(P,A,R),
+    regression1(Q,A,S), !.
+
 regression1(F,A,Fr) :-
     eps_p(F,A,Ep),
     eps_n(F,A,En),
@@ -410,6 +428,51 @@ regression1(F,A,Fr) :-
     \+ eps_n(F,A,_), 
     \+ eps_p(F,A,_),
     F = Fr.
+
+
+%%  Trying a purely tail-recursive version of regression, to see if
+%%  it's any faster...
+%'
+
+regression2(P,A,R) :-
+    regression2([P^R],A).
+
+regression2([],_).
+regression2([all(X,P)^R|T],A) :-
+    R = all(X,Rp),
+    regression2([P^Rp|T],A), !.
+regression2([exists(X,P)^R|T],A) :-
+    R = exists(X,Rp),
+    regression2([P^Rp|T],A), !.
+regression2([(-P)^R|T],A) :-
+    R = -Rp,
+    regression2([P^Rp|T],A), !.
+regression2([(C=B)^(C=B)|T],A) :-
+    regression2(T,A), !.
+regression2([(P & Q)^R|T],A) :-
+    R = Rp & Rq,
+    regression2([P^Rp,Q^Rq|T],A), !.
+regression2([(P | Q)^R|T],A) :-
+    R = (Rp | Rq),
+    regression2([P^Rp,Q^Rq|T],A), !.
+regression2([F^R|T],A) :-
+    regression1(F,A,R),
+    regression2(T,A).
+
+
+test1([]).
+test1([H|T]) :-
+    regression(H,pickup(thomas,knife1),R),
+    test1(T).
+
+test2([]).
+test2([H|T]) :-
+    regression2(H,pickup(thomas,knife1),R),
+    test1(T).
+    
+listof(_,[]).
+listof(E,[E|T]) :-
+    listof(E,T).
 
 %
 %  holds(+F,+S) - fluent F holds in situation S
@@ -468,8 +531,8 @@ subs(X,Y,T,Tr) :-
 %
 %  subs_list(Name,Value,Old,New):  value substitution in a list
 %
-%  This predicate operates as sub/4, but Old and New are lists of terms
-%  instead of single terms.  Basically, it calls sub/4 recursively on
+%  This predicate operates as subs/4, but Old and New are lists of terms
+%  instead of single terms.  Basically, it calls subs/4 recursively on
 %  each element of the list.
 %
 subs_list(_,_,[],[]).
@@ -477,14 +540,46 @@ subs_list(X,Y,[T|Ts],[Tr|Trs]) :-
     subs(X,Y,T,Tr), subs_list(X,Y,Ts,Trs).
 
 
-knows(Agt,F,[]) :-
-    pcond(F,legObs(Agt),P),
-    holds(P,s0).
-knows(Agt,F,[A|T]) :-
-    pcond(F,legObs(Agt),P),
-    regression(P,A,R),
-    adp_fluent(poss,A,Poss),
-    knows(agt,(-Poss | R),T).
+%
+%  "definition" version of knows/3
+%  Calculates the entire persistence condition before regressing.
+%  Here for informative purposes only.  The real version regresses
+%  each component of the pcond before calculating the next, to save
+%  calls into consequence() some something that cant possibly lead
+%  to a yes answer.
+%
+%knows(Agt,F,[]) :-
+%    pcond(F,legObs(Agt),P),
+%    holds(P,s0).
+%knows(Agt,F,[A|T]) :-
+%    pcond(F,legObs(Agt),P),
+%    regression(P,A,R),
+%    adp_fluent(poss,A,Poss),
+%    knows(Agt,(-Poss | R),T).
+
+
+knows(Agt,F,H) :-
+    knows(Agt,[],F,H).
+
+knows(Agt,Fs,F,[]) :-
+    ( consequence(Fs,F) ->
+        true
+    ;
+        holds(F,s0),
+        pcond_d1(F,legObs(Agt),P1),
+        knows(Agt,[F|Fs],P1,[])
+    ).
+knows(Agt,Fs,F,[A|T]) :-
+    ( consequence(Fs,F) ->
+        true
+    ;
+        regression(F,A,R),
+        adp_fluent(poss,A,Poss),
+        knows(Agt,[],(-Poss | R),T),
+        pcond_d1(F,legObs(Agt),P1),
+        knows(Agt,[F|Fs],P1,[A|T])
+    ).
+    
 
 
 equiv(P,Q) :-
@@ -630,14 +725,10 @@ qlf2pnf((P | Q),R) :-
 qlf2pnf(P,P).
 
 fml2qlf(F,Q) :-
-    writeln('expanding...'),
     expand_quants(F,F1),
-    writeln('renaming...'),
     rename_vars(F1,F2),
-    writeln('converting...'),
     fml2nnf(F2,N),
     nnf2qlf(N,Qt),
-    writeln('simplifying...'),
     simplify(Qt,Q).
  
 fml2pnf(F,P) :-

@@ -75,15 +75,15 @@ pcond(F,C,P) :-
 
 pcond_aux(Fs,C,F,P) :-
     length(Fs,Depth),
-    write('Up to depth: '), write(Depth), write('...'), flush_output,
+    %write('Up to depth: '), write(Depth), write('...'), flush_output,
     ( consequence(Fs,F) ->
         ( consequence(Fs,false) ->
             P = false
         ;
             joinlist('&',Fs,P)
-        ), write('done'), nl
+        )%, write('done'), nl
     ;
-        write('continuing'), nl,
+        %write('continuing'), nl,
         pcond_d1(F,C,F1),
         pcond_aux([F|Fs],C,F1,P)
    ).
