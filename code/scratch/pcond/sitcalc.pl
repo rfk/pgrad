@@ -482,8 +482,9 @@ listof(E,[E|T]) :-
 holds(true,_).
 holds(A=B,_) :-     % no functional fluents, so equality does not vary
     A=B.
-holds(-(A=B),_) :-
-    A \= B.
+holds(-(A=B),_) :-  % need to handle non-unification of vars, so we use dif/2
+    %A \= B.
+    dif(A,B).
 holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
