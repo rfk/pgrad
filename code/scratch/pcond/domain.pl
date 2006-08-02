@@ -1,4 +1,7 @@
 
+:- discontiguous(causes_true/3).
+:- discontiguous(causes_false/3).
+
 agent(thomas).
 agent(richard).
 agent(harriet).
@@ -14,25 +17,20 @@ resource(bowl3).
 resource(oven).
 
 
-% Enumerates primitive actions
-prim_action(pickup(Agt,Res)) :-
-    agent(Agt), resource(Res).
-prim_action(putdown(Agt,Res)) :-
-    agent(Agt), resource(Res).
-prim_action(drop(Agt,Res)) :-
-    agent(Agt), resource(Res).
+% Enumerates primitive actions, and the domains of their arguments.
+prim_action(pickup(agent,resource)).
+prim_action(putdown(agent,resource)).
+prim_action(drop(agent,resource)).
 
-% Enumerates primitive fluents
-prim_fluent(holding(Agt,Res)) :-
-    agent(Agt), resource(Res).
-prim_fluent(fragile(Res)) :-
-    resource(Res).
-prim_fluent(broken(Res)) :-
-    resource(Res).
+% Enumerates primitive fluents, and domains of arguments
+prim_fluent(holding(agent,resource)).
+prim_fluent(fragile(resource)).
+prim_fluent(broken(resource)).
 
 % Enumerates conditions for action description predicate fluents
 adp_fluent(poss,pickup(_,Res),C) :-
-    C = -exists(A,holding(A,Res)).
+    gensym(v,A),
+    C = -exists([A:agent],holding(A,Res)).
 adp_fluent(poss,putdown(Agt,Res),C) :-
     C = holding(Agt,Res).
 adp_fluent(poss,drop(Agt,Res),C) :-
@@ -41,11 +39,6 @@ adp_fluent(poss,drop(Agt,Res),C) :-
 adp_fluent(canObs(Agt),pickup(Agt2,_),(Agt=Agt2)).
 adp_fluent(canObs(Agt),putdown(Agt2,_),(Agt=Agt2)).
 adp_fluent(canObs(Agt),drop(Agt2,_),(Agt=Agt2)).
-
-adp_fluent(legObs(Agt),A,C) :-
-    adp_fluent(poss,A,C1),
-    adp_fluent(canObs(Agt),A,C2),
-    C = C1 & -C2.
 
 % Enumerates the fluents holding in the initial situation
 initially(_) :-
