@@ -54,10 +54,6 @@ causes_true(broken(Res),drop(_,Res2),(Res=Res2) & fragile(Res2)).
 
 % Specify domain constraints as additional background knowledge
 %
-constraint(all(Agt1,all(Agt2,all(Obj,-(holding(Agt1,Obj) & holding(Agt2,Obj)) | Agt1=Agt2)))).
-
-constraint(-(A=B)) :-
-    ( agent(A) ; resource(A) ),
-    ( agent(B) ; resource(B) ),
-    A @< B.
+constraint(all([Agt1:agent,Agt2:agent,Obj:resource],-(holding(Agt1,Obj) & holding(Agt2,Obj)) | Agt1=Agt2)) :-
+    genvar(Agt1), genvar(Agt2), genvar(Obj).
 

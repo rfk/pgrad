@@ -51,9 +51,13 @@ genvar(V) :-
     gensym(v,V).
 
 isvar(V) :-
+    atomic(V),
     atom_concat(v,S,V),
     atom_number(S,N),
     integer(N).
+
+notavar(V) :-
+    \+ isvar(V).
 
 %
 %  normalize(F,N) - perform some basic normalisations on a formula
@@ -394,36 +398,110 @@ fml2nnf(P,P).
 
 
 %
+%  fml2axioms(Fml,Axs):  Convert formula to more efficient form
+%
+%  This predicate is used to convert the formula in Fml into a opaque
+%  for that can be used for efficient reasoning by this module.
+%
+
+% Our implementation is based on prime implicants
+fml2axioms(Fml,Axs) :-
+    fml2cls(Fml,Cls),
+    prime_implicants(Cls,Axs).
+
+add_to_axioms(Fml,Axs,Axs2) :-
+    fml2cls(Fml,Cls),
+    union(Cls,Axs,Cls2),
+    prime_implicants(Cls2,Axs2).
+
+combine_axioms(Ax1,Ax2,Axs) :-
+    union(Ax1,Ax2,AxT),
+    prime_implicants(AxT,Axs).
+
+%
+%  prime_implicants(Cls,PIs):  calculate prime implicants of a clause set
+%
+
+
+prime_implicants(Cls,PIs) :-
+    ( prime_implicants_step(Cls,Cls2) ->
+        prime_implicants(Cls2,PIs)
+    ;
+        PIs = Cls
+    ).
+
+
+prime_implicants_step(Cls,[R|Cls2]) :-
+    member(C1,Cls),
+    member(C2,Cls),
+    resolvent(C1,C2,R),
+    \+ (tautology_clause(R)),
+    \+ (member(C3,Cls), subset(C3,R)),
+    sublist(nsubset(R),Cls,Cls2).
+
+nsubset(S1,S2) :-
+    \+ subset(S1,S2).
+
+resolvent(C1,C2,R) :-
+    member(A,C1), member(-A,C2),
+    delete(C1,A,C1t), delete(C2,-A,C2t),
+    append(C1t,C2t,R).
+resolvent(C1,C2,R) :-
+    member(-A,C1), member(A,C2),
+    delete(C1,A,C1t), delete(C2,-A,C2t),
+    append(C1t,C2t,R).
+
+%
 %  entails(Axioms,Conc):  Conc is logically entailed by Axioms
 %
 %  Axioms must be a list.
 %
 
 entails(Axioms,Conc) :-
-    prime_implicants(Axioms,PIs),
     fml2cls(Conc,Clauses),
-    entails_clauses(PIs,Clauses).
+    entails_clauses(Axioms,Clauses).
 
 entails_clauses(_,[]).
 entails_clauses(PIs,[C|Cs]) :-
-    ( tautology_clause(C) ; pi_entails(PIs,C) ),
+    pi_entails(PIs,C),
     entails_clauses(PIs,Cs).
 
 tautology_clause(C) :-
     memberchk(true,C), !.
 tautology_clause(C) :-
     member(A,C), member(-A,C), !.
+tautology_clause(C) :-
+    member(A=A,C), !.
 
 pi_entails([],_) :- fail.
 pi_entails([PI|PIs],C) :-
-    subset(PI,C).
+    ( subset(PI,C) ->
+       true
+    ;
+       pi_entails(PIs,C)
+    ).
 
+is_literal(P) :-
+    P \= (_ & _),
+    P \= (_ | _),
+    P \= (_ -> _),
+    P \= (_ <-> _),
+    P \= exists(_,_),
+    P \= all(_,_).
 
 fml2cls(F,Cs) :-
-    fml2nnf(F,N),
-    nnf2cls(N,Cs).
+    normalize(F,Fn),
+    fml2nnf(Fn,N),
+    nnf2cls(N,Cst),
+    sublist(ntaut,Cst,Cs).
 
-% we use the transformation to NNF to eliminate <-> and -> for us
+ntaut(C) :-
+    \+ tautology_clause(C).
+
+% we use the transformation to NNF to eliminate <-> and -> for us,
+% and to ensure that negation is always at a literal.
+nnf2cls(P,[[P]]) :-
+    is_literal(P).
 nnf2cls(all([],P),Cs) :-
     nnf2cls(P,Cs).
 nnf2cls(all([X:D|Vs],P),Cs) :-
@@ -436,11 +514,35 @@ nnf2cls(exists([X:D|Vs],P),Cs) :-
     findall(Pt,var_subs(X,D,P,Pt),Pts),
     joinlist('|',Pts,Ps),
     nnf2cls(exists(Vs,Ps),Cs).
-%TODO: cases for and, or, and not.
-
+nnf2cls(P & Q,Cs) :-
+    nnf2cls(P,Cp),
+    nnf2cls(Q,Cq),
+    union(Cp,Cq,Cs).
+nnf2cls(P | Q,Cs) :-
+    nnf2cls(P,Cp),
+    nnf2cls(Q,Cq),
+    findall(U,C1^C2^(member(C1,Cp), member(C2,Cq), union(C1,C2,U)),Cs).
+    
 var_subs(X,D,P,Px) :-
-    call(domain,Val),
+    call(D,Val),
     subs(X,Val,P,Px).
 
 
+terms_in_fml(P,Terms) :-
+    is_literal(P), P \= (-_),
+    P =.. [_|Args],
+    sublist(notavar,Args,TermsT),
+    sort(TermsT,Terms).
+terms_in_fml(-P,Terms) :-
+    terms_in_fml(P,Terms).
+terms_in_fml(CP,Terms) :-
+    CP =.. [Op,P1,P2],
+    memberchk(Op,['&','|','->','<->']),
+    terms_in_fml(P1,T1),
+    terms_in_fml(P2,T2),
+    union(T1,T2,Terms).
+terms_in_fml(CP,Terms) :-
+    CP =.. [Q,_,P],
+    memberchk(Q,[all,exists]),
+    terms_in_fml(P,Terms).
 

@@ -24,24 +24,27 @@ pcond_d1_bagof(F,C,Cn) :-
 
 pcond(F,C,P) :-
     % Don't waste time on falsehoods or tautologies
-    ( consequence(F,false) ->
+    domain_axioms(Axs),
+    add_to_axioms(F,Axs,Axs2),
+    ( entails(Axs2,false) ->
         P=false
-    ; consequence([],F) ->
+    ; entails(Axs,F) ->
         P=true
     ;
         pcond_d1(F,C,Fp),
-        pcond_aux([F],C,Fp,P)
+        pcond_aux(Axs2,C,[F],Fp,P)
     ).
 
-pcond_aux(Fs,C,F,P) :-
-    ( consequence(Fs,F) ->
-        ( consequence(Fs,false) ->
+pcond_aux(Axs,C,Fs,F,P) :-
+    ( entails(Axs,F) ->
+        ( entails(Axs,false) ->
             P = false
         ;
             joinlist('&',Fs,P)
         )
     ;
         pcond_d1(F,C,F1),
-        pcond_aux([F|Fs],C,F1,P)
+        add_to_axioms(F,Axs,Axs2),
+        pcond_aux(Axs2,C,[F|Fs],F1,P)
    ).
 

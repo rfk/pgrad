@@ -16,21 +16,31 @@ awv_collect([D|T],[Y|TA],[Y:D|TV]) :-
     gensym(v,Y),
     awv_collect(T,TA,TV).
 
+
 %
-%  consequence(+[Axioms],+Conc) - Fluent Conc is a consequence of the Axioms
+%  domain_axioms(Axs):  unify Axs with the set of domain axioms.
 %
-%  This predicate employs full first-order reasoning to determine whether
-%  the fluent expression Conc is logically entailed by the set of fluents
-%  in Axioms.
+%  The domain axioms are the background theory against which entailment
+%  queries should be posed using entails/2.
 %
-consequence(F,Conc) :-
-    \+ is_list(F), !,
-    consequence([F],Conc).
-consequence(Axioms,Conc) :-
-    % TODO: automatically add unique names axioms?
+
+domain_axioms(Axs) :-
     findall(C,constraint(C),Cs),
-    append(Axioms,[true,-false|Cs],Bg),
-    entails(Bg,Conc).
+    joinlist('&',[true,-false|Cs],BgT),
+    fml2axioms(BgT,AxD),
+    un_axioms(BgT,AxU),
+    combine_axioms(AxD,AxU,Axs).
+
+
+un_axioms(Fml,Axs) :-
+    terms_in_fml(Fml,Ts),
+    findall(A,T1^T2^(member(T1,Ts),member(T2,Ts),T1@<T2,A=(-(T1=T2))),As),
+    ( As=[] ->
+        FmlT = true
+    ;
+        joinlist('&',As,FmlT)
+    ),
+    fml2axioms(FmlT,Axs).
 
 %
 %  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true
@@ -257,7 +267,7 @@ holds(-F,s0) :-
 %  Calculates the entire persistence condition before regressing.
 %  Here for informative purposes only.  The real version regresses
 %  each component of the pcond before calculating the next, to save
-%  calls into consequence() some something that cant possibly lead
+%  calls into entails() for something that cant possibly lead
 %  to a yes answer.
 %
 %knows(Agt,F,[]) :-
@@ -279,25 +289,34 @@ adp_fluent(legUnobs(Agt),A,C) :-
     adp_fluent(canObs(Agt),A,C2),
     C = C1 & -C2.
 
-knows(Agt,F,H) :-
-    knows(Agt,[],F,H).
 
-knows(Agt,Fs,F,[]) :-
-    ( consequence(Fs,F) ->
+consequence(Axs,Fml) :-
+    un_axioms(Fml,Ax2),
+    combine_axioms(Axs,Ax2,AxF),
+    entails(AxF,Fml).
+
+knows(Agt,F,H) :-
+    domain_axioms(Axs),
+    knows(Agt,Axs,F,H).
+
+knows(Agt,Axs,F,[]) :-
+    ( consequence(Axs,F) ->
         true
     ;
         holds(F,s0),
         pcond_d1(F,legUnobs(Agt),P1),
-        knows(Agt,[F|Fs],P1,[])
+        add_to_axioms(F,Axs,Axs2),
+        knows(Agt,Axs2,P1,[])
     ).
-knows(Agt,Fs,F,[A|T]) :-
-    ( consequence(Fs,F) ->
+knows(Agt,Axs,F,[A|T]) :-
+    ( consequence(Axs,F) ->
         true
     ;
         regression(F,A,R),
         adp_fluent(poss,A,Poss),
-        knows(Agt,[],(-Poss | R),T),
+        knows(Agt,(-Poss | R),T),
         pcond_d1(F,legUnobs(Agt),P1),
-        knows(Agt,[F|Fs],P1,[A|T])
+        add_to_axioms(F,Axs,Axs2),
+        knows(Agt,Axs2,P1,[A|T])
     ).
 
