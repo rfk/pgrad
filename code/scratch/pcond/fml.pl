@@ -265,7 +265,7 @@ simplify(all(X,P),S) :-
     ;
         % Remove any useless variables
         member(X2:_,Vars), ncontains(Body,X2),
-        listdel(Vars,X2:_,Vars2), simplify(all(Vars2,Body),S)
+        delete(Vars,X2:_,Vars2), simplify(all(Vars2,Body),S)
     ;
         % Push independent components outside the quantifier,
         flatten_op('|',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
@@ -273,7 +273,7 @@ simplify(all(X,P),S) :-
         joinlist('|',BT2,Body2), simplify(all(Vars,Body2) | T,S)
     ;
         flatten_op('&',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-        \+ ( member(X2,Vars), contains(T,X2) ), listdel(BTerms,T,BT2),
+        \+ ( member(X2,Vars), contains(T,X2) ), delete(BTerms,T,BT2),
         joinlist('&',BT2,Body2), simplify(all(Vars,Body2) & T,S)
     ;
         S=all(Vars,Body)
@@ -410,12 +410,11 @@ fml2axioms(Fml,Axs) :-
     prime_implicants(Cls,Axs).
 
 add_to_axioms(Fml,Axs,Axs2) :-
-    fml2cls(Fml,Cls),
-    union(Cls,Axs,Cls2),
-    prime_implicants(Cls2,Axs2).
+    fml2axioms(Fml,AxsT),
+    combine_axioms(Axs,AxsT,Axs2).
 
 combine_axioms(Ax1,Ax2,Axs) :-
-    union(Ax1,Ax2,AxT),
+    oset_union(Ax1,Ax2,AxT),
     prime_implicants(AxT,Axs).
 
 %
@@ -430,7 +429,6 @@ prime_implicants(Cls,PIs) :-
         PIs = Cls
     ).
 
-
 prime_implicants_step(Cls,[R|Cls2]) :-
     member(C1,Cls),
     member(C2,Cls),
@@ -444,12 +442,12 @@ nsubset(S1,S2) :-
 
 resolvent(C1,C2,R) :-
     member(A,C1), member(-A,C2),
-    delete(C1,A,C1t), delete(C2,-A,C2t),
-    append(C1t,C2t,R).
+    oset_delel(C1,A,C1t), oset_delel(C2,-A,C2t),
+    oset_union(C1t,C2t,R).
 resolvent(C1,C2,R) :-
     member(-A,C1), member(A,C2),
-    delete(C1,A,C1t), delete(C2,-A,C2t),
-    append(C1t,C2t,R).
+    oset_delel(C1,-A,C1t), oset_delel(C2,A,C2t),
+    oset_union(C1t,C2t,R).
 
 %
 %  entails(Axioms,Conc):  Conc is logically entailed by Axioms
@@ -472,6 +470,8 @@ tautology_clause(C) :-
     member(A,C), member(-A,C), !.
 tautology_clause(C) :-
     member(A=A,C), !.
+tautology_clause(C) :-
+    member(-(A=B),C), notavar(A), notavar(B), A\=B, !.
 
 pi_entails([],_) :- fail.
 pi_entails([PI|PIs],C) :-
@@ -503,13 +503,15 @@ ntaut(C) :-
 nnf2cls(P,[[P]]) :-
     is_literal(P).
 nnf2cls(all([],P),Cs) :-
-    nnf2cls(P,Cs).
+    simplify(P,Ps),
+    nnf2cls(Ps,Cs).
 nnf2cls(all([X:D|Vs],P),Cs) :-
     findall(Pt,var_subs(X,D,P,Pt),Pts),
     joinlist('&',Pts,Ps),
     nnf2cls(all(Vs,Ps),Cs).
 nnf2cls(exists([],P),Cs) :-
-    nnf2cls(P,Cs).
+    simplify(P,Ps),
+    nnf2cls(Ps,Cs).
 nnf2cls(exists([X:D|Vs],P),Cs) :-
     findall(Pt,var_subs(X,D,P,Pt),Pts),
     joinlist('|',Pts,Ps),
@@ -517,11 +519,12 @@ nnf2cls(exists([X:D|Vs],P),Cs) :-
 nnf2cls(P & Q,Cs) :-
     nnf2cls(P,Cp),
     nnf2cls(Q,Cq),
-    union(Cp,Cq,Cs).
+    oset_union(Cp,Cq,Cs).
 nnf2cls(P | Q,Cs) :-
     nnf2cls(P,Cp),
     nnf2cls(Q,Cq),
-    findall(U,C1^C2^(member(C1,Cp), member(C2,Cq), union(C1,C2,U)),Cs).
+    findall(U,C1^C2^(member(C1,Cp), member(C2,Cq), oset_union(C1,C2,U)),Cst),
+    sort(Cst,Cs).
     
 var_subs(X,D,P,Px) :-
     call(D,Val),
@@ -540,7 +543,7 @@ terms_in_fml(CP,Terms) :-
     memberchk(Op,['&','|','->','<->']),
     terms_in_fml(P1,T1),
     terms_in_fml(P2,T2),
-    union(T1,T2,Terms).
+    oset_union(T1,T2,Terms).
 terms_in_fml(CP,Terms) :-
     CP =.. [Q,_,P],
     memberchk(Q,[all,exists]),
