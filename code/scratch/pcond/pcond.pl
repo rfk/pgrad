@@ -26,9 +26,9 @@ pcond(F,C,P) :-
     % Don't waste time on falsehoods or tautologies
     domain_axioms(Axs),
     add_to_axioms(F,Axs,Axs2),
-    ( entails(Axs2,false) ->
+    ( consequence(Axs2,false) ->
         P=false
-    ; entails(Axs,F) ->
+    ; consequence(Axs,F) ->
         P=true
     ;
         pcond_d1(F,C,Fp),
@@ -36,8 +36,8 @@ pcond(F,C,P) :-
     ).
 
 pcond_aux(Axs,C,Fs,F,P) :-
-    ( entails(Axs,F) ->
-        ( entails(Axs,false) ->
+    ( consequence(Axs,F) ->
+        ( consequence(Axs,false) ->
             P = false
         ;
             joinlist('&',Fs,P)

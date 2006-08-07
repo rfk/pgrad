@@ -13,9 +13,11 @@
 %  formulae that have sorts where they don't belong (this greatly
 %  simplifies simplification).
 %
-%  For simplicity, we expect all variables to be named 'vX' where X is
-%  an integer.  We assume any other terms are objects in the domain,
-%  and thus subject to UNA.
+%  Variables are expected to be actual prolog variables, as this vastly
+%  increases the simplicity and efficiency of certain operations.  It also
+%  means we need to take extra care in some other areas.  In particular,
+%  we assume that the formula contains the *only* references to those
+%  variables, so we are free to bind them in simplification and reasoning.
 %
 
 
@@ -40,24 +42,6 @@
 :- op(500, yfx, <->).
 :- op(500, yfx, &).
 
-
-
-%
-%  genvar(V):  generate a new, unique variable name
-%
-%  isvar(V):   V is a variable name, according to our conventions
-
-genvar(V) :-
-    gensym(v,V).
-
-isvar(V) :-
-    atomic(V),
-    atom_concat(v,S,V),
-    atom_number(S,N),
-    integer(N).
-
-notavar(V) :-
-    \+ isvar(V).
 
 %
 %  normalize(F,N) - perform some basic normalisations on a formula
@@ -98,7 +82,8 @@ normalize(P,P).
 
 %
 %  struct_equiv(P,Q)  -  two formulae are structurally equivalent,
-%                        basically meaning they are identical.
+%                        basically meaning they are identical up
+%                        to renaming of variables.
 %
 %  struct_oppos(P,Q)  -  two formulae are structurally opposite,
 %                        making their conjunction a trivial falsehood.
@@ -132,16 +117,21 @@ fml_compare(Ord,F1,F2) :-
 
 
 %
-%  contains(A,B)  -  formula A contains term B
+%  contains(A,B)  -  formula A contains variable B
 %
-%  ncontains(A,B)  -  formula A does not contain term B
+%  ncontains(A,B)  -  formula A does not contain variable B
 %
+
+%  Since we know that B is a variable, we do this test by grounding
+%  it then checking for structural equivalence with the original term
+contains(A,B) :-
+    \+ ncontains(A,B).
 
 ncontains(A,B) :-
-    subs(B,_,A,Ap), A == Ap.
-contains(A,B) :-
-    subs(B,_,A,Ap), A \== Ap.
-
+    copy_term(A^B,A2^B2),
+    B2=groundme,
+    A =@= A2.
+    
 
 %
 %  flatten_op(Op,Terms,Result) - flatten repeated ops into a list
@@ -171,7 +161,29 @@ flatten_quant(Q,T,Vars,Vars,T) :-
     \+ functor(T,Q,2), !.
 flatten_quant(Q,T,Acc,Vars,Body) :-
     T =.. [Q,V,T2],
-    flatten_quant(Q,T2,[V|Acc],Vars,Body).
+    append(V,Acc,Acc2),
+    flatten_quant(Q,T2,Acc2,Vars,Body).
+
+
+%
+%  vmember(Elem,List) - like member/2, but specific to our quant variable lists
+%
+vmember(_,[]) :- fail.
+vmember(E:V,[H:U|T]) :-
+    V=U, E == H
+    ;
+    vmember(E,T).
+
+
+%  vdelete(List,Elem,Result) - like delete/3 but for quant variable lists
+vdelete([],_,[]).
+vdelete([H:U|T],E:V,Res) :-
+    ( V=U, E == H ->
+        vdelete(T,E:V,Res)
+    ;
+        Res = [H:U|T2],
+        vdelete(T,E:V,T2)
+    ).
 
 %
 %  simplify(+F1,-F2) - simplify a formula
@@ -179,155 +191,166 @@ flatten_quant(Q,T,Acc,Vars,Body) :-
 %  This predicate applies some basic simplification rules to a formula
 %  to eliminate redundancy and (hopefully) speed up future reasoning.
 %  
+simplify(P,P) :-
+    is_literal(P), P \= (_ = _).
 simplify(P & Q,S) :-
     flatten_op('&',[P,Q],TermsT),
     maplist(simplify,TermsT,TermsS),
     sublist(\=(true),TermsS,TermsF),
     predsort(fml_compare,TermsF,Terms),
     (
-        member(false,Terms), S=false
+        member(false,Terms) -> S=false
     ;
-        length(Terms,0), S=true
+        length(Terms,0) -> S=true
     ;
-        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2), S=false
+        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2) -> S=false
     ;
         joinlist('&',Terms,S)
-    ), !.
+    ).
 simplify(P | Q,S) :-
     flatten_op('|',[P,Q],TermsT),
     maplist(simplify,TermsT,TermsS),
     sublist(\=(false),TermsS,TermsF),
     predsort(fml_compare,TermsF,Terms),
     (
-        member(true,Terms), S=true
+        member(true,Terms) -> S=true
     ;
-        length(Terms,0), S=false
+        length(Terms,0) -> S=false
     ;
-        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2), S=true
+        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2) -> S=true
     ;
         joinlist('|',Terms,S)
-    ), !.
+    ).
 simplify(P -> Q,S) :-
     simplify(P,Sp),
     simplify(Q,Sq),
     (
-        Sp=false, S=true
+        Sp=false -> S=true
     ;
-        Sp=true, S=Sq
+        Sp=true -> S=Sq
     ;
-        Sq=true, S=true
+        Sq=true -> S=true
     ;
-        Sq=false, S=(-Sp)
+        Sq=false -> S=(-Sp)
     ;
         S = (Sp -> Sq)
-    ), !.
+    ).
 simplify(P <-> Q,S) :-
     simplify(P,Sp),
     simplify(Q,Sq),
     (
-        struct_equiv(P,Q), S=true
+        struct_equiv(P,Q) -> S=true
     ;
-        struct_oppos(P,Q), S=false
+        struct_oppos(P,Q) -> S=false
     ;
-        Sp=false, S=(-Sq)
+        Sp=false -> S=(-Sq)
     ;
-        Sq=true, S=Sq
+        Sq=true -> S=Sq
     ;
-        Sq=false, S=(-Sp)
+        Sq=false -> S=(-Sp)
     ;
-        Sq=true, S=Sp
+        Sq=true -> S=Sp
     ;
         S = (Sp <-> Sq)
-    ), !.
+    ).
 simplify(-P,S) :-
     simplify(P,SP),
     (
-        SP=false, S=true
+        SP=false -> S=true
     ;
-        SP=true, S=false
+        SP=true -> S=false
     ;
-        SP = -P2, S=P2
+        SP = -P2 -> S=P2
     ;
         S = -SP
-    ), !.
+    ).
 simplify(all([],P),S) :-
-    simplify(P,S), !.
-simplify(all(X,P),S) :-
-    flatten_quant('all',P,X,VarsT,BodyP),
+    simplify(P,S).
+simplify(all([H|T],P),S) :-
+    flatten_quant('all',P,[H|T],VarsT,BodyP),
     sort(VarsT,Vars),
     simplify(BodyP,Body),
     (
-        functor(Body,'all',2), simplify(all(Vars,Body),S)
+        functor(Body,'all',2) -> simplify(all(Vars,Body),S)
     ;
-        Body=false, S=false
+        Body=false -> S=false
     ;
-        Body=true, S=true
+        Body=true -> S=true
     ;
         % Remove any useless variables
-        member(X2:_,Vars), ncontains(Body,X2),
-        delete(Vars,X2:_,Vars2), simplify(all(Vars2,Body),S)
+        member(X2:_,Vars), ncontains(Body,X2) ->
+            vdelete(Vars,X2:_,Vars2), simplify(all(Vars2,Body),S)
     ;
         % Push independent components outside the quantifier,
         flatten_op('|',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-        \+ ( member(X2:_,Vars), contains(T,X2) ), delete(BTerms,T,BT2),
-        joinlist('|',BT2,Body2), simplify(all(Vars,Body2) | T,S)
+        \+ ( member(X2:_,Vars), contains(T,X2) ) ->
+             delete(BTerms,T,BT2),
+             joinlist('|',BT2,Body2),
+             simplify(all(Vars,Body2) | T,S)
+        
     ;
         flatten_op('&',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-        \+ ( member(X2,Vars), contains(T,X2) ), delete(BTerms,T,BT2),
-        joinlist('&',BT2,Body2), simplify(all(Vars,Body2) & T,S)
+        \+ ( member(X2:_,Vars), contains(T,X2) ) ->
+            delete(BTerms,T,BT2),
+            joinlist('&',BT2,Body2),
+            simplify(all(Vars,Body2) & T,S)
     ;
         S=all(Vars,Body)
-    ), !.
+    ).
 simplify(exists([],P),S) :-
-    simplify(P,S), !.
-simplify(exists(X,P),S) :-
-   flatten_quant('exists',P,X,VarsT,BodyP),
+    simplify(P,S).
+simplify(exists([H|T],P),S) :-
+   flatten_quant('exists',P,[H|T],VarsT,BodyP),
    sort(VarsT,Vars),
    simplify(BodyP,Body),
    (
-       functor(Body,exists,2), simplify(exists(Vars,Body),S)
+       functor(Body,exists,2) -> simplify(exists(Vars,Body),S)
    ;
-       Body=false, S=false
+       Body=false -> S=false
    ;
-       Body=true, S=true
+       Body=true -> S=true
    ;
        % Remove vars that are assigned a specific value, therefore useless
        flatten_op('&',[Body],Cs), member((T1=T2),Cs),
        (
-           member(T1:_,Vars),(\+ member(T2:_,Vars)),subs(T1,T2,Body,St),
-           delete(Vars,T1:_,Vars2), simplify(exists(Vars2,St),S)
+           vmember(T1:_,Vars),(\+ vmember(T2:_,Vars)),
+           vdelete(Vars,T1:_,Vars2), T1=T2
        ;
-           member(T2:_,Vars),(\+ member(T1:_,Vars)),subs(T2,T1,Body,St),
-           delete(Vars,T2:_,Vars2), simplify(exists(Vars2,St),S)
+           vmember(T2:_,Vars),(\+ vmember(T1:_,Vars)),
+           vdelete(Vars,T2:_,Vars2), T2=T1
        ;
-           member(T1:_,Vars), member(T2:_,Vars), T1 \= T2, subs(T1,T2,Body,St),
-           delete(Vars,T1:_,Vars2), simplify(exists(Vars2,St),S)
+           vmember(T1:_,Vars), vmember(T2:_,Vars), T1 \== T2,
+           vdelete(Vars,T1:_,Vars2) , T1=T2
        )
+           ->  simplify(exists(Vars2,Body),S)
    ;
        % Remove vars not involved in the body
-       member(X2:_,Vars), ncontains(Body,X2),
-       delete(Vars,X2:_,Vars2), simplify(exists(Vars2,Body),S)
+       member(X2:_,Vars), ncontains(Body,X2) ->
+           vdelete(Vars,X2:_,Vars2), simplify(exists(Vars2,Body),S)
    ; 
        % Push independent components outside the quantifier
        flatten_op('|',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-       \+ ( member(X2:_,Vars), contains(T,X2) ), delete(BTerms,T,BT2),
-       joinlist('|',BT2,Body2), simplify(exists(Vars,Body2) | T,S)
+       \+ ( member(X2:_,Vars), contains(T,X2) ) ->
+           vdelete(BTerms,T,BT2),
+           joinlist('|',BT2,Body2),
+           simplify(exists(Vars,Body2) | T,S)
     ;
        flatten_op('&',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-       \+ ( member(X2:_,Vars), contains(T,X2) ), delete(BTerms,T,BT2),
-       joinlist('&',BT2,Body2), simplify(exists(Vars,Body2) & T,S)
+       \+ ( member(X2:_,Vars), contains(T,X2) ) ->
+           vdelete(BTerms,T,BT2),
+           joinlist('&',BT2,Body2),
+           simplify(exists(Vars,Body2) & T,S)
     ;
        S=exists(Vars,Body)
-    ), !.
+    ).
 simplify((A=B),S) :-
    (
-       A = B, S=true
+       A == B, S=true
    ;
-       \+ isvar(A), \+ isvar(B), A \= B, S=false
+       ground(A), ground(B), A \= B, S=false
    ;
-       S = (A=B)
-   ), !.
-simplify(P,P).
+       normalize((A=B),S)
+   ).
 
 
 %
@@ -410,35 +433,26 @@ fml2axioms(Fml,Axs) :-
     prime_implicants(Cls,Axs).
 
 add_to_axioms(Fml,Axs,Axs2) :-
-    fml2axioms(Fml,AxsT),
-    combine_axioms(Axs,AxsT,Axs2).
+    fml2cls(Fml,Cls),
+    pi_step(Cls,Axs,Axs2).
 
 combine_axioms(Ax1,Ax2,Axs) :-
-    oset_union(Ax1,Ax2,AxT),
-    prime_implicants(AxT,Axs).
+    pi_step(Ax1,Ax2,Axs).
 
-%
-%  prime_implicants(Cls,PIs):  calculate prime implicants of a clause set
-%
-
-
-prime_implicants(Cls,PIs) :-
-    ( prime_implicants_step(Cls,Cls2) ->
-        prime_implicants(Cls2,PIs)
-    ;
-        PIs = Cls
+pi_step([],PIs,PIs).
+pi_step([C|Cs],Ax,PIs) :-
+    ( (member(C2,Ax), subset(C2,C) ) ->
+        % If the clause is subsumed, just discard it
+        pi_step(Cs,Ax,PIs)
+    ; 
+        % Find the any resolvents and add them to the list
+        pi_resolvents(C,Ax,Rs),
+        append(Rs,Cs,Cs2),
+        % Remove any clauses subsumed by C
+        sublist(nsubset(C),Ax,Ax2),
+        % Recurse!
+        pi_step(Cs2,[C|Ax2],PIs)
     ).
-
-prime_implicants_step(Cls,[R|Cls2]) :-
-    member(C1,Cls),
-    member(C2,Cls),
-    resolvent(C1,C2,R),
-    \+ (tautology_clause(R)),
-    \+ (member(C3,Cls), subset(C3,R)),
-    sublist(nsubset(R),Cls,Cls2).
-
-nsubset(S1,S2) :-
-    \+ subset(S1,S2).
 
 resolvent(C1,C2,R) :-
     member(A,C1), member(-A,C2),
@@ -448,6 +462,20 @@ resolvent(C1,C2,R) :-
     member(-A,C1), member(A,C2),
     oset_delel(C1,-A,C1t), oset_delel(C2,A,C2t),
     oset_union(C1t,C2t,R).
+
+pi_resolvents(C,Cs,Rs) :-
+    findall(R,Ct^(member(Ct,Cs), resolvent(Ct,C,R), \+tautology_clause(R)),Rs).
+
+nsubset(C,D) :-
+    \+ subset(C,D).
+
+%
+%  prime_implicants(Cls,PIs):  calculate prime implicants of a clause set
+%
+
+prime_implicants(Cls,PIs) :-
+    pi_step(Cls,[],PIs).
+
 
 %
 %  entails(Axioms,Conc):  Conc is logically entailed by Axioms
@@ -471,7 +499,7 @@ tautology_clause(C) :-
 tautology_clause(C) :-
     member(A=A,C), !.
 tautology_clause(C) :-
-    member(-(A=B),C), notavar(A), notavar(B), A\=B, !.
+    member(-(A=B),C), ground(A), ground(B), A\=B, !.
 
 pi_entails([],_) :- fail.
 pi_entails([PI|PIs],C) :-
@@ -482,6 +510,7 @@ pi_entails([PI|PIs],C) :-
     ).
 
 is_literal(P) :-
+    P \= (-_),
     P \= (_ & _),
     P \= (_ | _),
     P \= (_ -> _),
@@ -501,7 +530,7 @@ ntaut(C) :-
 % we use the transformation to NNF to eliminate <-> and -> for us,
 % and to ensure that negation is always at a literal.
 nnf2cls(P,[[P]]) :-
-    is_literal(P).
+    is_literal(P) ; P = -Q, is_literal(Q).
 nnf2cls(all([],P),Cs) :-
     simplify(P,Ps),
     nnf2cls(Ps,Cs).
@@ -532,9 +561,9 @@ var_subs(X,D,P,Px) :-
 
 
 terms_in_fml(P,Terms) :-
-    is_literal(P), P \= (-_),
+    is_literal(P),
     P =.. [_|Args],
-    sublist(notavar,Args,TermsT),
+    sublist(ground,Args,TermsT),
     sort(TermsT,Terms).
 terms_in_fml(-P,Terms) :-
     terms_in_fml(P,Terms).

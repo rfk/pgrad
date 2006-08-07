@@ -13,7 +13,6 @@ action_with_vars(A,Vs) :-
 
 awv_collect([],[],[]).
 awv_collect([D|T],[Y|TA],[Y:D|TV]) :-
-    gensym(v,Y),
     awv_collect(T,TA,TV).
 
 
@@ -26,10 +25,13 @@ awv_collect([D|T],[Y|TA],[Y:D|TV]) :-
 
 domain_axioms(Axs) :-
     findall(C,constraint(C),Cs),
-    joinlist('&',[true,-false|Cs],BgT),
+    joinlist('&',Cs,BgT),
     fml2axioms(BgT,AxD),
     un_axioms(BgT,AxU),
     combine_axioms(AxD,AxU,Axs).
+
+constraint(true).
+constraint(-false).
 
 
 un_axioms(Fml,Axs) :-
