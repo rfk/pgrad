@@ -24,25 +24,21 @@ awv_collect([D|T],[Y|TA],[Y:D|TV]) :-
 %
 
 domain_axioms(Axs) :-
-    findall(C,constraint(C),Cs),
-    joinlist('&',Cs,BgT),
-    fml2axioms(BgT,AxD),
-    un_axioms(BgT,AxU),
-    combine_axioms(AxD,AxU,Axs).
+    ( retract(domain_axioms_cache(Axs)) ->
+        assert(domain_axioms_cache(Axs))
+    ;
+        findall(C,constraint(C),Cs),
+        joinlist('&',Cs,BgT),
+        fml2axioms(BgT,Axs),
+        assert(domain_axioms_cache(Axs))
+    ).
 
 constraint(true).
 constraint(-false).
-
-
-un_axioms(Fml,Axs) :-
-    terms_in_fml(Fml,Ts),
-    findall(A,T1^T2^(member(T1,Ts),member(T2,Ts),T1@<T2,A=(-(T1=T2))),As),
-    ( As=[] ->
-        FmlT = true
-    ;
-        joinlist('&',As,FmlT)
-    ),
-    fml2axioms(FmlT,Axs).
+constraint(-(A=B)) :-
+    (agent(A) ; resource(A)),
+    (agent(B) ; resource(B)),
+    A @< B.
 
 %
 %  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true
@@ -291,18 +287,12 @@ adp_fluent(legUnobs(Agt),A,C) :-
     adp_fluent(canObs(Agt),A,C2),
     C = C1 & -C2.
 
-
-consequence(Axs,Fml) :-
-    un_axioms(Fml,Ax2),
-    combine_axioms(Axs,Ax2,AxF),
-    entails(AxF,Fml).
-
 knows(Agt,F,H) :-
     domain_axioms(Axs),
     knows(Agt,Axs,F,H).
 
 knows(Agt,Axs,F,[]) :-
-    ( consequence(Axs,F) ->
+    ( entails(Axs,F) ->
         true
     ;
         holds(F,s0),
@@ -311,7 +301,7 @@ knows(Agt,Axs,F,[]) :-
         knows(Agt,Axs2,P1,[])
     ).
 knows(Agt,Axs,F,[A|T]) :-
-    ( consequence(Axs,F) ->
+    ( entails(Axs,F) ->
         true
     ;
         regression(F,A,R),

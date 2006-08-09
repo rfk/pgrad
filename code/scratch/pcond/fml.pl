@@ -310,6 +310,7 @@ simplify(exists([H|T],P),S) :-
    ;
        Body=true -> S=true
    ;
+       % TODO: this is still giving problems...
        % Remove vars that are assigned a specific value, therefore useless
        flatten_op('&',[Body],Cs), member((T1=T2),Cs),
        (
@@ -345,9 +346,9 @@ simplify(exists([H|T],P),S) :-
     ).
 simplify((A=B),S) :-
    (
-       A == B, S=true
+       A == B -> S=true
    ;
-       ground(A), ground(B), A \= B, S=false
+       ground(A), ground(B), A \= B -> S=false
    ;
        normalize((A=B),S)
    ).
@@ -483,8 +484,10 @@ prime_implicants(Cls,PIs) :-
 %  Axioms must be a list.
 %
 
+
 entails(Axioms,Conc) :-
-    fml2cls(Conc,Clauses),
+    copy_term(Conc,Conc2),
+    fml2cls(Conc2,Clauses),
     entails_clauses(Axioms,Clauses).
 
 entails_clauses(_,[]).
@@ -496,10 +499,6 @@ tautology_clause(C) :-
     memberchk(true,C), !.
 tautology_clause(C) :-
     member(A,C), member(-A,C), !.
-tautology_clause(C) :-
-    member(A=A,C), !.
-tautology_clause(C) :-
-    member(-(A=B),C), ground(A), ground(B), A\=B, !.
 
 pi_entails([],_) :- fail.
 pi_entails([PI|PIs],C) :-
@@ -535,16 +534,16 @@ nnf2cls(all([],P),Cs) :-
     simplify(P,Ps),
     nnf2cls(Ps,Cs).
 nnf2cls(all([X:D|Vs],P),Cs) :-
-    findall(Pt,var_subs(X,D,P,Pt),Pts),
+    var_subs(X,D,all(Vs,P),Pts),
     joinlist('&',Pts,Ps),
-    nnf2cls(all(Vs,Ps),Cs).
+    nnf2cls(Ps,Cs).
 nnf2cls(exists([],P),Cs) :-
     simplify(P,Ps),
     nnf2cls(Ps,Cs).
 nnf2cls(exists([X:D|Vs],P),Cs) :-
-    findall(Pt,var_subs(X,D,P,Pt),Pts),
+    var_subs(X,D,exists(Vs,P),Pts),
     joinlist('|',Pts,Ps),
-    nnf2cls(exists(Vs,Ps),Cs).
+    nnf2cls(Ps,Cs).
 nnf2cls(P & Q,Cs) :-
     nnf2cls(P,Cp),
     nnf2cls(Q,Cq),
@@ -554,11 +553,22 @@ nnf2cls(P | Q,Cs) :-
     nnf2cls(Q,Cq),
     findall(U,C1^C2^(member(C1,Cp), member(C2,Cq), oset_union(C1,C2,U)),Cst),
     sort(Cst,Cs).
-    
-var_subs(X,D,P,Px) :-
-    call(D,Val),
-    subs(X,Val,P,Px).
+ 
 
+% This is like findall, but preserves variables across solutions.
+var_subs(X,D,P,Px) :-
+    assert(var_subs_a([X^P])),
+    var_subs_aux(D,Px).
+
+var_subs_aux(D,Px) :-
+    call(D,V),
+    retract(var_subs_a([X^P|Ls])),
+    subs(X,V,P,P2),
+    assert(var_subs_a([X^P,P2|Ls])),
+    fail
+    ;
+    retract(var_subs_a([_|Px])).
+    
 
 terms_in_fml(P,Terms) :-
     is_literal(P),
