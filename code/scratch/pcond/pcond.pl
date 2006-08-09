@@ -13,10 +13,15 @@ pcond_d1(F,C,P1) :-
 
 pcond_d1_bagof(F,C,Cn) :-
     action_with_vars(A,Vs),
-    eps_n(F,A,En),
-    adp_fluent(C,A,Ec),
+    eps_n(F,A,Ent),
+    adp_fluent(C,A,Ect),
+    % Make sure we dont share variables with the input formula or
+    % each other, apart from the variables in the action itself
+    copy_term(A^Ent,An^En), copy_term(A^Ect,Ac^Ec),
+    A = An, A = Ac,
     Cnt = -exists(Vs,(En & Ec)),
-    simplify(Cnt,Cn).
+    Cn=Cnt.
+    %simplify(Cnt,Cn).
 
 %
 %  pcond(F,C,P)  -  persistence condition for F under C

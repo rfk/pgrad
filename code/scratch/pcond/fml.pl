@@ -172,7 +172,7 @@ vmember(_,[]) :- fail.
 vmember(E:V,[H:U|T]) :-
     V=U, E == H
     ;
-    vmember(E,T).
+    vmember(E:V,T).
 
 
 %  vdelete(List,Elem,Result) - like delete/3 but for quant variable lists
