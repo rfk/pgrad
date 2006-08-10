@@ -97,16 +97,19 @@ eps_p1(-P,A,E) :-
     eps_n(P,A,E).
 
 eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    ( eps_n(P,A,EPn) ->
-        E = all(X,((P & -EPn) | EP))
+    % Need to make sure output fml doesnt share variables with input fml
+    rename_vars(X,P,V,Pv),
+    eps_p(Pv,A,EP),
+    ( eps_n(Pv,A,EPn) ->
+        E = all(V,((Pv & -EPn) | EP))
     ;
-        E = all(X,P | EP)
+        E = all(V,Pv | EP)
     ).
 
 eps_p1(exists(X,P),A,E) :-
-    eps_p(P,A,EP),
-    E = exists(X,EP).
+    rename_vars(X,P,V,Pv),
+    eps_p(Pv,A,EP),
+    E = exists(V,EP).
 
 eps_p1(P,A,E) :-
     causes_true(P,A,E).

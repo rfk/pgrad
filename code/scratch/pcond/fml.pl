@@ -375,11 +375,11 @@ joinlist(O,[H|T],J) :-
 %      subs(now,S,fluent(now),fluent(S)).
 %
 subs(X,Y,T,Tr) :-
-    T == X, Tr = Y.
+    T == X, Tr = Y, !.
 subs(X,_,T,Tr) :-
-    T \== X, var(T), T=Tr.
+    T \== X, var(T), T=Tr, !.
 subs(X,Y,T,Tr) :-
-    T \== X, nonvar(T), T =.. [F|Ts], subs_list(X,Y,Ts,Trs), Tr =.. [F|Trs].
+    T \== X, nonvar(T), T =.. [F|Ts], subs_list(X,Y,Ts,Trs), Tr =.. [F|Trs], !.
 
 %
 %  subs_list(Name,Value,Old,New):  value substitution in a list
@@ -490,6 +490,14 @@ entails(Axioms,Conc) :-
     fml2cls(Conc2,Clauses),
     entails_clauses(Axioms,Clauses).
 
+
+rename_vars([],P,[],P).
+rename_vars([X:D|Xs],P,[V:D|Vs],Q) :-
+    subs(X,V,P,Pt),
+    rename_vars(Xs,Pt,Vs,Q).
+    
+
+
 entails_clauses(_,[]).
 entails_clauses(PIs,[C|Cs]) :-
     pi_entails(PIs,C),
@@ -523,6 +531,11 @@ fml2cls(F,Cs) :-
     nnf2cls(N,Cst),
     sublist(ntaut,Cst,Cs).
 
+elim_quants(Q,F) :-
+    fml2cls(Q,Cs),
+    maplist(joinlist('|'),Cs,Ors),
+    joinlist('&',Ors,F).
+
 ntaut(C) :-
     \+ tautology_clause(C).
 
@@ -534,16 +547,18 @@ nnf2cls(all([],P),Cs) :-
     simplify(P,Ps),
     nnf2cls(Ps,Cs).
 nnf2cls(all([X:D|Vs],P),Cs) :-
-    var_subs(X,D,all(Vs,P),Pts),
+    var_subs(X,D,Vs,P,Pts,Vq),
     joinlist('&',Pts,Ps),
-    nnf2cls(Ps,Cs).
+    simplify(Ps,P2),
+    nnf2cls(all(Vq,P2),Cs).
 nnf2cls(exists([],P),Cs) :-
     simplify(P,Ps),
     nnf2cls(Ps,Cs).
 nnf2cls(exists([X:D|Vs],P),Cs) :-
-    var_subs(X,D,exists(Vs,P),Pts),
+    var_subs(X,D,Vs,P,Pts,Vq),
     joinlist('|',Pts,Ps),
-    nnf2cls(Ps,Cs).
+    simplify(Ps,P2),
+    nnf2cls(exists(Vq,P2),Cs).
 nnf2cls(P & Q,Cs) :-
     nnf2cls(P,Cp),
     nnf2cls(Q,Cq),
@@ -555,19 +570,31 @@ nnf2cls(P | Q,Cs) :-
     sort(Cst,Cs).
  
 
-% This is like findall, but preserves variables across solutions.
-var_subs(X,D,P,Px) :-
-    assert(var_subs_a([X^P])),
-    var_subs_aux(D,Px).
+%
+%  var_subs(X,D,V,P,Px,Vq) - substitute variable for elements from its domain
+%
+%  This predicate takes a variable X, its domain D, and a formula P, and
+%  produces a list of formulae Px such that each member of the list is an
+%  instance of P with the variable X substituted for a different value from
+%  the domain.  V is a list of other variable names to be preserved, abd
+%  Vq will be bound to an equivalent list of new variables.
+%
+%  Tis is severely complicted by the fact that the find-all-solutions
+%  procedure introduces new variables for any free variables in the goal.
+%  This is usually the right thing, but not for our purposes...
+%
+var_subs(X,D,Vs,P,Px,Vq) :-
+    assert(var_subs_a([X^P],Vs)),
+    var_subs_aux(D,Px,Vq).
 
-var_subs_aux(D,Px) :-
+var_subs_aux(D,Px,Vq) :-
     call(D,V),
-    retract(var_subs_a([X^P|Ls])),
+    retract(var_subs_a([X^P|Ls],Vt)),
     subs(X,V,P,P2),
-    assert(var_subs_a([X^P,P2|Ls])),
+    assert(var_subs_a([X^P,P2|Ls],Vt)),
     fail
     ;
-    retract(var_subs_a([_|Px])).
+    retract(var_subs_a([_|Px],Vq)).
     
 
 terms_in_fml(P,Terms) :-
