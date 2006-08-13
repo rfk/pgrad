@@ -145,6 +145,9 @@ flatten_op(O,Ts,Res) :-
     flatten_op(O,Ts,[],Res).
 
 %  accumulator implementation of flatten_op/3
+
+:- index(flatten_op(0,1,0,0)).
+
 flatten_op(_,[],Res,Res).
 flatten_op(O,[T|Ts],Acc,Res) :-
     ( T =.. [O|Args] ->
@@ -310,7 +313,6 @@ simplify(exists([H|T],P),S) :-
    ;
        Body=true -> S=true
    ;
-       % TODO: this is still giving problems...
        % Remove vars that are assigned a specific value, therefore useless
        flatten_op('&',[Body],Cs), member((T1=T2),Cs),
        (
@@ -542,23 +544,30 @@ ntaut(C) :-
 % we use the transformation to NNF to eliminate <-> and -> for us,
 % and to ensure that negation is always at a literal.
 nnf2cls(P,[[P]]) :-
-    is_literal(P) ; P = -Q, is_literal(Q).
-nnf2cls(all([],P),Cs) :-
-    simplify(P,Ps),
-    nnf2cls(Ps,Cs).
-nnf2cls(all([X:D|Vs],P),Cs) :-
-    var_subs(X,D,Vs,P,Pts,Vq),
-    joinlist('&',Pts,Ps),
-    simplify(Ps,P2),
-    nnf2cls(all(Vq,P2),Cs).
-nnf2cls(exists([],P),Cs) :-
-    simplify(P,Ps),
-    nnf2cls(Ps,Cs).
-nnf2cls(exists([X:D|Vs],P),Cs) :-
-    var_subs(X,D,Vs,P,Pts,Vq),
-    joinlist('|',Pts,Ps),
-    simplify(Ps,P2),
-    nnf2cls(exists(Vq,P2),Cs).
+    is_literal(P).
+nnf2cls(-P,[[-P]]).
+nnf2cls(all(V,P),Cs) :-
+    ( V = [] ->
+        simplify(P,Ps),
+        nnf2cls(Ps,Cs)
+    ;
+        V = [(X:D)|Vs],
+        var_subs(X,D,Vs,P,Pts,Vq),
+        joinlist('&',Pts,Ps),
+        simplify(Ps,P2),
+        nnf2cls(all(Vq,P2),Cs)
+    ).
+nnf2cls(exists(V,P),Cs) :-
+    ( V = [] ->
+        simplify(P,Ps),
+        nnf2cls(Ps,Cs)
+    ;
+        V = [X:D|Vs],
+        var_subs(X,D,Vs,P,Pts,Vq),
+        joinlist('|',Pts,Ps),
+        simplify(Ps,P2),
+        nnf2cls(exists(Vq,P2),Cs)
+    ).
 nnf2cls(P & Q,Cs) :-
     nnf2cls(P,Cp),
     nnf2cls(Q,Cq),

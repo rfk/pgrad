@@ -4,17 +4,17 @@
 
 agent(thomas).
 agent(richard).
-agent(harriet).
+%agent(harriet).
 
 resource(knife1).
 resource(knife2).
-resource(knife3).
-resource(board1).
-resource(board2).
-resource(bowl1).
-resource(bowl2).
-resource(bowl3).
-resource(oven).
+%resource(knife3).
+%resource(board1).
+%resource(board2).
+%resource(bowl1).
+%resource(bowl2).
+%resource(bowl3).
+%resource(oven).
 
 
 % Enumerates primitive actions, and the domains of their arguments.
