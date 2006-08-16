@@ -167,6 +167,23 @@ flatten_quant(Q,T,Acc,Vars,Body) :-
     append(V,Acc,Acc2),
     flatten_quant(Q,T2,Acc2,Vars,Body).
 
+%
+%  flatten_quant_and_simp(Q,BodyIn,VarsIn,VarsOut,BodyOut)
+%                  - flatten nested quantifiers, and apply simplification
+%
+flatten_quant_and_simp(Q,Ts,VarsIn,VarsOut,Body) :-
+    \+ functor(Ts,Q,2),
+    simplify(Ts,Tsimp),
+    ( Tsimp =.. [Q,V,T2] ->
+        append(V,VarsIn,Vars2),
+        flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
+    ;
+        Body = Ts, VarsIn = VarsOut
+    ), !.
+flatten_quant_and_simp(Q,T,Acc,Vars,Body) :-
+    T =.. [Q,V,T2],
+    append(V,Acc,Acc2),
+    flatten_quant_and_simp(Q,T2,Acc2,Vars,Body).
 
 %
 %  vmember(Elem,List) - like member/2, but specific to our quant variable lists
@@ -189,6 +206,44 @@ vdelete([H:U|T],E:V,Res) :-
     ).
 
 %
+%  split_matching(List,Pred,Y,N)  -  splits List into elements that match Pred
+%                                    (Y) and elements that dont (N)
+%
+split_matching([],_,[],[]).
+split_matching([E|T],Pred,Y,N) :-
+    ( call(Pred,E) ->
+        Y = [E|YT],
+        split_matching(T,Pred,YT,N)
+    ;
+        N = [E|NT],
+        split_matching(T,Pred,Y,NT)
+    ).
+
+%
+%  ncontains_var(P,V)  -  P does not contain the variable term V
+%
+ncontains_var(P,X:_) :-
+    ncontains(P,X).
+
+%
+%  indep_of_vars(Vars,P)  -  P contains none of the vars in the Vars
+%
+indep_of_vars(Vars,P) :-
+    \+ ( member(X:_,Vars), contains(P,X) ).
+                                                      
+
+%
+%  pairfrom(L,E1,E2)  -  E1 and E2 are a pair of (different) elements from L
+%
+%  Like doing (member(E1,L), member(E2,L))  but more efficient, doesnt match
+%  E1 and E2 to the same element, and doesnt generate permusations.
+%
+pairfrom([H1,H2|T],E1,E2) :-
+    E1 = H1, ( E2 = H2 ; member(E2,T) )
+    ;
+    pairfrom([H2|T],E1,E2).
+
+%
 %  simplify(+F1,-F2) - simplify a formula
 %  
 %  This predicate applies some basic simplification rules to a formula
@@ -206,7 +261,7 @@ simplify(P & Q,S) :-
     ;
         length(Terms,0) -> S=true
     ;
-        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2) -> S=false
+        pairfrom(Terms,F1,F2), struct_oppos(F1,F2) -> S=false
     ;
         joinlist('&',Terms,S)
     ).
@@ -220,7 +275,7 @@ simplify(P | Q,S) :-
     ;
         length(Terms,0) -> S=false
     ;
-        member(F1,Terms), member(F2,Terms), struct_oppos(F1,F2) -> S=true
+        pairfrom(Terms,F1,F2), struct_oppos(F1,F2) -> S=true
     ;
         joinlist('|',Terms,S)
     ).
@@ -267,48 +322,54 @@ simplify(-P,S) :-
     ;
         S = -SP
     ).
-simplify(all([],P),S) :-
-    simplify(P,S).
-simplify(all([H|T],P),S) :-
-    flatten_quant('all',P,[H|T],VarsT,BodyP),
-    sort(VarsT,Vars),
-    simplify(BodyP,Body),
-    (
-        functor(Body,'all',2) -> simplify(all(Vars,Body),S)
+simplify(all(Xs,P),S) :-
+    ( Xs = [] -> simplify(P,S)
     ;
+    flatten_quant_and_simp('all',P,Xs,VarsT,Body),
+    sort(VarsT,Vars),
+    (
         Body=false -> S=false
     ;
         Body=true -> S=true
     ;
         % Remove any useless variables
-        member(X2:_,Vars), ncontains(Body,X2) ->
-            vdelete(Vars,X2:_,Vars2), simplify(all(Vars2,Body),S)
-    ;
-        % Push independent components outside the quantifier,
-        flatten_op('|',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-        \+ ( member(X2:_,Vars), contains(T,X2) ) ->
-             delete(BTerms,T,BT2),
-             joinlist('|',BT2,Body2),
-             simplify(all(Vars,Body2) | T,S)
-        
-    ;
-        flatten_op('&',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-        \+ ( member(X2:_,Vars), contains(T,X2) ) ->
-            delete(BTerms,T,BT2),
+        split_matching(Vars,ncontains_var(Body),_,Vars2),
+        ( Vars2 = [] ->
+            S2 = Body
+        ;
+          % Push independent components outside the quantifier,
+          (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
+            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+            % Because we have removed useless vars, BT2 cannot be empty
+            joinlist('|',BT2,Body2),
+            ( Indep = [] ->
+              S2=all(Vars2,Body2)
+            ;
+              joinlist('|',Indep,IndepB),
+              S2=(all(Vars2,Body2) | IndepB)
+            )
+
+          ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
+            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
             joinlist('&',BT2,Body2),
-            simplify(all(Vars,Body2) & T,S)
-    ;
-        S=all(Vars,Body)
-    ).
-simplify(exists([],P),S) :-
-    simplify(P,S).
-simplify(exists([H|T],P),S) :-
-   flatten_quant('exists',P,[H|T],VarsT,BodyP),
-   sort(VarsT,Vars),
-   simplify(BodyP,Body),
-   (
-       functor(Body,exists,2) -> simplify(exists(Vars,Body),S)
+            ( Indep = [] ->
+              S2=all(Vars2,Body2)
+            ;
+              joinlist('&',Indep,IndepB),
+              S2=(all(Vars2,Body2) | IndepB)
+            )
+          ;
+            S2=all(Vars2,Body)
+          )
+        ),
+        S = S2
+    )).
+simplify(exists(Xs,P),S) :-
+   ( Xs = [] -> simplify(P,S)
    ;
+   flatten_quant_and_simp('exists',P,Xs,VarsT,Body),
+   sort(VarsT,Vars),
+   (
        Body=false -> S=false
    ;
        Body=true -> S=true
@@ -327,25 +388,35 @@ simplify(exists([H|T],P),S) :-
        )
            ->  simplify(exists(Vars2,Body),S)
    ;
-       % Remove vars not involved in the body
-       member(X2:_,Vars), ncontains(Body,X2) ->
-           vdelete(Vars,X2:_,Vars2), simplify(exists(Vars2,Body),S)
-   ; 
-       % Push independent components outside the quantifier
-       flatten_op('|',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-       \+ ( member(X2:_,Vars), contains(T,X2) ) ->
-           vdelete(BTerms,T,BT2),
+       % Remove any useless variables
+       split_matching(Vars,ncontains_var(Body),_,Vars2),
+       ( Vars2 = [] ->
+           S = Body
+       ;
+         % Push independent components outside the quantifier,
+         (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
+           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
            joinlist('|',BT2,Body2),
-           simplify(exists(Vars,Body2) | T,S)
-    ;
-       flatten_op('&',[Body],BTerms), BTerms = [_,_|_], member(T,BTerms),
-       \+ ( member(X2:_,Vars), contains(T,X2) ) ->
-           vdelete(BTerms,T,BT2),
+           ( Indep = [] ->
+             S = exists(Vars2,Body2)
+           ;
+             joinlist('|',Indep,IndepB),
+             S = (exists(Vars2,Body2) | IndepB)
+           )
+         ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
+           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
            joinlist('&',BT2,Body2),
-           simplify(exists(Vars,Body2) & T,S)
-    ;
-       S=exists(Vars,Body)
-    ).
+           ( Indep = [] ->
+             S = exists(Vars2,Body2)
+           ;
+             joinlist('&',Indep,IndepB),
+             S = (exists(Vars2,Body2) | IndepB)
+           )
+         ;
+           S=exists(Vars2,Body)
+         )
+       )
+   )).
 simplify((A=B),S) :-
    (
        A == B -> S=true
@@ -549,23 +620,27 @@ nnf2cls(-P,[[-P]]).
 nnf2cls(all(V,P),Cs) :-
     ( V = [] ->
         simplify(P,Ps),
+        %P=Ps,
         nnf2cls(Ps,Cs)
     ;
         V = [(X:D)|Vs],
         var_subs(X,D,Vs,P,Pts,Vq),
         joinlist('&',Pts,Ps),
         simplify(Ps,P2),
+        %P2=Ps,
         nnf2cls(all(Vq,P2),Cs)
     ).
 nnf2cls(exists(V,P),Cs) :-
     ( V = [] ->
         simplify(P,Ps),
+        %P=Ps,
         nnf2cls(Ps,Cs)
     ;
         V = [X:D|Vs],
         var_subs(X,D,Vs,P,Pts,Vq),
         joinlist('|',Pts,Ps),
         simplify(Ps,P2),
+        %P2=Ps,
         nnf2cls(exists(Vq,P2),Cs)
     ).
 nnf2cls(P & Q,Cs) :-
