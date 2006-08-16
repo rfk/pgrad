@@ -4,7 +4,7 @@
 
 agent(thomas).
 agent(richard).
-%agent(harriet).
+agent(harriet).
 
 resource(knife1).
 resource(knife2).

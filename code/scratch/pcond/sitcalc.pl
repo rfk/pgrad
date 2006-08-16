@@ -100,10 +100,30 @@ eps_p1(all(X,P),A,E) :-
     % Need to make sure output fml doesnt share variables with input fml
     rename_vars(X,P,V,Pv),
     eps_p(Pv,A,EP),
-    ( eps_n(Pv,A,EPn) ->
-        E = all(V,((Pv & -EPn) | EP))
+    % Since all(X,P) is to *become* true, we assume that it is currently
+    % false, so exists(X,-P).  This legitimises moving any components of
+    % EP that are independent of X outside the quantification, since the
+    % EP part must be satisfied by at least one combination of variables.
+    % This tends to greatly help simplification of the resuling formula.
+    %
+    % TODO: a rigorous proof of that this is OK...
+    flatten_op('&',[EP],EPTerms),
+    split_matching(EPTerms,indep_of_vars(V),Indep,Dep),
+    ( Indep = [] ->
+        IndepP = true
     ;
-        E = all(V,Pv | EP)
+        joinlist('&',Indep,IndepP)
+    ),
+    ( Dep = [] ->
+        DepP = true
+    ;
+        joinlist('&',Dep,DepP)
+    ),
+    % With that behind us, we can construct the output term
+    ( eps_n(Pv,A,EPn) ->
+        E = all(V,((Pv & -EPn) | DepP)) & IndepP
+    ;
+        E = all(V,Pv | DepP) & IndepP
     ).
 
 eps_p1(exists(X,P),A,E) :-
@@ -123,21 +143,23 @@ eps_p1(P,A,E) :-
 %  This preciate enumerates the different ways in which the fluent F can become
 %  false, which are collected by eps_n/4.
 %
+%  We 'cheat' by defining them in terms of eps_p, based on DeMorgan's laws.
+%
 
 eps_n1((P & Q),A,E) :-
-    eps_p((-P) | (-Q),A,E).
+    eps_p1((-P) | (-Q),A,E).
 
 eps_n1((P | Q),A,E) :-
-    eps_p((-P) & (-Q),A,E).
+    eps_p1((-P) & (-Q),A,E).
 
 eps_n1(-P,A,E) :-
-    eps_p(P,A,E).
+    eps_p1(P,A,E).
 
 eps_n1(all(X,P),A,E) :-
-    eps_p(exists(X,-P),A,E).
+    eps_p1(exists(X,-P),A,E).
 
 eps_n1(exists(X,P),A,E) :-
-    eps_p(all(X,-P),A,E).
+    eps_p1(all(X,-P),A,E).
 
 eps_n1(P,A,E) :-
     causes_false(P,A,E).

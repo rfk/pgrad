@@ -178,7 +178,7 @@ flatten_quant_and_simp(Q,Ts,VarsIn,VarsOut,Body) :-
         append(V,VarsIn,Vars2),
         flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
     ;
-        Body = Ts, VarsIn = VarsOut
+        Body = Tsimp, VarsIn = VarsOut
     ), !.
 flatten_quant_and_simp(Q,T,Acc,Vars,Body) :-
     T =.. [Q,V,T2],
