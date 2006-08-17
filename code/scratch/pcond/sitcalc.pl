@@ -35,10 +35,6 @@ domain_axioms(Axs) :-
 
 constraint(true).
 constraint(-false).
-constraint(-(A=B)) :-
-    (agent(A) ; resource(A)),
-    (agent(B) ; resource(B)),
-    A @< B.
 
 %
 %  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true

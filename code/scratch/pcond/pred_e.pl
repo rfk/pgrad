@@ -1,7 +1,24 @@
-%%
-%% Prolog interface to the E theorem prover
-%%
+%
+%  pred_e.pl:  logical reasoning using the E theorem prover
+%
+%  At this stage I havent found a way to utilise the notion of "axioms" -
+%  perhaps I should convert them to clausal form or something.  Anyway,
+%  the only really interesting interface predicate is entails/2.
+%
+%  TODO: trying to enfore UNA using E's built-in functionality, we'll
+%        see how I go...
+%
 
+
+fml2axioms(Fml,[Fml]).
+add_to_axioms(Fml,Axs,[Fml|Axs]).
+combine_axioms(Ax1,Ax2,Axs) :-
+    append(Ax1,Ax2,Axs).
+entails(Axs,Conc) :-
+    copy_term(Conc,Conc2),
+    eprove(Axs,Conc2,yes).
+
+%%%  Guts of the implementation below this line %%%
 
 eprove(Axioms,Conc,Result) :-
     % Create input/output files
@@ -16,7 +33,7 @@ eprove(Axioms,Conc,Result) :-
     write_ln(').'),
     told,
     % Call E and have it write its conclusions in output file
-    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=256 --tstp-format -s ~w > ~w',[InFile,OutFile]),
+    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=512 --cpu-limit --tstp-format -s ~w > ~w',[InFile,OutFile]),
     shell(ECmd,_),
     % Grep output file for "Proof found!" indicating truth
     sformat(TCmd,'grep "Proof found!" ~w > /dev/null',[OutFile]),
@@ -91,7 +108,9 @@ term2tstp_write(exists(X,P)) :-
     term2tstp_write(P),
     write('))'), !.
 term2tstp_write(P) :-
-    ground(P), write(P), !.
+    % Enforce UNA by treating all atoms as unique object identifiers
+    functor(P,P,0),
+    write('"'), write(P), write('"'), !.
 term2tstp_write(P) :-
     P =.. [F|Args],
     write(F),
@@ -105,11 +124,10 @@ term2tstp_write_args([H,H2|T]) :-
     write(','),
     term2tstp_write_args([H2|T]).
 
-term2tstp_write_vars(V) :-
-    \+ is_list(V), write('V'), write(V), !.
 term2tstp_write_vars([]).
-term2tstp_write_vars([V]) :-
+term2tstp_write_vars([V:_]) :-
     write('V'), write(V).
-term2tstp_write_vars([V|T]) :-
+term2tstp_write_vars([V:_|T]) :-
     T \= [], write('V'), write(V), write(', '),
     term2tstp_write_vars(T).
+

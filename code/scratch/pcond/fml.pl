@@ -181,7 +181,7 @@ flatten_quant(Q,T,Acc,Vars,Body) :-
 flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
     ( T =.. [Q,V,T2] ->
       append(V,VarsIn,Vars2),
-      flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body).
+      flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
     ;
       simplify(T,Tsimp),
       ( Tsimp =.. [Q,V,T2] ->
@@ -189,7 +189,7 @@ flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
           flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
       ;
           Body = Tsimp, VarsIn = VarsOut
-      ).
+      )
     ).
 
 %
@@ -553,20 +553,26 @@ terms_in_fml(CP,Terms) :-
 
 
 
-%%  The following predicates are expected to be provided by an implementation
-%%  of logical reasoning.
-
+%
+%  In conjunction with this file, one requires an implementation of actual
+%  logical reasoning.  Such a reasoning engine, like this file, must enforce
+%  unique names axioms for all ground terms in formulae - that is, for any
+%  terms returned by terms_in_fml/2.
+%
+%  The following predicates are expected to be provided by an implementation
+%  of logical reasoning.
+%
 %
 %  fml2axioms(Fml,Axs):  Convert formula to more efficient form
 %
-%     This predicate is used to convert the formula in Fml into a opaque
-%     form that can be used for efficient reasoning by this module.
+%     This predicate is used to convert the formula in Fml into an opaque
+%     form that can be used for efficient reasoning.
 %
-%  add_to_axioms(Fml,Axs,Axs2):  A formula to an existing set of axioms
+%  add_to_axioms(Fml,Axs,Axs2):  Add a formula to an existing set of axioms
 %
 %  combine_axioms(Ax1,Ax2,Axs):  Combine two sets of axioms
 %
-%  entails(Axioms,Conc):  Conc is logically entailed by Axioms
+%  entails(Axioms,Conc):  Succeeds when conc is logically entailed by Axioms
 %
 %     This *must not* bind any variables in Conc.  The easiest way to
 %     do so is to take a copy of Conc and work from that.
