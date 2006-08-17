@@ -4,8 +4,8 @@
 %  This file supplies the basic predicates for manipulating logical
 %  formulae.  These formulae will typically be used to represent
 %  fluents, but I've tried to keep it as general as possible. The
-%  only thing I'm enforcing is the unique names assumption (just
-%  like prolog).
+%  only thing I'm assuming is the unique names axioms (just like
+%  prolog).
 %
 %  Note that we're explicitly working in many-sorted first-order logic,
 %  so each quantified variable must have an assocaited domain of
@@ -92,11 +92,11 @@ struct_equiv(P,Q) :-
     P =@= Q.
 
 struct_oppos(P,Q) :-
-    P = -P1, struct_equiv(P1,Q)
+    P = -P1, struct_equiv(P1,Q) -> true
     ;
-    Q = -Q1, struct_equiv(P,Q1)
+    Q = -Q1, struct_equiv(P,Q1) -> true
     ;
-    P=true, Q=false
+    P=true, Q=false -> true
     ;
     P=false, Q=true.
 
@@ -117,19 +117,21 @@ fml_compare(Ord,F1,F2) :-
 
 
 %
-%  contains(A,B)  -  formula A contains variable B
+%  contains_var(A,V)  -  formula A contains variable V
 %
-%  ncontains(A,B)  -  formula A does not contain variable B
+%  ncontains_var(A,V)  -  formula A does not contain variable V
 %
 
-%  Since we know that B is a variable, we do this test by grounding
-%  it then checking for structural equivalence with the original term
-contains(A,B) :-
-    \+ ncontains(A,B).
+%  Since we know that B is a variable, we do this test by making a copy,
+%  grounding the copied variable, then checking for structural equivalent
+%  with the original term.
+%
+contains_var(A,V) :-
+    \+ ncontains_var(A,V).
 
-ncontains(A,B) :-
-    copy_term(A^B,A2^B2),
-    B2=groundme,
+ncontains_var(A,V) :-
+    copy_term(A^V,A2^V2),
+    V2=groundme,
     A =@= A2.
     
 
@@ -169,24 +171,32 @@ flatten_quant(Q,T,Acc,Vars,Body) :-
 
 %
 %  flatten_quant_and_simp(Q,BodyIn,VarsIn,VarsOut,BodyOut)
+%
 %                  - flatten nested quantifiers, and apply simplification
 %
-flatten_quant_and_simp(Q,Ts,VarsIn,VarsOut,Body) :-
-    \+ functor(Ts,Q,2),
-    simplify(Ts,Tsimp),
-    ( Tsimp =.. [Q,V,T2] ->
-        append(V,VarsIn,Vars2),
-        flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
+%  Just like flatten_quant/5 above, but applies simplify/2 to the body
+%  when it does not match the quantifier, in case its simplification
+%  does match.
+%
+flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
+    ( T =.. [Q,V,T2] ->
+      append(V,VarsIn,Vars2),
+      flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body).
     ;
-        Body = Tsimp, VarsIn = VarsOut
-    ), !.
-flatten_quant_and_simp(Q,T,Acc,Vars,Body) :-
-    T =.. [Q,V,T2],
-    append(V,Acc,Acc2),
-    flatten_quant_and_simp(Q,T2,Acc2,Vars,Body).
+      simplify(T,Tsimp),
+      ( Tsimp =.. [Q,V,T2] ->
+          append(V,VarsIn,Vars2),
+          flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
+      ;
+          Body = Tsimp, VarsIn = VarsOut
+      ).
+    ).
 
 %
 %  vmember(Elem,List) - like member/2, but specific to our quant variable lists
+%
+%  Required because using member/2 would actually bind the variables in the
+%  list, which we dont want.
 %
 vmember(_,[]) :- fail.
 vmember(E:V,[H:U|T]) :-
@@ -194,8 +204,11 @@ vmember(E:V,[H:U|T]) :-
     ;
     vmember(E:V,T).
 
-
+%
 %  vdelete(List,Elem,Result) - like delete/3 but for quant variable lists
+%
+%  Obvious conterpart to vmember/2
+%
 vdelete([],_,[]).
 vdelete([H:U|T],E:V,Res) :-
     ( V=U, E == H ->
@@ -220,23 +233,23 @@ split_matching([E|T],Pred,Y,N) :-
     ).
 
 %
-%  ncontains_var(P,V)  -  P does not contain the variable term V
+%  ncontains_varterm(P,V)  -  P does not contain the variable term V
 %
-ncontains_var(P,X:_) :-
-    ncontains(P,X).
+ncontains_varterm(P,X:_) :-
+    ncontains_var(P,X).
 
 %
-%  indep_of_vars(Vars,P)  -  P contains none of the vars in the Vars
+%  indep_of_vars(Vars,P)  -  P contains none of the vars in the list Vars
 %
 indep_of_vars(Vars,P) :-
-    \+ ( member(X:_,Vars), contains(P,X) ).
+    \+ ( member(X:_,Vars), contains_var(P,X) ).
                                                       
 
 %
 %  pairfrom(L,E1,E2)  -  E1 and E2 are a pair of (different) elements from L
 %
 %  Like doing (member(E1,L), member(E2,L))  but more efficient, doesnt match
-%  E1 and E2 to the same element, and doesnt generate permusations.
+%  E1 and E2 to the same element, and doesnt generate permutations.
 %
 pairfrom([H1,H2|T],E1,E2) :-
     E1 = H1, ( E2 = H2 ; member(E2,T) )
@@ -248,6 +261,7 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  
 %  This predicate applies some basic simplification rules to a formula
 %  to eliminate redundancy and (hopefully) speed up future reasoning.
+%  For maximum simplification, apply normalize/2 first.
 %  
 simplify(P,P) :-
     is_literal(P), P \= (_ = _).
@@ -333,7 +347,7 @@ simplify(all(Xs,P),S) :-
         Body=true -> S=true
     ;
         % Remove any useless variables
-        split_matching(Vars,ncontains_var(Body),_,Vars2),
+        split_matching(Vars,ncontains_varterm(Body),_,Vars2),
         ( Vars2 = [] ->
             S2 = Body
         ;
@@ -389,7 +403,7 @@ simplify(exists(Xs,P),S) :-
            ->  simplify(exists(Vars2,Body),S)
    ;
        % Remove any useless variables
-       split_matching(Vars,ncontains_var(Body),_,Vars2),
+       split_matching(Vars,ncontains_varterm(Body),_,Vars2),
        ( Vars2 = [] ->
            S = Body
        ;
@@ -421,6 +435,7 @@ simplify((A=B),S) :-
    (
        A == B -> S=true
    ;
+       % Utilising the unique names assumption
        ground(A), ground(B), A \= B -> S=false
    ;
        normalize((A=B),S)
@@ -495,100 +510,8 @@ fml2nnf(P,P).
 
 
 %
-%  fml2axioms(Fml,Axs):  Convert formula to more efficient form
+%  is_literal(P)  -  the formula P is a literal, not a compound expression
 %
-%  This predicate is used to convert the formula in Fml into a opaque
-%  for that can be used for efficient reasoning by this module.
-%
-
-% Our implementation is based on prime implicants
-fml2axioms(Fml,Axs) :-
-    fml2cls(Fml,Cls),
-    prime_implicants(Cls,Axs).
-
-add_to_axioms(Fml,Axs,Axs2) :-
-    fml2cls(Fml,Cls),
-    pi_step(Cls,Axs,Axs2).
-
-combine_axioms(Ax1,Ax2,Axs) :-
-    pi_step(Ax1,Ax2,Axs).
-
-pi_step([],PIs,PIs).
-pi_step([C|Cs],Ax,PIs) :-
-    ( (member(C2,Ax), subset(C2,C) ) ->
-        % If the clause is subsumed, just discard it
-        pi_step(Cs,Ax,PIs)
-    ; 
-        % Find the any resolvents and add them to the list
-        pi_resolvents(C,Ax,Rs),
-        append(Rs,Cs,Cs2),
-        % Remove any clauses subsumed by C
-        sublist(nsubset(C),Ax,Ax2),
-        % Recurse!
-        pi_step(Cs2,[C|Ax2],PIs)
-    ).
-
-resolvent(C1,C2,R) :-
-    member(A,C1), member(-A,C2),
-    oset_delel(C1,A,C1t), oset_delel(C2,-A,C2t),
-    oset_union(C1t,C2t,R).
-resolvent(C1,C2,R) :-
-    member(-A,C1), member(A,C2),
-    oset_delel(C1,-A,C1t), oset_delel(C2,A,C2t),
-    oset_union(C1t,C2t,R).
-
-pi_resolvents(C,Cs,Rs) :-
-    findall(R,Ct^(member(Ct,Cs), resolvent(Ct,C,R), \+tautology_clause(R)),Rs).
-
-nsubset(C,D) :-
-    \+ subset(C,D).
-
-%
-%  prime_implicants(Cls,PIs):  calculate prime implicants of a clause set
-%
-
-prime_implicants(Cls,PIs) :-
-    pi_step(Cls,[],PIs).
-
-
-%
-%  entails(Axioms,Conc):  Conc is logically entailed by Axioms
-%
-%  Axioms must be a list.
-%
-
-
-entails(Axioms,Conc) :-
-    copy_term(Conc,Conc2),
-    fml2cls(Conc2,Clauses),
-    entails_clauses(Axioms,Clauses).
-
-
-rename_vars([],P,[],P).
-rename_vars([X:D|Xs],P,[V:D|Vs],Q) :-
-    subs(X,V,P,Pt),
-    rename_vars(Xs,Pt,Vs,Q).
-    
-
-
-entails_clauses(_,[]).
-entails_clauses(PIs,[C|Cs]) :-
-    pi_entails(PIs,C),
-    entails_clauses(PIs,Cs).
-
-tautology_clause(C) :-
-    memberchk(true,C), !.
-tautology_clause(C) :-
-    member(A,C), member(-A,C), !.
-
-pi_entails([],_) :- fail.
-pi_entails([PI|PIs],C) :-
-    ( subset(PI,C) ->
-       true
-    ;
-       pi_entails(PIs,C)
-    ).
-
 is_literal(P) :-
     P \= (-_),
     P \= (_ & _),
@@ -598,99 +521,28 @@ is_literal(P) :-
     P \= exists(_,_),
     P \= all(_,_).
 
-fml2cls(F,Cs) :-
-    normalize(F,Fn),
-    fml2nnf(Fn,N),
-    nnf2cls(N,Cst),
-    sublist(ntaut,Cst,Cs).
-
-elim_quants(Q,F) :-
-    fml2cls(Q,Cs),
-    maplist(joinlist('|'),Cs,Ors),
-    joinlist('&',Ors,F).
-
-ntaut(C) :-
-    \+ tautology_clause(C).
-
-% we use the transformation to NNF to eliminate <-> and -> for us,
-% and to ensure that negation is always at a literal.
-nnf2cls(P,[[P]]) :-
-    is_literal(P).
-nnf2cls(-P,[[-P]]).
-nnf2cls(all(V,P),Cs) :-
-    ( V = [] ->
-        simplify(P,Ps),
-        %P=Ps,
-        nnf2cls(Ps,Cs)
-    ;
-        V = [(X:D)|Vs],
-        var_subs(X,D,Vs,P,Pts,Vq),
-        joinlist('&',Pts,Ps),
-        simplify(Ps,P2),
-        %P2=Ps,
-        nnf2cls(all(Vq,P2),Cs)
-    ).
-nnf2cls(exists(V,P),Cs) :-
-    ( V = [] ->
-        simplify(P,Ps),
-        %P=Ps,
-        nnf2cls(Ps,Cs)
-    ;
-        V = [X:D|Vs],
-        var_subs(X,D,Vs,P,Pts,Vq),
-        joinlist('|',Pts,Ps),
-        simplify(Ps,P2),
-        %P2=Ps,
-        nnf2cls(exists(Vq,P2),Cs)
-    ).
-nnf2cls(P & Q,Cs) :-
-    nnf2cls(P,Cp),
-    nnf2cls(Q,Cq),
-    oset_union(Cp,Cq,Cs).
-nnf2cls(P | Q,Cs) :-
-    nnf2cls(P,Cp),
-    nnf2cls(Q,Cq),
-    findall(U,C1^C2^(member(C1,Cp), member(C2,Cq), oset_union(C1,C2,U)),Cst),
-    sort(Cst,Cs).
- 
-
 %
-%  var_subs(X,D,V,P,Px,Vq) - substitute variable for elements from its domain
-%
-%  This predicate takes a variable X, its domain D, and a formula P, and
-%  produces a list of formulae Px such that each member of the list is an
-%  instance of P with the variable X substituted for a different value from
-%  the domain.  V is a list of other variable names to be preserved, abd
-%  Vq will be bound to an equivalent list of new variables.
-%
-%  Tis is severely complicted by the fact that the find-all-solutions
-%  procedure introduces new variables for any free variables in the goal.
-%  This is usually the right thing, but not for our purposes...
-%
-var_subs(X,D,Vs,P,Px,Vq) :-
-    assert(var_subs_a([X^P],Vs)),
-    var_subs_aux(D,Px,Vq).
+%  rename_vars(Vars,F,NewVars,NewF)  -  rename the given variables to new
+%                                       ones, producing a modified formula.
+rename_vars([],P,[],P).
+rename_vars([X:D|Xs],P,[V:D|Vs],Q) :-
+    subs(X,V,P,Pt),
+    rename_vars(Xs,Pt,Vs,Q).
 
-var_subs_aux(D,Px,Vq) :-
-    call(D,V),
-    retract(var_subs_a([X^P|Ls],Vt)),
-    subs(X,V,P,P2),
-    assert(var_subs_a([X^P,P2|Ls],Vt)),
-    fail
-    ;
-    retract(var_subs_a([_|Px],Vq)).
     
-
+%
+%  terms_in_fml(F,Terms)  -  list all the basic terms found in the formula
+%
 terms_in_fml(P,Terms) :-
-    is_literal(P),
+    is_literal(P), !,
     P =.. [_|Args],
     sublist(ground,Args,TermsT),
     sort(TermsT,Terms).
 terms_in_fml(-P,Terms) :-
-    terms_in_fml(P,Terms).
+    !, terms_in_fml(P,Terms).
 terms_in_fml(CP,Terms) :-
     CP =.. [Op,P1,P2],
-    memberchk(Op,['&','|','->','<->']),
+    memberchk(Op,['&','|','->','<->']), !,
     terms_in_fml(P1,T1),
     terms_in_fml(P2,T2),
     oset_union(T1,T2,Terms).
@@ -698,4 +550,25 @@ terms_in_fml(CP,Terms) :-
     CP =.. [Q,_,P],
     memberchk(Q,[all,exists]),
     terms_in_fml(P,Terms).
+
+
+
+%%  The following predicates are expected to be provided by an implementation
+%%  of logical reasoning.
+
+%
+%  fml2axioms(Fml,Axs):  Convert formula to more efficient form
+%
+%     This predicate is used to convert the formula in Fml into a opaque
+%     form that can be used for efficient reasoning by this module.
+%
+%  add_to_axioms(Fml,Axs,Axs2):  A formula to an existing set of axioms
+%
+%  combine_axioms(Ax1,Ax2,Axs):  Combine two sets of axioms
+%
+%  entails(Axioms,Conc):  Conc is logically entailed by Axioms
+%
+%     This *must not* bind any variables in Conc.  The easiest way to
+%     do so is to take a copy of Conc and work from that.
+%
 
