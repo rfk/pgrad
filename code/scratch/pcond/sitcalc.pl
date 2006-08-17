@@ -115,6 +115,7 @@ eps_p1(all(X,P),A,E) :-
     ;
         joinlist('&',Dep,DepP)
     ),
+    %IndepP = true, DepP = EP,
     % With that behind us, we can construct the output term
     ( eps_n(Pv,A,EPn) ->
         E = all(V,((Pv & -EPn) | DepP)) & IndepP
