@@ -6,10 +6,14 @@
 pcond_d1(F,C,P1) :-
     ( bagof(Cn,pcond_d1_bagof(F,C,Cn),Cns) ->
         joinlist((&),Cns,P1tmp),
-        simplify(P1tmp,P1)
+        simplify_c(P1tmp,P1)
     ;
         P1=true
     ).
+
+write_list([]).
+write_list([H|T]) :-
+    write(H), nl, write_list(T).
 
 pcond_d1_bagof(F,C,Cn) :-
     action_with_vars(A,Vs),
@@ -17,7 +21,7 @@ pcond_d1_bagof(F,C,Cn) :-
     adp_fluent(C,A,Ec),
     Cnt = -exists(Vs,(En & Ec)),
     %Cn=Cnt.
-    simplify(Cnt,Cn).
+    simplify_c(Cnt,Cn).
 
 %
 %  pcond(F,C,P)  -  persistence condition for F under C

@@ -507,24 +507,43 @@ simplify((A=B),S) :-
    ).
 
 
-simplify_c(F1,F2) :-
-    simplify(F1,F2), !.
+%simplify_c(F1,F2) :-
+%    simplify(F1,F2), !.
 
 simplify_c(F1,F2) :-
-    %copy_term(F1,F1t),
-    ( F1 \= exists([],_), F1 \= all([],_) ->
-        simplify(F1,F2),
-        write(F1), nl,
-        write('simplifies to:'), nl,
-        write(F2), nl,
-        ( equiv(F1,F2) ->
-            write('which is equivalent'), nl, nl
-        ;
-            write('which is *NOT* equivalent'), nl, nl, throw(simp_unequiv)
-        )
+    % Make sure there's no var sharing initially
+    ( vars_are_unique(F1) ->
+        true
     ;
-        simplify(F1,F2)
-    ).
+        write(F1), nl,
+        write('input fml has nonunique vars'),nl,nl,
+        %trace, vars_are_unique(F1),
+        throw(simp_inonuniq)
+    ),
+    % Check that the two formulae remain equivalent, if we can do so safely
+    %( F1 \= exists([],_), F1 \= all([],_) ->
+    %    simplify(F1,F2),
+    %    write(F1), nl,
+    %    write('simplifies to:'), nl,
+    %    write(F2), nl,
+    %    ( equiv(F1,F2) ->
+    %        write('which is equivalent'), nl
+    %    ;
+    %        write('which is *NOT* equivalent'), nl, nl, throw(simp_unequiv)
+    %    )
+    %;
+    %    write('cant check equivalence'), nl,
+        simplify(F1,F2),
+    %   true
+    %),
+    % Ensure that we havent produced any variable sharing.
+    %( vars_are_unique(F2) ->
+    %    write('vars are unique'), nl
+    %;
+    %    write('vars are *NOT* unique'), nl, nl, throw(simp_nonuniq)
+    %),
+    true.%nl.
+    
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
@@ -634,6 +653,38 @@ terms_in_fml(CP,Terms) :-
     CP =.. [Q,_,P],
     memberchk(Q,[all,exists]),
     terms_in_fml(P,Terms).
+
+
+%
+%  vars_are_unique(F)  -  check that each quantified var in F is unique
+
+vars_are_unique(Fml) :-
+    vars_are_unique(Fml,[],_).
+
+vars_are_unique(P,SoFar,SoFar) :-
+    is_literal(P).
+vars_are_unique(-P,SoFar,SoFar2) :-
+    vars_are_unique(P,SoFar,SoFar2).
+vars_are_unique(P & Q,SoFar,SoFar2) :-
+    vars_are_unique(P,SoFar,SoFar1),
+    vars_are_unique(Q,SoFar1,SoFar2).
+vars_are_unique(P | Q,SoFar,SoFar2) :-
+    vars_are_unique(P,SoFar,SoFar1),
+    vars_are_unique(Q,SoFar1,SoFar2).
+vars_are_unique(P -> Q,SoFar,SoFar2) :-
+    vars_are_unique(P,SoFar,SoFar1),
+    vars_are_unique(Q,SoFar1,SoFar2).
+vars_are_unique(P <-> Q,SoFar,SoFar2) :-
+    vars_are_unique(P,SoFar,SoFar1),
+    vars_are_unique(Q,SoFar1,SoFar2).
+vars_are_unique(all(V,P),SoFar,SoFar2) :-
+    \+ ( member(X:_,V), vmember(X:_,SoFar) ),
+    append(V,SoFar,SoFar1),
+    vars_are_unique(P,SoFar1,SoFar2).
+vars_are_unique(exists(V,P),SoFar,SoFar2) :-
+    \+ ( member(X:_,V), vmember(X:_,SoFar), write('DUPL VAR: '), write(X), nl ),
+    append(V,SoFar,SoFar1),
+    vars_are_unique(P,SoFar1,SoFar2).
 
 %
 %  equiv(F1,F2)  -  check that two formulae are equivalent

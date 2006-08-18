@@ -66,6 +66,8 @@ eps_n(P,A,E) :-
 %  true, which are collected by eps_p/4.
 %
 
+% TODO: must somehow rename the vars in P and Q, otherwise we're sharing
+% variables with the output term
 eps_p1((P & Q),A,E) :-
     eps_p(P,A,EP),
     ( eps_p(Q,A,EQ) ->
@@ -176,14 +178,14 @@ eps_n1(P,A,E) :-
 regression(F,A,Fr) :-
     nonvar(A), !,
     regression1(F,A,Frt),
-    simplify(Frt,Fr).
+    simplify_c(Frt,Fr).
 
 %  If A is free, find all actions which could affect it.
 regression(F,A,Fr) :-
     var(A),
     (bagof(Ft,B^regression_bagof(F,A,B,Ft),Fts) ->
         joinlist((|),Fts,Ftmp),
-        simplify(Ftmp,Fr)
+        simplify_c(Ftmp,Fr)
     ;
         Fr=F
     ).
@@ -217,15 +219,15 @@ regression1((P | Q),A,(R | S)) :-
 regression1(F,A,Fr) :-
     eps_p(F,A,Ep),
     eps_n(F,A,En),
-    simplify(Ep | (F & -En),Fr).
+    simplify_c(Ep | (F & -En),Fr).
 regression1(F,A,Fr) :-
     eps_p(F,A,Ep), 
     \+ eps_n(F,A,_),
-    simplify(Ep | F,Fr).
+    simplify_c(Ep | F,Fr).
 regression1(F,A,Fr) :-
     eps_n(F,A,En), 
     \+ eps_p(F,A,_),
-    simplify(F & -En,Fr).
+    simplify_c(F & -En,Fr).
 regression1(F,A,Fr) :-
     \+ eps_n(F,A,_), 
     \+ eps_p(F,A,_),
