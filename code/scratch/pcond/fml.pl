@@ -154,9 +154,9 @@ struct_oppos(P,Q) :-
 contradictory(F1,F2) :-
     struct_oppos(F1,F2) -> true
     ;
-    F1=(A=B), F2=(A=C), ground(B), ground(C), B \= C -> true
+    F1=(A=B), F2=(C=D), A==C, ground(B), ground(D), B \= D -> true
     ;
-    F1=(B=A), F2=(C=A), ground(B), ground(C), B \= C -> true
+    F1=(B=A), F2=(D=C), A==C, ground(B), ground(D), B \= D -> true
     ;
     fail.
 
