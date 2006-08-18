@@ -48,7 +48,7 @@
 %
 %  This is designed to make formulae easier to reason about.  It
 %  basically re-arranges orderless terms into a standard order, for
-%  example the arguments to '=' of the list of variables in a
+%  example the arguments to '=' and the list of variables in a
 %  quantification.
 % 
 normalize((A=B),(A=B)) :-
@@ -88,8 +88,54 @@ normalize(P,P).
 %  struct_oppos(P,Q)  -  two formulae are structurally opposite,
 %                        making their conjunction a trivial falsehood.
 
+% TODO:  we are only allowed to rename *bound* variables.
+% So, this doesnt work correctly.
+
 struct_equiv(P,Q) :-
-    P =@= Q.
+    struct_equiv(P,Q,[],_).
+
+pairvars(A:D,B:D,A^B).
+
+:- index(struct_equiv(1,1,0,0)).
+
+struct_equiv(P,Q,VPairs,VPairs) :-
+    var(P), !, var(Q), (P==Q ; member(P^Q,VPairs)), !.
+struct_equiv(P,Q,VPairs,VPairs) :-
+    var(Q), !, var(P), (P==Q ; member(P^Q,VPairs)), !.
+struct_equiv(P,Q,VPairs,VPairs2) :-
+    is_literal(P), is_literal(Q),
+    nonvar(P), nonvar(Q),
+    P =.. [F|ArgsP],
+    Q =.. [F|ArgsQ],
+    struct_equiv_list(ArgsP,ArgsQ,VPairs,VPairs2).
+struct_equiv(P & Q,R & S,VPairs,VPairs2) :-
+    struct_equiv(P,R,VPairs,VPairs1),
+    struct_equiv(Q,S,VPairs1,VPairs2).
+struct_equiv(P | Q,R | S,VPairs,VPairs2) :-
+    struct_equiv(P,R,VPairs,VPairs1),
+    struct_equiv(Q,S,VPairs1,VPairs2).
+struct_equiv(P -> Q,R -> S,VPairs,VPairs2) :-
+    struct_equiv(P,R,VPairs,VPairs1),
+    struct_equiv(Q,S,VPairs1,VPairs2).
+struct_equiv(P <-> Q,R <-> S,VPairs,VPairs2) :-
+    struct_equiv(P,R,VPairs,VPairs1),
+    struct_equiv(Q,S,VPairs1,VPairs2).
+struct_equiv(-P,-Q,VPairs,VPairs2) :-
+    struct_equiv(P,Q,VPairs,VPairs2).
+struct_equiv(all(VarsP,P),all(VarsQ,Q),VPairs,VPairs2) :-
+    maplist(pairvars,VarsP,VarsQ,VPairsT),
+    append(VPairsT,VPairs,VPairs1),
+    struct_equiv(P,Q,VPairs1,VPairs2).
+struct_equiv(exists(VarsP,P),exists(VarsQ,Q),VPairs,VPairs2) :-
+    maplist(pairvars,VarsP,VarsQ,VPairsT),
+    append(VPairsT,VPairs,VPairs1),
+    struct_equiv(P,Q,VPairs1,VPairs2).
+
+struct_equiv_list([],[],VP,VP).
+struct_equiv_list([H1|T1],[H2|T2],VP,VP2) :-
+    struct_equiv(H1,H2,VP,VP1),
+    struct_equiv_list(T1,T2,VP1,VP2).
+
 
 struct_oppos(P,Q) :-
     P = -P1, struct_equiv(P1,Q) -> true
@@ -100,6 +146,19 @@ struct_oppos(P,Q) :-
     ;
     P=false, Q=true.
 
+%
+%  contradictory(F1,F2)  -  F1 and F2 are trivially contradictory,
+%                           meaning F1 <-> -F2
+%
+
+contradictory(F1,F2) :-
+    struct_oppos(F1,F2) -> true
+    ;
+    F1=(A=B), F2=(A=C), ground(B), ground(C), B \= C -> true
+    ;
+    F1=(B=A), F2=(C=A), ground(B), ground(C), B \= C -> true
+    ;
+    fail.
 
 %
 %  fml_compare  -  provide a standard order over formula terms
@@ -183,7 +242,7 @@ flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
       append(V,VarsIn,Vars2),
       flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
     ;
-      simplify(T,Tsimp),
+      simplify_c(T,Tsimp),
       ( Tsimp =.. [Q,V,T2] ->
           append(V,VarsIn,Vars2),
           flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
@@ -262,12 +321,18 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  This predicate applies some basic simplification rules to a formula
 %  to eliminate redundancy and (hopefully) speed up future reasoning.
 %  For maximum simplification, apply normalize/2 first.
+%
+%  
+%  simplify_c(F1,F2)  -  simplify a formula, with verification
+%
+%  This predicate acts as simplify/2, but checks that F1 and F2 are in
+%  fact equivalent.  If not, it raises an exception.
 %  
 simplify(P,P) :-
     is_literal(P), P \= (_ = _).
 simplify(P & Q,S) :-
     flatten_op('&',[P,Q],TermsT),
-    maplist(simplify,TermsT,TermsS),
+    maplist(simplify_c,TermsT,TermsS),
     sublist(\=(true),TermsS,TermsF),
     predsort(fml_compare,TermsF,Terms),
     (
@@ -275,13 +340,13 @@ simplify(P & Q,S) :-
     ;
         length(Terms,0) -> S=true
     ;
-        pairfrom(Terms,F1,F2), struct_oppos(F1,F2) -> S=false
+        pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false
     ;
         joinlist('&',Terms,S)
     ).
 simplify(P | Q,S) :-
     flatten_op('|',[P,Q],TermsT),
-    maplist(simplify,TermsT,TermsS),
+    maplist(simplify_c,TermsT,TermsS),
     sublist(\=(false),TermsS,TermsF),
     predsort(fml_compare,TermsF,Terms),
     (
@@ -289,13 +354,13 @@ simplify(P | Q,S) :-
     ;
         length(Terms,0) -> S=false
     ;
-        pairfrom(Terms,F1,F2), struct_oppos(F1,F2) -> S=true
+        pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=true
     ;
         joinlist('|',Terms,S)
     ).
 simplify(P -> Q,S) :-
-    simplify(P,Sp),
-    simplify(Q,Sq),
+    simplify_c(P,Sp),
+    simplify_c(Q,Sq),
     (
         Sp=false -> S=true
     ;
@@ -308,8 +373,8 @@ simplify(P -> Q,S) :-
         S = (Sp -> Sq)
     ).
 simplify(P <-> Q,S) :-
-    simplify(P,Sp),
-    simplify(Q,Sq),
+    simplify_c(P,Sp),
+    simplify_c(Q,Sq),
     (
         struct_equiv(P,Q) -> S=true
     ;
@@ -326,7 +391,7 @@ simplify(P <-> Q,S) :-
         S = (Sp <-> Sq)
     ).
 simplify(-P,S) :-
-    simplify(P,SP),
+    simplify_c(P,SP),
     (
         SP=false -> S=true
     ;
@@ -337,7 +402,7 @@ simplify(-P,S) :-
         S = -SP
     ).
 simplify(all(Xs,P),S) :-
-    ( Xs = [] -> simplify(P,S)
+    ( Xs = [] -> simplify_c(P,S)
     ;
     flatten_quant_and_simp('all',P,Xs,VarsT,Body),
     sort(VarsT,Vars),
@@ -370,7 +435,7 @@ simplify(all(Xs,P),S) :-
               S2=all(Vars2,Body2)
             ;
               joinlist('&',Indep,IndepB),
-              S2=(all(Vars2,Body2) | IndepB)
+              S2=(all(Vars2,Body2) & IndepB)
             )
           ;
             S2=all(Vars2,Body)
@@ -379,7 +444,7 @@ simplify(all(Xs,P),S) :-
         S = S2
     )).
 simplify(exists(Xs,P),S) :-
-   ( Xs = [] -> simplify(P,S)
+   ( Xs = [] -> simplify_c(P,S)
    ;
    flatten_quant_and_simp('exists',P,Xs,VarsT,Body),
    sort(VarsT,Vars),
@@ -400,7 +465,7 @@ simplify(exists(Xs,P),S) :-
            vmember(T1:_,Vars), vmember(T2:_,Vars), T1 \== T2,
            vdelete(Vars,T1:_,Vars2) , T1=T2
        )
-           ->  simplify(exists(Vars2,Body),S)
+           ->  simplify_c(exists(Vars2,Body),S)
    ;
        % Remove any useless variables
        split_matching(Vars,ncontains_varterm(Body),_,Vars2),
@@ -424,7 +489,7 @@ simplify(exists(Xs,P),S) :-
              S = exists(Vars2,Body2)
            ;
              joinlist('&',Indep,IndepB),
-             S = (exists(Vars2,Body2) | IndepB)
+             S = (exists(Vars2,Body2) & IndepB)
            )
          ;
            S=exists(Vars2,Body)
@@ -441,6 +506,25 @@ simplify((A=B),S) :-
        normalize((A=B),S)
    ).
 
+
+simplify_c(F1,F2) :-
+    simplify(F1,F2), !.
+
+simplify_c(F1,F2) :-
+    %copy_term(F1,F1t),
+    ( F1 \= exists([],_), F1 \= all([],_) ->
+        simplify(F1,F2),
+        write(F1), nl,
+        write('simplifies to:'), nl,
+        write(F2), nl,
+        ( equiv(F1,F2) ->
+            write('which is equivalent'), nl, nl
+        ;
+            write('which is *NOT* equivalent'), nl, nl, throw(simp_unequiv)
+        )
+    ;
+        simplify(F1,F2)
+    ).
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
@@ -551,6 +635,18 @@ terms_in_fml(CP,Terms) :-
     memberchk(Q,[all,exists]),
     terms_in_fml(P,Terms).
 
+%
+%  equiv(F1,F2)  -  check that two formulae are equivalent
+%  equiv(Axs,F1,F2)  -  check that two formulae are equivalent, given axioms
+%
+
+equiv(F1,F2) :-
+    fml2axioms(true & -false,Axs),
+    equiv(Axs,F1,F2).
+
+equiv(Axs,F1,F2) :-
+    entails(Axs,F1 -> F2),
+    entails(Axs,F2 -> F1).
 
 
 %
