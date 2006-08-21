@@ -88,9 +88,6 @@ normalize(P,P).
 %  struct_oppos(P,Q)  -  two formulae are structurally opposite,
 %                        making their conjunction a trivial falsehood.
 
-% TODO:  we are only allowed to rename *bound* variables.
-% So, this doesnt work correctly.
-
 struct_equiv(P,Q) :-
     struct_equiv(P,Q,[],_).
 
@@ -99,9 +96,9 @@ pairvars(A:D,B:D,A^B).
 :- index(struct_equiv(1,1,0,0)).
 
 struct_equiv(P,Q,VPairs,VPairs) :-
-    var(P), !, var(Q), (P==Q ; member(P^Q,VPairs)), !.
+    var(P), !, var(Q), (P==Q ; ismember(P^Q,VPairs)), !.
 struct_equiv(P,Q,VPairs,VPairs) :-
-    var(Q), !, var(P), (P==Q ; member(P^Q,VPairs)), !.
+    var(Q), !, var(P), (P==Q ; ismember(P^Q,VPairs)), !.
 struct_equiv(P,Q,VPairs,VPairs2) :-
     is_literal(P), is_literal(Q),
     nonvar(P), nonvar(Q),
@@ -148,7 +145,7 @@ struct_oppos(P,Q) :-
 
 %
 %  contradictory(F1,F2)  -  F1 and F2 are trivially contradictory,
-%                           meaning F1 <-> -F2
+%                           meaning F1 -> -F2 and F2 -> -F1
 %
 
 contradictory(F1,F2) :-
@@ -251,6 +248,20 @@ flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
       )
     ).
 
+
+%
+%  ismember(Elem,List)  -  like member/2, but does not bind variables or
+%                          allow backtracking.
+%
+ismember(_,[]) :- fail.
+ismember(E,[H|T]) :-
+    ( E == H ->
+        true
+    ;
+        ismember(E,T)
+    ).
+
+
 %
 %  vmember(Elem,List) - like member/2, but specific to our quant variable lists
 %
@@ -302,7 +313,18 @@ ncontains_varterm(P,X:_) :-
 %
 indep_of_vars(Vars,P) :-
     \+ ( member(X:_,Vars), contains_var(P,X) ).
-                                                      
+
+
+%
+%  var_in_list(Var,VarL)  -  variable V is in the list VarL
+%
+var_in_list([],_) :- fail.
+var_in_list([H:_|T],V) :-
+    ( V == H ->
+        true
+    ;
+        var_in_list(T,V)
+    ).
 
 %
 %  pairfrom(L,E1,E2)  -  E1 and E2 are a pair of (different) elements from L
@@ -354,7 +376,7 @@ simplify(P | Q,S) :-
     ;
         length(Terms,0) -> S=false
     ;
-        pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=true
+        pairfrom(Terms,F1,F2), struct_oppos(F1,F2) -> S=true
     ;
         joinlist('|',Terms,S)
     ).
@@ -454,18 +476,8 @@ simplify(exists(Xs,P),S) :-
        Body=true -> S=true
    ;
        % Remove vars that are assigned a specific value, therefore useless
-       flatten_op('&',[Body],Cs), member((T1=T2),Cs),
-       (
-           vmember(T1:_,Vars),(\+ vmember(T2:_,Vars)),
-           vdelete(Vars,T1:_,Vars2), T1=T2
-       ;
-           vmember(T2:_,Vars),(\+ vmember(T1:_,Vars)),
-           vdelete(Vars,T2:_,Vars2), T2=T1
-       ;
-           vmember(T1:_,Vars), vmember(T2:_,Vars), T1 \== T2,
-           vdelete(Vars,T1:_,Vars2) , T1=T2
-       )
-           ->  simplify_c(exists(Vars2,Body),S)
+       member(T1:_,Vars), var_given_value(T1,Body,T2) ->
+           vdelete(Vars,T1:_,Vars2), T1=T2, simplify_c(exists(Vars2,Body),S)
    ;
        % Remove any useless variables
        split_matching(Vars,ncontains_varterm(Body),_,Vars2),
@@ -507,43 +519,72 @@ simplify((A=B),S) :-
    ).
 
 
-%simplify_c(F1,F2) :-
-%    simplify(F1,F2), !.
+simplify_c(F1,F2) :-
+    !, simplify(F1,F2).
 
 simplify_c(F1,F2) :-
     % Make sure there's no var sharing initially
+    copy_term(F1,F1c),
     ( vars_are_unique(F1) ->
         true
     ;
         write(F1), nl,
         write('input fml has nonunique vars'),nl,nl,
-        %trace, vars_are_unique(F1),
         throw(simp_inonuniq)
     ),
     % Check that the two formulae remain equivalent, if we can do so safely
-    %( F1 \= exists([],_), F1 \= all([],_) ->
-    %    simplify(F1,F2),
-    %    write(F1), nl,
-    %    write('simplifies to:'), nl,
-    %    write(F2), nl,
-    %    ( equiv(F1,F2) ->
-    %        write('which is equivalent'), nl
-    %    ;
-    %        write('which is *NOT* equivalent'), nl, nl, throw(simp_unequiv)
-    %    )
-    %;
-    %    write('cant check equivalence'), nl,
+    ( F1 \= exists([],_), F1 \= all([],_) ->
         simplify(F1,F2),
-    %   true
-    %),
+        ( equiv(F1,F2) ->
+            true
+       ;
+            write(F1), nl,
+            write('simplifies to:'), nl,
+            write(F2), nl,
+            write('which is *NOT* equivalent'), nl, nl, throw(simp_unequiv)
+        )
+    ;
+        simplify(F1,F2)
+    ),
     % Ensure that we havent produced any variable sharing.
-    %( vars_are_unique(F2) ->
-    %    write('vars are unique'), nl
-    %;
-    %    write('vars are *NOT* unique'), nl, nl, throw(simp_nonuniq)
-    %),
-    true.%nl.
-    
+    ( vars_are_unique(F2) ->
+        true
+    ;
+        write('introduced non-unique vars'), nl,
+        write(F1c), nl,
+        write(F2), nl,
+        nl, nl, throw(simp_nonuniq)
+    ).
+
+
+%
+%  var_given_value(X,P,V)  -  variable X is uniformly given the value V
+%                             within the formula P.
+
+:- index(var_given_value(0,1,0)).
+
+var_given_value(X,A=B,V) :-
+    ( X == A ->
+        V = B
+    ;
+        X == B, V = A
+    ).
+var_given_value(X,P & Q,V) :-
+   flatten_op('&',[P,Q],Cs),
+   % TODO: this is another possible simplification - a var given two values
+   member(C,Cs), var_given_value(X,C,V).
+var_given_value(X,P | Q,V) :-
+   flatten_op('|',[P,Q],Cs),
+   var_given_value_list(X,Cs,V).
+var_given_value(X,all(_,P),V) :-
+    var_given_value(X,P,V).
+var_given_value(X,exists(_,P),V) :-
+    var_given_value(X,P,V).
+
+var_given_value_list(_,[],_).
+var_given_value_list(X,[H|T],V) :-
+    var_given_value(X,H,V),
+    var_given_value_list(X,T,V).
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
@@ -624,13 +665,47 @@ is_literal(P) :-
     P \= exists(_,_),
     P \= all(_,_).
 
+
+%
+%  copy_fml(P,Q)  -  make a copy of a formula.  The copy will have all
+%                    bound variables renamed to new vars.  Any free variables
+%                    will retain their original bindings.
+%
+
+copy_fml(P,P) :-
+    var(P), !.
+copy_fml(P,P) :-
+    is_literal(P).
+copy_fml(P & Q,R & S) :-
+    copy_fml(P,R),
+    copy_fml(Q,S).
+copy_fml(P | Q,R | S) :-
+    copy_fml(P,R),
+    copy_fml(Q,S).
+copy_fml(P -> Q,R -> S) :-
+    copy_fml(P,R),
+    copy_fml(Q,S).
+copy_fml(P <-> Q,R <-> S) :-
+    copy_fml(P,R),
+    copy_fml(Q,S).
+copy_fml(-P,-Q) :-
+    copy_fml(P,Q).
+copy_fml(all(VarsP,P),all(VarsQ,Q)) :-
+    rename_vars(VarsP,P,VarsQ,P2),
+    copy_fml(P2,Q).
+copy_fml(exists(VarsP,P),exists(VarsQ,Q)) :-
+    rename_vars(VarsP,P,VarsQ,P2),
+    copy_fml(P2,Q).
+
 %
 %  rename_vars(Vars,F,NewVars,NewF)  -  rename the given variables to new
 %                                       ones, producing a modified formula.
-rename_vars([],P,[],P).
-rename_vars([X:D|Xs],P,[V:D|Vs],Q) :-
-    subs(X,V,P,Pt),
-    rename_vars(Xs,Pt,Vs,Q).
+rename_vars(Vs,P,Vs2,P2) :-
+    % 'clever' and hopefully faster way, using term introspection
+    % rather than repeated calls to subs/4
+    term_variables(P,PVars),
+    split_matching(PVars,var_in_list(Vs),_,OtherVs),
+    copy_term(P^Vs^OtherVs,P2^Vs2^OtherVs).
 
     
 %
@@ -653,6 +728,7 @@ terms_in_fml(CP,Terms) :-
     CP =.. [Q,_,P],
     memberchk(Q,[all,exists]),
     terms_in_fml(P,Terms).
+
 
 
 %

@@ -46,7 +46,9 @@ constraint(-false).
 eps_p((_=_),_,_) :- !, fail.
 eps_p(P,A,E) :-
     bagof(Et,eps_p1(P,A,Et),Ets),
-    joinlist((|),Ets,E).
+    joinlist((|),Ets,Ej),
+    % use copy_fml to ensure no sharing of variables
+    copy_fml(Ej,E).
 
 %
 %  eps_n(+F,?Act,?Cond) - conditions for a fluent becoming false
@@ -57,7 +59,9 @@ eps_p(P,A,E) :-
 eps_n((_=_),_,_) :- !, fail.
 eps_n(P,A,E) :-
     bagof(Et,eps_n1(P,A,Et),Ets),
-    joinlist((|),Ets,E).
+    joinlist((|),Ets,Ej),
+    % use copy_fml to ensure no sharing of variables
+    copy_fml(Ej,E).
 
 %
 %  eps_p1(+F,?Act,?Cond) - individual conditions for truthifying a fluent
@@ -66,25 +70,13 @@ eps_n(P,A,E) :-
 %  true, which are collected by eps_p/4.
 %
 
-% TODO: must somehow rename the vars in P and Q, otherwise we're sharing
-% variables with the output term
 eps_p1((P & Q),A,E) :-
-    eps_p(P,A,EP),
-    ( eps_p(Q,A,EQ) ->
-        E = ((EP & EQ) | (EP & Q) | (P & EQ))
-    ;
-      eps_n(Q,A,EQn) ->
-        E = (EP & Q & -EQn)
-    ;
-        E = (EP & Q)
-    ).
-eps_p1((P & Q),A,E) :-
-    eps_p(Q,A,EQ),
-    ( eps_n(P,A,EPn) ->
-        E = (P & -EPn & EQ)
-    ;
-        E = (P & EQ)
-    ).
+    % TODO: this cuts over action variables...
+    ( eps_p(P,A,EP) -> true ; EP=false),
+    ( eps_n(P,A,EPn) -> true ; EPn=false),
+    ( eps_p(Q,A,EQ) -> true ; EQ=false),
+    ( eps_n(Q,A,EQn) -> true ; EQn=false),
+    E = ((EP | (P & -EPn)) & (EQ | (Q & -EQn))).
 
 eps_p1((P | _),A,E) :-
     eps_p(P,A,E).
@@ -95,9 +87,7 @@ eps_p1(-P,A,E) :-
     eps_n(P,A,E).
 
 eps_p1(all(X,P),A,E) :-
-    % Need to make sure output fml doesnt share variables with input fml
-    rename_vars(X,P,V,Pv),
-    eps_p(Pv,A,EP),
+    eps_p(P,A,EP),
     % Since all(X,P) is to *become* true, we assume that it is currently
     % false, so exists(X,-P).  This legitimises moving any components of
     % EP that are independent of X outside the quantification, since the
@@ -106,7 +96,7 @@ eps_p1(all(X,P),A,E) :-
     %
     % TODO: a rigorous proof of that this is OK...
     flatten_op('&',[EP],EPTerms),
-    split_matching(EPTerms,indep_of_vars(V),Indep,Dep),
+    split_matching(EPTerms,indep_of_vars(X),Indep,Dep),
     ( Indep = [] ->
         IndepP = true
     ;
@@ -117,18 +107,16 @@ eps_p1(all(X,P),A,E) :-
     ;
         joinlist('&',Dep,DepP)
     ),
-    %IndepP = true, DepP = EP,
     % With that behind us, we can construct the output term
-    ( eps_n(Pv,A,EPn) ->
-        E = all(V,((Pv & -EPn) | DepP)) & IndepP
+    ( eps_n(P,A,EPn) ->
+        E = all(X,((P & -EPn) | DepP)) & IndepP
     ;
-        E = all(V,Pv | DepP) & IndepP
+        E = all(X,P | DepP) & IndepP
     ).
 
 eps_p1(exists(X,P),A,E) :-
-    rename_vars(X,P,V,Pv),
-    eps_p(Pv,A,EP),
-    E = exists(V,EP).
+    eps_p(P,A,EP),
+    E = exists(X,EP).
 
 eps_p1(P,A,E) :-
     causes_true(P,A,E).
@@ -181,8 +169,9 @@ regression(F,A,Fr) :-
     simplify_c(Frt,Fr).
 
 %  If A is free, find all actions which could affect it.
+%  TODO: eps_p currently cuts over action variables, so this doesnt work
 regression(F,A,Fr) :-
-    var(A),
+    var(A), throw(regression_action_unbound),
     (bagof(Ft,B^regression_bagof(F,A,B,Ft),Fts) ->
         joinlist((|),Fts,Ftmp),
         simplify_c(Ftmp,Fr)
@@ -202,36 +191,41 @@ regression_bagof(F,A,B,Ft) :-
 %%  Regression is special-cased for the logical operators, as this
 %%  produces smaller formulae than using eps_p/eps_n directly.
 %%
-regression1(all(X,P),A,all(X,R)) :-
-    regression1(P,A,R), !.
-regression1(exists(X,P),A,exists(X,R)) :-
-    regression1(P,A,R), !.
-regression1(-P,A,-R) :-
-    regression1(P,A,R), !.
-regression1((C=B),_,(C=B)) :- !.
-regression1((P & Q),A,(R & S)) :-
-    regression1(P,A,R),
-    regression1(Q,A,S), !.
-regression1((P | Q),A,(R | S)) :-
-    regression1(P,A,R),
-    regression1(Q,A,S), !.
-
 regression1(F,A,Fr) :-
+    is_literal(F),
     eps_p(F,A,Ep),
     eps_n(F,A,En),
     simplify_c(Ep | (F & -En),Fr).
 regression1(F,A,Fr) :-
+    is_literal(F),
     eps_p(F,A,Ep), 
     \+ eps_n(F,A,_),
     simplify_c(Ep | F,Fr).
 regression1(F,A,Fr) :-
+    is_literal(F),
     eps_n(F,A,En), 
     \+ eps_p(F,A,_),
     simplify_c(F & -En,Fr).
 regression1(F,A,Fr) :-
+    is_literal(F),
     \+ eps_n(F,A,_), 
     \+ eps_p(F,A,_),
     F = Fr.
+
+regression1(all(X,P),A,all(X,R)) :-
+    regression1(P,A,R).
+regression1(exists(X,P),A,exists(X,R)) :-
+    regression1(P,A,R).
+regression1(-P,A,-R) :-
+    regression1(P,A,R).
+regression1((C=B),_,(C=B)).
+regression1((P & Q),A,(R & S)) :-
+    regression1(P,A,R),
+    regression1(Q,A,S).
+regression1((P | Q),A,(R | S)) :-
+    regression1(P,A,R),
+    regression1(Q,A,S).
+
 
 %
 %  holds(+F,+S) - fluent F holds in situation S
@@ -292,24 +286,24 @@ holds(-F,s0) :-
 %  calls into entails() for something that cant possibly lead
 %  to a yes answer.
 %
-%knows(Agt,F,[]) :-
-%    pcond(F,legUnobs(Agt),P),
-%    holds(P,s0).
-%knows(Agt,F,[A|T]) :-
-%    pcond(F,legUnobs(Agt),P),
-%    regression(P,A,R),
-%    adp_fluent(poss,A,Poss),
-%    knows(Agt,(-Poss | R),T).
-%
-%
-%
-%  Implementation version of knows/3
-%
 
 adp_fluent(legUnobs(Agt),A,C) :-
     adp_fluent(poss,A,C1),
     adp_fluent(canObs(Agt),A,C2),
     C = C1 & -C2.
+
+knows(Agt,F,[]) :-
+    pcond(F,legUnobs(Agt),P),
+    holds(P,s0), !.
+knows(Agt,F,[A|T]) :-
+    pcond(F,legUnobs(Agt),P),
+    regression(P,A,R),
+    adp_fluent(poss,A,Poss),
+    knows(Agt,(-Poss | R),T), !.
+
+%
+%  Implementation version of knows/3
+%
 
 knows(Agt,F,H) :-
     domain_axioms(Axs),

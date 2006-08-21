@@ -18,6 +18,7 @@ write_list([H|T]) :-
 pcond_d1_bagof(F,C,Cn) :-
     action_with_vars(A,Vs),
     eps_n(F,A,En),
+    %regression(-F,A,En),
     adp_fluent(C,A,Ec),
     Cnt = -exists(Vs,(En & Ec)),
     %Cn=Cnt.
