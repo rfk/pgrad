@@ -439,29 +439,29 @@ simplify(all(Xs,P),S) :-
             S2 = Body
         ;
           % Push independent components outside the quantifier,
-          (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
-            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-            % Because we have removed useless vars, BT2 cannot be empty
-            joinlist('|',BT2,Body2),
-            ( Indep = [] ->
-              S2=all(Vars2,Body2)
-            ;
-              joinlist('|',Indep,IndepB),
-              S2=(all(Vars2,Body2) | IndepB)
-            )
-
-          ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
-            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-            joinlist('&',BT2,Body2),
-            ( Indep = [] ->
-              S2=all(Vars2,Body2)
-            ;
-              joinlist('&',Indep,IndepB),
-              S2=(all(Vars2,Body2) & IndepB)
-            )
-          ;
+          %(flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
+          %  split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+          %  % Because we have removed useless vars, BT2 cannot be empty
+          %  joinlist('|',BT2,Body2),
+          %  ( Indep = [] ->
+          %    S2=all(Vars2,Body2)
+          %  ;
+          %    joinlist('|',Indep,IndepB),
+          %    S2=(all(Vars2,Body2) | IndepB)
+          %  )
+          %
+          %; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
+          %  split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+          %  joinlist('&',BT2,Body2),
+          %  ( Indep = [] ->
+          %    S2=all(Vars2,Body2)
+          %  ;
+          %    joinlist('&',Indep,IndepB),
+          %    S2=(all(Vars2,Body2) & IndepB)
+          %  )
+          %;
             S2=all(Vars2,Body)
-          )
+          %)
         ),
         S = S2
     )).
@@ -485,27 +485,27 @@ simplify(exists(Xs,P),S) :-
            S = Body
        ;
          % Push independent components outside the quantifier,
-         (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
-           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-           joinlist('|',BT2,Body2),
-           ( Indep = [] ->
-             S = exists(Vars2,Body2)
-           ;
-             joinlist('|',Indep,IndepB),
-             S = (exists(Vars2,Body2) | IndepB)
-           )
-         ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
-           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-           joinlist('&',BT2,Body2),
-           ( Indep = [] ->
-             S = exists(Vars2,Body2)
-           ;
-             joinlist('&',Indep,IndepB),
-             S = (exists(Vars2,Body2) & IndepB)
-           )
-         ;
+       %  (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
+       %    split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+       %    joinlist('|',BT2,Body2),
+       %    ( Indep = [] ->
+       %      S = exists(Vars2,Body2)
+       %    ;
+       %      joinlist('|',Indep,IndepB),
+       %      S = (exists(Vars2,Body2) | IndepB)
+       %    )
+       %  ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
+       %    split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+       %    joinlist('&',BT2,Body2),
+       %    ( Indep = [] ->
+       %      S = exists(Vars2,Body2)
+       %    ;
+       %      joinlist('&',Indep,IndepB),
+       %      S = (exists(Vars2,Body2) & IndepB)
+       %    )
+       %  ;
            S=exists(Vars2,Body)
-         )
+       %  )
        )
    )).
 simplify((A=B),S) :-
