@@ -71,12 +71,24 @@ eps_n(P,A,E) :-
 %
 
 eps_p1((P & Q),A,E) :-
-    % TODO: this cuts over action variables...
-    ( eps_p(P,A,EP) -> true ; EP=false),
-    ( eps_n(P,A,EPn) -> true ; EPn=false),
-    ( eps_p(Q,A,EQ) -> true ; EQ=false),
-    ( eps_n(Q,A,EQn) -> true ; EQn=false),
-    E = ((EP | (P & -EPn)) & (EQ | (Q & -EQn))).
+    % Avoid generating redundant conjuncts be treating all the and
+    % terms individually.
+    flatten_op('&',[P,Q],Cls),
+    maplist(eps_p1_andcls(A),Cls,Els),
+    joinlist('&',Els,E).
+
+eps_p1_andcls(A,P,E) :-
+    eps_p(P,A,Ep),
+    ( eps_n(P,A,En) ->
+        E = (Ep | (P & -En))
+    ;
+        E = (Ep | P)
+    ), !.
+eps_p1_andcls(A,P,E) :-
+    eps_n(P,A,En),
+    E = (P & -En), !.
+eps_p1_andcls(_,P,P).
+
 
 eps_p1((P | _),A,E) :-
     eps_p(P,A,E).

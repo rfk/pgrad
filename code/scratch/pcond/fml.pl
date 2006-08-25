@@ -654,6 +654,77 @@ fml2nnf(P,P).
 
 
 %
+%  nnf2qlf(F,Q)  -  convert formula from NNF to "quantifier left form".
+%                   This is like prenix normal form, but doesnt require the
+%                   matrix to be in CNF.
+%
+%                   This process depends very heavily on the assumption
+%                   that all bound variables are uniquely named!
+%
+
+nnf2qlf(F1 & F2,Q) :-
+    nnf2qlf(F1,Q1),
+    nnf2qlf(F2,Q2),
+    ( Q1 = all(X,Px) ->
+        ( Q2 = all(Y,Px) ->
+            Q = all(X,all(Y,Px & Py))
+        ; Q2 = exists(Y,Py) ->
+            Q = all(X,exists(Y,Px & Py))
+        ; Q = all(X,Px & Q2)
+        )
+    ; Q1 = exists(X,Px) ->
+        ( Q2 = all(Y,Px) ->
+            Q = exists(X,all(Y,Px & Py))
+        ; Q2 = exists(Y,Py) ->
+            Q = exists(X,exists(Y,Px & Py))
+        ; Q = exists(X,Px & Q2)
+        )
+    ;
+        ( Q2 = all(Y,Px) ->
+            Q = all(Y,Q1 & Py)
+        ; Q2 = exists(Y,Py) ->
+            Q = exists(Y,Q1 & Py)
+        ; Q = (Q1 & Q2)
+        )
+    ), !.
+nnf2qlf(F1 | F2,Q) :-
+    nnf2qlf(F1,Q1),
+    nnf2qlf(F2,Q2),
+    ( Q1 = all(X,Px) ->
+        ( Q2 = all(Y,Px) ->
+            Q = all(X,all(Y,Px | Py))
+        ; Q2 = exists(Y,Py) ->
+            Q = all(X,exists(Y,Px | Py))
+        ; Q = all(X,Px | Q2)
+        )
+    ; Q1 = exists(X,Px) ->
+        ( Q2 = all(Y,Px) ->
+            Q = exists(X,all(Y,Px | Py))
+        ; Q2 = exists(Y,Py) ->
+            Q = exists(X,exists(Y,Px | Py))
+        ; Q = exists(X,Px | Q2)
+        )
+    ;
+        ( Q2 = all(Y,Px) ->
+            Q = all(Y,Q1 | Py)
+        ; Q2 = exists(Y,Py) ->
+            Q = exists(Y,Q1 | Py)
+        ; Q = (Q1 | Q2)
+        )
+    ), !.
+nnf2qlf(all(X,P),all(X,Q)) :-
+    nnf2qlf(P,Q).
+nnf2qlf(exists(X,P),exists(X,Q)) :-
+    nnf2qlf(P,Q).
+nnf2qlf(P,P).
+
+
+fml2qlf(P,Q) :-
+    copy_fml(P,Pc),
+    fml2nnf(Pc,N),
+    nnf2qlf(N,Q).
+
+%
 %  is_literal(P)  -  the formula P is a literal, not a compound expression
 %
 is_literal(P) :-
