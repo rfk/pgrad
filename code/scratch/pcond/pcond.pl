@@ -2,7 +2,62 @@
 %
 %  pcond_d1(F,C,P1)  -  depth 1 persistence condition for fluent F
 %
+%    The basic meaning of this pedicate is: if fluent F holds in situation
+%    s, then it will continue to hold in all C-successors of s as long
+%    as P1 is true in s.
+%
 
+%
+%  Second attempt - special-case each operator to avoid redundancy
+%  in the generated formulae.
+%
+pcond_d1v2(F1 & F2,C,P1 & P2) :-
+    pcond_d1(F1,C,P1),
+    pcond_d1(F2,C,P2), !.
+pcond_d1v2(all(X,F),C,all(X,P1)) :-
+    pcond_d1v2(F,C,P1), !.
+pcond_d1v2(F1 | F2,C,P1) :-
+    % TODO: think about this some more
+    % Perhaps we can special-case for simple independence between F1/F2?
+    pcond_d1(F1 | F2,C,P1).
+pcond_d1v2(exists(X,F),C,P1) :-
+    ( bagof(Cn,pcond_d1v2_ex_bagof(X,F,C,Cn),Cns) ->
+        joinlist((&),Cns,P1tmp),
+        simplify_c(P1tmp,P1)
+    ;
+        P1=true
+    ), !.
+pcond_d1v2(-F,C,P1) :-
+    ( bagof(Cn,pcond_d1v2_neg_bagof(F,C,Cn),Cns) ->
+        joinlist((&),Cns,P1tmp),
+        simplify_c(P1tmp,P1)
+    ;
+        P1=true
+    ), !.
+    
+
+pcond_d1v2_ex_bagof(X,F,C,P) :-
+    action_with_vars(A,Vs),
+    eps_n(F,A,En),
+    adp_fluent(C,A,Ec),
+    ( eps_p(F,A,Ep) ->
+        Pn = -exists(Vs,Ec & -exists(X,(F & -En) | Ep))
+    ;
+        Pn = -exists(Vs,Ec & -exists(X,F & -En))
+    ),
+    simplify_c(Pn,P).
+
+pcond_d1v2_neg_bagof(F,C,P) :-
+    action_with_vars(A,Vs),
+    eps_p(F,A,Ep),
+    adp_fluent(C,A,Ec),
+    Pn = -exists(Vs,Ec & Ep),
+    simplify_c(Pn,P).
+    
+
+%
+%  first attempt - straightforward encoding of definition
+%
 pcond_d1(F,C,P1) :-
     ( bagof(Cn,pcond_d1_bagof(F,C,Cn),Cns) ->
         joinlist((&),Cns,P1tmp),
@@ -10,10 +65,6 @@ pcond_d1(F,C,P1) :-
     ;
         P1=true
     ).
-
-write_list([]).
-write_list([H|T]) :-
-    write(H), nl, write_list(T).
 
 pcond_d1_bagof(F,C,Cn) :-
     action_with_vars(A,Vs),

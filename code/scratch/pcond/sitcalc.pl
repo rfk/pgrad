@@ -106,7 +106,8 @@ eps_p1(all(X,P),A,E) :-
     % EP part must be satisfied by at least one combination of variables.
     % This tends to greatly help simplification of the resuling formula.
     %
-    % TODO: a rigorous proof of that this is OK...
+    % TODO: a rigorous proof of that this is OK in all contexts that we
+    %       use this function.
     flatten_op('&',[EP],EPTerms),
     split_matching(EPTerms,indep_of_vars(X),Indep,Dep),
     ( Indep = [] ->
