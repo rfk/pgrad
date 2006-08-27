@@ -151,9 +151,9 @@ struct_oppos(P,Q) :-
 contradictory(F1,F2) :-
     struct_oppos(F1,F2) -> true
     ;
-    F1=(A=B), F2=(C=D), A==C, ground(B), ground(D), B \= D -> true
-    ;
-    F1=(B=A), F2=(D=C), A==C, ground(B), ground(D), B \= D -> true
+    free_vars(F1,Vars1), member(V,Vars1),
+    var_given_value(V,F1,B), var_given_value(V,F2,C),
+    ground(B), ground(C), B \= C -> true
     ;
     fail.
 
@@ -363,6 +363,8 @@ simplify(P & Q,S) :-
         length(Terms,0) -> S=true
     ;
         pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false
+    %;
+    %   IDEA: valuate to eliminate variables 
     ;
         joinlist('&',Terms,S)
     ).
@@ -439,29 +441,29 @@ simplify(all(Xs,P),S) :-
             S2 = Body
         ;
           % Push independent components outside the quantifier,
-          %(flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
-          %  split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-          %  % Because we have removed useless vars, BT2 cannot be empty
-          %  joinlist('|',BT2,Body2),
-          %  ( Indep = [] ->
-          %    S2=all(Vars2,Body2)
-          %  ;
-          %    joinlist('|',Indep,IndepB),
-          %    S2=(all(Vars2,Body2) | IndepB)
-          %  )
-          %
-          %; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
-          %  split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-          %  joinlist('&',BT2,Body2),
-          %  ( Indep = [] ->
-          %    S2=all(Vars2,Body2)
-          %  ;
-          %    joinlist('&',Indep,IndepB),
-          %    S2=(all(Vars2,Body2) & IndepB)
-          %  )
-          %;
+          (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
+            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+            % Because we have removed useless vars, BT2 cannot be empty
+            joinlist('|',BT2,Body2),
+            ( Indep = [] ->
+              S2=all(Vars2,Body2)
+            ;
+              joinlist('|',Indep,IndepB),
+              S2=(all(Vars2,Body2) | IndepB)
+            )
+          
+          ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
+            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+            joinlist('&',BT2,Body2),
+            ( Indep = [] ->
+              S2=all(Vars2,Body2)
+            ;
+              joinlist('&',Indep,IndepB),
+              S2=(all(Vars2,Body2) & IndepB)
+            )
+          ;
             S2=all(Vars2,Body)
-          %)
+          )
         ),
         S = S2
     )).
@@ -476,8 +478,8 @@ simplify(exists(Xs,P),S) :-
        Body=true -> S=true
    ;
        % Remove vars that are assigned a specific value, therefore useless
-       member(T1:_,Vars), var_given_value(T1,Body,T2) ->
-           vdelete(Vars,T1:_,Vars2), T1=T2, simplify_c(exists(Vars2,Body),S)
+       member(T1:_,Vars), var_valuated(T1,Body,Body2) ->
+           vdelete(Vars,T1:_,Vars2), simplify_c(exists(Vars2,Body2),S)
    ;
        % Remove any useless variables
        split_matching(Vars,ncontains_varterm(Body),_,Vars2),
@@ -485,27 +487,27 @@ simplify(exists(Xs,P),S) :-
            S = Body
        ;
          % Push independent components outside the quantifier,
-       %  (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
-       %    split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-       %    joinlist('|',BT2,Body2),
-       %    ( Indep = [] ->
-       %      S = exists(Vars2,Body2)
-       %    ;
-       %      joinlist('|',Indep,IndepB),
-       %      S = (exists(Vars2,Body2) | IndepB)
-       %    )
-       %  ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
-       %    split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
-       %    joinlist('&',BT2,Body2),
-       %    ( Indep = [] ->
-       %      S = exists(Vars2,Body2)
-       %    ;
-       %      joinlist('&',Indep,IndepB),
-       %      S = (exists(Vars2,Body2) & IndepB)
-       %    )
-       %  ;
+         (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
+           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+           joinlist('|',BT2,Body2),
+           ( Indep = [] ->
+             S = exists(Vars2,Body2)
+           ;
+             joinlist('|',Indep,IndepB),
+             S = (exists(Vars2,Body2) | IndepB)
+           )
+         ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
+           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+           joinlist('&',BT2,Body2),
+           ( Indep = [] ->
+             S = exists(Vars2,Body2)
+           ;
+             joinlist('&',Indep,IndepB),
+             S = (exists(Vars2,Body2) & IndepB)
+           )
+         ;
            S=exists(Vars2,Body)
-       %  )
+         )
        )
    )).
 simplify((A=B),S) :-
@@ -562,6 +564,7 @@ simplify_c(F1,F2) :-
 %                             within the formula P.
 
 :- index(var_given_value(0,1,0)).
+:- index(var_given_value_list(0,1,0)).
 
 var_given_value(X,A=B,V) :-
     ( X == A ->
@@ -585,6 +588,54 @@ var_given_value_list(_,[],_).
 var_given_value_list(X,[H|T],V) :-
     var_given_value(X,H,V),
     var_given_value_list(X,T,V).
+
+%
+%  var_valuated(X,P,P2)  -  variable X takes specific values throughout P,
+%                           and P2 is P with the appropriate valuations
+%                           inserted.
+%
+
+:- index(var_valuated(0,1,0)).
+:- index(var_valuated_list(0,1,0)).
+:- index(var_valuated_distribute(0,1,0,0)).
+
+var_valuated(X,P,Q) :-
+   var_given_value(X,P,V),
+   rename_vars([X:_],P,[V:_],Q), !.
+
+% There's some trickery here, we allow ourselves to distribute
+% the and over an or if the or has a valuation.
+var_valuated(X,P & Q,V) :-
+   flatten_op('&',[P,Q],Cls),
+   select(Cl,Cls,Rest),
+   flatten_op('|',[Cl],ClOrs),
+   maplist(var_valuated_check(X),ClOrs),
+   joinlist('&',Rest,RestTerm),
+   var_valuated_distribute(X,ClOrs,RestTerm,Qs),
+   joinlist('|',Qs,V), !.
+
+var_valuated(X,P | Q,V) :-
+   flatten_op('|',[P,Q],Cs),
+   var_valuated_list(X,Cs,Vs),
+   joinlist('|',Vs,V).
+var_valuated(X,all(V,P),all(V,Q)) :-
+    var_valuated(X,P,Q).
+var_valuated(X,exists(V,P),exists(V,Q)) :-
+    var_valuated(X,P,Q).
+
+var_valuated_list(_,[],[]).
+var_valuated_list(X,[H|T],[Hv|Tv]) :-
+    var_valuated(X,H,Hv),
+    var_valuated_list(X,T,Tv).
+
+var_valuated_distribute(_,[],_,[]).
+var_valuated_distribute(X,[P|Ps],Q,[Pv|T]) :-
+    var_valuated(X,P & Q,Pv),
+    var_valuated_distribute(X,Ps,Q,T).
+
+var_valuated_check(X,F) :-
+    var_given_value(X,F,_).
+
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
@@ -666,24 +717,32 @@ nnf2qlf(F1 & F2,Q) :-
     nnf2qlf(F1,Q1),
     nnf2qlf(F2,Q2),
     ( Q1 = all(X,Px) ->
-        ( Q2 = all(Y,Px) ->
-            Q = all(X,all(Y,Px & Py))
+        ( Q2 = all(Y,Py) ->
+            Q = all(X,all(Y,Pq)),
+            nnf2qlf(Px & Py,Pq)
         ; Q2 = exists(Y,Py) ->
-            Q = all(X,exists(Y,Px & Py))
-        ; Q = all(X,Px & Q2)
+            Q = all(X,exists(Y,Pq)),
+            nnf2qlf(Px & Py,Pq)
+        ; Q = all(X,Pq),
+          nnf2qlf(Px & Q2,Pq)
         )
     ; Q1 = exists(X,Px) ->
-        ( Q2 = all(Y,Px) ->
-            Q = exists(X,all(Y,Px & Py))
+        ( Q2 = all(Y,Py) ->
+            Q = exists(X,all(Y,Pq)),
+            nnf2qlf(Px & Py,Pq)
         ; Q2 = exists(Y,Py) ->
-            Q = exists(X,exists(Y,Px & Py))
-        ; Q = exists(X,Px & Q2)
+            Q = exists(X,exists(Y,Pq)),
+            nnf2qlf(Px & Py,Pq)
+        ; Q = exists(X,Pq),
+          nnf2qlf(Px & Q2,Pq)
         )
     ;
-        ( Q2 = all(Y,Px) ->
-            Q = all(Y,Q1 & Py)
+        ( Q2 = all(Y,Py) ->
+            Q = all(Y,Pq),
+            nnf2qlf(Q1 & Py,Pq)
         ; Q2 = exists(Y,Py) ->
-            Q = exists(Y,Q1 & Py)
+            Q = exists(Y,Pq),
+            nnf2qlf(Q1 & Py,Pq)
         ; Q = (Q1 & Q2)
         )
     ), !.
@@ -692,23 +751,31 @@ nnf2qlf(F1 | F2,Q) :-
     nnf2qlf(F2,Q2),
     ( Q1 = all(X,Px) ->
         ( Q2 = all(Y,Px) ->
-            Q = all(X,all(Y,Px | Py))
+            Q = all(X,all(Y,Pq)),
+            nnf2qlf(Px | Py,Pq)
         ; Q2 = exists(Y,Py) ->
-            Q = all(X,exists(Y,Px | Py))
-        ; Q = all(X,Px | Q2)
+            Q = all(X,exists(Y,Pq)),
+            nnf2qlf(Px | Py,Pq)
+        ; Q = all(X,Pq),
+          nnf2qlf(Px | Q2,Pq)
         )
     ; Q1 = exists(X,Px) ->
-        ( Q2 = all(Y,Px) ->
-            Q = exists(X,all(Y,Px | Py))
+        ( Q2 = all(Y,Py) ->
+            Q = exists(X,all(Y,Pq)),
+            nnf2qlf(Px | Py,Pq)
         ; Q2 = exists(Y,Py) ->
-            Q = exists(X,exists(Y,Px | Py))
-        ; Q = exists(X,Px | Q2)
+            Q = exists(X,exists(Y,Pq)),
+            nnf2qlf(Px | Py,Pq)
+        ; Q = exists(X,Pq),
+          nnf2qlf(Px | Q2,Pq)
         )
     ;
-        ( Q2 = all(Y,Px) ->
-            Q = all(Y,Q1 | Py)
+        ( Q2 = all(Y,Py) ->
+            Q = all(Y,Pq),
+            nnf2qlf(Q1 | Py,Pq)
         ; Q2 = exists(Y,Py) ->
-            Q = exists(Y,Q1 | Py)
+            Q = exists(Y,Pq),
+            nnf2qlf(Q1 | Py,Pq)
         ; Q = (Q1 | Q2)
         )
     ), !.
@@ -740,7 +807,7 @@ is_literal(P) :-
 %
 %  copy_fml(P,Q)  -  make a copy of a formula.  The copy will have all
 %                    bound variables renamed to new vars.  Any free variables
-%                    will retain their original bindings.
+%                    will retain their original names.
 %
 
 copy_fml(P,P) :-
@@ -778,6 +845,23 @@ rename_vars(Vs,P,Vs2,P2) :-
     split_matching(PVars,var_in_list(Vs),_,OtherVs),
     copy_term(P^Vs^OtherVs,P2^Vs2^OtherVs).
 
+
+%
+%  free_vars(Fml,Vars)  -  list of all free variables in the formula
+%
+free_vars(Fml,Vars) :-
+    copy_fml(Fml,Fml2),
+    term_variables(Fml,Vars1),
+    term_variables(Fml2,Vars2),
+    vars_in_both(Vars1,Vars2,[],Vars).
+
+vars_in_both([],_,Vars,Vars).
+vars_in_both([H|T],V2,Acc,Vars) :-
+    ( ismember(H,V2) ->
+        vars_in_both(T,V2,[H|Acc],Vars)
+    ;
+        vars_in_both(T,V2,Acc,Vars)
+    ).
     
 %
 %  terms_in_fml(F,Terms)  -  list all the basic terms found in the formula
@@ -848,6 +932,13 @@ equiv(Axs,F1,F2) :-
 
 
 %
+%  andify(F1,F2)  -  F2 is equivalent to F2, but all & operators have been
+%                    moved as far to the top of the formula as possible.
+%
+
+
+
+%
 %  In conjunction with this file, one requires an implementation of actual
 %  logical reasoning.  Such a reasoning engine, like this file, must enforce
 %  unique names axioms for all ground terms in formulae - that is, for any
@@ -855,7 +946,6 @@ equiv(Axs,F1,F2) :-
 %
 %  The following predicates are expected to be provided by an implementation
 %  of logical reasoning.
-%
 %
 %  fml2axioms(Fml,Axs):  Convert formula to more efficient form
 %

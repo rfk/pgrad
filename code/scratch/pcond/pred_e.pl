@@ -20,16 +20,28 @@ entails(Axs,Conc) :-
 
 %%%  Guts of the implementation below this line %%%
 
+vars_to_typed([],[]).
+vars_to_typed([H|T],[H:_|T2]) :-
+    vars_to_typed(T,T2).
+
 eprove(Axioms,Conc,Result) :-
     % Create input/output files
     tmp_file(e_in,InFile),
     tmp_file(e_out,OutFile),
     tell(InFile),
+    % Universally quantiy all free variables in conc
+    free_vars(Conc,ConcVars),
+    ( ConcVars = [] ->
+          Conc2 = Conc
+    ;
+          vars_to_typed(ConcVars,ConcVars2),
+          Conc2 = all(ConcVars2,Conc)
+    ),
     % Write out axioms in TSTP format
     eprove_write_axioms(Axioms,0,_),
     % Write out the conjecture in TSTP format
     write_ln('fof(conj_1,conjecture,'),
-    term2tstp_write(Conc), nl,
+    term2tstp_write(Conc2), nl,
     write_ln(').'),
     told,
     % Call E and have it write its conclusions in output file

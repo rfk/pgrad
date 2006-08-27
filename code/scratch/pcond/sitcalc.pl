@@ -36,6 +36,14 @@ domain_axioms(Axs) :-
 constraint(true).
 constraint(-false).
 
+
+domain_falsehood(Fml) :-
+    domain_axioms(Axs),
+    entails(Axs,-Fml).
+domain_tautology(Fml) :-
+    domain_axioms(Axs),
+    entails(Axs,Fml).
+
 %
 %  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true
 %
@@ -71,11 +79,16 @@ eps_n(P,A,E) :-
 %
 
 eps_p1((P & Q),A,E) :-
-    % Avoid generating redundant conjuncts be treating all the and
+    % Avoid generating redundant conjuncts by treating all the and
     % terms individually.
     flatten_op('&',[P,Q],Cls),
-    maplist(eps_p1_andcls(A),Cls,Els),
-    joinlist('&',Els,E).
+    eps_p1_andeach(A,Cls,E).
+
+eps_p1_andeach(A,Cls,E) :-
+    select(Cl,Cls,Rest),
+    eps_p(Cl,A,Ec),
+    maplist(eps_p1_andcls(A),Rest,Els),
+    joinlist('&',[Ec|Els],E).
 
 eps_p1_andcls(A,P,E) :-
     eps_p(P,A,Ep),
@@ -91,9 +104,9 @@ eps_p1_andcls(_,P,P).
 
 
 eps_p1((P | _),A,E) :-
-    eps_p(P,A,E).
+    eps_p1(P,A,E).
 eps_p1((_ | Q),A,E) :-
-    eps_p(Q,A,E).
+    eps_p1(Q,A,E).
 
 eps_p1(-P,A,E) :-
     eps_n(P,A,E).
@@ -128,7 +141,7 @@ eps_p1(all(X,P),A,E) :-
     ).
 
 eps_p1(exists(X,P),A,E) :-
-    eps_p(P,A,EP),
+    eps_p1(P,A,EP),
     E = exists(X,EP).
 
 eps_p1(P,A,E) :-
@@ -182,9 +195,8 @@ regression(F,A,Fr) :-
     simplify_c(Frt,Fr).
 
 %  If A is free, find all actions which could affect it.
-%  TODO: eps_p currently cuts over action variables, so this doesnt work
 regression(F,A,Fr) :-
-    var(A), throw(regression_action_unbound),
+    var(A),
     (bagof(Ft,B^regression_bagof(F,A,B,Ft),Fts) ->
         joinlist((|),Fts,Ftmp),
         simplify_c(Ftmp,Fr)

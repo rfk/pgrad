@@ -12,8 +12,8 @@
 %  in the generated formulae.
 %
 pcond_d1v2(F1 & F2,C,P1 & P2) :-
-    pcond_d1(F1,C,P1),
-    pcond_d1(F2,C,P2), !.
+    pcond_d1v2(F1,C,P1),
+    pcond_d1v2(F2,C,P2), !.
 pcond_d1v2(all(X,F),C,all(X,P1)) :-
     pcond_d1v2(F,C,P1), !.
 pcond_d1v2(F1 | F2,C,P1) :-
@@ -21,38 +21,9 @@ pcond_d1v2(F1 | F2,C,P1) :-
     % Perhaps we can special-case for simple independence between F1/F2?
     pcond_d1(F1 | F2,C,P1).
 pcond_d1v2(exists(X,F),C,P1) :-
-    ( bagof(Cn,pcond_d1v2_ex_bagof(X,F,C,Cn),Cns) ->
-        joinlist((&),Cns,P1tmp),
-        simplify_c(P1tmp,P1)
-    ;
-        P1=true
-    ), !.
+    pcond_d1(exists(X,F),C,P1).
 pcond_d1v2(-F,C,P1) :-
-    ( bagof(Cn,pcond_d1v2_neg_bagof(F,C,Cn),Cns) ->
-        joinlist((&),Cns,P1tmp),
-        simplify_c(P1tmp,P1)
-    ;
-        P1=true
-    ), !.
-    
-
-pcond_d1v2_ex_bagof(X,F,C,P) :-
-    action_with_vars(A,Vs),
-    eps_n(F,A,En),
-    adp_fluent(C,A,Ec),
-    ( eps_p(F,A,Ep) ->
-        Pn = -exists(Vs,Ec & -exists(X,(F & -En) | Ep))
-    ;
-        Pn = -exists(Vs,Ec & -exists(X,F & -En))
-    ),
-    simplify_c(Pn,P).
-
-pcond_d1v2_neg_bagof(F,C,P) :-
-    action_with_vars(A,Vs),
-    eps_p(F,A,Ep),
-    adp_fluent(C,A,Ec),
-    Pn = -exists(Vs,Ec & Ep),
-    simplify_c(Pn,P).
+    pcond_d1(-F,C,P1).
     
 
 %
@@ -69,10 +40,8 @@ pcond_d1(F,C,P1) :-
 pcond_d1_bagof(F,C,Cn) :-
     action_with_vars(A,Vs),
     eps_n(F,A,En),
-    %regression(-F,A,En),
     adp_fluent(C,A,Ec),
     Cnt = -exists(Vs,(En & Ec)),
-    %Cn=Cnt.
     simplify_c(Cnt,Cn).
 
 %
@@ -103,5 +72,31 @@ pcond_aux(Axs,C,Fs,F,P) :-
         pcond_d1(F,C,F1),
         add_to_axioms(F,Axs,Axs2),
         pcond_aux(Axs2,C,[F|Fs],F1,P)
+   ).
+
+pcondv2(F,C,P) :-
+    % Don't waste time on falsehoods or tautologies
+    domain_axioms(Axs),
+    add_to_axioms(F,Axs,Axs2),
+    ( entails(Axs2,false) ->
+        P=false
+    ; entails(Axs,F) ->
+        P=true
+    ;
+        pcond_d1v2(F,C,Fp),
+        pcondv2_aux(Axs2,C,[F],Fp,P)
+    ).
+
+pcondv2_aux(Axs,C,Fs,F,P) :-
+    ( entails(Axs,F) ->
+        ( entails(Axs,false) ->
+            P = false
+        ;
+            joinlist('&',Fs,P)
+        )
+    ;
+        pcond_d1v2(F,C,F1),
+        add_to_axioms(F,Axs,Axs2),
+        pcondv2_aux(Axs2,C,[F|Fs],F1,P)
    ).
 
