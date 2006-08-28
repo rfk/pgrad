@@ -317,14 +317,14 @@ adp_fluent(legUnobs(Agt),A,C) :-
     adp_fluent(canObs(Agt),A,C2),
     C = C1 & -C2.
 
-knows(Agt,F,[]) :-
-    pcond(F,legUnobs(Agt),P),
-    holds(P,s0), !.
-knows(Agt,F,[A|T]) :-
-    pcond(F,legUnobs(Agt),P),
-    regression(P,A,R),
-    adp_fluent(poss,A,Poss),
-    knows(Agt,(-Poss | R),T), !.
+%knows(Agt,F,[]) :-
+%    pcond(F,legUnobs(Agt),P),
+%    holds(P,s0), !.
+%knows(Agt,F,[A|T]) :-
+%    pcond(F,legUnobs(Agt),P),
+%    regression(P,A,R),
+%    adp_fluent(poss,A,Poss),
+%    knows(Agt,(-Poss | R),T), !.
 
 %
 %  Implementation version of knows/3
@@ -339,9 +339,11 @@ knows(Agt,Axs,F,[]) :-
         true
     ;
         holds(F,s0),
-        pcond_d1(F,legUnobs(Agt),P1),
         add_to_axioms(F,Axs,Axs2),
-        knows(Agt,Axs2,P1,[])
+        pcond_d1(F,legUnobs(Agt),P1),
+        flatten_op('&',[P1],P1s),
+        length(P1s,N), writeln(N),
+        knows_all(Agt,Axs2,P1s,[])
     ).
 knows(Agt,Axs,F,[A|T]) :-
     ( entails(Axs,F) ->
@@ -350,8 +352,15 @@ knows(Agt,Axs,F,[A|T]) :-
         regression(F,A,R),
         adp_fluent(poss,A,Poss),
         knows(Agt,(-Poss | R),T),
-        pcond_d1(F,legUnobs(Agt),P1),
         add_to_axioms(F,Axs,Axs2),
-        knows(Agt,Axs2,P1,[A|T])
+        pcond_d1(F,legUnobs(Agt),P1),
+        flatten_op('&',[P1],P1s),
+        length(P1s,N), writeln(N),
+        knows_all(Agt,Axs2,P1s,[A|T])
     ).
+
+knows_all(_,_,[],_).
+knows_all(Agt,Axs,[P|Ps],H) :-
+    knows(Agt,Axs,P,H),
+    knows_all(Agt,Axs,Ps,H).
 

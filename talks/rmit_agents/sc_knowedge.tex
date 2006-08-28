@@ -1,0 +1,318 @@
+\documentclass{beamer}
+
+\usepackage{amsmath}
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+
+\mode<presentation>{\usetheme{Dresden}}
+
+\title{Knowedge and Observation\\ in the Situation Calculus}
+\author{Ryan Kelly}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+
+\begin{frame}
+\frametitle{Motivation}
+What do we want?
+\begin{itemize}
+\item A powerful account of multi-agent knowledge
+  \begin{itemize}
+  \item Concurrent Actions
+  \item Partial Observability
+  \end{itemize}
+\pause
+\item that supports complex symbolic reasoning
+\pause
+\item but is still computationally feasible
+\end{itemize}
+\ \\
+\ \\
+\pause
+Our long-term goal: the cooperative execution of a shared Golog program
+by a distributed team of agents.
+\end{frame}
+
+
+\section{Knowledge}
+
+\begin{frame}
+\frametitle{Reasoning about Knowledge}
+
+Knowledge is a modal operator
+\begin{itemize}
+\item Typically represented as: $\mathbf{Knows}(\phi)$ or $\mathbf{Knows}(Ryan,\phi)$
+\item $\neg\mathbf{Knows}(\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(\neg\phi)$
+\end{itemize}
+\ \\
+\ \\
+Thus, it makes sense to approach knowledge using modal logic.
+Knowledge is given semantics in terms of "possible worlds".
+\ \\
+\ \\
+\pause
+Knowledge is "true belief":
+\[ \mathbf{Knows}(\phi)\ \rightarrow\ \phi \]
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Worlds Semantics}
+
+If an agent is unsure about the state of the world, there must be several
+different states of the world that an agent considers possible.
+
+TODO: diagram
+
+The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
+\ \\
+\ \\
+This is bread-and-butter for modal logic, but...
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge and Action}
+"Possible worlds" works well for reasoning about a static knowledge base,
+but what if the world itself is changing?
+\begin{itemize}
+\item  How should the worlds considered possible change in response?
+\item  What of all the associated reasoning-about-actions problems? (frame, quantification, ramification, ...)
+\end{itemize}
+\ \\
+\ \\
+Need to integrate with a powerful \emph{theory of action}.
+\pause
+\ \\
+\ \\
+I happen to know just the thing...
+\end{frame}
+
+\section{Knowledge \& Action}
+
+\begin{frame}
+\frametitle{Knowledge in the Situation Calculus}
+
+Why the situation calculus?
+\begin{itemize}
+\item Elegant monotonic solution to the frame problem
+\item Effective reasoning procedure
+\item "situations" provide a direct analog to "possible worlds"
+\end{itemize}
+\ \\
+\ \\
+Approach due (mainly) to Scherl and Levesque\\
+"Knowledge, Action and the Frame Problem", AI, 2003
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Situations}
+Recall that all statements about the world are relative to a situation.
+So, we must talk about the knowledge of an agent in a particular situation.
+\ \\
+\ \\
+\pause
+Replace "possible worlds" with "possible situations".  Introduce a fluent
+$K(s',s)$ meaning that "in situation $s$, the agent considers it possible
+that the world may be in situation $s'$".
+\ \\
+\ \\
+\pause
+We can then define knowledge as a macro:
+\[ \mathbf{Knows}(\phi,s)\ \isdef\ \forall s'\left[K(s',s)\rightarrow \phi[s']\right] \]
+
+\end{frame}
+
+\begin{frame}
+\frametitle{The Frame Problem}
+To specify what the agent knows initially, restrict the properties of situations
+K-related to $S_0$:
+\begin{gather*}
+  \forall s \left[K(s,S_0) \rightarrow \neg Holding(Sandwich) \right] \\
+  \mathbf{Knows}(\neg Holding(Sandwich),S_0)
+\end{gather*}
+
+\pause
+Since $K$ is just a fluent, we specify how it changes  between situations
+with a successor state axiom:
+\begin{equation*}
+ K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s')
+ \wedge K(s',s) \wedge Poss(a,s')
+\end{equation*}
+
+Automatically inherits the solution to the frame problem!
+\end{frame}
+
+\begin{frame}
+\frametitle{The Frame Solution}
+
+TODO: diagram
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Sensing}
+Agents can acquire additional information about their environment by performing
+"sensing actions" which return a result.  The relationships between actions
+and their sensing results are captured by a new predicate $SR$:
+\begin{equation*}
+SR(isNiceDay,s) = "YES" \equiv \neg Raining(s) \wedge \neg Windy(s)
+\end{equation*}
+These are easily incorporated into the successor state axiom:
+\begin{multline*}
+ K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
+ \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Effective Reasoning}
+The standard tool for effective reasoning in the SC is the
+regression operator $\mathcal{R}$. If fluent $F$ has the successor state axiom
+$F(do(a,s)) \equiv \Phi(a,s)$, then:
+
+\[ \mathcal{R}[F(do(a,s))] = \Phi(a,s) \]
+
+\pause
+In general:
+
+\[  \mathcal{D} \models \phi(do(a,s)) \equiv \mathcal{R}[\phi(do(a,s))] \]
+
+But the regressed term refers to $s$ rather than $do(a,s)$.
+By repeatedly applying $\mathcal{R}$, we reach a fluent expression referring
+only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Effective Reasoning}
+Unfortunately, $\mathcal{R}$ cannot be applied to formulae that quantify
+over situations.  We must therefore special-case
+$\mathcal{R}[\mathbf{Knows}(\phi,s)]$.
+\ \\
+\ \\
+Based on the successor state axioms for $K$, Scherl and Levesque develop
+the following regression rule:
+\begin{multline*}
+  \mathcal{R}[\mathbf{Knows}(\phi,do(a,s))] =
+    \exists y . SR(a,s) = y \wedge \\
+    \mathbf{Knows}(Poss(a) \wedge SR(a)=y\ \rightarrow\ \mathcal{R}[\phi(do(a,s))],s)
+\end{multline*}
+
+We can thus transform a query about knowledge in an arbitrary situation to
+a query about knowledge in the initial situation, which can (as before) be
+tackled more effectively.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Shortcomings}
+This is a very powerful framework.  BUT:
+\begin{itemize}
+ \item Does not handle concurrent actions
+ \item Agents are assumed to be aware of \emph{all} actions that occur
+\end{itemize}
+\ \\
+\ \\
+\pause
+In short, it's not suitable for complex multi-agent domains.
+\ \\
+\ \\
+Can we do better, while maintaining the theoretical and practical elegance
+of this approach?
+\end{frame}
+
+\section{Observations}
+
+\begin{frame}
+\frametitle{Concurrent Actions}
+Basically, replace actions with sets of actions that all occur at the same
+instant:
+\begin{equation*}
+  do(\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s)
+\end{equation*}
+Different agents may be aware of different subsets of the actions that
+have occurred.
+\ \\
+\ \\
+\pause
+When will an agent observe the occurence of an action?
+\end{frame}
+
+\begin{frame}
+\frametitle{Observability}
+Well, let's axiomatise it!
+\begin{multline*}
+  CanObs(agt1,eat(agt2,obj),s) \equiv \\
+     agt1=agt2 \vee facing(agt1,agt2,s)
+\end{multline*}
+$CanObs$ handles action observability in the same way that $Poss$ handles
+action possibility.
+\ \\
+\ \\
+\pause
+Could also ask, when will an agent observe the sensing outcome from an
+action?
+\begin{multline*}
+  CanSense(agt1,getTrainTimes(agt2,obj),s) \equiv \\ withinEarshot(agt1,agt2,s)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Observations}
+We can now formalise the Observations made by each agent when some set of
+concurrent actions is performed.  It is a set of (action,result) pairs such
+that:
+\begin{multline*}
+Observations(agt,c,s) = o \equiv \forall a,r \left[\right. <a,r> \in o \equiv \\
+  a \in c \wedge CanObs(agt,a,s) \wedge \\
+  (CanSense(agt,r) \rightarrow r = SR(a,s)) \wedge \\
+  (\neg CanSense(agt,a,s) \rightarrow r = "?") \left.\right]
+\end{multline*}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{For Example}
+\begin{multline*}
+  Obs(Ryan,\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s) = \\
+     \left\{<eat(John,Sandwich),"OK">,<drink(Ryan,Water),"OK">\right\}
+\end{multline*}
+\pause
+\begin{multline*}
+  Obs(John,\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s) = \\
+     \left\{<eat(John,Sandwich),"OK">\right\}
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Observation Histories}
+We can also track the observations made by an agent as the world has evolved,
+by making a list of the observations made in each situation:
+\begin{multline*}
+ObsHist(agt,\epsilon,S_0)
+\end{multline*}
+\begin{multline*}
+ObsHist(agt,h,do(c,s)) \equiv \\
+    \exists o . Observations(agt,c,s) = o \wedge \\
+    o = \{\} \rightarrow ObsHist(agt,h,s) \wedge \\
+    o \not = \{\} \rightarrow \exists h' . h=o\cdot h' \wedge ObsHist(agt,s,h')
+\end{multline*}
+\end{frame}
+
+\section{Reasoning}
+
+\section{Conclusions}
+
+\end{document}
