@@ -7,8 +7,7 @@
 \mode<presentation>{\usetheme{Dresden}}
 
 \title{Knowedge and Observation\\ in the Situation Calculus}
-\author{Ryan Kelly}
-
+\author{Ryan Kelly (rfk@csse.unimelb.edu.au)}
 \begin{document}
 
 \begin{frame}
@@ -196,6 +195,13 @@ only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$
 \end{frame}
 
 \begin{frame}
+\frametitle{Regression: Quick Example}
+
+TODO: quick example of regression
+
+\end{frame}
+
+\begin{frame}
 \frametitle{Effective Reasoning}
 Unfortunately, $\mathcal{R}$ cannot be applied to formulae that quantify
 over situations.  We must therefore special-case
@@ -242,11 +248,11 @@ instant:
 \begin{equation*}
   do(\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s)
 \end{equation*}
+\pause
 Different agents may be aware of different subsets of the actions that
 have occurred.
 \ \\
 \ \\
-\pause
 When will an agent observe the occurence of an action?
 \end{frame}
 
@@ -307,12 +313,93 @@ ObsHist(agt,\epsilon,S_0)
 ObsHist(agt,h,do(c,s)) \equiv \\
     \exists o . Observations(agt,c,s) = o \wedge \\
     o = \{\} \rightarrow ObsHist(agt,h,s) \wedge \\
-    o \not = \{\} \rightarrow \exists h' . h=o\cdot h' \wedge ObsHist(agt,s,h')
+    o \not = \{\} \rightarrow \exists h' . h=o\cdot h' \wedge ObsHist(agt,h',s)
 \end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Observation Histories}
+Situations are a history of \emph{all actions} that have happened in the world.
+\ \\
+\ \\
+Observation histories track the subset of those actions that were
+\emph{observed} by an agent.
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge follows  Observation}
+Halpern \& Moses, 1990:\\
+"an agent's knowledge at a given time must depend only on its local history:
+the information that it started out with combined with the events it has
+observed since then"
+\pause
+\ \\
+\ \\
+Clearly, we require:
+\begin{multline*}
+\mathbf{Knows}(agt,\phi,s)\ \equiv\ \exists h . ObsHist(agt,h,s) \wedge \\
+    \forall s' . \left[ObsHist(agt,h,s') \rightarrow \phi[s']\right]
+\end{multline*}
+\pause
+\begin{equation*}
+K(agt,s',s)\ \ \equiv\ \ \exists h . ObsHist(agt,h,s) \wedge ObsHist(agt,h,s')
+\end{equation*}
+\end{frame}
+
+\begin{frame}
+\frametitle{SSA for Knowledge}
+First, let's define:
+\begin{multline*}
+  \mathbf{Unobs}(agt,s,s'')\ \isdef\ \\
+    \forall c',s' . s < do(c',s') \leq s'' \rightarrow Observations(agt,c',s') = \{\}
+\end{multline*}
+Then the following successor state axioms captures the intended dynamics of
+knowledge update:
+\begin{multline*}
+  K(agt,s'',do(c,s))\ \equiv\ Observations(agt,c,s) = \{\} \wedge K(agt,s'',s)\\
+  \vee\ \exists o,c',s'.Observations(agt,c,s) = o \wedge o  \neq \{\} \wedge Legal(s'') \\
+  \wedge Observations(agt,c',s')= o \wedge K(agt,s',s) \wedge \mathbf{Unobs}(agt,do(c',s'),s'')
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{SSA Comparison}
+We've gone from this:
+\begin{multline*}
+ K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
+ \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+\end{multline*}
+\pause
+To this:
+\begin{multline*}
+  K(agt,s'',do(c,s))\ \equiv\ Observations(agt,c,s) = \{\} \wedge K(agt,s'',s)\\
+  \vee\ \exists o,c',s'.Observations(agt,c,s) = o \wedge o  \neq \{\} \wedge Legal(s'') \\
+  \wedge Observations(agt,c',s')= o \wedge K(agt,s',s) \wedge \mathbf{Unobs}(agt,do(c',s'),s'')
+\end{multline*}
+\pause
+It's messier, but it's also hiding a much bigger problem...
 \end{frame}
 
 \section{Reasoning}
 
+\begin{frame}
+\frametitle{Regression}
+Recall that $\mathbf{Unobs}$ is defined using quantification over situations.
+Therefore, regression cannot be applied to the RHS of our successor state axiom.
+\ \\
+\ \\
+Observation-based knowldge \alert{cannot} be approached using
+the standard regression operator.
+\ \\
+\ \\
+\pause
+In fact, universal quantification over situations requires a
+second-order induction axiom.
+Must we abandon hope of a effective reasoning procedure?
+\end{frame}
+
 \section{Conclusions}
 
+\begin{frame}
+\end{frame}
 \end{document}
