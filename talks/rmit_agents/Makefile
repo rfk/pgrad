@@ -2,7 +2,7 @@
 
 TEX2PDF = pdflatex
 
-GRAPHICS = frame_soln.jpg poss_worlds.jpg
+GRAPHICS = frame_soln.jpg poss_worlds.jpg k_unobs.jpg k_unobs_highlighted.jpg
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm
 GARBAGE = $(LATEX_GARBAGE) *~
