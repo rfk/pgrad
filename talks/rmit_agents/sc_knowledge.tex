@@ -47,7 +47,7 @@ by a distributed team of agents.
 \section{Knowledge}
 
 \begin{frame}
-\frametitle{Reasoning about Knowledge}
+\frametitle{Knowledge}
 
 Knowledge is a modal operator
 \begin{itemize}
@@ -57,11 +57,11 @@ Knowledge is a modal operator
 \ \\
 \ \\
 Knowledge is "true belief":
+\[ \mathbf{Knows}(\phi)\ \rightarrow\ \phi \]
 \ \\
 \ \\
 Thus, it makes sense to approach knowledge using modal logic.
 Knowledge is given semantics in terms of "possible worlds".
-\[ \mathbf{Knows}(\phi)\ \rightarrow\ \phi \]
 
 \end{frame}
 
@@ -109,7 +109,7 @@ Why the situation calculus?
 \end{itemize}
 \ \\
 \ \\
-Approach due (mainly) to Scherl and Levesque\\
+Approach due (mainly) to Scherl and Levesque:\\
 "Knowledge, Action and the Frame Problem", AI, 2003
 
 \end{frame}
@@ -118,18 +118,23 @@ Approach due (mainly) to Scherl and Levesque\\
 \frametitle{Possible Situations}
 Recall that all statements about the world are relative to a situation.
 So, we must talk about the knowledge of an agent in a particular situation.
-\ \\
-\ \\
+\begin{equation*}
+\mathbf{Knows}(\phi,s)\ \ \mathrm{or}\ \ \mathbf{Knows}(agt,\phi,s)
+\end{equation*}
 \pause
 Replace "possible worlds" with "possible situations".  Introduce a fluent
 $K(s',s)$ meaning that "in situation $s$, the agent considers it possible
 that the world may be in situation $s'$".
-\ \\
-\ \\
-\pause
-We can then define knowledge as a macro:
-\[ \mathbf{Knows}(\phi,s)\ \isdef\ \forall s'\left[K(s',s)\rightarrow \phi[s']\right] \]
+\end{frame}
 
+\begin{frame}
+\frametitle{Possible Situations}
+\begin{center}
+  \includegraphics[scale=0.5]{k_relation.png}
+\end{center}
+
+We can then define knowledge as a simple macro:
+\[ \mathbf{Knows}(\phi,s)\ \isdef\ \forall s'\left[K(s',s)\rightarrow \phi[s']\right] \]
 \end{frame}
 
 \begin{frame}
@@ -137,8 +142,8 @@ We can then define knowledge as a macro:
 To specify what the agent knows initially, restrict the properties of situations
 K-related to $S_0$:
 \begin{gather*}
-  \forall s \left[K(s,S_0) \rightarrow \neg Holding(Sandwich) \right] \\
-  \mathbf{Knows}(\neg Holding(Sandwich),S_0)
+  \mathbf{Knows}(\neg Holding(Sandwich),S_0) \\
+  \Rightarrow \ \ \forall s \left[K(s,S_0) \rightarrow \neg Holding(Sandwich) \right]
 \end{gather*}
 
 \pause
@@ -176,7 +181,7 @@ These are easily incorporated into the successor state axiom:
 
 \begin{frame}
 \frametitle{Effective Reasoning}
-The standard tool for effective reasoning in the SC is the
+The standard tool for effective reasoning in the S.C. is the
 regression operator $\mathcal{R}$. If fluent $F$ has the successor state axiom
 $F(do(a,s)) \equiv \Phi(a,s)$, then:
 
@@ -194,7 +199,7 @@ But the regressed term refers to $s$ rather than $do(a,s)$.
 \begin{frame}
 \frametitle{Regression}
 By repeatedly applying $\mathcal{R}$, we reach a fluent expression referring
-only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$
+only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$:
 \begin{equation*}
   \Sigma \cup \mathcal{D}_{S_0} \cup \mathcal{D}_{Poss} \cup \mathcal{D}_{ssa} \cup \mathcal{D}_{una} \models \phi(s)
 \end{equation*}
@@ -202,7 +207,7 @@ only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$
 iff
 \end{center}
 \begin{equation*}
-  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}[\phi(s)](S_0)
+  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}[\phi(s)](S_0)
 \end{equation*}
 This is usually easier to answer, since regression has already done some
 of the reasoning for us.
@@ -218,7 +223,7 @@ $\mathcal{R}[\mathbf{Knows}(\phi,s)]$.
 Based on the successor state axioms for $K$, Scherl and Levesque develop
 the following regression rule:
 \begin{multline*}
-  \mathcal{R}[\mathbf{Knows}(\phi,do(a,s))] =
+  \mathcal{R}[\mathbf{Knows}(\phi,do(a,s))]\ =\ 
     \exists y . SR(a,s) = y \wedge \\
     \mathbf{Knows}(Poss(a) \wedge SR(a)=y\ \rightarrow\ \mathcal{R}[\phi(do(a,s))],s)
 \end{multline*}
@@ -231,7 +236,7 @@ tackled more effectively.
 
 \begin{frame}
 \frametitle{Shortcomings}
-This is a very powerful framework.  BUT:
+This is a very powerful framework...but:
 \begin{itemize}
  \item Does not handle concurrent actions
  \item Agents are assumed to be aware of \emph{all} actions that occur
@@ -393,9 +398,7 @@ To this:
   \wedge Observations(agt,c',s')= o \wedge K(agt,s',s) \wedge \mathbf{Unobs}(agt,do(c',s'),s'')
 \end{multline*}
 \pause
-\begin{itemize}
-\item It's messier, but it's also hiding a much bigger problem...
-\end{itemize}
+It's messier, but it's also hiding a much bigger problem...
 \end{frame}
 
 \section{Reasoning}
@@ -457,14 +460,14 @@ It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
 \frametitle{Calculating Persistence}
 Define $\mathcal{P}^{1}[\phi,\alpha]$ to be "persistence to depth 1":
 \begin{equation*}
-  \mathcal{P}^{1}[\phi,\alpha](s)\ \isdef\ \phi(s) \wedge \forall c . \alpha(c,s) \rightarrow \mathcal{R}[\phi(do(c,s))]
+  \mathcal{P}^{1}[\phi,\alpha](s)\ \isdef\ \phi(s) \wedge \forall c . \left[\alpha(c,s) \rightarrow \mathcal{R}[\phi(do(c,s))]\right]
 \end{equation*}
 We can assert that a property holds to depth 2, 3, ... by repeatedly applying
 $\mathcal{P}^{1}$:
 \begin{equation*}
   \mathcal{P}^{n}[\phi,\alpha] = \mathcal{P}^{1}[\mathcal{P}^{n-1}[\phi,\alpha],\alpha]
 \end{equation*}
-We want persistence \emph{for any n}:  need the least-fixed-point of $\mathcal{P}^{1}$ \\
+We want persistence \emph{for any n}:  need the least-fixed-point of $\mathcal{P}^{1}$. \\
 Fixed-point theory guarantees we can calculate this by trans-finite iteration.
 \end{frame}
 
@@ -491,7 +494,7 @@ viewpoint:
 The regression operator can be modified to act over observation histories,
 instead of over situations:
 \begin{multline*}
-  \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h] = \\
+  \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
   \mathbf{Knows}(agt,\forall c' . Observations(agt,c',s')=o \rightarrow \\
      \mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)][do(c',s')]],h)
 \end{multline*}
