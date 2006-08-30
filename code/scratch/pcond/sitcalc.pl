@@ -342,7 +342,6 @@ knows(Agt,Axs,F,[]) :-
         add_to_axioms(F,Axs,Axs2),
         pcond_d1(F,legUnobs(Agt),P1),
         flatten_op('&',[P1],P1s),
-        length(P1s,N), writeln(N),
         knows_all(Agt,Axs2,P1s,[])
     ).
 knows(Agt,Axs,F,[A|T]) :-
@@ -355,7 +354,6 @@ knows(Agt,Axs,F,[A|T]) :-
         add_to_axioms(F,Axs,Axs2),
         pcond_d1(F,legUnobs(Agt),P1),
         flatten_op('&',[P1],P1s),
-        length(P1s,N), writeln(N),
         knows_all(Agt,Axs2,P1s,[A|T])
     ).
 
