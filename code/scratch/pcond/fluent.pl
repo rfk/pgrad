@@ -1,17 +1,8 @@
 %
-%  fml.pl:  predicates for handling logical formulae
+%  fluent.pl:  predicates for manipulating fluent terms
 %
-%  This file supplies the basic predicates for manipulating logical
-%  formulae.  These formulae will typically be used to represent
-%  fluents, but I've tried to keep it as general as possible. The
-%  only thing I'm assuming is the unique names axioms (just like
-%  prolog).
-%
-%  Note that we're explicitly working in many-sorted first-order logic,
-%  so each quantified variable must have an assocaited domain of
-%  interpretation.  We also implicitly assume that we'll never construct
-%  formulae that have sorts where they don't belong (this greatly
-%  simplifies simplification).
+%  This file supplies the basic predicates for manipulating and reasoning
+%  about fluent terms.
 %
 %  Variables are expected to be actual prolog variables, as this vastly
 %  increases the simplicity and efficiency of certain operations.  It also
@@ -19,28 +10,37 @@
 %  we assume that the formula contains the *only* references to those
 %  variables, so we are free to bind them in simplification and reasoning.
 %
+%  In addition to manipulating arbitrary formulae, we have the ability
+%  to put fluents into Clause Normal Form and manipulate this form
+%  directly.  We assume the name of the skolem fluent is "skol".
+%
 
 
 %
-%  Our logical operators are:
+%  Our logical operators are the standard TSTP format operators:
 % 
-%     P & Q           -   logical and
-%     P | Q           -   logical or
-%     P -> Q          -   implication
-%     P <-> Q         -   equivalence
-%     -P              -   negation
-%     all([X:D],P)    -   universal quantification
-%     exists([X:D],P) -   existential quantification
-%     A = B           -   object equality
+%     P & Q       -   logical and
+%     P | Q       -   logical or
+%     P => Q      -   implication
+%     P <=> Q     -   equivalence
+%     ~P          -   negation
+%     !([X]:P)    -   universal quantification
+%     ?([X]:P)    -   existential quantification
+%     A = B       -   object equality
 %     
 %  Most of these are native prolog operators so we dont have
-%  to declare them ourselves.  Note that all() and exists()
-%  take a list of typed variables as their first argument - this
+%  to declare them ourselves.  Note that ! and ?
+%  take a list variables as their first argument - this
 %  allows more compact quantification over multiple variables.
 %
 
-:- op(500, yfx, <->).
+:- op(500, yfx, <=>).
+:- op(500, yfx, =>).
 :- op(500, yfx, &).
+:- op(500, yfx, :).
+:- op(550, fx, !).
+:- op(550, fx, ?).
+:- op(200,fy,~).
 
 
 %
@@ -57,13 +57,13 @@ normalize((A=B),(B=A)) :-
     B @< A, !.
 normalize((A=B),true) :-
     A == B, !.
-normalize(exists(X,P),exists(Y,Q)) :-
+normalize(?(X:P),?(Y:Q)) :-
     sort(X,Y),
     normalize(P,Q), !.
-normalize(all(X,P),all(Y,Q)) :-
+normalize(!(X:P),!(Y:Q)) :-
     sort(X,Y),
     normalize(P,Q), !.
-normalize(-P,-Q) :-
+normalize(~P,~Q) :-
     normalize(P,Q), !.
 normalize((P1 & Q1),(P2 & Q2)) :-
     normalize(P1,P2),
@@ -71,10 +71,10 @@ normalize((P1 & Q1),(P2 & Q2)) :-
 normalize((P1 | Q1),(P2 | Q2)) :-
     normalize(P1,P2),
     normalize(Q1,Q2), !.
-normalize((P1 -> Q1),(P2 -> Q2)) :-
+normalize((P1 => Q1),(P2 => Q2)) :-
     normalize(P1,P2),
     normalize(Q1,Q2), !.
-normalize((P1 <-> Q1),(P2 <-> Q2)) :-
+normalize((P1 <=> Q1),(P2 <=> Q2)) :-
     normalize(P1,P2),
     normalize(Q1,Q2), !.
 normalize(P,P). 
@@ -91,7 +91,7 @@ normalize(P,P).
 struct_equiv(P,Q) :-
     struct_equiv(P,Q,[],_).
 
-pairvars(A:D,B:D,A^B).
+pairvars(A,B,A^B).
 
 :- index(struct_equiv(1,1,0,0)).
 
@@ -100,7 +100,7 @@ struct_equiv(P,Q,VPairs,VPairs) :-
 struct_equiv(P,Q,VPairs,VPairs) :-
     var(Q), !, var(P), (P==Q ; ismember(P^Q,VPairs)), !.
 struct_equiv(P,Q,VPairs,VPairs2) :-
-    is_literal(P), is_literal(Q),
+    is_atom(P), is_atom(Q),
     nonvar(P), nonvar(Q),
     P =.. [F|ArgsP],
     Q =.. [F|ArgsQ],
@@ -111,19 +111,19 @@ struct_equiv(P & Q,R & S,VPairs,VPairs2) :-
 struct_equiv(P | Q,R | S,VPairs,VPairs2) :-
     struct_equiv(P,R,VPairs,VPairs1),
     struct_equiv(Q,S,VPairs1,VPairs2).
-struct_equiv(P -> Q,R -> S,VPairs,VPairs2) :-
+struct_equiv(P => Q,R => S,VPairs,VPairs2) :-
     struct_equiv(P,R,VPairs,VPairs1),
     struct_equiv(Q,S,VPairs1,VPairs2).
-struct_equiv(P <-> Q,R <-> S,VPairs,VPairs2) :-
+struct_equiv(P <=> Q,R <=> S,VPairs,VPairs2) :-
     struct_equiv(P,R,VPairs,VPairs1),
     struct_equiv(Q,S,VPairs1,VPairs2).
-struct_equiv(-P,-Q,VPairs,VPairs2) :-
+struct_equiv(~P,~Q,VPairs,VPairs2) :-
     struct_equiv(P,Q,VPairs,VPairs2).
-struct_equiv(all(VarsP,P),all(VarsQ,Q),VPairs,VPairs2) :-
+struct_equiv(!(VarsP:P),!(VarsQ:Q),VPairs,VPairs2) :-
     maplist(pairvars,VarsP,VarsQ,VPairsT),
     append(VPairsT,VPairs,VPairs1),
     struct_equiv(P,Q,VPairs1,VPairs2).
-struct_equiv(exists(VarsP,P),exists(VarsQ,Q),VPairs,VPairs2) :-
+struct_equiv(?(VarsP:P),?(VarsQ:Q),VPairs,VPairs2) :-
     maplist(pairvars,VarsP,VarsQ,VPairsT),
     append(VPairsT,VPairs,VPairs1),
     struct_equiv(P,Q,VPairs1,VPairs2).
@@ -135,9 +135,9 @@ struct_equiv_list([H1|T1],[H2|T2],VP,VP2) :-
 
 
 struct_oppos(P,Q) :-
-    P = -P1, struct_equiv(P1,Q) -> true
+    P = ~P1, struct_equiv(P1,Q) -> true
     ;
-    Q = -Q1, struct_equiv(P,Q1) -> true
+    Q = ~Q1, struct_equiv(P,Q1) -> true
     ;
     P=true, Q=false -> true
     ;
@@ -179,7 +179,7 @@ fml_compare(Ord,F1,F2) :-
 %
 
 %  Since we know that B is a variable, we do this test by making a copy,
-%  grounding the copied variable, then checking for structural equivalent
+%  grounding the copied variable, then checking for structural equivalence
 %  with the original term.
 %
 contains_var(A,V) :-
@@ -261,31 +261,16 @@ ismember(E,[H|T]) :-
         ismember(E,T)
     ).
 
-
 %
-%  vmember(Elem,List) - like member/2, but specific to our quant variable lists
-%
-%  Required because using member/2 would actually bind the variables in the
-%  list, which we dont want.
-%
-vmember(_,[]) :- fail.
-vmember(E:V,[H:U|T]) :-
-    V=U, E == H
-    ;
-    vmember(E:V,T).
-
-%
-%  vdelete(List,Elem,Result) - like delete/3 but for quant variable lists
-%
-%  Obvious conterpart to vmember/2
+%  vdelete(List,Elem,Result) - like delete/3 but for variable lists
 %
 vdelete([],_,[]).
-vdelete([H:U|T],E:V,Res) :-
-    ( V=U, E == H ->
-        vdelete(T,E:V,Res)
+vdelete([H|T],E,Res) :-
+    ( E == H ->
+        vdelete(T,E,Res)
     ;
-        Res = [H:U|T2],
-        vdelete(T,E:V,T2)
+        Res = [H|T2],
+        vdelete(T,E,T2)
     ).
 
 %
@@ -305,21 +290,21 @@ split_matching([E|T],Pred,Y,N) :-
 %
 %  ncontains_varterm(P,V)  -  P does not contain the variable term V
 %
-ncontains_varterm(P,X:_) :-
+ncontains_varterm(P,X) :-
     ncontains_var(P,X).
 
 %
 %  indep_of_vars(Vars,P)  -  P contains none of the vars in the list Vars
 %
 indep_of_vars(Vars,P) :-
-    \+ ( member(X:_,Vars), contains_var(P,X) ).
+    \+ ( member(X,Vars), contains_var(P,X) ).
 
 
 %
 %  var_in_list(Var,VarL)  -  variable V is in the list VarL
 %
 var_in_list([],_) :- fail.
-var_in_list([H:_|T],V) :-
+var_in_list([H|T],V) :-
     ( V == H ->
         true
     ;
@@ -351,7 +336,7 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  fact equivalent.  If not, it raises an exception.
 %  
 simplify(P,P) :-
-    is_literal(P), P \= (_ = _).
+    is_atom(P), P \= (_ = _).
 simplify(P & Q,S) :-
     flatten_op('&',[P,Q],TermsT),
     maplist(simplify_c,TermsT,TermsS),
@@ -382,7 +367,7 @@ simplify(P | Q,S) :-
     ;
         joinlist('|',Terms,S)
     ).
-simplify(P -> Q,S) :-
+simplify(P => Q,S) :-
     simplify_c(P,Sp),
     simplify_c(Q,Sq),
     (
@@ -392,11 +377,11 @@ simplify(P -> Q,S) :-
     ;
         Sq=true -> S=true
     ;
-        Sq=false -> S=(-Sp)
+        Sq=false -> S=(~Sp)
     ;
-        S = (Sp -> Sq)
+        S = (Sp => Sq)
     ).
-simplify(P <-> Q,S) :-
+simplify(P <=> Q,S) :-
     simplify_c(P,Sp),
     simplify_c(Q,Sq),
     (
@@ -404,31 +389,31 @@ simplify(P <-> Q,S) :-
     ;
         struct_oppos(P,Q) -> S=false
     ;
-        Sp=false -> S=(-Sq)
+        Sp=false -> S=(~Sq)
     ;
         Sq=true -> S=Sq
     ;
-        Sq=false -> S=(-Sp)
+        Sq=false -> S=(~Sp)
     ;
         Sq=true -> S=Sp
     ;
-        S = (Sp <-> Sq)
+        S = (Sp <=> Sq)
     ).
-simplify(-P,S) :-
+simplify(~P,S) :-
     simplify_c(P,SP),
     (
         SP=false -> S=true
     ;
         SP=true -> S=false
     ;
-        SP = -P2 -> S=P2
+        SP = ~P2 -> S=P2
     ;
-        S = -SP
+        S = ~SP
     ).
-simplify(all(Xs,P),S) :-
+simplify(!(Xs:P),S) :-
     ( Xs = [] -> simplify_c(P,S)
     ;
-    flatten_quant_and_simp('all',P,Xs,VarsT,Body),
+    flatten_quant_and_simp('!',P,Xs,VarsT,Body),
     sort(VarsT,Vars),
     (
         Body=false -> S=false
@@ -446,31 +431,31 @@ simplify(all(Xs,P),S) :-
             % Because we have removed useless vars, BT2 cannot be empty
             joinlist('|',BT2,Body2),
             ( Indep = [] ->
-              S2=all(Vars2,Body2)
+              S2=!(Vars2:Body2)
             ;
               joinlist('|',Indep,IndepB),
-              S2=(all(Vars2,Body2) | IndepB)
+              S2=(!(Vars2:Body2) | IndepB)
             )
           
           ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
             split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
             joinlist('&',BT2,Body2),
             ( Indep = [] ->
-              S2=all(Vars2,Body2)
+              S2=!(Vars2:Body2)
             ;
               joinlist('&',Indep,IndepB),
-              S2=(all(Vars2,Body2) & IndepB)
+              S2=(!(Vars2:Body2) & IndepB)
             )
           ;
-            S2=all(Vars2,Body)
+            S2=!(Vars2:Body)
           )
         ),
         S = S2
     )).
-simplify(exists(Xs,P),S) :-
+simplify(?(Xs:P),S) :-
    ( Xs = [] -> simplify_c(P,S)
    ;
-   flatten_quant_and_simp('exists',P,Xs,VarsT,Body),
+   flatten_quant_and_simp('?',P,Xs,VarsT,Body),
    sort(VarsT,Vars),
    (
        Body=false -> S=false
@@ -478,8 +463,8 @@ simplify(exists(Xs,P),S) :-
        Body=true -> S=true
    ;
        % Remove vars that are assigned a specific value, therefore useless
-       member(T1:_,Vars), var_valuated(T1,Body,Body2) ->
-           vdelete(Vars,T1:_,Vars2), simplify_c(exists(Vars2,Body2),S)
+       member(T1,Vars), var_valuated(T1,Body,Body2) ->
+           vdelete(Vars,T1,Vars2), simplify_c(?(Vars2:Body2),S)
    ;
        % Remove any useless variables
        split_matching(Vars,ncontains_varterm(Body),_,Vars2),
@@ -491,22 +476,22 @@ simplify(exists(Xs,P),S) :-
            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
            joinlist('|',BT2,Body2),
            ( Indep = [] ->
-             S = exists(Vars2,Body2)
+             S = ?(Vars2:Body2)
            ;
              joinlist('|',Indep,IndepB),
-             S = (exists(Vars2,Body2) | IndepB)
+             S = (?(Vars2:Body2) | IndepB)
            )
          ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
            joinlist('&',BT2,Body2),
            ( Indep = [] ->
-             S = exists(Vars2,Body2)
+             S = ?(Vars2:Body2)
            ;
              joinlist('&',Indep,IndepB),
-             S = (exists(Vars2,Body2) & IndepB)
+             S = (?(Vars2:Body2) & IndepB)
            )
          ;
-           S=exists(Vars2,Body)
+           S = ?(Vars2:Body)
          )
        )
    )).
@@ -535,7 +520,7 @@ simplify_c(F1,F2) :-
         throw(simp_inonuniq)
     ),
     % Check that the two formulae remain equivalent, if we can do so safely
-    ( F1 \= exists([],_), F1 \= all([],_) ->
+    ( F1 \= ?([]:_), F1 \= !([]:_) ->
         simplify(F1,F2),
         ( equiv(F1,F2) ->
             true
@@ -579,9 +564,9 @@ var_given_value(X,P & Q,V) :-
 var_given_value(X,P | Q,V) :-
    flatten_op('|',[P,Q],Cs),
    var_given_value_list(X,Cs,V).
-var_given_value(X,all(_,P),V) :-
+var_given_value(X,!(_:P),V) :-
     var_given_value(X,P,V).
-var_given_value(X,exists(_,P),V) :-
+var_given_value(X,?(_:P),V) :-
     var_given_value(X,P,V).
 
 var_given_value_list(_,[],_).
@@ -601,7 +586,7 @@ var_given_value_list(X,[H|T],V) :-
 
 var_valuated(X,P,Q) :-
    var_given_value(X,P,V),
-   rename_vars([X:_],P,[V:_],Q), !.
+   rename_vars([X],P,[V],Q), !.
 
 % There's some trickery here, we allow ourselves to distribute
 % the and over an or if the or has a valuation.
@@ -618,9 +603,9 @@ var_valuated(X,P | Q,V) :-
    flatten_op('|',[P,Q],Cs),
    var_valuated_list(X,Cs,Vs),
    joinlist('|',Vs,V).
-var_valuated(X,all(V,P),all(V,Q)) :-
+var_valuated(X,!(V:P),!(V:Q)) :-
     var_valuated(X,P,Q).
-var_valuated(X,exists(V,P),exists(V,Q)) :-
+var_valuated(X,?(V:P),?(V:Q)) :-
     var_valuated(X,P,Q).
 
 var_valuated_list(_,[],[]).
@@ -679,129 +664,42 @@ subs_list(X,Y,[T|Ts],[Tr|Trs]) :-
 %
 %  fml2nnf:  convert a formula to negation normal form
 %
-fml2nnf(P <-> Q,N) :-
-    fml2nnf((P -> Q) & (Q -> P),N), !.
-fml2nnf(P -> Q,N) :-
-    fml2nnf((-P) | Q,N), !.
-fml2nnf(-(P & Q),N) :-
-   fml2nnf((-P) | (-Q),N), !.
-fml2nnf(-(P | Q),N) :-
-   fml2nnf((-P) & (-Q),N), !.
-fml2nnf(-(all(X,P)),N) :-
-   fml2nnf(exists(X,-P),N), !.
-fml2nnf(-(exists(X,P)),N) :-
-   fml2nnf(all(X,-P),N), !.
-fml2nnf(-(-P),N) :-
+fml2nnf(P <=> Q,N) :-
+    fml2nnf((P => Q) & (Q => P),N), !.
+fml2nnf(P => Q,N) :-
+    fml2nnf((~P) | Q,N), !.
+fml2nnf(~(P & Q),N) :-
+   fml2nnf((~P) | (~Q),N), !.
+fml2nnf(~(P | Q),N) :-
+   fml2nnf((~P) & (~Q),N), !.
+fml2nnf(~(!(X:P)),N) :-
+   fml2nnf( ?(X : ~P) ,N), !.
+fml2nnf(~(?(X:P)),N) :-
+   fml2nnf(!(X : ~P),N), !.
+fml2nnf(~(~P),N) :-
     fml2nnf(P,N), !.
 fml2nnf(P & Q,Np & Nq) :-
     fml2nnf(P,Np), fml2nnf(Q,Nq), !.
 fml2nnf(P | Q,Np | Nq) :-
     fml2nnf(P,Np), fml2nnf(Q,Nq), !.
-fml2nnf(all(X,P),all(X,N)) :-
+fml2nnf(!(X:P),!(X:N)) :-
     fml2nnf(P,N), !.
-fml2nnf(exists(X,P),exists(X,N)) :-
+fml2nnf(?(X:P),?(X:N)) :-
     fml2nnf(P,N), !.
 fml2nnf(P,P).
 
 
 %
-%  nnf2qlf(F,Q)  -  convert formula from NNF to "quantifier left form".
-%                   This is like prenix normal form, but doesnt require the
-%                   matrix to be in CNF.
+%  is_atom(P)  -  the formula P is an atom, not a compound expression
 %
-%                   This process depends very heavily on the assumption
-%                   that all bound variables are uniquely named!
-%
-
-nnf2qlf(F1 & F2,Q) :-
-    nnf2qlf(F1,Q1),
-    nnf2qlf(F2,Q2),
-    ( Q1 = all(X,Px) ->
-        ( Q2 = all(Y,Py) ->
-            Q = all(X,all(Y,Pq)),
-            nnf2qlf(Px & Py,Pq)
-        ; Q2 = exists(Y,Py) ->
-            Q = all(X,exists(Y,Pq)),
-            nnf2qlf(Px & Py,Pq)
-        ; Q = all(X,Pq),
-          nnf2qlf(Px & Q2,Pq)
-        )
-    ; Q1 = exists(X,Px) ->
-        ( Q2 = all(Y,Py) ->
-            Q = exists(X,all(Y,Pq)),
-            nnf2qlf(Px & Py,Pq)
-        ; Q2 = exists(Y,Py) ->
-            Q = exists(X,exists(Y,Pq)),
-            nnf2qlf(Px & Py,Pq)
-        ; Q = exists(X,Pq),
-          nnf2qlf(Px & Q2,Pq)
-        )
-    ;
-        ( Q2 = all(Y,Py) ->
-            Q = all(Y,Pq),
-            nnf2qlf(Q1 & Py,Pq)
-        ; Q2 = exists(Y,Py) ->
-            Q = exists(Y,Pq),
-            nnf2qlf(Q1 & Py,Pq)
-        ; Q = (Q1 & Q2)
-        )
-    ), !.
-nnf2qlf(F1 | F2,Q) :-
-    nnf2qlf(F1,Q1),
-    nnf2qlf(F2,Q2),
-    ( Q1 = all(X,Px) ->
-        ( Q2 = all(Y,Px) ->
-            Q = all(X,all(Y,Pq)),
-            nnf2qlf(Px | Py,Pq)
-        ; Q2 = exists(Y,Py) ->
-            Q = all(X,exists(Y,Pq)),
-            nnf2qlf(Px | Py,Pq)
-        ; Q = all(X,Pq),
-          nnf2qlf(Px | Q2,Pq)
-        )
-    ; Q1 = exists(X,Px) ->
-        ( Q2 = all(Y,Py) ->
-            Q = exists(X,all(Y,Pq)),
-            nnf2qlf(Px | Py,Pq)
-        ; Q2 = exists(Y,Py) ->
-            Q = exists(X,exists(Y,Pq)),
-            nnf2qlf(Px | Py,Pq)
-        ; Q = exists(X,Pq),
-          nnf2qlf(Px | Q2,Pq)
-        )
-    ;
-        ( Q2 = all(Y,Py) ->
-            Q = all(Y,Pq),
-            nnf2qlf(Q1 | Py,Pq)
-        ; Q2 = exists(Y,Py) ->
-            Q = exists(Y,Pq),
-            nnf2qlf(Q1 | Py,Pq)
-        ; Q = (Q1 | Q2)
-        )
-    ), !.
-nnf2qlf(all(X,P),all(X,Q)) :-
-    nnf2qlf(P,Q).
-nnf2qlf(exists(X,P),exists(X,Q)) :-
-    nnf2qlf(P,Q).
-nnf2qlf(P,P).
-
-
-fml2qlf(P,Q) :-
-    copy_fml(P,Pc),
-    fml2nnf(Pc,N),
-    nnf2qlf(N,Q).
-
-%
-%  is_literal(P)  -  the formula P is a literal, not a compound expression
-%
-is_literal(P) :-
-    P \= (-_),
+is_atom(P) :-
+    P \= (~_),
+    P \= (_ => _),
+    P \= (_ <=> _),
     P \= (_ & _),
     P \= (_ | _),
-    P \= (_ -> _),
-    P \= (_ <-> _),
-    P \= exists(_,_),
-    P \= all(_,_).
+    P \= ?(_:_),
+    P \= !(_:_).
 
 
 %
@@ -813,25 +711,25 @@ is_literal(P) :-
 copy_fml(P,P) :-
     var(P), !.
 copy_fml(P,P) :-
-    is_literal(P).
+    is_atom(P).
 copy_fml(P & Q,R & S) :-
     copy_fml(P,R),
     copy_fml(Q,S).
 copy_fml(P | Q,R | S) :-
     copy_fml(P,R),
     copy_fml(Q,S).
-copy_fml(P -> Q,R -> S) :-
+copy_fml(P => Q,R => S) :-
     copy_fml(P,R),
     copy_fml(Q,S).
-copy_fml(P <-> Q,R <-> S) :-
+copy_fml(P <=> Q,R <=> S) :-
     copy_fml(P,R),
     copy_fml(Q,S).
-copy_fml(-P,-Q) :-
+copy_fml(~P,~Q) :-
     copy_fml(P,Q).
-copy_fml(all(VarsP,P),all(VarsQ,Q)) :-
+copy_fml(!(VarsP:P),!(VarsQ:Q)) :-
     rename_vars(VarsP,P,VarsQ,P2),
     copy_fml(P2,Q).
-copy_fml(exists(VarsP,P),exists(VarsQ,Q)) :-
+copy_fml(?(VarsP:P),?(VarsQ:Q)) :-
     rename_vars(VarsP,P,VarsQ,P2),
     copy_fml(P2,Q).
 
@@ -867,15 +765,15 @@ vars_in_both([H|T],V2,Acc,Vars) :-
 %  terms_in_fml(F,Terms)  -  list all the basic terms found in the formula
 %
 terms_in_fml(P,Terms) :-
-    is_literal(P), !,
+    is_atom(P), !,
     P =.. [_|Args],
     sublist(ground,Args,TermsT),
     sort(TermsT,Terms).
-terms_in_fml(-P,Terms) :-
+terms_in_fml(~P,Terms) :-
     !, terms_in_fml(P,Terms).
 terms_in_fml(CP,Terms) :-
     CP =.. [Op,P1,P2],
-    memberchk(Op,['&','|','->','<->']), !,
+    memberchk(Op,['&','|','=>','<=>']), !,
     terms_in_fml(P1,T1),
     terms_in_fml(P2,T2),
     oset_union(T1,T2,Terms).
@@ -888,13 +786,14 @@ terms_in_fml(CP,Terms) :-
 
 %
 %  vars_are_unique(F)  -  check that each quantified var in F is unique
+%
 
 vars_are_unique(Fml) :-
     vars_are_unique(Fml,[],_).
 
 vars_are_unique(P,SoFar,SoFar) :-
-    is_literal(P).
-vars_are_unique(-P,SoFar,SoFar2) :-
+    is_atom(P).
+vars_are_unique(~P,SoFar,SoFar2) :-
     vars_are_unique(P,SoFar,SoFar2).
 vars_are_unique(P & Q,SoFar,SoFar2) :-
     vars_are_unique(P,SoFar,SoFar1),
@@ -902,18 +801,18 @@ vars_are_unique(P & Q,SoFar,SoFar2) :-
 vars_are_unique(P | Q,SoFar,SoFar2) :-
     vars_are_unique(P,SoFar,SoFar1),
     vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(P -> Q,SoFar,SoFar2) :-
+vars_are_unique(P => Q,SoFar,SoFar2) :-
     vars_are_unique(P,SoFar,SoFar1),
     vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(P <-> Q,SoFar,SoFar2) :-
+vars_are_unique(P <=> Q,SoFar,SoFar2) :-
     vars_are_unique(P,SoFar,SoFar1),
     vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(all(V,P),SoFar,SoFar2) :-
-    \+ ( member(X:_,V), vmember(X:_,SoFar) ),
+vars_are_unique(!(V:P),SoFar,SoFar2) :-
+    \+ ( member(X,V), ismember(X,SoFar) ),
     append(V,SoFar,SoFar1),
     vars_are_unique(P,SoFar1,SoFar2).
-vars_are_unique(exists(V,P),SoFar,SoFar2) :-
-    \+ ( member(X:_,V), vmember(X:_,SoFar), write('DUPL VAR: '), write(X), nl ),
+vars_are_unique(?(V:P),SoFar,SoFar2) :-
+    \+ ( member(X,V), ismember(X,SoFar), write('DUPL VAR: '), write(X), nl ),
     append(V,SoFar,SoFar1),
     vars_are_unique(P,SoFar1,SoFar2).
 
@@ -923,20 +822,12 @@ vars_are_unique(exists(V,P),SoFar,SoFar2) :-
 %
 
 equiv(F1,F2) :-
-    fml2axioms(true & -false,Axs),
+    fml2axioms(true & ~false,Axs),
     equiv(Axs,F1,F2).
 
 equiv(Axs,F1,F2) :-
-    entails(Axs,F1 -> F2),
-    entails(Axs,F2 -> F1).
-
-
-%
-%  andify(F1,F2)  -  F2 is equivalent to F2, but all & operators have been
-%                    moved as far to the top of the formula as possible.
-%
-
-
+    entails(Axs,F1 => F2),
+    entails(Axs,F2 => F1).
 
 %
 %  In conjunction with this file, one requires an implementation of actual

@@ -134,7 +134,7 @@ that the world may be in situation $s'$".
 \end{center}
 
 We can then define knowledge as a simple macro:
-\[ \mathbf{Knows}(\phi,s)\ \isdef\ \forall s'\left[K(s',s)\rightarrow \phi[s']\right] \]
+\[ \mathbf{Knows}(\phi,s)\ \isdef\ \forall s'\left[K(s',s)\rightarrow \phi(s')\right] \]
 \end{frame}
 
 \begin{frame}
@@ -143,7 +143,7 @@ To specify what the agent knows initially, restrict the properties of situations
 K-related to $S_0$:
 \begin{gather*}
   \mathbf{Knows}(\neg Holding(Sandwich),S_0) \\
-  \Rightarrow \ \ \forall s \left[K(s,S_0) \rightarrow \neg Holding(Sandwich) \right]
+  \Rightarrow \ \ \forall s \left[K(s,S_0) \rightarrow \neg Holding(Sandwich,s) \right]
 \end{gather*}
 
 \pause
@@ -416,7 +416,7 @@ the standard regression operator.
 \pause
 In fact, universal quantification over situations requires a
 second-order induction axiom.
-Must we abandon hope of a effective reasoning procedure?
+Must we abandon hope of an effective reasoning procedure?
 \end{frame}
 
 \begin{frame}
@@ -429,9 +429,16 @@ Define the \emph{persistence condition} $\mathcal{P}[\phi,\alpha]$ of a formula
  $\phi$ and action conditions $\alpha$ to mean: assuming all future actions
 satisfy $\alpha$, $\phi$ will remain true.
 \begin{multline*}
-  \mathcal{P}[\alpha,\phi][s]\ \equiv\ \forall s''.s \leq s'' \ \wedge\\
-    \left( \forall c',s' . s<do(c',s')\leq s'' \rightarrow \alpha (c',s') \right) \rightarrow \phi[s']
+  \mathcal{P}[\alpha,\phi](s)\ \equiv\ \forall s''.s \leq s'' \ \wedge\\
+    \left( \forall c',s' . s<do(c',s')\leq s'' \rightarrow \alpha (c',s') \right) \rightarrow \phi(s')
 \end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{$\mathcal{R}$ Graphically}
+\begin{center}
+  \includegraphics[scale=0.5]{k_unobs_highlighted.png}
+\end{center}
 \end{frame}
 
 \begin{frame}
@@ -442,18 +449,11 @@ It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
      \left[ Observations(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
      \wedge \left[ \exists o . Observations(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
      \mathbf{Knows}(agt,\forall c' . Observations(agt,c',s')=o \rightarrow \\
-     \left.\mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)][do(c',s')]],s)\right]
+     \left.\mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)](do(c',s'))],s)\right]
 \end{multline*}
 \begin{equation*}
   \mathbf{UA}(agt,c,s)\ \isdef\ Poss(c,s) \wedge Observations(agt,c,s) = \{\}
 \end{equation*}
-\end{frame}
-
-\begin{frame}
-\frametitle{$\mathcal{R}$ Graphically}
-\begin{center}
-  \includegraphics[scale=0.5]{k_unobs_highlighted.png}
-\end{center}
 \end{frame}
 
 \begin{frame}
@@ -479,7 +479,7 @@ We, the omniscient designer, can determine whether an agent knows something
   \mathcal{D} \models \mathbf{Knows}(agt,\phi,s)
 \end{equation*}
 \begin{equation*}
-  \mathcal{D}_{S_0} \models \mathcal{R}^{*}[\mathbf{Knows}(agt,\phi,s)]
+  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}[\mathbf{Knows}(agt,\phi,s)]
 \end{equation*}
 But the agent cannot use this to reason about its own knowledge, as it doesn't
 know the current situation.  It needs to be able to reason from a local
@@ -496,7 +496,7 @@ instead of over situations:
 \begin{multline*}
   \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
   \mathbf{Knows}(agt,\forall c' . Observations(agt,c',s')=o \rightarrow \\
-     \mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)][do(c',s')]],h)
+     \mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)](do(c',s'))],h)
 \end{multline*}
 We can equip agents with a situation calculus model of their own environment.
 \end{frame}

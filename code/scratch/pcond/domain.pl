@@ -8,13 +8,13 @@ agent(harriet).
 
 resource(knife1).
 resource(knife2).
-%resource(knife3).
-%resource(board1).
-%resource(board2).
-%resource(bowl1).
-%resource(bowl2).
-%resource(bowl3).
-%resource(oven).
+resource(knife3).
+resource(board1).
+resource(board2).
+resource(bowl1).
+resource(bowl2).
+resource(bowl3).
+resource(oven).
 
 
 % Enumerates primitive actions, and the domains of their arguments.
@@ -54,4 +54,6 @@ causes_true(broken(Res),drop(_,Res2),(Res=Res2) & fragile(Res2)).
 % Specify domain constraints as additional background knowledge
 %
 constraint(all([Agt1:agent,Agt2:agent,Obj:resource],-(holding(Agt1,Obj) & holding(Agt2,Obj)) | Agt1=Agt2)).
+
+
 

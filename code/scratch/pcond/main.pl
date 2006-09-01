@@ -4,12 +4,9 @@
 
 :- multifile(constraint/1).
 
-:- op(500, yfx, <->).
-:- op(500, yfx, &).
+:- discontiguous(eps_p1/3).
 
-
-:- [fml].
-:- [pred_e].
+:- [fluent].
 :- [domain].
 :- [sitcalc].
 :- [pcond].

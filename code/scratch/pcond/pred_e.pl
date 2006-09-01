@@ -5,9 +5,6 @@
 %  perhaps I should convert them to clausal form or something.  Anyway,
 %  the only really interesting interface predicate is entails/2.
 %
-%  TODO: trying to enfore UNA using E's built-in functionality, we'll
-%        see how I go...
-%
 
 
 fml2axioms(Fml,[Fml]).
@@ -20,10 +17,6 @@ entails(Axs,Conc) :-
 
 %%%  Guts of the implementation below this line %%%
 
-vars_to_typed([],[]).
-vars_to_typed([H|T],[H:_|T2]) :-
-    vars_to_typed(T,T2).
-
 eprove(Axioms,Conc,Result) :-
     % Create input/output files
     tmp_file(e_in,InFile),
@@ -34,8 +27,7 @@ eprove(Axioms,Conc,Result) :-
     ( ConcVars = [] ->
           Conc2 = Conc
     ;
-          vars_to_typed(ConcVars,ConcVars2),
-          Conc2 = all(ConcVars2,Conc)
+          Conc2 = all(ConcVars,Conc)
     ),
     % Write out axioms in TSTP format
     eprove_write_axioms(Axioms,0,_),
@@ -63,83 +55,17 @@ eprove(Axioms,Conc,Result) :-
     ).
 
 
-eprove_write_axioms([],N,N).
-eprove_write_axioms([Ax|Axs],N0,N) :-
-    write('fof(axiom_'), write(N0), write(',axiom,'), nl,
-    term2tstp_write(Ax), nl,
-    write(').'), nl,
-    N1 is N0 + 1,
-    eprove_write_axioms(Axs,N1,N).
-
-term2tstp_write(P) :-
-    var(P), write('V'), write(P), !.
-term2tstp_write(-Term) :-
-    write('~('),
-    term2tstp_write(Term),
-    write(')'), !.
-term2tstp_write(P -> Q) :-
-    write('('),
-    term2tstp_write(P),
-    write(' => '),
-    term2tstp_write(Q),
-    write(')'), !.
-term2tstp_write(P <-> Q) :-
-    write('('),
-    term2tstp_write(P),
-    write(' <=> '),
-    term2tstp_write(Q),
-    write(')'), !.
-term2tstp_write(P & Q) :-
-    write('('),
-    term2tstp_write(P),
-    write(' & '),
-    term2tstp_write(Q),
-    write(')'), !.
-term2tstp_write(P = Q) :-
-    write('('),
-    term2tstp_write(P),
-    write(' = '),
-    term2tstp_write(Q),
-    write(')'), !.
-term2tstp_write(P | Q) :-
-    write('('),
-    term2tstp_write(P),
-    write(' | '),
-    term2tstp_write(Q),
-    write(')'), !.
-term2tstp_write(all(X,P)) :-
-    write('( ! ['),
-    term2tstp_write_vars(X),
-    write('] : ('),
-    term2tstp_write(P),
-    write('))'), !.
-term2tstp_write(exists(X,P)) :-
-    write('( ? ['),
-    term2tstp_write_vars(X),
-    write('] : ('),
-    term2tstp_write(P),
-    write('))'), !.
-term2tstp_write(P) :-
-    % Enforce UNA by treating all atoms as unique object identifiers
-    functor(P,P,0),
-    write('"'), write(P), write('"'), !.
-term2tstp_write(P) :-
-    P =.. [F|Args],
-    write(F),
-    write('('),
-    term2tstp_write_args(Args),
-    write(')'), !.
-term2tstp_write_args([H]) :-
-    term2tstp_write(H).
-term2tstp_write_args([H,H2|T]) :-
-    term2tstp_write(H),
-    write(','),
-    term2tstp_write_args([H2|T]).
-
-term2tstp_write_vars([]).
-term2tstp_write_vars([V:_]) :-
-    write('V'), write(V).
-term2tstp_write_vars([V:_|T]) :-
-    T \= [], write('V'), write(V), write(', '),
-    term2tstp_write_vars(T).
-
+e_cnf(Fml,Cnf) :-
+    %tmp_file(e_in,InFile),
+    %tmp_file(e_out,OutFile),
+    InFile = 'in1.e',
+    OutFile = 'out1.e',
+    tell(InFile),
+    write(fof(ax1,axiom,Fml)), write('.'),
+    told,
+    sformat(ECmd,'eprover --tstp-format --cnf --no-preprocessing -s ~w | grep -v "^#" > ~w',[InFile,OutFile]),
+    shell(ECmd,_),
+    see(OutFile),
+    read(Cnf),
+    seen.
+    
