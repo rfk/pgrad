@@ -12,7 +12,7 @@ action_with_vars(A,Vs) :-
     A =.. [F|Args].
 
 awv_collect([],[],[]).
-awv_collect([D|T],[Y|TA],[Y:D|TV]) :-
+awv_collect([_|T],[Y|TA],[Y|TV]) :-
     awv_collect(T,TA,TV).
 
 
@@ -34,151 +34,31 @@ domain_axioms(Axs) :-
     ).
 
 constraint(true).
-constraint(-false).
+constraint(~false).
 
 
 domain_falsehood(Fml) :-
     domain_axioms(Axs),
-    entails(Axs,-Fml).
+    entails(Axs,~Fml).
 domain_tautology(Fml) :-
     domain_axioms(Axs),
     entails(Axs,Fml).
 
 %
-%  eps_p(+F,?Act,?Cond) - conditions for a fluent becoming true
-%
-%  This predicate unifies Cond with a fluent expression giving the conditions
-%  under which the fluent F will be made true by the action Act.
+%  Define behavior of skolem fluents
 %
 
-eps_p((_=_),_,_) :- !, fail.
-eps_p(P,A,E) :-
-    bagof(Et,eps_p1(P,A,Et),Ets),
-    joinlist((|),Ets,Ej),
-    % use copy_fml to ensure no sharing of variables
-    copy_fml(Ej,E).
+skolem_fluent(F,Nm,Sit,Id,Args) :-
+    F =.. [Nm,Sit,Id|Args],
+    length(Args,Arity),
+    concat_atom([skol,Arity],Nm).
 
-%
-%  eps_n(+F,?Act,?Cond) - conditions for a fluent becoming false
-%
-%  This predicate unifies Cond with a fluent expression giving the conditions
-%  under which the fluent F will be made false by the action Act.
-%
-eps_n((_=_),_,_) :- !, fail.
-eps_n(P,A,E) :-
-    bagof(Et,eps_n1(P,A,Et),Ets),
-    joinlist((|),Ets,Ej),
-    % use copy_fml to ensure no sharing of variables
-    copy_fml(Ej,E).
+func_fluent(F) :-
+    skolem_fluent(F,_,_,_,_).
 
-%
-%  eps_p1(+F,?Act,?Cond) - individual conditions for truthifying a fluent
-%
-%  This preciate enumerates the different ways in which the fluent F can become
-%  true, which are collected by eps_p/4.
-%
-
-eps_p1((P & Q),A,E) :-
-    % Avoid generating redundant conjuncts by treating all the and
-    % terms individually.
-    flatten_op('&',[P,Q],Cls),
-    eps_p1_andeach(A,Cls,E).
-
-eps_p1_andeach(A,Cls,E) :-
-    select(Cl,Cls,Rest),
-    eps_p(Cl,A,Ec),
-    maplist(eps_p1_andcls(A),Rest,Els),
-    joinlist('&',[Ec|Els],E).
-
-eps_p1_andcls(A,P,E) :-
-    eps_p(P,A,Ep),
-    ( eps_n(P,A,En) ->
-        E = (Ep | (P & -En))
-    ;
-        E = (Ep | P)
-    ), !.
-eps_p1_andcls(A,P,E) :-
-    eps_n(P,A,En),
-    E = (P & -En), !.
-eps_p1_andcls(_,P,P).
-
-
-eps_p1((P | _),A,E) :-
-    eps_p1(P,A,E).
-eps_p1((_ | Q),A,E) :-
-    eps_p1(Q,A,E).
-
-eps_p1(-P,A,E) :-
-    eps_n(P,A,E).
-
-eps_p1(all(X,P),A,E) :-
-    eps_p(P,A,EP),
-    % Since all(X,P) is to *become* true, we assume that it is currently
-    % false, so exists(X,-P).  This legitimises moving any components of
-    % EP that are independent of X outside the quantification, since the
-    % EP part must be satisfied by at least one combination of variables.
-    % This tends to greatly help simplification of the resuling formula.
-    %
-    % TODO: a rigorous proof of that this is OK in all contexts that we
-    %       use this function.
-    flatten_op('&',[EP],EPTerms),
-    split_matching(EPTerms,indep_of_vars(X),Indep,Dep),
-    ( Indep = [] ->
-        IndepP = true
-    ;
-        joinlist('&',Indep,IndepP)
-    ),
-    ( Dep = [] ->
-        DepP = true
-    ;
-        joinlist('&',Dep,DepP)
-    ),
-    % With that behind us, we can construct the output term
-    ( eps_n(P,A,EPn) ->
-        E = all(X,((P & -EPn) | DepP)) & IndepP
-    ;
-        E = all(X,P | DepP) & IndepP
-    ).
-
-eps_p1(exists(X,P),A,E) :-
-    eps_p1(P,A,EP),
-    E = exists(X,EP).
-
-eps_p1(P,A,E) :-
-    causes_true(P,A,E).
-
-% eps_p1(B=C,A,false).   is implicit
-
-
-%
-%  eps_n1(+F,?Act,?Cond) - individual conditions for falsifying a fluent
-%
-%  This preciate enumerates the different ways in which the fluent F can become
-%  false, which are collected by eps_n/4.
-%
-%  We 'cheat' by defining them in terms of eps_p, based on DeMorgan's laws.
-%
-
-eps_n1((P & Q),A,E) :-
-    eps_p1((-P) | (-Q),A,E).
-
-eps_n1((P | Q),A,E) :-
-    eps_p1((-P) & (-Q),A,E).
-
-eps_n1(-P,A,E) :-
-    eps_p1(P,A,E).
-
-eps_n1(all(X,P),A,E) :-
-    eps_p1(exists(X,-P),A,E).
-
-eps_n1(exists(X,P),A,E) :-
-    eps_p1(all(X,-P),A,E).
-
-eps_n1(P,A,E) :-
-    causes_false(P,A,E).
-
-% eps_n1(B=C,A,false).   is implicit
-
+causes_value(F,A,X,(X=F2)) :-
+    skolem_fluent(F,Nm,Sit,Id,Args),
+    skolem_fluent(F2,Nm,do(A,Sit),Id,Args).
 
 %
 %  regression(+F,+A,-Fr) - Fr is the regression of F over action A
@@ -194,7 +74,7 @@ regression(F,A,Fr) :-
     regression1(F,A,Frt),
     simplify_c(Frt,Fr).
 
-%  If A is free, find all actions which could affect it.
+%  If A is free, find all actions which could affect F.
 regression(F,A,Fr) :-
     var(A),
     (bagof(Ft,B^regression_bagof(F,A,B,Ft),Fts) ->
@@ -205,45 +85,40 @@ regression(F,A,Fr) :-
     ).
 
 regression_bagof(F,A,B,Ft) :-
+    action_with_vars(B,_),
     regression1(F,B,Ftp),
-    (
-      var(B), Ft=Ftp
+    Ft=(Ftp & (A=B)).
+
+
+regression1(F,A,Fr) :-
+    is_atom(F), F \= (_ = _), F \= (_ \= _),
+    ( extract_func_fluents(F,F2) ->
+        regression1(F2,A,Fr)
     ;
-      nonvar(B), Ft=(Ftp & (A=B))
+        (causes_true(F,A,Ep) -> true ; Ep = false),
+        (causes_false(F,A,En) -> true ; En = false),
+        simplify_c(Ep | (F & ~En),Fr)
     ).
-
-
-%%  Regression is special-cased for the logical operators, as this
-%%  produces smaller formulae than using eps_p/eps_n directly.
-%%
-regression1(F,A,Fr) :-
-    is_literal(F),
-    eps_p(F,A,Ep),
-    eps_n(F,A,En),
-    simplify_c(Ep | (F & -En),Fr).
-regression1(F,A,Fr) :-
-    is_literal(F),
-    eps_p(F,A,Ep), 
-    \+ eps_n(F,A,_),
-    simplify_c(Ep | F,Fr).
-regression1(F,A,Fr) :-
-    is_literal(F),
-    eps_n(F,A,En), 
-    \+ eps_p(F,A,_),
-    simplify_c(F & -En,Fr).
-regression1(F,A,Fr) :-
-    is_literal(F),
-    \+ eps_n(F,A,_), 
-    \+ eps_p(F,A,_),
-    F = Fr.
-
-regression1(all(X,P),A,all(X,R)) :-
+regression1(T1=T2,A,Fr) :-
+   ( nonvar(T1), causes_value(T1,A,X1,C1) -> 
+        ( nonvar(T2), causes_value(T2,A,X2,C2) ->
+            simplify_c(?([X1,X2] : (C1 & C2 & (X1=X2))),Fr)
+        ;
+            simplify_c(?([X1] : (C1 & (X1=T2))),Fr)
+        )
+   ; nonvar(T2), causes_value(T2,A,X2,C2) ->
+        simplify_c(?([X2] : (C2 & (T1=X2))),Fr)
+   ;
+        Fr = (T1=T2)
+   ).
+regression1(T1\=T2,A,Fr) :-
+    regression1(~(T1=T2),A,Fr).
+regression1(!(X : P),A,!(X : R)) :-
     regression1(P,A,R).
-regression1(exists(X,P),A,exists(X,R)) :-
+regression1(?(X : P),A,?(X : R)) :-
     regression1(P,A,R).
-regression1(-P,A,-R) :-
+regression1(~P,A,~R) :-
     regression1(P,A,R).
-regression1((C=B),_,(C=B)).
 regression1((P & Q),A,(R & S)) :-
     regression1(P,A,R),
     regression1(Q,A,S).
@@ -253,52 +128,118 @@ regression1((P | Q),A,(R | S)) :-
 
 
 %
+%  extract_func_fluents(F,P)  -  extract function fluents from an atom
+%
+%  This predicate is used to re-write an atom that contains functional
+%  fluents into a equivalent expression in which the functional fluents
+%  are all applied to equality.
+%
+%  This in turn allows such expressions to actually be regressed.
+%
+
+extract_func_fluents(F,P) :-
+    is_atom(F),
+    F =.. [Pred|Args],
+    extract_func_fluents_rec(Args,Vars,Eqs,Args2),
+    % fail if we didnt extract anything
+    Vars \= [], Eqs \= [],
+    F2 =.. [Pred|Args2],
+    joinlist('&',[F2|Eqs],Body),
+    P = ?(Vars : Body).
+
+% Use difference lists to build up list of Variables, Equality
+% statements, and Predicate arguments to be used when extracting
+% functional fluents.
+%
+extract_func_fluents_rec([],[],[],[]).
+extract_func_fluents_rec([A|As],VSoFar,ESoFar,ASoFar) :-
+    ( var(A) ->
+        ASoFar = [A|ASF2],
+        extract_func_fluents_rec(As,VSoFar,ESoFar,ASF2)
+    ;
+        ( is_func_fluent(A) ->
+            ASoFar = [V|ASF2],
+            VSoFar = [V|VSF2],
+            ESoFar = [V=A|ESF2],
+            extract_func_fluents_rec(As,VSF2,ESF2,ASF2)
+        ;
+            ASoFar = [A|ASF2],
+            extract_func_fluents_rec(As,VSoFar,ESoFar,ASF2)
+        )
+    ).
+
+
+%
+%  Test whether a given term is a fluent or action
+%
+is_func_fluent(F) :-
+    F =.. [Fn|Args],
+    length(Args,N),
+    length(TArgs,N),
+    Ff =.. [Fn|TArgs],
+    func_fluent(Ff).
+
+is_prim_fluent(F) :-
+    F =.. [Fn|Args],
+    length(Args,N),
+    length(TArgs,N),
+    Ff =.. [Fn|TArgs],
+    prim_fluent(Ff).
+
+is_prim_action(A) :-
+    A =.. [Fn|Args],
+    length(Args,N),
+    length(TArgs,N),
+    Ff =.. [Fn|TArgs],
+    prim_action(Ff).
+
+%
 %  holds(+F,+S) - fluent F holds in situation S
 %
 %  This predicate is true whenever the fluent F holds in situation S.
 %
-holds(true,_).
+holds(true,_) :- !.
 holds(A=B,_) :-     % no functional fluents, so equality does not vary
-    A=B.
-holds(-(A=B),_) :- 
-    dif(A,B).
+    A=B, !.
+holds(~(A=B),_) :- 
+    dif(A,B), !.
 holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
-holds(F1 -> F2,s0) :-
-    holds(-F1,s0) ; holds(F2,s0).
-holds(F1 <-> F2,s0) :-
+
+holds(F1 => F2,s0) :-
+    holds(~F1,s0) ; holds(F2,s0).
+holds(F1 <=> F2,s0) :-
     holds(F1,s0) , holds(F2,s0)
     ;
-    holds(-F1,s0) , holds(-F2,s0).
+    holds(~F1,s0) , holds(~F2,s0).
 holds(F1 & F2,s0) :-
     holds(F1,s0), holds(F2,s0).
 holds(F1 | F2,s0) :-
     holds(F1,s0) ; holds(F2,s0).
-holds(all(V,F),s0) :-
-    holds(-exists(V,-F),s0).
-holds(exists([],F),s0) :-
+holds(!(V : F),s0) :-
+    holds(~exists(V : ~F),s0).
+holds(?([] : F),s0) :-
     holds(F,s0).
-% TODO: should we assert that V is in the proper domain?
-holds(exists([V:_|T],F),s0) :-
-    subs(V,_,F,F1), holds(exists(T,F1),s0).
-holds(-(F1 -> F2),s0) :- 
-    holds((F1 & (-F2)),s0).
-holds(-(F1 <-> F2),s0) :- 
-    holds((F1 & (-F2) | ((-F1) & F2)),s0).
-holds(-(F1 & F2),s0) :- 
-    holds((-F1) | (-F2),s0).
-holds(-(F1 | F2),s0) :-
-    holds((-F1) & (-F2),s0).
-holds(-all(V,F),s0) :-
-    holds(exists(V,F),s0).
-holds(-exists(V,F),s0) :-
-    \+ holds(exists(V,F),s0).
+holds(?([V|T] : F),s0) :-
+    subs(V,_,F,F1), holds(?(T : F1),s0).
+holds(~(F1 => F2),s0) :- 
+    holds((F1 & (~F2)),s0).
+holds(~(F1 <=> F2),s0) :- 
+    holds((F1 & (~F2) | ((~F1) & F2)),s0).
+holds(~(F1 & F2),s0) :- 
+    holds((~F1) | (~F2),s0).
+holds(~(F1 | F2),s0) :-
+    holds((~F1) & (~F2),s0).
+holds(~!(V : F),s0) :-
+    holds(?(V : F),s0).
+holds(~?(V : F),s0) :-
+    \+ holds(?(V : F),s0).
 holds(F,s0) :-
     prim_fluent(Ft),
     functor(Ft,S,N), functor(F,S,N),
     initially(F).
-holds(-F,s0) :-
+holds(~F,s0) :-
     prim_fluent(Ft),
     functor(Ft,S,N), functor(F,S,N),
     \+ initially(F).
@@ -315,50 +256,15 @@ holds(-F,s0) :-
 adp_fluent(legUnobs(Agt),A,C) :-
     adp_fluent(poss,A,C1),
     adp_fluent(canObs(Agt),A,C2),
-    C = C1 & -C2.
+    C = C1 & ~C2.
 
-%knows(Agt,F,[]) :-
-%    pcond(F,legUnobs(Agt),P),
-%    holds(P,s0), !.
-%knows(Agt,F,[A|T]) :-
-%    pcond(F,legUnobs(Agt),P),
-%    regression(P,A,R),
-%    adp_fluent(poss,A,Poss),
-%    knows(Agt,(-Poss | R),T), !.
-
-%
-%  Implementation version of knows/3
-%
-
-knows(Agt,F,H) :-
-    domain_axioms(Axs),
-    knows(Agt,Axs,F,H).
-
-knows(Agt,Axs,F,[]) :-
-    ( entails(Axs,F) ->
-        true
-    ;
-        holds(F,s0),
-        add_to_axioms(F,Axs,Axs2),
-        pcond_d1(F,legUnobs(Agt),P1),
-        flatten_op('&',[P1],P1s),
-        knows_all(Agt,Axs2,P1s,[])
-    ).
-knows(Agt,Axs,F,[A|T]) :-
-    ( entails(Axs,F) ->
-        true
-    ;
-        regression(F,A,R),
-        adp_fluent(poss,A,Poss),
-        knows(Agt,(-Poss | R),T),
-        add_to_axioms(F,Axs,Axs2),
-        pcond_d1(F,legUnobs(Agt),P1),
-        flatten_op('&',[P1],P1s),
-        knows_all(Agt,Axs2,P1s,[A|T])
-    ).
-
-knows_all(_,_,[],_).
-knows_all(Agt,Axs,[P|Ps],H) :-
-    knows(Agt,Axs,P,H),
-    knows_all(Agt,Axs,Ps,H).
+knows(Agt,F,[]) :-
+    pcond(F,legUnobs(Agt),P),
+    holds(P,s0), !.
+knows(Agt,F,[A|T]) :-
+    pcond(F,legUnobs(Agt),P),
+    regression(P,A,R),
+    % TODO: should this be Poss & CanObs, rather than just Poss ??
+    adp_fluent(poss,A,Poss),
+    knows(Agt,(~Poss | R),T), !.
 

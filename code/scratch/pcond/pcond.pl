@@ -7,28 +7,6 @@
 %    as P1 is true in s.
 %
 
-%
-%  Second attempt - special-case each operator to avoid redundancy
-%  in the generated formulae.
-%
-pcond_d1v2(F1 & F2,C,P1 & P2) :-
-    pcond_d1v2(F1,C,P1),
-    pcond_d1v2(F2,C,P2), !.
-pcond_d1v2(all(X,F),C,all(X,P1)) :-
-    pcond_d1v2(F,C,P1), !.
-pcond_d1v2(F1 | F2,C,P1) :-
-    % TODO: think about this some more
-    % Perhaps we can special-case for simple independence between F1/F2?
-    pcond_d1(F1 | F2,C,P1).
-pcond_d1v2(exists(X,F),C,P1) :-
-    pcond_d1(exists(X,F),C,P1).
-pcond_d1v2(-F,C,P1) :-
-    pcond_d1(-F,C,P1).
-    
-
-%
-%  first attempt - straightforward encoding of definition
-%
 pcond_d1(F,C,P1) :-
     ( bagof(Cn,pcond_d1_bagof(F,C,Cn),Cns) ->
         joinlist((&),Cns,P1tmp),
@@ -39,9 +17,9 @@ pcond_d1(F,C,P1) :-
 
 pcond_d1_bagof(F,C,Cn) :-
     action_with_vars(A,Vs),
-    eps_n(F,A,En),
+    regression(F,A,R),
     adp_fluent(C,A,Ec),
-    Cnt = -exists(Vs,(En & Ec)),
+    Cnt = !(Vs : (R | ~Ec)),
     simplify_c(Cnt,Cn).
 
 %
@@ -49,54 +27,28 @@ pcond_d1_bagof(F,C,Cn) :-
 %
 
 pcond(F,C,P) :-
-    % Don't waste time on falsehoods or tautologies
-    domain_axioms(Axs),
-    add_to_axioms(F,Axs,Axs2),
-    ( entails(Axs2,false) ->
-        P=false
-    ; entails(Axs,F) ->
-        P=true
-    ;
-        pcond_d1(F,C,Fp),
-        pcond_aux(Axs2,C,[F],Fp,P)
-    ).
+    fml2cnf(F,Cnf),
+    pcond_cnf([],Cnf,C,Pc),
+    cnf2fml(Pc,P).
 
-pcond_aux(Axs,C,Fs,F,P) :-
-    ( entails(Axs,F) ->
-        ( entails(Axs,false) ->
-            P = false
-        ;
-            joinlist('&',Fs,P)
-        )
+
+pcond_cnf(P,[],_,P).
+pcond_cnf(Pt,[Cl|Cls],C,P) :-
+    length(Pt,LPt), length([Cl|Cls],LCl),
+    write('Length: '), writeln(LPt : LCl),
+    ( pcond_cnf_entails(Pt,Cl) ->
+        pcond_cnf(Pt,Cls,C,P)
     ;
+        joinlist('|',Cl,F),
         pcond_d1(F,C,F1),
-        add_to_axioms(F,Axs,Axs2),
-        pcond_aux(Axs2,C,[F|Fs],F1,P)
-   ).
-
-pcondv2(F,C,P) :-
-    % Don't waste time on falsehoods or tautologies
-    domain_axioms(Axs),
-    add_to_axioms(F,Axs,Axs2),
-    ( entails(Axs2,false) ->
-        P=false
-    ; entails(Axs,F) ->
-        P=true
-    ;
-        pcond_d1v2(F,C,Fp),
-        pcondv2_aux(Axs2,C,[F],Fp,P)
+        fml2cnf(F1,Cnf1),
+        append(Cls,Cnf1,NewCls),
+        pcond_cnf([Cl|Pt],NewCls,C,P)
     ).
 
-pcondv2_aux(Axs,C,Fs,F,P) :-
-    ( entails(Axs,F) ->
-        ( entails(Axs,false) ->
-            P = false
-        ;
-            joinlist('&',Fs,P)
-        )
-    ;
-        pcond_d1v2(F,C,F1),
-        add_to_axioms(F,Axs,Axs2),
-        pcondv2_aux(Axs2,C,[F|Fs],F1,P)
-   ).
+pcond_cnf_entails(Cls,Cl) :-
+    domain_axioms(Axs),
+    add_to_axioms(Cls,Axs,Axs2),
+    joinlist('|',Cl,Fl),
+    entails(Axs2,Fl).
 

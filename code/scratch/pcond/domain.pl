@@ -1,7 +1,4 @@
 
-:- discontiguous(causes_true/3).
-:- discontiguous(causes_false/3).
-
 agent(thomas).
 agent(richard).
 agent(harriet).
@@ -27,9 +24,12 @@ prim_fluent(holding(agent,resource)).
 prim_fluent(fragile(resource)).
 prim_fluent(broken(resource)).
 
+% Enumerates functional fluents, and domains of arguments
+% none in this domain...
+
 % Enumerates conditions for action description predicate fluents
 adp_fluent(poss,pickup(_,Res),C) :-
-    C = -exists([A:agent],holding(A,Res)).
+    C = ~ (? ([A] : holding(A,Res))).
 adp_fluent(poss,putdown(Agt,Res),C) :-
     C = holding(Agt,Res).
 adp_fluent(poss,drop(Agt,Res),C) :-
@@ -53,7 +53,6 @@ causes_true(broken(Res),drop(_,Res2),(Res=Res2) & fragile(Res2)).
 
 % Specify domain constraints as additional background knowledge
 %
-constraint(all([Agt1:agent,Agt2:agent,Obj:resource],-(holding(Agt1,Obj) & holding(Agt2,Obj)) | Agt1=Agt2)).
-
+constraint(!([Agt1,Agt2,Obj] : (~(holding(Agt1,Obj) & holding(Agt2,Obj)) | Agt1=Agt2))).
 
 

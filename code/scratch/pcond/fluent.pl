@@ -12,12 +12,14 @@
 %
 %  In addition to manipulating arbitrary formulae, we have the ability
 %  to put fluents into Clause Normal Form and manipulate this form
-%  directly.  We assume the name of the skolem fluent is "skol".
+%  directly.  We assume the name of the skolem fluent is "skolN" where
+%  N is the number of arguments *apart* from the situation argument.
+%
 %
 
 
 %
-%  Our logical operators are the standard TSTP format operators:
+%  Our logical operators are almost the standard TSTP format operators:
 % 
 %     P & Q       -   logical and
 %     P | Q       -   logical or
@@ -27,6 +29,10 @@
 %     !([X]:P)    -   universal quantification
 %     ?([X]:P)    -   existential quantification
 %     A = B       -   object equality
+%     A \= B      -   object inequality
+%
+%  If I can make prolog accept '!=' as an operator, I'll use that for
+%  inequality as well.
 %     
 %  Most of these are native prolog operators so we dont have
 %  to declare them ourselves.  Note that ! and ?
@@ -34,13 +40,13 @@
 %  allows more compact quantification over multiple variables.
 %
 
-:- op(500, yfx, <=>).
-:- op(500, yfx, =>).
-:- op(500, yfx, &).
-:- op(500, yfx, :).
+:- op(200,fx,~).
+:- op(500, xfy, <=>).
+:- op(500, xfy, =>).
+:- op(520, xfy, &).
+:- op(1200, xfx, :).
 :- op(550, fx, !).
 :- op(550, fx, ?).
-:- op(200,fy,~).
 
 
 %
@@ -56,6 +62,12 @@ normalize((A=B),(A=B)) :-
 normalize((A=B),(B=A)) :-
     B @< A, !.
 normalize((A=B),true) :-
+    A == B, !.
+normalize((A\=B),(A\=B)) :-
+    A @< B, !.
+normalize((A\=B),(B\=A)) :-
+    B @< A, !.
+normalize((A\=B),true) :-
     A == B, !.
 normalize(?(X:P),?(Y:Q)) :-
     sort(X,Y),
@@ -219,9 +231,9 @@ flatten_op(O,[T|Ts],Acc,Res) :-
 %  flatten_quant(Q,Ts,VarsIn,VarsOut,Body) - flatten nested quantifiers
 %
 flatten_quant(Q,T,Vars,Vars,T) :-
-    \+ functor(T,Q,2), !.
+    \+ functor(T,Q,1), !.
 flatten_quant(Q,T,Acc,Vars,Body) :-
-    T =.. [Q,V,T2],
+    T =.. [Q,(V : T2)],
     append(V,Acc,Acc2),
     flatten_quant(Q,T2,Acc2,Vars,Body).
 
@@ -235,12 +247,12 @@ flatten_quant(Q,T,Acc,Vars,Body) :-
 %  does match.
 %
 flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
-    ( T =.. [Q,V,T2] ->
+    ( T =.. [Q,(V : T2)] ->
       append(V,VarsIn,Vars2),
       flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
     ;
       simplify_c(T,Tsimp),
-      ( Tsimp =.. [Q,V,T2] ->
+      ( Tsimp =.. [Q,(V : T2)] ->
           append(V,VarsIn,Vars2),
           flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
       ;
@@ -336,7 +348,7 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  fact equivalent.  If not, it raises an exception.
 %  
 simplify(P,P) :-
-    is_atom(P), P \= (_ = _).
+    is_atom(P), P \= (_ = _), P \= (_ \= _).
 simplify(P & Q,S) :-
     flatten_op('&',[P,Q],TermsT),
     maplist(simplify_c,TermsT,TermsS),
@@ -407,6 +419,8 @@ simplify(~P,S) :-
         SP=true -> S=false
     ;
         SP = ~P2 -> S=P2
+    ;
+        SP = (A\=B) -> S=(A=B)
     ;
         S = ~SP
     ).
@@ -503,6 +517,15 @@ simplify((A=B),S) :-
        ground(A), ground(B), A \= B -> S=false
    ;
        normalize((A=B),S)
+   ).
+simplify((A\=B),S) :-
+   (
+       A == B -> S=false
+   ;
+       % Utilising the unique names assumption
+       ground(A), ground(B), A \= B -> S=true
+   ;
+       normalize((A\=B),S)
    ).
 
 
@@ -690,9 +713,36 @@ fml2nnf(P,P).
 
 
 %
+%  fml2cnf  -  convert formula to CNF
+%
+%  This will rename variables, so be careful!
+%
+
+fml2cnf(F,C) :-
+    e_cnf(F,C).
+
+cnf2fml([],true) :- !.
+cnf2fml(C,F) :-
+    maplist(djs2fml,C,Ds),
+    joinlist('&',Ds,B),
+    free_vars(B,V),
+    ( V = [] ->
+        F = B
+    ;
+        F = !(V : B)
+    ).
+
+djs2fml([],false) :- !.
+djs2fml(D,F) :-
+    joinlist('|',D,F).
+
+
+%
 %  is_atom(P)  -  the formula P is an atom, not a compound expression
 %
 is_atom(P) :-
+    P \= [],
+    P \= [_|_],
     P \= (~_),
     P \= (_ => _),
     P \= (_ <=> _),
