@@ -1,0 +1,159 @@
+ReviewerID: 7381  
+Comments to author(s)
+Overall, this paper is well written and presented. The new approach the author(s) describe is clearly placed in the context of previous work in the field, with appropriate references to the relevant literature. Generally, the results in the paper appear to be technically sound (there are some concerns, see below), and address an important problem in the area of reasoning about actions and change.
+Some questions and suggestions for areas of improvement:
+1) In Section 3.2, the author(s) state that "knowledge is completely determined by an agent's observations" and that their approach "ensures that an agent's knowledge does not change if it not aware of any actions occurring". The author(s) also state (in the abstract) that this approach can "easily model agents who monitor the value of fluents" and (in the conclusion) that it can "accommodate the ... case where agents are aware that a property of their environment has changed". Doesn't this last property necessarily follow for ALL agents as a result of the previous assumptions and the assumption of correct knowledge? That is, is it actually possible to model an agent that can't monitor particular fluents? (The current wording in the abstract and conclusions seems to suggest this might be possible.) For instance, say that an agent A1 knows a fluent F, but isn't actively monitoring F, and then an agent A2 changes F unobserved by A1. In this case, wouldn't A1's knowledge need to change, since it would be incorrect in terms of the new value of F? But, by doing so isn't A1 implicitly monitoring F? If this is the case, the wording in the abstract and conclusion should be changed.
+2) One of the features of the standard Scherl and Levesque model of knowledge is that it allows a variety of accessibility properties to be characterized for the K fluent which, as a result, allows the properties of various modal logics to be modelled. Assuming correct knowledge (which is simply a reflexivity property on K), are there other properties that are automatically "encoded" in the new K axiom? Can additional accessibility properties be imposed on the new K axiom as is the case with the Scherl and Levesque approach?
+3) The author(s) note that the situation calculus typically presents an "omniscient" view of the domain being modelled. This new approach, on the other hand, offers a more agent-situated perspective on knowledge and observed actions, which is achieved by redefining certain concepts such as the K successor state axiom. As the authors point out, there is some advantage to the standard situation calculus view and the new approach is able to model this view as well. Have the author(s) considered the possibility of "combining" the two viewpoints so that they can coexist within the same theory (e.g., by including two separate "K" axioms, two definitions of "Knows", etc.)? (If made to work it seems as though such a model could be useful in certain contexts, and avoid the need to abandon one approach for another.)
+4) I know that space can be tight in short technical papers but I think a short example would be useful to the reader.
+
+Summary of review
+This paper presents a new approach to the problem of representing knowledge in a multi-agent version of the situation calculus. In this approach, observations are reified, allowing a domain axiomatizer to specify the conditions under which an agent can observe the occurrence of an action. As a result, a more "agent-situated" model of a domain can be encoded, rather than the "omniscient" viewpoint provided by the standard situation calculus. Thus, agents can reason with respect to their internal history of observations instead of full histories of the world.
+This work addresses a relevant problem in the area of action and knowledge change. Some clarifications should be made with respect to actions that [don't] monitor fluents in the presence of the assumption of correct knowledge. As well, a short example (if possible) would benefit the reader and help illustrate some of the new concepts introduced in the paper. Overall, however, this work is well presented and the results seem to be technically sound for the most part.
+
+
+You may optionally submit feedback that will be visible to the reviewers and PC members. The length of your feedback is limited to 250 words (including spaces and special characters).
+Please enter your arguments here: 	
+
+Back 	
+
+bild
+	Criterion01	Criterion02	Criterion03	Criterion04	Criterion05	Criterion06	Criterion07	Criterion08
+ ReviewerID: 835  
+Comments to author(s)
+This paper has some interesting ideas, however there is a problem with
+having knowledge in the presence of exogenous actions. With knowledge,
+any new information that conflicts with what the agent knows leads to
+an inconsistent belief state. But if other agents are doing actions
+that I don't know about, then in order to avoid inconsistency, I have
+entertain the possibility that any physically possible sequence of
+actions by any other agents has occurred. In general this leads to
+the agents having almost no knowledge. Suppose I know the truth value
+of some sentence P. Unless it is physically impossible for any other
+agent to (exogenously) change the value of P, my knowledge of P cannot
+persist. This would seem to indicate that the applicability of the
+approach is rather limited. This issue is not addressed in the paper.
+
+Beyond that there are some serious technical problems with the paper.
+
+p.2 - you say that a theory of action is a set of "situation calculus
+statements". Normally action theories are limited to being sit
+calc theories of a certain form (i.e., only certain types of
+axioms are permitted). Your theorems (even if they were
+otherwise ok) could not be entailed by arbitrary sit calc theories
+since such a theory could contain the negation of the theorem.
+- you don't mention the foundational axioms except to say that
+there is a second order induction axiom (without saying what the axiom
+is). Are you assuming foundational axioms and if so which ones?
+- successor state axiom for K:
+- the first argument to Poss here is a Concurrent term but
+when you introduce Poss, you said its first argument was an
+action term.
+- where is the agent(a) function defined?
+- "The situation s'' must furthermore be possible": do you
+mean that c is possible in s'?
+- how is Init(s) defined?
+
+p. 4 - Why is ObsHist a relation instead of a function. Doesn't every
+situation have a unique observation history?
+- the successor axiom for ObsHist is wrong:
+- c' and s' should be c and s (resp.)
+- parenthesis are missing (conjunction usually has precedence
+over implication and quantifiers bind tightly -
+this problem reappears in other places in the paper)
+- using the existential quantifier with implication is almost
+always too weak, as is the case with the last conjunct, which
+is of the form:
+exists o. Observations(agt, c, s) = o and o /= {} -> X.
+This is equivalent to:
+exists o. not Observations(agt, c, s) = o or o = {} or X,
+which is trivially satisfied by substituting {} for o.
+- the same comment holds for (11) and the second last
+formula on p. 5.
+
+- since Legal(c,s) is defined to be equivalent to Poss(c,s), why
+do you bother? Just use Poss(c,s).
+- in the def of Unobs:
+- You haven't defined < or <=
+- There is an extra right paren before =def
+- The formal definition is not what you intended. You need
+to add the conjunct s <= s'', otherwise, Unobs(agt, s, s') holds
+for any s, s' such that not s < s'. I believe this
+causes your axioms for K to be incorrect.
+E.g., in (9), suppose K0(agt, s', s) holds. Then for any s'' s.t.
+Legal(s'') and not s' < s'', K(agt, s', s'') holds.
+There is a similar problem with (8)
+
+- in axioms (9)
+- the first occurrence of K0 is missing the agt argument
+- I think you meant Legal(s'') and Unobs(agt, s', s'')
+
+- in Theorem 1
+- you should put the quantifications and "Legal(s)" in the
+formal statement of the theorem instead of in the English part
+(similarly for Theorem 3)
+- given the problems described above, I don't believe the
+theorems in the paper hold.
+
+
+
+p. 5 - is (10) supposed to be a definition of P_D? If so then it
+still contains quantification over situations. If not how it is
+defined? How is R_D(P_D(...)) defined?
+- in (11), s' is unbound (similarly in the last formula on p.5).
+If you meant for it to be captured by the quantifier in the
+def. of Knows, you should use Scherl & Levesque's 'now' metavariable instead.
+
+
+Summary of review
+The paper looks at modelling knowledge in the presence of exogenous actions, which is problematic in itself, but the paper also contains numerous technical errors. There are some interesting ideas such as "partial awareness of actions" but the technical details need to be better worked out.
+
+
+You may optionally submit feedback that will be visible to the reviewers and PC members. The length of your feedback is limited to 250 words (including spaces and special characters).
+Please enter your arguments here: 	
+
+Back 	
+
+bild
+	Criterion01	Criterion02	Criterion03	Criterion04	Criterion05	Criterion06	Criterion07	Criterion08
+ ReviewerID: 3634  
+Comments to author(s)
+The paper addresses an important open problem of how an agent can reason
+about effects of actions if the agent can observe some changes in an
+environment, but sometimes does not observe occurrences of all actions.
+The authors claim that their solution can accomodate both the case when
+occurrences of all actions can be observed and when only some occurrences
+can be observed. The paper is well written and well organized.
+I have a few suggestions that can help to improve this paper.
+1) p.2, line 22 "A set of situation calculus statements D that describe a
+dynamic world is referred to as a theory of action". This is not clear
+enough. Do you allow any set or some particular sets of statements?
+2) In the formula 5 on the page 4, replace c' --> c and s' --> s.
+Also, do you mean \forall when you write \exists in the formula (5) ?
+3) In the formula 6 on the same page, there is no need to define
+Legal(c,s) because it is just another name for Poss(c,s). Use Poss(c,s).
+It is confusing to read formulas with the unary predicate Legal(s) that
+has meaning different from the binary predicate Legal(c,s).
+4) You talk a few times about "possible situation" when you try to
+explain your formula (7), but in the situation calculus one can talk only
+about actions possible in a situation. The bottom line on the page 4: the
+argument "agt" is missing in Unobs.
+5) Note that there is no s'' on the right hand side of the formula (9).
+6) Theorem 1: "For any theory of action D...". Do you really want to
+take any theory?
+7) The idea of introducing change actions seems controversal. You have
+to explain what is the ontological status of change actions that cannot be
+mentioned in situation terms.
+8) The phrase on the page 5, the line 19 from the bottom, "The procedure
+for determining P_D replaces second-order induction with iterated
+first-order reasoning", needs elaboration and additional explanations.
+9) The formula (11) includes regression of P_D, but there is no
+definition of regression of P_D in the paper. Notice also that
+P_D still includes \forall over situations, hence the regression
+operator cannot be applied and the proposed meta-operator P_D does
+not solve the problem that you are trying to solve.
+
+Summary of review
+This paper can be improved if technical problems
+will be fixed in the final version. I suggest also to include a simple
+example that will illustrate the proposed approach.
