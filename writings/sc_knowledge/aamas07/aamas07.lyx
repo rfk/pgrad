@@ -1,25 +1,15 @@
-#LyX 1.4.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.4.2 created this file. For more info see http://www.lyx.org/
 \lyxformat 245
 \begin_document
 \begin_header
 \textclass article
 \begin_preamble
 
-\usepackage{ijcai07}
 
-\usepackage{times}
-
-\usepackage{helvet}
-
-\usepackage{courier}
-
-\usepackage{amsthm}
-
-
-\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
 
 
 \newtheorem{theorem}{Theorem}
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
 \end_preamble
 \options letterpaper
 \language english
@@ -28,9 +18,9 @@
 \graphics default
 \paperfontsize default
 \spacing single
-\papersize letterpaper
+\papersize default
 \use_geometry false
-\use_amsmath 1
+\use_amsmath 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
@@ -49,38 +39,49 @@
 \begin_body
 
 \begin_layout Title
-Knowledge and Observations in the Situation Calculus 
+Knowledge and Observations in the Multi-Agent Situation Calculus 
 \end_layout
 
 \begin_layout Author
-Content Areas:
+Ryan F.
+ Kelly
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+titlenote{Currently a PhD student at the University of Melbourne.}
+\end_layout
+
+\end_inset
+
+and Adrian R.
+ Pearce
 \newline
-Knowledge Representation and Reasoning/Autonomous Agents
+ Department of Computer Science and Software Engineering
 \newline
-Planning
- and Scheduling/Reasoning about Actions and Change
+ The University
+ of Melbourne
+\newline
+ Victoria, 3010, Australia
+\newline
+ {rfk,adrian}@csse.unimelb.edu.au 
 \end_layout
 
 \begin_layout Abstract
-We develop a new semantics for knowledge in the situation calculus by reifying
- the observations that each agent makes as the world evolves.
+We develop a new semantics for multi-agent knowledge in the situation calculus
+ by reifying the observations that each agent makes as the world evolves.
  Our approach is strictly more general than previous formalisms, and can
  easily model agents who monitor the value of fluents in their environment.
  We develop a technique for effective reasoning in this formalism using
  an extended regression operator that facilitates quantification over situations.
  This technique also allows agents to reason from their internal history
  of observations, rather than requiring a full history of the world.
- This makes the situation calculus more suitable for implementing complex
- real-world systems.
+ The result is a robust account of knowledge for partially-observable multi-agen
+t domains.
  
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\begin_layout Section*
-Content Areas
 \end_layout
 
 \begin_layout Section
@@ -124,11 +125,10 @@ A common assumption when working with knowledge in the situation calculus
 .
  However, neither approach accounts for knowledge with 
 \emph on
-partial 
+partial
 \emph default
-awareness of actions - for example, agents who are only aware of actions
+ awareness of actions - for example, agents who are only aware of actions
  performed within their own field of view, or by agents on their own team.
- 
 \end_layout
 
 \begin_layout Standard
@@ -182,7 +182,12 @@ The full axiomatisation of the situation calculus includes a second-order
  Our new semantics does not satisfy this restriction as it employs universal
  quantification over situations.
  Using an extension of the regression operator that can handle such quantificati
-on, we show how to transform queries about knowledge into a form amenable
+on 
+\begin_inset LatexCommand \cite{kelly07sc_persistence}
+
+\end_inset
+
+, we show how to transform queries about knowledge into a form amenable
  to purely first-order reasoning.
  The result is a powerful new account of multi-agent knowledge that still
  permits an effective reasoning procedure.
@@ -228,20 +233,17 @@ s; section
 \end_inset
 
  concludes with a summary of our results.
- While space restrictions preclude developing a detailed example, we give
- some small motivating examples throughout.
 \end_layout
 
 \begin_layout Section
 The Multi-Agent Situation Calculus
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand \label{sec:ma-sitcalc}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 Our work utilizes the situation calculus as described by 
 \begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
 
@@ -252,8 +254,7 @@ Our work utilizes the situation calculus as described by
 
 \end_inset
 
- to better represent the dynamics of complex domains such as multi-agent
- systems.
+ to better represent the dynamics of a multi-agent system.
  We use the approach of 
 \begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
 
@@ -318,17 +319,24 @@ Fluents
 \end_layout
 
 \begin_layout Standard
-A set of situation calculus statements 
+A 
+\emph on
+basic action theory
+\emph default
+ is a set 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
- that describe a dynamic world is referred to as a 
-\emph on
-theory of action
-\emph default
-.
- Queries about the behavior of the world are posed as logical entailment
- queries relative to the theory of action.
+ of situation calculus sentences with a specific syntactic form (specified
+ in detail in 
+\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
+
+\end_inset
+
+) that describes a particular dynamic world.
+ Queries about the behavior or evolution of the world are posed as logical
+ entailment queries relative to this theory.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -397,13 +405,22 @@ The
 \emph on
 uniform formulae
 \emph default
- are those that refer only to a single situation term and do not mention
- the 
+ as defined in 
+\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
+
+\end_inset
+
+ can be thought of as formulae that describe a 
+\emph on
+property 
+\emph default
+of the state of the world.
+ They are basically logical combinations of fluents referring to a common
+ situation term, which cannot mention 
 \begin_inset Formula $Poss$
 \end_inset
 
- predicate, and can thus be thought of as properties of the state of the
- world at a given instant.
+ nor compare situation terms.
  The meta-variable 
 \begin_inset Formula $\phi$
 \end_inset
@@ -1086,11 +1103,11 @@ Observation History
  giving the observation history associated with a particular situation:
  
 \begin_inset Formula \begin{multline}
-Init(s)\rightarrow ObsHist(agt,h,s)\equiv h=\epsilon\\
-\shoveleft{ObsHist(agt,h,do(c,s))\equiv}\\
-\,\,\,\, Observations(agt,c',s')=\{\}\rightarrow ObsHist(agt,h,s')\\
-\shoveleft{\,\,\,\,\wedge\,\exists o\,.\, Observations(agt,c',s')=o\wedge o\neq\{\}\rightarrow}\\
-\exists h'\,\, h=o\cdot h'\wedge ObsHist(agt,s',h')\label{eqn:obshist_defn}\end{multline}
+Init(s)\rightarrow ObsHist(agt,s)=\epsilon\\
+\shoveleft{ObsHist(agt,do(c,s))=h\equiv}\\
+\,\,\,\,\exists o\,.\, Observations(agt,c,s)=o\,\wedge\\
+\shoveleft{\,\,\,\,\left(o=\{\}\rightarrow h=ObsHist(agt,s)\right)\,\wedge}\\
+\left(o\neq\{\}\rightarrow h=o\cdot ObsHist(agt,s)\right)\label{eqn:obshist_defn}\end{multline}
 
 \end_inset
 
@@ -1177,7 +1194,7 @@ an agent's knowledge at a given time must depend only on its local history:
 
 : 
 \begin_inset Formula \begin{multline}
-\mathbf{Unobs}(agt,s,s''))\,\isdef\,\neg\exists c',s'\,.\, s<do(c',s')\leq s''\\
+\mathbf{Unobs}(agt,s,s''))\,\isdef\, s\leq s''\wedge\neg\exists c',s'\,.\, s<do(c',s')\leq s''\\
 \wedge\, Observations(agt,c',s')\neq\{\}\label{eqn:unobs_defn}\end{multline}
 
 \end_inset
@@ -1272,7 +1289,6 @@ K_{0}(s',s)\rightarrow Init(s')\wedge Init(s)\\
 \end_inset
 
 -related situations.
- 
 \end_layout
 
 \begin_layout Standard
@@ -1293,7 +1309,7 @@ begin{theorem}
 
 \end_inset
 
-For any theory of action 
+ For any theory of action 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
@@ -1318,7 +1334,7 @@ For any theory of action
 
  
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -1331,7 +1347,7 @@ end{theorem}
 
 
 \begin_inset ERT
-status open
+status collapsed
 
 \begin_layout Standard
 
@@ -1343,6 +1359,7 @@ begin{proof}
 \end_inset
 
 Straightforward.
+ 
 \begin_inset ERT
 status collapsed
 
@@ -1373,6 +1390,149 @@ This new formulation overcomes the limitations highlighted previously.
  It also ensures that an agent's knowledge does not change if it is not
  aware of any actions occurring.
  It is thus a true generalization and improvement over previous approaches.
+\end_layout
+
+\begin_layout Subsection
+Example
+\end_layout
+
+\begin_layout Standard
+As a brief example, consider a simple blocks world inhabited by several
+ identical agents.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+Poss(pickup(agt,blk),s)\equiv\exists x\, Holding(x,blk,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+Poss(drop(agt,blk),s)\equiv Holding(agt,blk,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+Poss(watch(agt,blk),s)\equiv true\]
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+Holding(agt,blk,do(c,s))\equiv pickup(agt,blk)\in c\,\vee\\
+Holding(agt,blk,s)\wedge drop(agt,blk)\not\in c\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+Watching(agt,blk,do(c,s))\equiv watch(agt,blk)\in c\,\vee\\
+Watching(agt,blk,s)\wedge\neg\exists b2\, watch(agt,b2)\in c\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+CanObs(agt,pickup(agt2,blk),s)\equiv agt=agt2\vee Watching(agt,blk,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+CanObs(agt,drop(agt2,blk),s)\equiv agt=agt2\vee Watching(agt,blk,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+CanObs(agt,watch(agt2,blk),s)\equiv agt=agt2\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+SR(a,s)='OK'\equiv true\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\neg Holding(agt,blk,S_{0})\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\neg Watching(agt,blk,S_{0})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We ask the following question:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathbf{Knows}(thomas,\neg Holding(richard,block1),S_{0})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+No, because richard could pick it up without thomas noticing.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathbf{Knows}(thomas,\neg Holding(richard,block1),do(pickup(thomas,block1),S_{0}))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Yes, because richard cannot pickup the block while thomas it holding it.
+\begin_inset Formula \[
+\mathbf{Knows}(thomas,\neg Holding(richard,block1),do(watch(thomas,block1),S_{0}))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Yes, because thomas would observe the action 
+\begin_inset Formula $pickup(richard,block1)$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
@@ -1603,7 +1763,7 @@ ons,
 
 \end_inset
 
-Regression of the additional predicates we have introduced (
+ Regression of the additional predicates we have introduced (
 \begin_inset Formula $CanObs$
 \end_inset
 
@@ -1675,11 +1835,7 @@ begin{theorem}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Given a theory of action 
+ Given a theory of action 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
@@ -1698,10 +1854,7 @@ Given a theory of action
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
+ 
 \begin_inset ERT
 status collapsed
 
@@ -1709,13 +1862,28 @@ status collapsed
 
 
 \backslash
-end{theorem} 
+end{theorem}
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
 \backslash
 begin{proof}
 \end_layout
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 We need consider only single applications of 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}$
 \end_inset
@@ -1752,7 +1920,7 @@ We need consider only single applications of
 
 \end_inset
 
-Combining and rearranging equations (
+ Combining and rearranging equations (
 \begin_inset LatexCommand \ref{eqn:knows_def}
 
 \end_inset
@@ -1853,10 +2021,7 @@ Noting that both conjuncts contain sub-formulae matching the form of the
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
+ 
 \begin_inset ERT
 status collapsed
 
@@ -1961,29 +2126,12 @@ begin{theorem}
 \end_inset
 
 :
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
 \begin_inset Formula \[
 \mathcal{D}\models\mathbf{Knows}(agt,\phi,s)\equiv\mathbf{Knows}(agt,\phi,h)\]
 
 \end_inset
 
-
+ 
 \begin_inset ERT
 status collapsed
 
@@ -1991,19 +2139,34 @@ status collapsed
 
 
 \backslash
-end{theorem} 
+end{theorem}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
 \backslash
 begin{proof}
 \end_layout
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 Straightforward consequence of theorem 
 \begin_inset LatexCommand \ref{thm:k_obs_equiv}
 
 \end_inset
 
-
+ 
 \begin_inset ERT
 status collapsed
 
@@ -2039,7 +2202,7 @@ Extending the regression clauses in equations (
 
 \end_inset
 
-
+ 
 \begin_inset Formula \begin{multline*}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,\epsilon))=\\
 \forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}_{\mathcal{D}}(\phi,\mathbf{UA}(agt))[s]\end{multline*}
@@ -2086,7 +2249,7 @@ With our new semantics of knowledge, the situation calculus is well positioned
 
 \begin_layout Standard
  
-\begin_inset LatexCommand \bibtex[named]{/storage/uni/pgrad/library/references}
+\begin_inset LatexCommand \bibtex[abbrv]{/storage/uni/pgrad/library/references}
 
 \end_inset
 
