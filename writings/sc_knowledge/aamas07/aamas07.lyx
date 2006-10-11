@@ -39,7 +39,7 @@
 \begin_body
 
 \begin_layout Title
-Knowledge and Observations in the Multi-Agent Situation Calculus 
+Knowledge and Observation in the Situation Calculus 
 \end_layout
 
 \begin_layout Author
@@ -73,10 +73,11 @@ and Adrian R.
 \begin_layout Abstract
 We develop a new semantics for multi-agent knowledge in the situation calculus
  by reifying the observations that each agent makes as the world evolves.
- Our approach is strictly more general than previous formalisms, and can
- easily model agents who monitor the value of fluents in their environment.
+ Our approach is strictly more general than previous formalisms, and is
+ flexible enough to handle the case where an agent can observe the effects
+ of an action but not the occurence of the action itself.
  We develop a technique for effective reasoning in this formalism using
- an extended regression operator that facilitates quantification over situations.
+ a combination of the regression and persistence condition operators.
  This technique also allows agents to reason from their internal history
  of observations, rather than requiring a full history of the world.
  The result is a robust account of knowledge for partially-observable multi-agen
@@ -152,21 +153,10 @@ observations
 
  can model both total awareness of actions and total ignorance, as well
  as previously unaccounted-for circumstances such as those described above.
- The formalism can also be extended to model agents who monitor the values
- of fluents in their environment, rather than directly observing actions.
+ The formalism can also be extended to model agents who observe only the
+ effects of actions, rather than the actions themselves.
  It is thus a true generalization of previous situation calculus approaches
  to knowledge.
-\end_layout
-
-\begin_layout Standard
-An alternate approach to handling domains with partial observability of
- actions is to appeal to belief instead of knowledge - agents can simply
- assume that no actions have occurred other than those they have observed,
- and later correct their beliefs if they were mistaken.
- The applications of interest to us require that agents are never mistaken,
- so we focus on knowledge in this paper.
- However, we believe that belief-based approaches can also benefit from
- a concrete representation of precisely what was observed by each agent.
 \end_layout
 
 \begin_layout Standard
@@ -181,14 +171,13 @@ The full axiomatisation of the situation calculus includes a second-order
 .
  Our new semantics does not satisfy this restriction as it employs universal
  quantification over situations.
- Using an extension of the regression operator that can handle such quantificati
-on 
+ Using the persistence condition meta-operator developed in 
 \begin_inset LatexCommand \cite{kelly07sc_persistence}
 
 \end_inset
 
-, we show how to transform queries about knowledge into a form amenable
- to purely first-order reasoning.
+ to augment the traditional regression meta-operator, we show how to transform
+ queries about knowledge into a form amenable to purely first-order reasoning.
  The result is a powerful new account of multi-agent knowledge that still
  permits an effective reasoning procedure.
 \end_layout
@@ -214,20 +203,20 @@ Reasoning in the situation calculus traditionally requires an omniscient
 \end_layout
 
 \begin_layout Standard
-The paper is organized as follows: section 
+The paper is organized as follows: Section 
 \begin_inset LatexCommand \ref{sec:ma-sitcalc}
 
 \end_inset
 
  gives a brief introduction to the situation calculus with knowledge and
  concurrent actions, and highlights some of the limitations of current approache
-s; section 
+s; Section 
 \begin_inset LatexCommand \ref{sec:New-Semantics}
 
 \end_inset
 
- introduces our new semantics and an effective reasoning procedure; and
- section 
+ introduces our new semantics and effective reasoning procedure, and offers
+ a short example; and Section 
 \begin_inset LatexCommand \ref{sec:Conclusions}
 
 \end_inset
@@ -244,7 +233,7 @@ The Multi-Agent Situation Calculus
 
 \end_inset
 
-Our work utilizes the situation calculus as described by 
+Our work utilizes the situation calculus as described in 
 \begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
 
 \end_inset
@@ -255,7 +244,7 @@ Our work utilizes the situation calculus as described by
 \end_inset
 
  to better represent the dynamics of a multi-agent system.
- We use the approach of 
+ We use the standard approach found in 
 \begin_inset LatexCommand \cite{shapiro01casl_feat_inter}
 
 \end_inset
@@ -327,8 +316,8 @@ basic action theory
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
- of situation calculus sentences with a specific syntactic form (specified
- in detail in 
+ of situation calculus sentences (with a specific syntactic form as specified
+ in 
 \begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
 
 \end_inset
@@ -336,7 +325,35 @@ basic action theory
 ) that describes a particular dynamic world.
  Queries about the behavior or evolution of the world are posed as logical
  entailment queries relative to this theory.
- 
+ It consists of the following disjoint sets: the foundational axioms of
+ the situation calculus (
+\begin_inset Formula $\Sigma$
+\end_inset
+
+); successor state axioms describing how fluents change between situations
+ (
+\begin_inset Formula $\mathcal{D}_{ss}$
+\end_inset
+
+); precondition axioms indicating when actions can be performed (
+\begin_inset Formula $\mathcal{D}_{ap}$
+\end_inset
+
+); unique names axioms ensuring that action terms are distinct (
+\begin_inset Formula $\mathcal{D}_{una}$
+\end_inset
+
+); and axioms describing the value of fluents in the initial situation (
+\begin_inset Formula $\mathcal{D}_{S_{0}}$
+\end_inset
+
+):
+\begin_inset Formula \[
+\mathcal{D}=\Sigma\cup\mathcal{D}_{ss}\cup\mathcal{D}_{ap}\cup\mathcal{D}_{una}\cup\mathcal{D}_{S_{0}}\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -367,14 +384,161 @@ Poss(drop(agt,obj),s)\equiv Holding(agt,obj,s)\]
 \end_layout
 
 \begin_layout Standard
+We appeal to the more general notion of 
+\emph on
+action description predicates
+\emph default
+ as defined in 
+\begin_inset LatexCommand \cite{kelly07sc_persistence}
+
+\end_inset
+
+.
+ These are predicates defined in the same manner as 
+\begin_inset Formula $Poss$
+\end_inset
+
+ that describe some other aspect of the performance of an action.
+ The predicate 
+\begin_inset Formula $CanObs$
+\end_inset
+
+ that we will introduce below is an example.
+\end_layout
+
+\begin_layout Standard
+Situations form a tree structure with 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+ at the root and 
+\begin_inset Formula $do$
+\end_inset
+
+ constructing child situations from parents.
+ There is a basic ordering relation 
+\begin_inset Formula $s\sqsubset s'$
+\end_inset
+
+ which should be read as 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $s'$
+\end_inset
+
+ is in the future of 
+\begin_inset Formula $s$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ and is defined as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\neg\left(s\sqsubset S_{0}\right)\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\forall s\sqsubset do(a,s')\equiv s\sqsubseteq s'\]
+
+\end_inset
+
+Here 
+\begin_inset Formula $s\sqsubseteq s'$
+\end_inset
+
+ is the standard abbreviation for 
+\begin_inset Formula $s\sqsubset s'\vee s=s'$
+\end_inset
+
+.
+ More generally, one may consider only those futures in which all actions
+ satisfy a particular action description predicate 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ by using the 
+\begin_inset Formula $<_{\alpha}$
+\end_inset
+
+ relation of 
+\begin_inset LatexCommand \cite{kelly07sc_persistence}
+
+\end_inset
+
+:
+\begin_inset Formula \[
+\neg\left(s<_{\alpha}S_{0}\right)\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s')\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+uniform formulae
+\emph default
+ as defined in 
+\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
+
+\end_inset
+
+ can be thought as 
+\emph on
+propertie 
+\emph default
+of the state of the world.
+ They are basically logical combinations of fluents referring to a common
+ situation term, which cannot mention action description predicates nor
+ compare situation terms.
+ The meta-variable 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is used throughout to refer to an arbitrary uniform formula.
+ It is often useful to determine the truth of a uniform formula at an alternate
+ situation term, and 
+\begin_inset Formula $\phi[s]$
+\end_inset
+
+ represents the uniform formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ with all occurrences of its unique situation term replaced by the situation
+ 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ Where no confusion can arise, we suppress the situation terms in uniform
+ formulae to simplify the presentation.
+\end_layout
+
+\begin_layout Standard
 The truth of a fluent is completely specified by defining its truth in the
  initial situation, and collecting the effects of various actions into 
 \emph on
 successor state axioms
 \emph default
 .
- Such axioms provide a monotonic solution to the infamous frame problem,
- and are a principle attraction of the situation calculus.
+ Such axioms provide a monotonic solution to the infamous frame problem.
  They have the following general form, asserting the truth of a fluent 
 \begin_inset Formula $F$
 \end_inset
@@ -401,48 +565,15 @@ F(\overrightarrow{x},do(c,s))\equiv\Phi(\overrightarrow{x},c,s)\]
 \end_layout
 
 \begin_layout Standard
-The 
-\emph on
-uniform formulae
-\emph default
- as defined in 
-\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
-
+Here 
+\begin_inset Formula $\Phi$
 \end_inset
 
- can be thought of as formulae that describe a 
-\emph on
-property 
-\emph default
-of the state of the world.
- They are basically logical combinations of fluents referring to a common
- situation term, which cannot mention 
-\begin_inset Formula $Poss$
-\end_inset
-
- nor compare situation terms.
- The meta-variable 
-\begin_inset Formula $\phi$
-\end_inset
-
- is used throughout to refer to an arbitrary uniform formula.
- It is often useful to determine the truth of a uniform formula at an alternate
- situation term, and 
-\begin_inset Formula $\phi[s]$
-\end_inset
-
- represents the uniform formula 
-\begin_inset Formula $\phi$
-\end_inset
-
- with all occurrences of its unique situation term replaced by the situation
- 
+ is a formula uniform in 
 \begin_inset Formula $s$
 \end_inset
 
 .
- Where no confusion can arise, we suppress the situation terms in uniform
- formulae to simplify the presentation.
 \end_layout
 
 \begin_layout Subsection
@@ -584,12 +715,11 @@ K(agt,s'',do(c,s))\equiv\\
 \end_inset
 
 .
- The situation 
-\begin_inset Formula $s''$
+ It must furthermore have been possible to perform those actions in 
+\begin_inset Formula $s'$
 \end_inset
 
- must furthermore be possible, and the sensing results must be consistent
- for all actions in 
+, and the sensing results must be consistent for all actions in 
 \begin_inset Formula $c$
 \end_inset
 
@@ -602,7 +732,7 @@ It is also necessary to permit alternate possible worlds to the initial
 \begin_inset Formula $S_{0}$
 \end_inset
 
-.
+ to represent incomplete initial knowledge.
  The predicate 
 \begin_inset Formula $Init$
 \end_inset
@@ -627,7 +757,7 @@ rooted at
 \end_inset
 
  While powerful, this formulation has an important limitation: each agent
- must be aware of 
+ is assumed to be aware of 
 \emph on
 all
 \emph default
@@ -761,6 +891,10 @@ past
  as done above.
 \end_layout
 
+\begin_layout Subsection
+Knowledge or Belief?
+\end_layout
+
 \begin_layout Standard
 We note at this point that we are interested in a logic of 
 \emph on
@@ -785,6 +919,10 @@ belief
  below will also be useful for belief-based systems.
 \end_layout
 
+\begin_layout Standard
+TODO: expand this section
+\end_layout
+
 \begin_layout Subsection
 Regression
 \end_layout
@@ -801,66 +939,100 @@ One of the attractions of the situation calculus is the existence of effective
 
 \end_inset
 
- which transforms a formula 
+, a syntactic manipulation whose behavior can be summarized
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+The full behavior of 
+\begin_inset Formula $\mathcal{R}_{\mathcal{D}}$
+\end_inset
+
+ is beyond the scope of this paper.
+ See 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset
+
+ for a detailed development of regression for handling knowledge.
+ Since any formula uniform in 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ is by definition single-step regressable, the development below omits the
+ traditional qualification that formulae must be regressable.
+\end_layout
+
+\end_inset
+
+ for our purposes as follows: it transforms a formula 
 \begin_inset Formula $\phi$
 \end_inset
 
  uniform in 
-\begin_inset Formula $do(c,s)$
+\begin_inset Formula $do(a,s)$
 \end_inset
 
  into a formula 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}(\phi)$
 \end_inset
 
- uniform in 
+ that is uniform in 
 \begin_inset Formula $s$
 \end_inset
 
-, such that the two are equivalent relative to the particular theory of
- action 
-\begin_inset Formula $\mathcal{D}$
-\end_inset
-
-.
- By repeatedly applying
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-An alternate definition of the regression operator reduces to 
-\begin_inset Formula $S_{0}$
-\end_inset
-
- in a single pass.
- The two are essentially equivalent, but the repeated-application version
- is simpler to extend for our purposes.
-\end_layout
-
-\end_inset
-
- the regression operator, 
+ and is equivalent to 
 \begin_inset Formula $\phi$
 \end_inset
 
- can be transformed into an equivalent formula uniform in 
+ under the theory of action 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathcal{D}\,\models\,\phi\equiv\mathcal{R}_{\mathcal{D}}(\phi)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It also replaces action description predicates such as 
+\begin_inset Formula $Poss$
+\end_inset
+
+ with their appropriate definitions.
+ If 
+\begin_inset Formula $\phi$
+\end_inset
+
+ refers to a situation that is rooted at 
 \begin_inset Formula $S_{0}$
 \end_inset
 
-: 
+, repeated applications of the regression operator (denoted by 
+\begin_inset Formula $\mathcal{R}_{\mathcal{D}}^{*}$
+\end_inset
+
+) can transform it into an equivalent formula uniform in the initial situation.
+ The successor state and action precondition axioms are 
+\begin_inset Quotes eld
+\end_inset
+
+compiled into
+\begin_inset Quotes erd
+\end_inset
+
+ the regressed formula, and so are not required for answering the regressed
+ query: 
 \begin_inset Formula \[
 \mathcal{D}\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\equiv\mathcal{R}_{\mathcal{D}}^{*}(\phi)[S_{0}]\]
 
 \end_inset
 
- The induction, successor state and action precondition axioms are not required
- for reasoning about 
-\begin_inset Formula $\mathcal{R}_{\mathcal{D}}^{*}(\phi)[S_{0}]$
-\end_inset
-
-, so such queries require only first-order reasoning from a limited number
- of axioms.
- The trade-off is that the length of 
+The trade-off is that the length of 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}^{*}(\phi)$
 \end_inset
 
@@ -1397,14 +1569,8 @@ Example
 \end_layout
 
 \begin_layout Standard
-As a brief example, consider a simple blocks world inhabited by several
- identical agents.
- 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
-Poss(pickup(agt,blk),s)\equiv\exists x\, Holding(x,blk,s)\]
+Poss(pickup(agt,box),s)\equiv\neg\exists x\,.\, Holding(x,box,s)\]
 
 \end_inset
 
@@ -1413,7 +1579,7 @@ Poss(pickup(agt,blk),s)\equiv\exists x\, Holding(x,blk,s)\]
 
 \begin_layout Standard
 \begin_inset Formula \[
-Poss(drop(agt,blk),s)\equiv Holding(agt,blk,s)\]
+Poss(drop(agt,box),s)\equiv Holding(agt,box,s)\]
 
 \end_inset
 
@@ -1422,20 +1588,20 @@ Poss(drop(agt,blk),s)\equiv Holding(agt,blk,s)\]
 
 \begin_layout Standard
 \begin_inset Formula \[
-Poss(watch(agt,blk),s)\equiv true\]
+Poss(goToRoom(agt,room),s)\equiv true\]
 
 \end_inset
 
 
 \begin_inset Formula \begin{multline*}
-Holding(agt,blk,do(c,s))\equiv pickup(agt,blk)\in c\,\vee\\
-Holding(agt,blk,s)\wedge drop(agt,blk)\not\in c\end{multline*}
+Holding(agt,box,do(c,s))\equiv pickup(agt,box)\in c\,\vee\\
+Holding(agt,box,s)\wedge drop(agt,box)\not\in c\end{multline*}
 
 \end_inset
 
 
 \begin_inset Formula \begin{multline*}
-Watching(agt,blk,do(c,s))\equiv watch(agt,blk)\in c\,\vee\\
+InRoom(obj,room,do(c,s))\equiv\exists agt\,.\, goToRoom(agt,room)\in c\,\vee\\
 Watching(agt,blk,s)\wedge\neg\exists b2\, watch(agt,b2)\in c\end{multline*}
 
 \end_inset
@@ -1445,7 +1611,7 @@ Watching(agt,blk,s)\wedge\neg\exists b2\, watch(agt,b2)\in c\end{multline*}
 
 \begin_layout Standard
 \begin_inset Formula \[
-CanObs(agt,pickup(agt2,blk),s)\equiv agt=agt2\vee Watching(agt,blk,s)\]
+CanObs(agt,a,s)\equiv\exists room\,.\, InRoom(agt,room)\wedge InRoom(agent(a),room)\]
 
 \end_inset
 
@@ -1454,7 +1620,44 @@ CanObs(agt,pickup(agt2,blk),s)\equiv agt=agt2\vee Watching(agt,blk,s)\]
 
 \begin_layout Standard
 \begin_inset Formula \[
-CanObs(agt,drop(agt2,blk),s)\equiv agt=agt2\vee Watching(agt,blk,s)\]
+\neg Holding(agt,box,S_{0})\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+InRoom(Richard,Room1,S_{0})\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+InRoom(Box1,Room1,S_{0})\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+InRoom(Harriet,Room2,S_{0})\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+InRoom(Box2,Room2,S_{0})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The following are consequences:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathbf{Knows}(Richard,\neg Holding(Harriet,Box1),S_{0})\]
 
 \end_inset
 
@@ -1463,13 +1666,7 @@ CanObs(agt,drop(agt2,blk),s)\equiv agt=agt2\vee Watching(agt,blk,s)\]
 
 \begin_layout Standard
 \begin_inset Formula \[
-CanObs(agt,watch(agt2,blk),s)\equiv agt=agt2\]
-
-\end_inset
-
-
-\begin_inset Formula \[
-SR(a,s)='OK'\equiv true\]
+\mathbf{\neg Knows}(Richard,\neg Holding(Harriet,Box2),S_{0})\]
 
 \end_inset
 
@@ -1477,14 +1674,9 @@ SR(a,s)='OK'\equiv true\]
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \[
-\neg Holding(agt,blk,S_{0})\]
-
-\end_inset
-
-
-\begin_inset Formula \[
-\neg Watching(agt,blk,S_{0})\]
+\begin_inset Formula \begin{multline*}
+\mathbf{Knows}(Richard,Holding(Harriet,Box1),\\
+do(\{ pickup(Harriet,Box1)\},do(\{ goToRoom(Harriet,Room1)\},S_{0})))\end{multline*}
 
 \end_inset
 
@@ -1492,47 +1684,14 @@ SR(a,s)='OK'\equiv true\]
 \end_layout
 
 \begin_layout Standard
-We ask the following question:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathbf{Knows}(thomas,\neg Holding(richard,block1),S_{0})\]
+\begin_inset Formula \begin{multline*}
+\mathbf{\neg Knows}(Richard,Holding(Harriet,Box1),\\
+do(\{ goToRoom(Harriet,Room2)\},do(\{ pickup(Harriet,Box1)\},\\
+do(\{ goToRoom(Harriet,Room1)\},S_{0}))))\end{multline*}
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-No, because richard could pick it up without thomas noticing.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathbf{Knows}(thomas,\neg Holding(richard,block1),do(pickup(thomas,block1),S_{0}))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Yes, because richard cannot pickup the block while thomas it holding it.
-\begin_inset Formula \[
-\mathbf{Knows}(thomas,\neg Holding(richard,block1),do(watch(thomas,block1),S_{0}))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Yes, because thomas would observe the action 
-\begin_inset Formula $pickup(richard,block1)$
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Subsection
@@ -1541,15 +1700,16 @@ Observing Fluent Change
 
 \begin_layout Standard
 In many domains it would be infeasible for an agent to observe a particular
- action occurring, but it may be aware that a particular fluent has changed.
+ action occurring, but it may be able to observe some of the effects of
+ an action.
  For example, suppose that an agent monitors the state of a light in its
  environment, such that it notices it changing from dark to light.
  While it knows that 
 \emph on
 some
 \emph default
- action must have occurred, it may not be sure precisely what action took
- place.
+ action must have occurred to produce that effect, it may not be sure precisely
+ what action took place.
 \end_layout
 
 \begin_layout Standard
