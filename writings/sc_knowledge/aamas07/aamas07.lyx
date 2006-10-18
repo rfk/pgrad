@@ -2,13 +2,10 @@
 \lyxformat 245
 \begin_document
 \begin_header
-\textclass article
+\textclass sig-alternate
 \begin_preamble
 
 
-
-
-\newtheorem{theorem}{Theorem}
 \newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
 \end_preamble
 \options letterpaper
@@ -133,8 +130,8 @@ A common assumption when working with knowledge in the situation calculus
 partial
 \emph default
  awareness of actions.
- For example, consider agents occupying a building who are aware of only
- those actions performed in the room they currently occupy.
+ For example, consider agents occupying a building who are aware of actions
+ performed in the room that they currently occupy.
 \end_layout
 
 \begin_layout Standard
@@ -154,7 +151,7 @@ observations
  spans the two extremes.
  Appropriate axiomatisation of this function can model both total awareness
  of actions and total ignorance, as well as previously unaccounted-for circumsta
-nces such as those described above.
+nces such as the example above.
  The formalism can also be extended to model agents who observe the effects
  of actions, rather than the actions themselves.
  It is thus a true generalization of previous situation calculus approaches
@@ -162,10 +159,9 @@ nces such as those described above.
 \end_layout
 
 \begin_layout Standard
-The full axiomatisation of the situation calculus includes a second-order
- induction axiom.
- For effective automated reasoning, queries must be restricted to syntactic
- forms that can be proven without employing induction 
+For effective automated reasoning in the situation calculus, queries must
+ be restricted to syntactic forms that allow the regression meta-operator
+ to be applied 
 \begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
 
 \end_inset
@@ -178,13 +174,7 @@ The full axiomatisation of the situation calculus includes a second-order
 
 \end_inset
 
- to augment the traditional regression meta-operator 
-\begin_inset LatexCommand \cite{pirri99contributions_sitcalc}
-
-\end_inset
-
-, we show how to transform queries about knowledge into a form amenable
- to purely first-order reasoning.
+, we develop a new regression rule for queries about knowledge.
  The result is a powerful new account of multi-agent knowledge that still
  permits an effective reasoning procedure.
 \end_layout
@@ -222,8 +212,15 @@ s; Section
 
 \end_inset
 
- introduces our new semantics, defines regression of knowledge formulae,
- and offers a short example; and Section 
+ introduces the notion of observations, develops our observation-based semantics
+ for knowledge, and offers a short example; Section 
+\begin_inset LatexCommand \ref{sec:Reasoning}
+
+\end_inset
+
+ extends the regression operator to handle knowledge in our formalism, and
+ shows how to reason from a local observation history rather than a full
+ situation term; and Section 
 \begin_inset LatexCommand \ref{sec:Conclusions}
 
 \end_inset
@@ -370,7 +367,7 @@ There is a distinguished fluent predicate
 
  that indicates when it is possible to perform an action in a given situation.
  For example, it is only possible for an agent to drop an object if they
- are actually holding it
+ are actually holding it:
 \begin_inset Foot
 status collapsed
 
@@ -381,13 +378,16 @@ We follow the convention that lower-case roman names indicate variables,
 
 \end_inset
 
-: 
+ 
 \begin_inset Formula \[
 Poss(drop(agt,obj),s)\equiv Holding(agt,obj,s)\]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula $\mathcal{D}_{ap}$
 \end_inset
 
@@ -412,6 +412,35 @@ action description predicates
 \end_inset
 
  that specifies when an agent will observe the occurance of an action.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $Poss$
+\end_inset
+
+ is typically extended to concurrent actions by defining it as follows:
+\begin_inset Formula \[
+Poss(c,s)\equiv\forall a\,.\, a\in c\rightarrow Poss(a,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This may be insufficient for many domains where certain actions cannot be
+ performed together, even if each action is individually possible.
+ This is know as 
+\emph on
+precondition interaction 
+\emph default
+and can be addressed by several techniques that are well outside the scope
+ of this paper 
+\begin_inset LatexCommand \cite{reiter96sc_nat_conc,pinto94temporal}
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -445,9 +474,6 @@ Situations form a tree structure with
 \end_inset
 
  and is defined as follows:
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
 \neg\left(s\sqsubset S_{0}\right)\]
 
@@ -455,10 +481,14 @@ Situations form a tree structure with
 
 
 \begin_inset Formula \[
-s\sqsubset do(a,s')\equiv s\sqsubseteq s'\]
+s\sqsubset do(c,s')\equiv s\sqsubseteq s'\]
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 Here 
 \begin_inset Formula $s\sqsubseteq s'$
 \end_inset
@@ -490,11 +520,38 @@ Here
 
 
 \begin_inset Formula \[
-s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s')\]
+s<_{\alpha}do(c,s')\equiv s\leq_{\alpha}s'\wedge\alpha(c,s')\]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The 
+\emph on
+legal situations
+\emph default
+ are those in which all actions were actually possible to perform in the
+ preceeding situation - that is, those situations 
+\begin_inset Formula $s$
+\end_inset
+
+ that satisfy 
+\begin_inset Formula $S_{0}\leq_{Poss}s$
+\end_inset
+
+.
+ Since one regularly wants to restrict attention to legal situations in
+ this manner, 
+\begin_inset Formula $\leq$
+\end_inset
+
+ is traditionally used rather than the more general
+\begin_inset Formula $\leq_{Poss}$
+\end_inset
+
+ notation.
 \end_layout
 
 \begin_layout Standard
@@ -582,6 +639,11 @@ Here
 \end_inset
 
 .
+ 
+\begin_inset Formula $\mathcal{D}_{ss}$
+\end_inset
+
+ contains one such axiom for each fluent.
 \end_layout
 
 \begin_layout Subsection
@@ -636,7 +698,7 @@ in situation
  of knowledge, stating that an agent knows something when it is true in
  all situations considered possible: 
 \begin_inset Formula \begin{equation}
-\mathbf{Knows}(agt,\phi,s)\,\isdef\,\forall s'\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:knows_def}\end{equation}
+\mathbf{Knows}(agt,\phi,s)\,\isdef\,\forall s'\,.\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:knows_def}\end{equation}
 
 \end_inset
 
@@ -649,7 +711,7 @@ in situation
 \begin_inset Formula $a$
 \end_inset
 
- when executed in a situation 
+ when executed in situation 
 \begin_inset Formula $s$
 \end_inset
 
@@ -676,7 +738,7 @@ Combining the multi-agent semantics of
 
 \end_inset
 
-, the common form of successor state axiom for the knowledge fluent is
+, the common form of successor state axiom for the knowledge fluent is:
 \begin_inset Foot
 status collapsed
 
@@ -690,11 +752,11 @@ Using the standard abbreviation
 
 \end_inset
 
-: 
+ 
 \begin_inset Formula \begin{multline}
 K(agt,s'',do(c,s))\equiv\\
-\exists s'\,\, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\\
-\wedge\,\forall a\in c\left[agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\label{eqn:k_ssa_standard}\end{multline}
+\exists s'\,.\, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\\
+\wedge\,\forall a\in c.\left[agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\label{eqn:k_ssa_standard}\end{multline}
 
 \end_inset
 
@@ -704,10 +766,7 @@ K(agt,s'',do(c,s))\equiv\\
 
  gives the agent performing the action, which always corresponds to the
  first argument of the action.
-\end_layout
-
-\begin_layout Standard
-This successor state axiom ensures that 
+ This successor state axiom ensures that 
 \begin_inset Formula $s''$
 \end_inset
 
@@ -727,7 +786,7 @@ This successor state axiom ensures that
 \begin_inset Formula $s'$
 \end_inset
 
- that is a possible alternative to 
+ that is considered a possible alternative to 
 \begin_inset Formula $s$
 \end_inset
 
@@ -765,15 +824,45 @@ It is also necessary to permit alternate possible worlds to the initial
 rooted at
 \emph default
  some initial situation: 
-\begin_inset Formula \[
+\begin_inset Formula \begin{equation}
 \begin{split} & Init(s)\rightarrow Root(s)=s\\
  & Root(do(c,s))=Root(s)\\
  & Init(s)\rightarrow\left(K(s',s)\rightarrow Init(s')\right)\end{split}
-\]
+\label{eq:k_s0_standard}\end{equation}
 
 \end_inset
 
- While powerful, this formulation has an important limitation: each agent
+ 
+\end_layout
+
+\begin_layout Definition
+We will denote by 
+\begin_inset Formula $\mathcal{D}_{Std}$
+\end_inset
+
+ a basic action theory augmented with the standard 
+\begin_inset Quotes eld
+\end_inset
+
+total awareness
+\begin_inset Quotes erd
+\end_inset
+
+ account of knowledge from 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset
+
+, as detailed in equation (
+\begin_inset LatexCommand \ref{eqn:k_ssa_standard}
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+While powerful, this formulation has an important limitation: each agent
  is assumed to be aware of 
 \emph on
 all
@@ -792,12 +881,12 @@ awareness
  in real systems must thus be abdicated to a lower-level software component,
  such as a continuous sensing system that identifies change in the environment
  and notifies the agent when an action occurs.
+ While suitable for some domains, there are clearly many realistic multi-agent
+ domains that do not meet this limitation.
 \end_layout
 
 \begin_layout Standard
-While suitable for some domains, there are clearly many realistic multi-agent
- domains that do not meet this limitation.
- An alternate formulation from 
+An alternate formulation from 
 \begin_inset LatexCommand \cite{Lesperance99sitcalc_approach}
 
 \end_inset
@@ -806,7 +895,7 @@ While suitable for some domains, there are clearly many realistic multi-agent
  that they themselves perform:
 \begin_inset Formula \begin{multline}
 K(agt,s'',do(c,s))\equiv\\
-\exists s',s^{*},c'\,\, s''=do(c',s^{*})\,\wedge K(s',s)\wedge Poss(c',s^{*})\\
+\exists s',s^{*},c'\,.\, s''=do(c',s^{*})\,\wedge K(s',s)\wedge Poss(c',s^{*})\\
 \wedge\,\mathbf{ExoOnly}(agt,s',s^{*})\\
 \wedge\,\forall a\left[agent(a)=agt\rightarrow a\in c'\equiv a\in c\right]\\
 \wedge\,\forall a\in c\left[agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\label{eqn:k_ssa_exo}\end{multline}
@@ -839,14 +928,40 @@ K(agt,s'',do(c,s))\equiv\\
  actions.
 \end_layout
 
+\begin_layout Definition
+We will denote by 
+\begin_inset Formula $\mathcal{D}_{Exo}$
+\end_inset
+
+ a basic action theory augmented with the 
+\begin_inset Quotes eld
+\end_inset
+
+total ignorance
+\begin_inset Quotes erd
+\end_inset
+
+ account of knowledge from 
+\begin_inset LatexCommand \cite{Lesperance99sitcalc_approach}
+
+\end_inset
+
+, as detailed in equation (
+\begin_inset LatexCommand \ref{eqn:k_ssa_exo}
+
+\end_inset
+
+).
+\end_layout
+
 \begin_layout Standard
 This approach is also limiting, in that agents can 
 \emph on
 never
 \emph default
  be aware of the actions performed by others.
- Consider agents occupying a house who are aware of actions performed by
- others in the same room, or even the simple case of an agent being aware
+ Consider agents occupying a building who are aware of actions performed
+ by others in the same room, or even the simple case of an agent being aware
  that another agent has collided with it - full generality requires that
  agents can be aware of 
 \emph on
@@ -865,7 +980,7 @@ Furthermore, suppose that
 \end_inset
 
 , so the world is in some situation 
-\begin_inset Formula $do(a_{1},s)$
+\begin_inset Formula $do(\{ a_{1}\},s)$
 \end_inset
 
 .
@@ -874,7 +989,7 @@ Furthermore, suppose that
 \end_inset
 
 , leaving the world in situation 
-\begin_inset Formula $do(a_{2},do(a_{1},s))$
+\begin_inset Formula $do(\{ a_{2}\},do(\{ a_{1}\},s))$
 \end_inset
 
 .
@@ -888,12 +1003,18 @@ Furthermore, suppose that
 
  cannot be aware that the state of the world has changed.
  Its state of knowledge should also remain unchanged.
- Unfortunately this is not the case: 
-\begin_inset Formula $K(agt,s',do(a_{2},do(a_{1},s)))\not\equiv K(agt,s',do(a_{1},s))$
+ Unfortunately this is not the case under this formulation:
+\begin_inset Formula \begin{multline*}
+\mathcal{D}_{Exo}\not\models agent(a_{2})\neq agt\rightarrow\\
+K(agt,s',do(a_{2},do(a_{1},s)))\equiv K(agt,s',do(a_{1},s))\end{multline*}
+
 \end_inset
 
- under this formulation.
- To faithfully represent this aspect of the knowledge of real-world agents,
+
+\end_layout
+
+\begin_layout Standard
+To faithfully represent this aspect of the knowledge of real-world agents,
  the successor state axiom for 
 \begin_inset Formula $K$
 \end_inset
@@ -945,12 +1066,6 @@ The full behavior of
 \end_inset
 
  for a detailed development of regression for handling knowledge.
- Since any formula uniform in 
-\begin_inset Formula $do(a,s)$
-\end_inset
-
- is by definition single-step regressable, the development below omits the
- traditional qualification that formulae must be regressable.
 \end_layout
 
 \end_inset
@@ -1016,12 +1131,18 @@ compiled into
 \end_inset
 
  the regressed formula, and so are not required for answering the regressed
- query: 
-\begin_inset Formula \[
-\mathcal{D}\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\equiv\mathcal{R}_{\mathcal{D}}^{*}(\phi)[S_{0}]\]
+ query:
+\begin_inset Formula \begin{gather*}
+\mathcal{D}\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\\
+iff\\
+\mathcal{D}_{una}\cup\mathcal{D}_{S_{0}}\models\mathcal{R}_{\mathcal{D}}^{*}(\phi)[S_{0}]\end{gather*}
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 The trade-off is that the length of 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}^{*}(\phi)$
 \end_inset
@@ -1056,28 +1177,30 @@ In
 \end_inset
 
  relation in the initial situation.
- Regressing such formulae relies on the fact that agents are aware of all
- actions.
- Formulae containing quantification over situations, such as the modified
- dynamics of knowledge in equation (
+ Since formulae that quantify over situations cannot be regressed, this
+ technique for regressing knowledge queries relies on the fact that agents
+ are aware of all actions.
+ The modified dynamics of knowledge in equation (
 \begin_inset LatexCommand \ref{eqn:k_ssa_exo}
 
 \end_inset
 
-), cannot be regressed.
- Indeed, 
+) cannot be regressed, and 
 \begin_inset LatexCommand \cite{Lesperance99sitcalc_approach}
 
 \end_inset
 
- offer no procedure for reasoning in their formalism other than using second-ord
-er induction.
+ offers no procedure for reasoning in their formalism other than using second-or
+der induction.
  We believe this to be the main reason for the near-ubiquity of the assumption
  of total awareness of actions.
 \end_layout
 
 \begin_layout Section
 New Semantics of Knowledge
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand \label{sec:New-Semantics}
 
 \end_inset
@@ -1132,8 +1255,8 @@ aware
  of some change in the state of the world.
 \end_layout
 
-\begin_layout Standard
-Definition: An 
+\begin_layout Definition
+An 
 \emph on
 observation
 \emph default
@@ -1186,24 +1309,19 @@ awareness
 \end_inset
 
  to some lower-level component of the agent's control software.
+ For simplicity, we assume that agents perceive observations instantaneously
+ i.e.
+ in the same instant as the actions that led to them.
+ 
 \end_layout
 
 \begin_layout Standard
-There are, quite intentionally, strong parallels between actions and observation
-s.
- An action causes the state of the world to change, and an agent may observe
- that change, which changes the mental state of the agent.
- For simplicity, we assume that observations are received by an agent at
- the same instant as the action causing them is performed.
-\end_layout
-
-\begin_layout Standard
-For the moment, let us introduce an additional sort 
+To demonstrate this idea let us introduce an additional sort 
 \emph on
 Observations
 \emph default
- to the language of the situation calculus without any particular commitment
- towards what that sort may contain.
+ to the language of the situation calculus, for the moment without any particula
+r commitment towards what this sort may contain.
  We then introduce the function 
 \begin_inset Formula $Observations(agt,c,s)=o$
 \end_inset
@@ -1236,14 +1354,17 @@ when the actions
 \end_layout
 
 \begin_layout Standard
-With a concrete notion of observations in place, the concept of an 
+The concept of an 
 \emph on
 Observation History
 \emph default
  follows naturally - it is a sequence of all the observations made by an
  agent as the world has evolved.
- We introduce another sort consisting of sequences of observations, with
- 
+ We introduce another sort 
+\emph on
+ObsHistories
+\emph default
+ consisting of sequences of sets of observations, with 
 \begin_inset Formula $\epsilon$
 \end_inset
 
@@ -1252,12 +1373,11 @@ Observation History
 \end_inset
 
  giving the observation history associated with a particular situation:
- 
 \begin_inset Formula \begin{multline}
 Init(s)\rightarrow ObsHist(agt,s)=\epsilon\\
 \shoveleft{ObsHist(agt,do(c,s))=h\equiv}\\
-\,\,\,\,\exists o\,.\, Observations(agt,c,s)=o\,\wedge\\
-\shoveleft{\,\,\,\,\left(o=\{\}\rightarrow h=ObsHist(agt,s)\right)\,\wedge}\\
+\exists o\,.\, Observations(agt,c,s)=o\,\wedge\\
+\left(o=\{\}\rightarrow h=ObsHist(agt,s)\right)\,\wedge\\
 \left(o\neq\{\}\rightarrow h=o\cdot ObsHist(agt,s)\right)\label{eqn:obshist_defn}\end{multline}
 
 \end_inset
@@ -1266,12 +1386,293 @@ Init(s)\rightarrow ObsHist(agt,s)=\epsilon\\
 \end_layout
 
 \begin_layout Standard
-An observation history is the agent-internal analogue of a situation - while
- a situation is a global history of all the actions that have occured, an
- observation history is a local history of all the observations an agent
- has perceived.
- Let us then see how these notions can be used to generalize the standard
- account of knowledge.
+There is a strong analogue between situations and observation histories.
+ A situation represents a complete, global history of all the actions that
+ have occurred in the world, while an observation history is an agent's
+ local history of all the observations it has made.
+ The situation is an omniscient view of the world, the observation history
+ a local view.
+ As we shall see, this distinction is fundamental to developing a truly
+ general multi-agent semantics for knowledge.
+\end_layout
+
+\begin_layout Subsection
+Knowledge and Observation
+\end_layout
+
+\begin_layout Standard
+In general, an agent's knowledge at any particular time must depend solely
+ on its local history: the knowledge that it started out with combined with
+ the observations it has made since then 
+\begin_inset LatexCommand \cite{halpern90knowledge_distrib}
+
+\end_inset
+
+.
+ Given an explicit account of the observations made by each agent, the required
+ semantics of the 
+\begin_inset Formula $K$
+\end_inset
+
+ relation are clear - 
+\begin_inset Formula $K(agt,s',s)$
+\end_inset
+
+ must hold whenever 
+\begin_inset Formula $s'$
+\end_inset
+
+ is legal and both 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s'$
+\end_inset
+
+ would result in the same observation history for the agent:
+\begin_inset Formula \begin{multline*}
+\mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\wedge Root(s')\leq s'\wedge\\
+ObsHist(agt,s')=ObsHist(agt,s)\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+While a wonderfully succinct definition of how knowledge should behave,
+ this formulation cannot be used directly in a basic action theory.
+ Basic action theories require that the dynamics of fluent change be specified
+ as a successor state axiom, so we must formulate a sucessor state axiom
+ for the 
+\begin_inset Formula $K$
+\end_inset
+
+ fluent which enforces the above relationship.
+\end_layout
+
+\begin_layout Standard
+For notational convenience, let us first introduce an action description
+ predicate 
+\begin_inset Formula $PbU(agt,c,s)$
+\end_inset
+
+ (for 
+\begin_inset Quotes eld
+\end_inset
+
+possible but unobservable
+\begin_inset Quotes erd
+\end_inset
+
+) indicating that the actions 
+\begin_inset Formula $c$
+\end_inset
+
+ are possible in 
+\begin_inset Formula $s$
+\end_inset
+
+, but no observations will be made by the agent 
+\begin_inset Formula $agt$
+\end_inset
+
+ if they are performed:
+\begin_inset Formula \begin{multline*}
+PbU(agt,c,s)\equiv Poss(c,s)\wedge Observations(agt,c,s)=\{\}\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can then easily express the fact that an agent would make no observations
+ were the world to move from situation 
+\begin_inset Formula $s$
+\end_inset
+
+ to 
+\begin_inset Formula $s'$
+\end_inset
+
+:
+\begin_inset Formula \[
+s\leq_{PbU(agt)}s'\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If the agent considers possible a situation 
+\begin_inset Formula $s$
+\end_inset
+
+ then it must also consider possible situation 
+\begin_inset Formula $s'$
+\end_inset
+
+, since the world could have moved from 
+\begin_inset Formula $s$
+\end_inset
+
+ to 
+\begin_inset Formula $s'$
+\end_inset
+
+ without the agent observing any change.
+ Following this intuition, the successor state axiom below captures the
+ desired dynamics of the knowledge fluent:
+\begin_inset Formula \begin{multline}
+K(agt,s'',do(c,s))\equiv\\
+Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\\
+\shoveleft{\vee\,\,\,\,\exists c',s'\,.\, Observations(agt,c,s)\neq\{\}\,\wedge}\\
+\shoveright{Observations(agt,c',s')=Observations(agt,c,s)\,\wedge}\\
+K(agt,s',s)\wedge do(c',s')\leq_{PbU(agt)}s'')\label{eqn:new_k_ssa}\end{multline}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+If 
+\begin_inset Formula $c$
+\end_inset
+
+ was totally unobservable, the agent's state of knowledge does not change.
+ Otherwise, it considers possible any legal successor to a possible alternate
+ situation 
+\begin_inset Formula $s'$
+\end_inset
+
+ that can be brought about by actions 
+\begin_inset Formula $c'$
+\end_inset
+
+ that result in identical observations.
+ It also considers possible any unobservable future of such a situation.
+\end_layout
+
+\begin_layout Standard
+It remains to specify 
+\begin_inset Formula $K$
+\end_inset
+
+ in the initial situation.
+ Since situations where 
+\begin_inset Formula $S_{0}\leq_{PbU(agt)}s$
+\end_inset
+
+ holds must be 
+\begin_inset Formula $K$
+\end_inset
+
+-related to 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+, we introduce another relation 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+ to specify each agent's initial knowledge: 
+\begin_inset Formula \begin{multline}
+K_{0}(agt,s',s)\rightarrow Init(s')\wedge Init(s)\\
+\shoveleft{Init(s)\rightarrow K(agt,s'',s)\equiv}\\
+\exists s'\,.\,\left[K_{0}(agt,s',s)\wedge s'\leq_{PbU(agt)}s'')\right]\label{eqn:new_k_s0}\end{multline}
+
+\end_inset
+
+ These definitions are enough to ensure that knowledge behaves as we require.
+\end_layout
+
+\begin_layout Definition
+We will denote by 
+\begin_inset Formula $\mathcal{D}_{Obs}$
+\end_inset
+
+ a basic action theory augmented with our new observation-based semantics
+ for knowldge, as detailed in equations (
+\begin_inset LatexCommand \ref{eqn:new_k_ssa}
+
+\end_inset
+
+) and (
+\begin_inset LatexCommand \ref{eqn:new_k_s0}
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Theorem
+\begin_inset LatexCommand \label{thm:k_obs_equiv}
+
+\end_inset
+
+ For any basic action theory 
+\begin_inset Formula $\mathcal{D}_{Obs}$
+\end_inset
+
+ that includes our new semantics of knowledge, any agent 
+\begin_inset Formula $agt$
+\end_inset
+
+ and situations 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s'$
+\end_inset
+
+: 
+\begin_inset Formula \begin{multline*}
+\mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\wedge Root(s')\leq s'\wedge\\
+ObsHist(agt,s')=ObsHist(agt,s)\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Straightforward, using equations (
+\begin_inset LatexCommand \ref{eqn:obshist_defn}
+
+\end_inset
+
+,
+\begin_inset LatexCommand \ref{eqn:new_k_ssa}
+
+\end_inset
+
+,
+\begin_inset LatexCommand \ref{eqn:new_k_s0}
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Standard
+Using this new formulation, an agent's knowledge is completly decoupled
+ from the global notion of actions, instead depending only on the local
+ information that it has observed.
+ It remains to specify precisely what the 
+\emph on
+Observations 
+\emph default
+sort contains, and how the 
+\begin_inset Formula $Observations()$
+\end_inset
+
+ function behaves.
 \end_layout
 
 \begin_layout Subsection
@@ -1279,8 +1680,16 @@ Axiomatising Observations
 \end_layout
 
 \begin_layout Standard
-Let us begin by re-casting the standard account of knowledge in terms of
- observations.
+TODO: note that Observations() must be defined by a uniform formula
+\end_layout
+
+\begin_layout Standard
+Let us begin by considering the standard account of knowledge from 
+\begin_inset LatexCommand \cite{scherl03sc_knowledge}
+
+\end_inset
+
+.
  Its basic assumption that 
 \begin_inset Quotes eld
 \end_inset
@@ -1311,8 +1720,8 @@ Action
 \end_inset
 
  function:
-\begin_inset Formula \[
-a\in Observations(agt,c,s)\equiv a\in c\]
+\begin_inset Formula \begin{equation}
+a\in Observations(agt,c,s)\equiv a\in c\label{eq:ax_obs_std1}\end{equation}
 
 \end_inset
 
@@ -1333,12 +1742,137 @@ Observations
  
 \emph default
 and axiomatize like so:
-\begin_inset Formula \begin{multline*}
+\begin_inset Formula \begin{multline}
 (a=r)\in Observations(agt,c,s)\equiv\\
-a\in c\wedge SR(a,s)=r\wedge agent(a)=agt\end{multline*}
+a\in c\wedge SR(a,s)=r\wedge agent(a)=agt\label{eq:ax_obs_std2}\end{multline}
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+Using these definitions, our new account of knowledge will behave identically
+ to the standard account.
+\end_layout
+
+\begin_layout Theorem
+For basic action theories 
+\begin_inset Formula $\mathcal{D}_{Std}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathcal{D}_{Obs}$
+\end_inset
+
+ that describe the same world, and where 
+\begin_inset Formula $\mathcal{D}_{Obs}$
+\end_inset
+
+ uses equations (
+\begin_inset LatexCommand \ref{eq:ax_obs_std1}
+
+\end_inset
+
+) and (
+\begin_inset LatexCommand \ref{eq:ax_obs_std2}
+
+\end_inset
+
+) to define the 
+\begin_inset Formula $Observations()$
+\end_inset
+
+ fluent, then for any ground situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s'$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathcal{D}_{Std}\models K(agt,s',s)\,\,\, iff\,\,\,\mathcal{D}_{Obs}\models K(agt,s',s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Given equations (
+\begin_inset LatexCommand \ref{eq:ax_obs_std1}
+
+\end_inset
+
+,
+\begin_inset LatexCommand \ref{eq:ax_obs_std2}
+
+\end_inset
+
+), 
+\begin_inset Formula $Observations(agt,c,s)$
+\end_inset
+
+ cannot be empty for non-empty 
+\begin_inset Formula $c$
+\end_inset
+
+ and so 
+\begin_inset Formula $s\leq_{PbU(agt)}s'$
+\end_inset
+
+ iff 
+\begin_inset Formula $s=s'$
+\end_inset
+
+.
+ Equations (
+\begin_inset LatexCommand \ref{eqn:new_k_ssa}
+
+\end_inset
+
+,
+\begin_inset LatexCommand \ref{eqn:new_k_s0}
+
+\end_inset
+
+) then amount to simple transformations of equations (
+\begin_inset LatexCommand \ref{eqn:k_ssa_standard}
+
+\end_inset
+
+,
+\begin_inset LatexCommand \ref{eq:k_s0_standard}
+
+\end_inset
+
+) respectively, meaning that 
+\begin_inset Formula $K$
+\end_inset
+
+ behaves the same under both theories.
+\end_layout
+
+\begin_layout Standard
+If we remove equation (
+\begin_inset LatexCommand \ref{eq:ax_obs_std1}
+
+\end_inset
+
+), a similar result holds between 
+\begin_inset Formula $\mathcal{D}_{Obs}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathcal{D}_{Exo}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
 To generalize this to handle partial observaility of actions we introduce
  a new action description predicate, akin to 
 \begin_inset Formula $Poss$
@@ -1375,8 +1909,8 @@ a\in Observations(agt,c,s)\equiv a\in c\wedge CanObs(agt,a,s)\]
 \end_layout
 
 \begin_layout Standard
-There is another related assumption in the standard handling of sensing
- actions: only the agent performing a sensing action is aware of its result.
+There is an additional assumption in the standard handling of sensing actions:
+ only the agent performing a sensing action is aware of its result.
  Such a restriction is common but certainly not universal: if an agent waiting
  for a train activates a speaker to determine when it will arrive, the result
  of this sensing action would be available to any other agent within earshot.
@@ -1393,14 +1927,14 @@ There is another related assumption in the standard handling of sensing
  terms when it also senses the result:
 \begin_inset Formula \begin{multline*}
 a\in Observations(agt,c,s)\equiv a\in c\\
-CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\end{multline*}
+\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\end{multline*}
 
 \end_inset
 
 
 \begin_inset Formula \begin{multline*}
-(a=r)\in Observations(agt,c,s)\equiv a\in c\\
-SR(a,s)=r\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{multline*}
+(a=r)\in Observations(agt,c,s)\equiv a\in c\wedge SR(a,s)=r\\
+\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{multline*}
 
 \end_inset
 
@@ -1433,279 +1967,6 @@ Like their counterpart
 \end_layout
 
 \begin_layout Subsection
-Knowledge and Observation
-\end_layout
-
-\begin_layout Standard
-In general, an agent's knowledge at any particular time must depend solely
- on its local history: the knowledge that it started out with combined with
- the observations it as made since then 
-\begin_inset LatexCommand \cite{halpern90knowledge_distrib}
-
-\end_inset
-
-.
- Given an explicit account of the observations made by each agent, the required
- semantics of the 
-\begin_inset Formula $K$
-\end_inset
-
- relation are clear - 
-\begin_inset Formula $K(agt,s',s)$
-\end_inset
-
- must hold whenever situations 
-\begin_inset Formula $s'$
-\end_inset
-
- and 
-\begin_inset Formula $s$
-\end_inset
-
- would result in the same observation history for the agent:
-\begin_inset Formula \begin{multline*}
-\mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\\
-\wedge ObsHist(agt,s')=ObsHist(agt,s)\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-While a wonderfully succinct definition of how knowledge should behave,
- this formulation cannot be directly inserted into a basic action theory.
- Instead, we must formulate a sucessor state axiom for the 
-\begin_inset Formula $K$
-\end_inset
-
- fluent which enforces the above relationship.
-\end_layout
-
-\begin_layout Standard
-For notational convenience, let us first introduce an action description
- predicate 
-\begin_inset Formula $PossUnobs(agt,c,s)$
-\end_inset
-
- indicating that the actions 
-\begin_inset Formula $c$
-\end_inset
-
- are possible in 
-\begin_inset Formula $s$
-\end_inset
-
-, but no observations will be made by the agent 
-\begin_inset Formula $agt$
-\end_inset
-
- if they are performed:
-\begin_inset Formula \begin{multline*}
-PossUnobs(agt,c,s)\equiv Poss(c,s)\\
-\wedge Observations(agt,c,s)=\{\}\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using the generalised situation ordering of 
-\begin_inset LatexCommand \cite{kelly07sc_persistence}
-
-\end_inset
-
-, we can then easily express the fact that an agent would make no observations
- were the world to move from situation 
-\begin_inset Formula $s$
-\end_inset
-
- to 
-\begin_inset Formula $s'$
-\end_inset
-
-:
-\begin_inset Formula \[
-s\leq_{PossUnobs(agt)}s'\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-If the agent considers possible a situation 
-\begin_inset Formula $s$
-\end_inset
-
- then it must also consider possible any legal situation 
-\begin_inset Formula $s'$
-\end_inset
-
- such that 
-\begin_inset Formula $s\leq_{PossUnobs(agt)}s'$
-\end_inset
-
-.
- The following successor state axiom then captures the desired semantics
- of knowledge: 
-\begin_inset Formula \begin{multline}
-K(agt,s'',do(c,s))\equiv\\
-Observations(agt,c,s)=\{\}\wedge K(agt,s'',s)\\
-\shoveleft{\vee\,\,\exists c',s'\,\, Observations(agt,c,s)\neq\{\}\,\wedge}\\
-Observations(agt,c',s')=Observations(agt,c,s)\,\wedge\\
-K(agt,s',s)\wedge do(c',s')\leq_{PossUnobs(agt)}s'')\label{eqn:new_k_ssa}\end{multline}
-
-\end_inset
-
- If 
-\begin_inset Formula $c$
-\end_inset
-
- was totally unobservable, the agent's state of knowledge does not change.
- Otherwise, it considers possible any legal successor to a possible situation
- that can be brought about by actions 
-\begin_inset Formula $c'$
-\end_inset
-
- resulting in identical observations.
- It also considers possible any unobservable future of such a situation.
-\end_layout
-
-\begin_layout Standard
-It remains to specify 
-\begin_inset Formula $K$
-\end_inset
-
- in the initial situation.
- Since situations where 
-\begin_inset Formula $S_{0}\leq_{UnObs(agt)}s$
-\end_inset
-
- holds must be 
-\begin_inset Formula $K$
-\end_inset
-
--related to 
-\begin_inset Formula $S_{0}$
-\end_inset
-
-, we introduce another relation 
-\begin_inset Formula $K_{0}$
-\end_inset
-
- to specify each agent's initial knowledge: 
-\begin_inset Formula \begin{multline}
-K_{0}(s',s)\rightarrow Init(s')\wedge Init(s)\\
-\shoveleft{Init(s)\rightarrow K(agt,s'',s)\equiv}\\
-\exists s'\,.\,\left[K_{0}(agt,s',s)\wedge s'\leq_{PossUnobs(agt)}s'')\right]\label{eqn:new_k_s0}\end{multline}
-
-\end_inset
-
- These definitions are enough to ensure that knowledge behaves as we require:
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-begin{theorem}
-\end_layout
-
-\end_inset
-
- 
-\begin_inset LatexCommand \label{thm:k_obs_equiv}
-
-\end_inset
-
- For any basic action theory 
-\begin_inset Formula $\mathcal{D}$
-\end_inset
-
- that includes our new semantics of knowledge, any agent 
-\begin_inset Formula $agt$
-\end_inset
-
- and legal situations 
-\begin_inset Formula $s$
-\end_inset
-
- and 
-\begin_inset Formula $s'$
-\end_inset
-
-: 
-\begin_inset Formula \begin{multline*}
-\mathcal{D}\models K(agt,s',s)\equiv K_{0}(Root(s'),Root(s))\\
-\wedge ObsHist(agt,s')=ObsHist(agt,s)\end{multline*}
-
-\end_inset
-
- 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-end{theorem}
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-begin{proof}
-\end_layout
-
-\end_inset
-
-Straightforward.
- 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-end{proof}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using this new formulation, an agent's knowledge is completly decoupled
- from the global notion of actions, instead depending only on the local
- information that it has observed.
- It remains to specify precisely what the 
-\emph on
-Observations 
-\emph default
-sort contains, and how the 
-\begin_inset Formula $Observations()$
-\end_inset
-
- function behaves.
-\end_layout
-
-\begin_layout Subsection
 Observing Action Effects
 \end_layout
 
@@ -1733,14 +1994,27 @@ This can be modeled by further extending the
 \emph on
 Observations
 \emph default
- sort to contain reified fluents in the style of [TODO].
+ sort to contain what amounts to a selection of reified fluents.
+ Suppose that the observation term 
+\begin_inset Formula $f_{\phi}$
+\end_inset
+
+ indicates that a particular property of the world 
+\begin_inset Formula $\phi$
+\end_inset
+
+ has changed from false to true.
+ 
 \begin_inset Formula \begin{multline*}
-f\in Observations(agt,c,s)\equiv Monitoring(agt,f,s)\\
-\wedge\neg holds(f,s)\wedge holds(f,do(c,s))\end{multline*}
+f_{\phi}\in Observations(agt,c,s)\equiv\neg\phi[s]\wedge\mathcal{R}(\phi[do(c,s)])\end{multline*}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+TODO: make a bigger deal about how flexible our formalism is!
 \end_layout
 
 \begin_layout Subsection
@@ -1748,24 +2022,25 @@ Example
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \[
-Poss(pickup(agt,box),s)\equiv\neg\exists x\,.\, Holding(x,box,s)\]
+As a small example, consider a packing facility where agents are required
+ to move packages between various rooms.
+ Each agent is able to observe any actions that take place within the room
+ they currently occupy, but no actions outside that room.
+ For simplicity we do not include sensing actions.
+ A simple axiomatization of such a world might proceed as follows:
+\begin_inset Formula \begin{multline*}
+Poss(pickup(agt,box),s)\equiv\neg\exists x\,.\, Holding(x,box,s)\\
+\wedge\exists rm\,.\, InRoom(agt,rm)\wedge InRoom(box,rm)\end{multline*}
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
 Poss(drop(agt,box),s)\equiv Holding(agt,box,s)\]
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
 Poss(goToRoom(agt,room),s)\equiv true\]
 
@@ -1779,6 +2054,11 @@ Holding(agt,box,s)\wedge drop(agt,box)\not\in c\end{multline*}
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+An object is in a room if it was taken there, or it was already in that
+ room and it was not taken elsewhere:
 \begin_inset Formula \begin{multline*}
 InRoom(obj,room,do(c,s))\equiv\exists agt\,.\, goToRoom(agt,room)\in c\wedge\\
 \left[obj=agt\vee Holding(agt,obj,s)\right]\,\,\vee\\
@@ -1791,14 +2071,10 @@ InRoom(obj,room,s)\wedge\neg\left(\exists agt,r2\,.\, goToRoom(agt,r2)\in c\wedg
 \end_layout
 
 \begin_layout Standard
+Agents can observe any actions performed by an agent in the same room as
+ themselves:
 \begin_inset Formula \[
-CanObs(agt,a,s)\equiv\exists room\,.\, InRoom(agt,room)\wedge InRoom(agent(a),room)\]
-
-\end_inset
-
-
-\begin_inset Formula \[
-CanSense(agt,a,s)\equiv false\]
+CanObs(agt,a,s)\equiv\exists rm\,.\, InRoom(agt,rm)\wedge InRoom(agent(a),rm)\]
 
 \end_inset
 
@@ -1806,6 +2082,8 @@ CanSense(agt,a,s)\equiv false\]
 \end_layout
 
 \begin_layout Standard
+Initially, Richard is in Room1 with Box1, Harriet is in Room2 with Box2,
+ and no-one is holding any boxes:
 \begin_inset Formula \[
 \neg Holding(agt,box,S_{0})\]
 
@@ -1839,12 +2117,10 @@ InRoom(Box2,Room2,S_{0})\]
 \end_layout
 
 \begin_layout Standard
-The following are consequences:
-\end_layout
-
-\begin_layout Standard
+Furthermore, assume that all agents have complete knowledge of the initial
+ situation:
 \begin_inset Formula \[
-\mathbf{Knows}(Richard,\neg Holding(Harriet,Box1),S_{0})\]
+K_{0}(agt,s,S_{0})\rightarrow s=S_{0}\]
 
 \end_inset
 
@@ -1852,8 +2128,10 @@ The following are consequences:
 \end_layout
 
 \begin_layout Standard
+The following are examples of knowledge queries that can be posed in our
+ formalism:
 \begin_inset Formula \[
-\mathbf{\neg Knows}(Richard,\neg Holding(Harriet,Box2),S_{0})\]
+\mathcal{D}_{Obs}\models\mathbf{Knows}(Richard,\neg Holding(Harriet,Box1),S_{0})\]
 
 \end_inset
 
@@ -1861,8 +2139,37 @@ The following are consequences:
 \end_layout
 
 \begin_layout Standard
+Initially, Richard knows that Harriet is not holding Box1.
+ For 
+\begin_inset Formula $Holding(Harriet,Box1)$
+\end_inset
+
+ to be true, she must have picked Box1 up.
+ Since Box1 is in the same room as Richard, he would be able to observe
+ her doing so.
+ Since he has not observed that, he can conclude that 
+\begin_inset Formula $Holding(Harriet,Box1)$
+\end_inset
+
+ is false.
+\begin_inset Formula \[
+\mathcal{D}_{Obs}\models\mathbf{\neg Knows}(Richard,\neg Holding(Harriet,Box2),S_{0})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By contrast, Richard does 
+\emph on
+not 
+\emph default
+know that Harriet is not holding Box2.
+ Since Box2 is in a different room, Harriet could have picked it up without
+ him observing the action.
 \begin_inset Formula \begin{multline*}
-\mathbf{Knows}(Richard,Holding(Harriet,Box1),\\
+\mathcal{D}_{Obs}\models\mathbf{Knows}(Richard,Holding(Harriet,Box1),\\
 do(\{ pickup(Harriet,Box1)\},do(\{ goToRoom(Harriet,Room1)\},S_{0})))\end{multline*}
 
 \end_inset
@@ -1871,10 +2178,80 @@ do(\{ pickup(Harriet,Box1)\},do(\{ goToRoom(Harriet,Room1)\},S_{0})))\end{multli
 \end_layout
 
 \begin_layout Standard
+For Harriet to put down Box1 without Richard observing anything, she would
+ have to first move to a different room.
+ Since the action of moving to a different room would be observed by Richard,
+ he knows that she must be holding the box.
 \begin_inset Formula \begin{multline*}
 \mathbf{\neg Knows}(Richard,Holding(Harriet,Box1),\\
 do(\{ goToRoom(Harriet,Room2)\},do(\{ pickup(Harriet,Box1)\},\\
 do(\{ goToRoom(Harriet,Room1)\},S_{0}))))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Once Harriet takes Box1 into a different room, Richard can no longer be
+ sure that she is holding it, since she may drop it without him observing
+ anything.
+\end_layout
+
+\begin_layout Subsection
+Knowledge or Belief?
+\end_layout
+
+\begin_layout Standard
+We note at this point that we are interested in a logic of 
+\emph on
+knowledge
+\emph default
+ - everything known by an agent must actually be true in the world.
+ There has also been significant work on 
+\emph on
+belief
+\emph default
+ in the situation calculus 
+\begin_inset LatexCommand \cite{shapiro00sc_belief}
+
+\end_inset
+
+, where agents may be mistaken about the state of the world.
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \cite{shapiro04sc_belief_exog}
+
+\end_inset
+
+ show how agents may hypothesize the occurrence of exogenous actions when
+ they discover that their beliefs are wrong, neatly avoiding the issue of
+ being aware of actions performed by others.
+ This approach cannot be applied when dealing with knowledge.
+ However, we believe that the concrete notion of observations we develop
+ below will also be useful for belief-based systems.
+\end_layout
+
+\begin_layout Standard
+TODO: expand this section
+\end_layout
+
+\begin_layout Standard
+TODO: refrence 
+\begin_inset LatexCommand \cite{demolombe00tractable_sc_belief}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Reasoning
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \label{sec:Reasoning}
 
 \end_inset
 
@@ -1887,7 +2264,7 @@ Regression
 
 \begin_layout Standard
 The appearance of the 
-\begin_inset Formula $\leq_{PossUnobs(agt)}$
+\begin_inset Formula $\leq_{PbU(agt)}$
 \end_inset
 
  ordering over situations in equation (
@@ -1925,7 +2302,7 @@ persistence condition
 \begin_inset Formula $\mathcal{P}_{\mathcal{D}}(\phi,\alpha)$
 \end_inset
 
- such that 
+ that is true when 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1954,7 +2331,7 @@ n met by most realistic domains.
 
 \begin_layout Standard
 By applying it to the action description predicate 
-\begin_inset Formula $PossUnobs(agt)$
+\begin_inset Formula $PbU(agt)$
 \end_inset
 
 , the persistence condition can be used to augment the existing techniques
@@ -1985,8 +2362,8 @@ Assuming that the knowledge fluent
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,do(c,s)))=\\
 \left[Observations(agt,c,s)=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
 \wedge\,\left[Observations(agt,c,s)\neq\{\}\rightarrow\right.\\
-\mathbf{Knows}(agt,\forall c'\, Observations(agt,c',now)=o\rightarrow\\
-\left.\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PossUnobs(agt))[do(c',now)]),s)\right]\label{eqn:R_do_c_s}\end{multline}
+\mathbf{Knows}(agt,\forall c'\, Observations(agt,c',s)=o\rightarrow\\
+\left.\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[do(c',s)]),s)\right]\label{eqn:R_do_c_s}\end{multline}
 
 \end_inset
 
@@ -2026,7 +2403,7 @@ ons,
  relation, as required: 
 \begin_inset Formula \begin{multline}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,S_{0}))=\\
-\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}_{\mathcal{D}}(\phi,PossUnobs(agt))[s]\label{eqn:R_s0}\end{multline}
+\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[s]\label{eqn:R_s0}\end{multline}
 
 \end_inset
 
@@ -2054,7 +2431,7 @@ We briefly sketch the highlights of a proof that our modified regression
 
 \end_inset
 
-) and (
+,
 \begin_inset LatexCommand \ref{eqn:R_s0}
 
 \end_inset
@@ -2089,21 +2466,9 @@ We briefly sketch the highlights of a proof that our modified regression
  using the persistence operator completes the proof.
 \end_layout
 
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-begin{theorem}
-\end_layout
-
-\end_inset
-
- Given a basic action theory 
-\begin_inset Formula $\mathcal{D}$
+\begin_layout Theorem
+Given a basic action theory 
+\begin_inset Formula $\mathcal{D}_{Obs}$
 \end_inset
 
 , a uniform formula 
@@ -2116,40 +2481,14 @@ begin{theorem}
 
 , it is always the case that: 
 \begin_inset Formula \[
-\mathcal{D}\models\phi[s]\equiv\mathcal{R}_{\mathcal{D}}(\phi)[S_{0}]\]
+\mathcal{D}_{Obs}\models\phi[s]\equiv\mathcal{R}_{\mathcal{D}}(\phi)[S_{0}]\]
 
 \end_inset
 
  
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-end{theorem}
 \end_layout
 
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-begin{proof}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
+\begin_layout Proof
 We need only consider applications of 
 \begin_inset Formula $\mathcal{R}_{\mathcal{D}}$
 \end_inset
@@ -2182,7 +2521,7 @@ We need only consider applications of
 :
 \begin_inset Formula \begin{multline*}
 \mathbf{PK}(agt,\phi,o,s)\,\isdef\,\forall c\,.Observations(agt,c,s)=o\rightarrow\\
-\left[\forall s'\,.\, do(c,s)\leq_{PossUnobs(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
+\left[\forall s'\,.\, do(c,s)\leq_{PbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
 
 \end_inset
 
@@ -2212,7 +2551,7 @@ We need only consider applications of
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Proof
 Noting that both conjuncts contain sub-formulae matching the form of the
  
 \begin_inset Formula $\mathbf{Knows}$
@@ -2254,7 +2593,7 @@ Noting that both conjuncts contain sub-formulae matching the form of the
  equivalence as required:
 \begin_inset Formula \begin{multline*}
 \mathbf{PK}(agt,\phi,o,s)\equiv\forall c\, Observations(agt,c,s)=o\rightarrow\\
-\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PossUnobs(agt))[do(c',s')])\end{multline*}
+\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[do(c',s')])\end{multline*}
 
 \end_inset
 
@@ -2275,7 +2614,7 @@ Noting that both conjuncts contain sub-formulae matching the form of the
 ) gives:
 \begin_inset Formula \begin{multline*}
 \mathbf{Knows}(\phi,S_{0})\equiv\forall s\, K_{0}(agt,s)\rightarrow\\
-\{\forall s'\,.\, s\leq_{PossUnobs(agt)}s'\rightarrow\phi[s']\}\end{multline*}
+\{\forall s'\,.\, s\leq_{PbU(agt)}s'\rightarrow\phi[s']\}\end{multline*}
 
 \end_inset
 
@@ -2283,24 +2622,19 @@ Noting that both conjuncts contain sub-formulae matching the form of the
  in the required form:
 \begin_inset Formula \begin{multline*}
 \mathbf{Knows}(\phi,S_{0})\equiv\forall s\, K_{0}(agt,s)\rightarrow\\
-\mathcal{P}_{\mathcal{D}}(\phi,PossUnobs(agt))[s]\end{multline*}
+\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[s]\end{multline*}
 
 \end_inset
 
- 
-\begin_inset ERT
-status collapsed
 
-\begin_layout Standard
-
-
-\backslash
-end{proof}
 \end_layout
 
+\begin_layout Proof
+This is modal reasoning over the 
+\begin_inset Formula $K_{0}$
 \end_inset
 
-
+ relation.
 \end_layout
 
 \begin_layout Standard
@@ -2358,179 +2692,78 @@ do I know
 
 \end_layout
 
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-begin{theorem}
-\end_layout
-
+\begin_layout Theorem
+Given a theory of action 
+\begin_inset Formula $\mathcal{D}_{Obs}$
 \end_inset
 
- Given a theory of action 
-\begin_inset Formula $\mathcal{D}$
-\end_inset
-
- including our semantics for knowledge, a situation term 
-\begin_inset Formula $s$
-\end_inset
-
- rooted at 
-\begin_inset Formula $S_{0}$
-\end_inset
-
-, and an observation history 
-\begin_inset Formula $h$
-\end_inset
-
- such that 
-\begin_inset Formula $ObsHist(agt,h,s)$
+ including our semantics for knowledge, for any uniform formula 
+\begin_inset Formula $\phi$
 \end_inset
 
 :
-\begin_inset Formula \[
-\mathcal{D}\models\mathbf{Knows}(agt,\phi,s)\equiv\mathbf{Knows}(agt,\phi,h)\]
+\begin_inset Formula \begin{multline*}
+\mathcal{D}_{Obs}\models Root(s)=S_{0}\wedge ObsHist(agt,s)=h\rightarrow\\
+\mathbf{Knows}(agt,\phi,s)\equiv\mathbf{Knows}(agt,\phi,h)\end{multline*}
 
 \end_inset
 
  
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-end{theorem}
 \end_layout
 
-\end_inset
-
- 
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-begin{proof}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
+\begin_layout Proof
 Straightforward consequence of theorem 
 \begin_inset LatexCommand \ref{thm:k_obs_equiv}
 
 \end_inset
 
  
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-end{proof}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
-Extending the regression clauses in equations (
+Extending the regression rules in equations (
 \begin_inset LatexCommand \ref{eqn:R_do_c_s}
 
 \end_inset
 
-) and (
+,
 \begin_inset LatexCommand \ref{eqn:R_s0}
 
 \end_inset
 
 ) to handle formulae of this form is actually simpler than for regression
- over situations, as there are no empty observations in a history: 
+ over situations, as there are no empty observations in a history.
+ The result is: 
 \begin_inset Formula \begin{multline*}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,o\cdot h))=\\
 \mathbf{Knows}(agt,\forall c'\, Observations(agt,c',s')=o\rightarrow\\
-\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,\mathbf{UA}(agt))[do(c',s')]),h)\end{multline*}
+\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[do(c',s')]),h)\end{multline*}
 
 \end_inset
 
  
 \begin_inset Formula \begin{multline*}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,\epsilon))=\\
-\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}_{\mathcal{D}}(\phi,\mathbf{UA}(agt))[s]\end{multline*}
+\forall s\, K_{0}(agt,s)\rightarrow\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[s]\end{multline*}
 
 \end_inset
 
- Using this, agents can reason about their own knowledge using only their
- local information.
+ Using regression in this way, agents can reason about their own knowledge
+ using only their local information.
  Our work thus makes it possible to include a situation calculus model in
  the implementation of a real-world multi-agent system, even when agents
  have only partial awareness of the actions being performed.
 \end_layout
 
-\begin_layout Subsection
-Knowledge or Belief?
-\end_layout
-
-\begin_layout Standard
-We note at this point that we are interested in a logic of 
-\emph on
-knowledge
-\emph default
- - everything known by an agent must actually be true in the world.
- There has also been significant work on 
-\emph on
-belief
-\emph default
- in the situation calculus 
-\begin_inset LatexCommand \cite{shapiro00sc_belief}
-
-\end_inset
-
-, where agents may be mistaken about the state of the world.
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand \cite{shapiro04sc_belief_exog}
-
-\end_inset
-
- show how agents may hypothesize the occurrence of exogenous actions when
- they discover that their beliefs are wrong, neatly avoiding the issue of
- being aware of actions performed by others.
- This approach cannot be applied when dealing with knowledge.
- However, we believe that the concrete notion of observations we develop
- below will also be useful for belief-based systems.
-\end_layout
-
-\begin_layout Standard
-TODO: expand this section
-\end_layout
-
 \begin_layout Section
 Conclusions
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand \label{sec:Conclusions}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 In this paper we have significantly increased the scope of the situation
  calculus for modeling knowledge in complex domains, where there may be
  multiple agents and partial observability of actions.
@@ -2550,15 +2783,6 @@ In this paper we have significantly increased the scope of the situation
 With our new semantics of knowledge, the situation calculus is well positioned
  for representing, reasoning about, and implementing more complex, realistic
  agent systems.
-\end_layout
-
-\begin_layout Standard
-TODO: refrence 
-\begin_inset LatexCommand \cite{demolombe00tractable_sc_belief}
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
