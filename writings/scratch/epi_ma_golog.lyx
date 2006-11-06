@@ -1,580 +1,504 @@
-#LyX 1.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 221
+#LyX 1.4.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
 \textclass article
 \language english
 \inputencoding auto
 \fontscheme default
 \graphics default
 \paperfontsize default
-\papersize Default
-\paperpackage a4
-\use_geometry 0
-\use_amsmath 0
-\use_natbib 0
-\use_numerical_citations 0
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
 \paperorientation portrait
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
 \defskip medskip
 \quotes_language english
-\quotes_times 2
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
+\tracking_changes false
+\output_changes true
+\end_header
 
-\layout Title
+\begin_body
 
-Cooperative Execution of IndiGolog Programs
-\layout Author
+\begin_layout Title
+Cooperative Execution of MIndiGolog Programs
+\end_layout
 
-Ryan Kelly
-\layout Section
+\begin_layout Author
+Ryan F.
+ Kelly and Adrian R.
+ Pearce
+\end_layout
 
+\begin_layout Section
 Introduction
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 TODO: pinch stuff from the MIndiGolog paper to motivate this research.
-\layout Section
+\end_layout
 
+\begin_layout Section
 Preliminaries
-\layout Subsection
+\end_layout
 
+\begin_layout Subsection
 Knowledge
-\layout Standard
+\end_layout
 
-We adopt the formalisn of [TODO: my other paper] when modelling knowledge
- in the multi-agent situation calculus.
-\layout Subsection
+\begin_layout Standard
+We adopt the formalism of 
+\begin_inset LatexCommand \cite{kelly07sc_know_obs}
 
+\end_inset
 
+ for modelling and reasoning about knowledge in the multi-agent situation
+ calculus with partial observability of actions.
+\end_layout
+
+\begin_layout Subsection
 \begin_inset Formula $Trans$
-\end_inset 
+\end_inset
 
  and 
 \begin_inset Formula $Step$
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 The semantics of IndiGolog is traditionally given in terms of a predicate
  
 \begin_inset Formula $Trans(\delta,s,\delta',s')$
-\end_inset 
+\end_inset
 
  which indicates possible transitions of the program 
 \begin_inset Formula $\delta$
-\end_inset 
+\end_inset
 
  in situation 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 .
  The situations 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
  and 
 \begin_inset Formula $s'$
-\end_inset 
+\end_inset
 
  can be related in one of two ways: either 
 \begin_inset Formula $s'=s$
-\end_inset 
+\end_inset
 
 , or 
 \begin_inset Formula $\exists c,t\, s'=do(c,t,s)$
-\end_inset 
+\end_inset
 
 .
  Thus, 
 \begin_inset Formula $Trans$
-\end_inset 
+\end_inset
 
  cannot be used directly to determine the next action to take.
-\layout Standard
+\end_layout
 
-TODO: figure out a better SOL axiom for 
-\begin_inset Formula $Step$
-\end_inset 
-
-, rather than using 
-\begin_inset Formula $Trans*$
-\end_inset 
-
-
-\layout Standard
-
+\begin_layout Standard
 For clarity, we define a predicate 
 \begin_inset Formula $Step(\delta,s,\delta',s')$
-\end_inset 
+\end_inset
 
  that behaves like 
 \begin_inset Formula $Trans,$
-\end_inset 
+\end_inset
 
  but guarantees that 
 \begin_inset Formula $\exists c,t\, s'=do(c,t,s)$
-\end_inset 
+\end_inset
 
 :
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 Step(\delta,s,\delta',s')\equiv\exists c,t\, s'=do(c,t,s)\wedge Trans*(\delta,s,\delta',s')\]
 
-\end_inset 
+\end_inset
 
 
-\layout Subsection
+\end_layout
 
+\begin_layout Standard
+TODO: figure out a better SOL axiom for 
+\begin_inset Formula $Step$
+\end_inset
+
+, rather than using 
+\begin_inset Formula $Trans*$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
 The 
 \begin_inset Formula $Task$
-\end_inset 
+\end_inset
 
  fluent
-\layout Standard
+\end_layout
 
+\begin_layout Standard
 Given that agents may be unable to observe all actions that have taken place,
- they could possibly consider the program to be in various stages of completion.
- Since agent's knowledge is represented in terms of possible situations,
+ they may consider the program to be in various stages of completion.
+ Since an agent's knowledge is represented in terms of possible situations,
  it is thus necessary to somehow embed the program being executed into the
  situations themselves.
  The fluent 
 \begin_inset Formula $Task(\delta,s)$
-\end_inset 
+\end_inset
 
  is defined for this purpose, which should be read as asserting that 
 \begin_inset Quotes eld
-\end_inset 
+\end_inset
 
 program 
 \begin_inset Formula $\delta$
-\end_inset 
+\end_inset
 
-remains to be executed in situation 
+ remains to be executed in situation 
 \begin_inset Formula $s$
-\end_inset 
+\end_inset
 
 .
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
  The successor state axiom for this fluent can be formulated using 
 \begin_inset Formula $Step$
-\end_inset 
+\end_inset
 
 :
-\layout Standard
+\end_layout
 
-
+\begin_layout Standard
 \begin_inset Formula \[
 Task(\delta,do(c,t,s))\equiv\exists\delta'\, Task(\delta',s)\wedge Step(\delta',s,\delta,do(c,t,s))\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\end_layout
 
-The program 
+\begin_layout Standard
+The initial program 
 \begin_inset Formula $\delta_{0}$
-\end_inset 
+\end_inset
 
  to be carried out by the agents can then be specified by asserting that
  
 \begin_inset Formula $Task(\delta_{0},S_{0})$
-\end_inset 
+\end_inset
 
 .
  It's worth noting that this fluent need not indicate a unique value of
  
 \begin_inset Formula $\delta$
-\end_inset 
+\end_inset
 
  for any particular situation.
  For situations that cannot be reached during the execution of 
 \begin_inset Formula $\delta_{0}$
-\end_inset 
+\end_inset
 
 , there can be no program remaining to execute and 
 \begin_inset Formula $Task$
-\end_inset 
+\end_inset
 
  will not hold for any 
 \begin_inset Formula $\delta$
-\end_inset 
+\end_inset
 
 .
  For programs that can execute along several branches with the same action
  (such as 
 \begin_inset Formula $a;b\,|\, a;c$
-\end_inset 
+\end_inset
 
 ) it will be true for several programs, any of which could be used to further
  the execution.
-\layout Subsection
+\end_layout
 
-Communication
-\layout Standard
+\begin_layout Standard
+TODO: since
+\begin_inset Formula $Step$
+\end_inset
 
-There has been significant work done on modelling communication in the situation
- calculus.
- Typically, special actions such as 
-\begin_inset Formula $ask$
-\end_inset 
+ is second-order, this is emphatically 
+\series bold
+not
+\series default
+ a valid successor state axiom.
+ Come up with something that is, or a passable workaround.
+\end_layout
 
- and 
-\begin_inset Formula $inform$
-\end_inset 
+\begin_layout Section
+Coordination
+\end_layout
 
- are used to indicate communication between agents, with the successor state
- axioms for these actions updating the knowledge states of the agents involved.
- In [TODO: my other paper] communication is formalised as a type of sensing
- action, and this approach will be followed here.
-\layout Standard
+\begin_layout Standard
+Premise: when all agents have complete knowledge, no communication should
+ be necessary.
+ This has been done successfully by 
+\begin_inset LatexCommand \cite{Ferrein2005readylog}
 
-We introduce two types of action.
- 
-\begin_inset Quotes eld
-\end_inset 
+\end_inset
 
-Ask
-\begin_inset Quotes erd
-\end_inset 
+ using an ordering over situations.
+\end_layout
 
- actions allow one agent to query the knowledge of another, and 
-\begin_inset Quotes eld
-\end_inset 
+\begin_layout Subsection
+Coordination Order
+\end_layout
 
-inform
-\begin_inset Quotes erd
-\end_inset 
-
- actions allow an agent to inform another about some knowledge.
- We further distinguish two types of knowledge - knowledge of formulae,
- and knowledge of referrents.
- This results in a total of four communication actions:
-\layout Itemize
-
-
-\begin_inset Formula $askWhether(agt_{1},agt_{2},\phi)$
-\end_inset 
-
-: 
-\begin_inset Formula $agt_{1}$
-\end_inset 
-
- asks 
-\begin_inset Formula $agt_{2}$
-\end_inset 
-
- whether the formula 
-\begin_inset Formula $\phi$
-\end_inset 
-
- currently holds
-\layout Itemize
-
-
-\begin_inset Formula $askRef(agt_{1},agt_{2},\theta)$
-\end_inset 
-
-: 
-\begin_inset Formula $agt_{1}$
-\end_inset 
-
- asks 
-\begin_inset Formula $agt_{2}$
-\end_inset 
-
- for the current refferent of function 
-\begin_inset Formula $\theta$
-\end_inset 
-
-
-\layout Itemize
-
-
-\begin_inset Formula $informWhether(agt_{1},agt_{2},\phi)$
-\end_inset 
-
-: 
-\begin_inset Formula $agt_{1}$
-\end_inset 
-
- informs 
-\begin_inset Formula $agt_{2}$
-\end_inset 
-
- whether the formula 
-\begin_inset Formula $\phi$
-\end_inset 
-
- currently holds
-\layout Itemize
-
-
-\begin_inset Formula $informRef(agt_{1},agt_{2},\theta)$
-\end_inset 
-
-: 
-\begin_inset Formula $agt_{1}$
-\end_inset 
-
- informs 
-\begin_inset Formula $agt_{2}$
-\end_inset 
-
- of the current refferent of function 
-\begin_inset Formula $\theta$
-\end_inset 
-
-
-\layout Standard
-
-The semantics of inform actions are well-understood.
- Ask actions require extra care, as there is no guarantee that the agent
- being asked actually knows the information sought.
- There are thus three possible results from the 
-\begin_inset Formula $askWhether$
-\end_inset 
-
- action: 
-\begin_inset Quotes eld
-\end_inset 
-
-YES
-\begin_inset Quotes erd
-\end_inset 
-
-, 
-\begin_inset Quotes eld
-\end_inset 
-
-NO
-\begin_inset Quotes erd
-\end_inset 
-
-, and 
-\begin_inset Quotes eld
-\end_inset 
-
-MAYBE
-\begin_inset Quotes erd
-\end_inset 
-
-.
-\layout Subsection
-
-Ordering over Situations
-\layout Standard
-
+\begin_layout Standard
 To assist in coordination between the agents, they share a strict total
  order 
-\begin_inset Formula $<$
-\end_inset 
+\begin_inset Formula $\prec$
+\end_inset
 
- over situation terms.
- Intuitively, the agents will consider a situation 
-\begin_inset Formula $S_{1}$
-\end_inset 
+ over concurrent action terms.
+ Intuitively, the agents will consider 
+\begin_inset Formula $c\prec c'$
+\end_inset
 
-to be 
-\begin_inset Quotes eld
-\end_inset 
+ to mean that actions 
+\begin_inset Formula $c'$
+\end_inset
 
-better
+ are "better
 \begin_inset Quotes erd
-\end_inset 
+\end_inset
 
- than 
-\begin_inset Formula $S_{2}$
-\end_inset 
+ than actions 
+\begin_inset Formula $c$
+\end_inset
 
- if 
-\begin_inset Formula $S_{2}<S_{1}$
-\end_inset 
-
-, and when executing each step of the program will choose the best situation
- known to be possible.
+, and will choose the next step of the program to be the best possible set
+ of actions.
  In practise the ordering may be arbitrary, or it may indeed reflect some
- judgement on the utility of the situations.
+ judgement on the utility of the actions involved.
  Its only purpose here is to reduce the communication required in coordinating
  actions.
-\layout Standard
+ It is assumed to be static and common knowledge amongst all agents in the
+ team.
+\end_layout
 
+\begin_layout Standard
 This ordering is analogous to the execution strategy of IndiGolog for a
  single agent.
  In any particular situation the agent may be faced with several potential
  actions, but the one that it will actually chose is determined 
-\emph on 
+\emph on
 a priori
-\emph default 
+\emph default
  by the execution order of the underlying prolog engine.
- This can be viewed as an ordering over the possible situation terms.
-\layout Subsection
+ This can be viewed as an implicit ordering over the possible situation
+ terms.
+ We choose to take an ordering over actions rather than situations to make
+ the chose independent of the current situation, which will in general not
+ be known by the agents.
+\end_layout
 
+\begin_layout Subsection
+Communication
+\end_layout
+
+\begin_layout Standard
+TODO: discuss allowing the agents to communicate without needing to specify
+ this explicitly in the program.
+\end_layout
+
+\begin_layout Subsection
 When to perform an action
-\layout Standard
+\end_layout
 
-The crux of the coordination strategy for cooperative execution is: given
- a candidate 
-\begin_inset Quotes eld
-\end_inset 
+\begin_layout Standard
+When complete knowledge is available to all agents, the coordination order
+ suffices for a coordination strategy - the agents simply determine the
+ best legal next step and perform it.
+ With the introduction of incomplete knowledge, coordinated action becomes
+ more difficult.
+ Agents may only perform a joint action if it is common knowledge amongst
+ the group that the action is to be performed.
+ A simplistic approach to coordination would be for the agents, at each
+ step, to perform communication and/or sensing actions until they have achieved
+ common knowledge of the best legal step, then perform it.
+\end_layout
 
-next situation
-\begin_inset Quotes erd
-\end_inset 
+\begin_layout Standard
+This approach is inefficient because it maye require large amounts of communicat
+ion before an actual step can be made - in some cases it may not even be
+ possible to obtain common knowledge of the best legal step.
+ We should allow agents to perform actions as soon as they know that it
+ is safe to do so.
+\end_layout
 
- 
-\begin_inset Formula $s$
-\end_inset 
-
-, when is it safe for the agent to perform its actions 
-\begin_inset Formula $AgentDoing(agt,c,s)$
-\end_inset 
-
-.
- The idea of 
-\begin_inset Quotes eld
-\end_inset 
-
-safe to perform
-\begin_inset Quotes erd
-\end_inset 
-
- must capture several considerations:
-\layout Itemize
-
-The agent must know that there is no better situation 
-\begin_inset Formula $s<s'$
-\end_inset 
-
- that could be brought about by doing something other than 
+\begin_layout Standard
+What do we mean by safe? Intuitively, it's safe for an agent to perform
+ some actions 
 \begin_inset Formula $c$
-\end_inset 
+\end_inset
 
+ if they are a legal step of the program, and no matter what other actions
+ 
+\begin_inset Formula $c'$
+\end_inset
 
-\layout Itemize
+ are performed by other agents, the combination of these actions is also
+ safe.
+ Of course to make this work, we must assume that other agents will only
+ perform actions that are safe.
+\end_layout
 
-The agent must know that no matter what actions the other agents perform,
- a legal transition will still result
-\layout Standard
-
-We introduce a predicate 
-\begin_inset Formula $SafeToDo(agt,c,t,s)$
-\end_inset 
-
- that indicates when an agent is safe to perform a set of actions, and assert
- that no agent will perform any actions unless safe to do so.
- As a first step to formaulating such a predicate, we introduce 
-\begin_inset Formula $BestMoveM(agt,s',s)$
-\end_inset 
-
- which indicates that 
-\begin_inset Formula $s'$
-\end_inset 
-
- is the best move agent 
-\begin_inset Formula $agt$
-\end_inset 
-
- thinks might be possible in situation 
-\begin_inset Formula $s$
-\end_inset 
-
-:
-\layout Standard
-
-
-\begin_inset Formula \[
-\begin{array}{c}
-BestMoveM(agt,s',s)\equiv\mathbf{Maybe}(agt,Step(now,s'),s)\\
-\wedge\,\neg\exists s''\,\mathbf{Maybe}(agt,Step(now,s''),s)\wedge s'<s''\end{array}\]
-
-\end_inset 
-
-
-\layout Standard
-
-It is then possible for formulate 
+\begin_layout Standard
+Clearly we are after a predicate 
 \begin_inset Formula $SafeToDo$
-\end_inset 
+\end_inset
 
- as follows:
-\layout Standard
+ that satisfies the following:
+\begin_inset Formula \begin{multline*}
+SafeToDo(c,s)\equiv Legal(c,s)\\
+\wedge\forall c'\,.\, SafeToDo(c',s)\rightarrow SafeToDo(c\cup c',s)\end{multline*}
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Any actions that are known to be safe can be performed straight away, and
+ will be guaranteed to form a legal step of the program no matter what any
+ other agents do.
+\end_layout
+
+\begin_layout Standard
+This is a useful property of the 
+\begin_inset Formula $SafeToDo$
+\end_inset
+
+ predicate, but it does not help define which sets of actions are actually
+ safe.
+ Indeed, one could simply declare that no actions are safe and this formula
+ would be satisfied.
+ We need to combine this idea with the coordination ordering approach.
+\end_layout
+
+\begin_layout Standard
+To begin, the best legal step should be considered safe as it is the preferred
+ next step in the program.
+ We then consider other action sets according to the following rule: they
+ are safe to do if they are legal by themselves, and are safe in combination
+ with any 
+\emph on
+better 
+\emph default
+action sets that are also safe to do.\SpecialChar \@.
 
 \begin_inset Formula \[
-\begin{array}{c}
-SafeToDo(agt,c,t,s)\equiv\exists s_{B},c_{B}\, BestMoveM(agt,s_{B},s)\\
-\wedge s_{B}=do(c_{B},t,s)\,\wedge\,\mathbf{Knows}(agt,Step(now,s_{B}),s)\,\wedge\, AgentDoing(agt,c,c_{B})\\
-\wedge\,\neg\exists s',c'\, s'=do(c',t,s)\,\wedge\, AgentDoing(agt,c,c')\\
-\wedge\,\mathbf{Maybe}(agt,AllSafeToDo(c'/c,now),s)\,\wedge\,\mathbf{Maybe}(agt,\neg Step(now,s'),s)\end{array}\]
+Legal(c,s)\wedge\neg\exists c'\,.\, c\prec c'\wedge Legal(c',s)\,\,\rightarrow\,\, SafeToDo(c,s)\]
 
-\end_inset 
+\end_inset
 
 
-\layout Standard
+\begin_inset Formula \begin{multline*}
+SafeToDo(c,s)\equiv Legal(c,s)\\
+\wedge\forall c'\,.\, c\prec c'\wedge SafeToDo(c',s)\rightarrow SafeToDo(c\cup c',s)\end{multline*}
 
-Here we have introduced 
-\begin_inset Formula $AllSafeToDo$
-\end_inset 
-
- as a simple appreviation for:
-\layout Standard
+\end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+TODO: think about the consequences of this for 
+\begin_inset Formula $\prec$
+\end_inset
+
+ - e.g.
+ this only behaves well if 
+\begin_inset Formula $c\preceq c\cup c'$
+\end_inset
+
+ always.
+\end_layout
+
+\begin_layout Standard
+In the face of incomplete knowledge, a set of actions 
+\begin_inset Formula $c$
+\end_inset
+
+ can be safely performed if its safety is common knowledge amongst the agents
+ involved in the actions:
 \begin_inset Formula \[
-AllSafeToDo(c,s)=^{def}\forall agt\,\exists c'\, AgentDoing(agt,c',c)\wedge SafeToDo(agt,c',s)\]
+\mathbf{CKnow}(agents(c),SafeToDo(c),s)\]
 
-\end_inset 
-
-
-\layout Standard
-
-Observing this equivalence, it is clear that an agent must reason deeply
- about nested levels of knowledge in order to determine that an action is
- safe to perform.
- TODO: show that such determination is actually tractable.
-\layout Section
-
-TODO
-\layout Itemize
-
-Talk about 
-\begin_inset Formula $AgentDoing$
-\end_inset 
-
- etc in preliminaries
-\layout Itemize
-
-Need to run programs concurrently with 
-\begin_inset Formula $((\pi(a)sensing(a)?a)^{||})*$
-\end_inset 
-
- to allow communication in the program.
- But, must ensure other situations are preferred over these...
-\layout Itemize
-
-Holy moly, this needs serious work to do planning correctly
-\layout Itemize
-
-Things to prove:
-\begin_deeper 
-\layout Itemize
-
-fully observable == no communication necessary
-\end_deeper 
-\layout Standard
+\end_inset
 
 
-\begin_inset LatexCommand \BibTeX[plain]{/storage/uni/pgrad/library/references}
+\end_layout
 
-\end_inset 
+\begin_layout Standard
+The agents should then perform 
+\emph on
+all
+\emph default
+ sets of actions whose safety is common knowledge amongst the agents participati
+ng in them:
+\begin_inset Formula \begin{multline*}
+InNextStep(c,s)\equiv\mathbf{CKnow}(agents(c),SafeToDo(c),s)\end{multline*}
+
+\end_inset
 
 
-\the_end
+\end_layout
+
+\begin_layout Standard
+All the agents need to follow this rule, so that
+\end_layout
+
+\begin_layout Standard
+Note that (assuming we can regress it) 
+\begin_inset Formula $\mathbf{CKnow}$
+\end_inset
+
+ can be determined by all agents involved, since
+\begin_inset Formula \[
+\mathbf{CKnow}_{as}(\phi,s)\rightarrow\forall a\in as\,.\,\mathbf{Knows}(a,\mathbf{CKnow}_{as}(\phi),s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \bibtex[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
