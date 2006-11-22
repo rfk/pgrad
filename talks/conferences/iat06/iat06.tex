@@ -24,6 +24,10 @@
 \usepackage{times}
 \usepackage[T1]{fontenc}
 
+\usepackage{verbatim}
+\usepackage{subfigure}
+
+
 \title
 {Towards High-Level Programming\\ for Distributed Problem Solving}
 
@@ -76,11 +80,6 @@ and Adrian R. Pearce}
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Outline}
-\tableofcontents
-\end{frame}
-
 \section{Motivation}
 
 \begin{frame}
@@ -104,18 +103,16 @@ Many interesting problems outside our research scope:
 
 \begin{frame}
 \frametitle{Task Specification}
-HTN is a popular and powerful choice.
-\ \\
-\ \\
-High-Level Programming is a promising alternative from single-agent systems:
+High-Level Programming is a promising approach from single-agent systems:
 \begin{itemize}
 \item Primitive actions from the agent's world
 \item Connected by standard programming constructs
 \item Containing controlled amounts of nondeterminism
+\item e.g. GOLOG, Dynamic Logic
 \end{itemize}
 \ \\
 \ \\
-GOLOG, Dynamic Logic
+Vision: the cooperative, distributed execution of a shared high-level program by a team of autonomous agents.
 \end{frame}
 
 \begin{frame}
@@ -133,8 +130,8 @@ GOLOG, Dynamic Logic
 \end{itemize}
 \ \\
 \ \\
-Vision: the cooperative, distributed execution of a shared high-level program by a team of autonomous agents.
-TODO: note ReadyLog work as motivator
+Ferrein, Lakemeyer et. al. have successfully controlled a RoboCup team using
+a Golog variant called "ReadyLog".
 \end{frame}
 
 
@@ -152,17 +149,16 @@ TODO: note ReadyLog work as motivator
 \end{itemize}
 \emph{Fluents} are situation-dependent properties of the world
 \begin{itemize}
-  \item $Holding(Harriet,Knife1,s)$
+  \item $Poss(a,s)$, $Holding(Harriet,Knife1,s)$
 \end{itemize}
-Successor State Axioms - monotonic solution to the frame problem
+Successor State Axioms - monotonic solution to frame problem
 \end{frame}
 
 \begin{frame}
 \frametitle{Situation Calculus Extensions}
 Concurrency:
 \begin{itemize}
-  \item Actions replaced with \emph{sets} of actions: $do({a_1,a_2},s)$
-  \item Need to be careful about interactions
+  \item Actions replaced with \emph{sets} of actions: $do(\{a_1,a_2\},s)$
 \end{itemize}
 \pause
 Explicit Time:
@@ -171,9 +167,9 @@ Explicit Time:
   \item Need to be careful about interactions
 \end{itemize}
 \pause
-Predictable Exogenousl Actions ("Natural Actions"):
+Predictable Exogenous Actions ("Natural Actions"):
 \begin{itemize}
-  \item \epmh{Must} occur whenever $Poss(a,t,s)$ permits
+  \item \emph{Must} occur whenever $Poss(a,t,s)$ permits
   \item "Legal" situations respect this requirement: $Legal(s)$
 \end{itemize}
 \end{frame}
@@ -186,52 +182,152 @@ The "Golog Family":
   \item ConColog: interleaved concurrency
   \item IndiGolog: online execution
   \item ...
-  \item MIndiGolog
 \end{itemize}
-Standard Operators:
-\begin{itemize}
-  \item Sequence:  $\delta_1\,;\,\delta_2$
-  \item Choice: $\delta_1\,|\,\delta_2$
-  \item Nondet Args: $\pi(x)\delta(x)$
-  \item Concurrent Exec: $\delta_1\,||\,\delta_2$
-\end{itemize}
+\ \\
+\ \\
+Agents must reason about their actions to plan a \emph{legal execution} of
+a high-level program $\delta$:
+\begin{equation*}
+\mathcal{D}\models\exists s\,.\,Trans*(\delta,S_0,\delta',s)\wedge Final(\delta',s)
+\end{equation*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Golog Example}
+\frametitle{Example Task Specification}
+\begin{multline*}
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\pi(agt)\left[acquire(agt,dest)\,;\right.\\
+\,beginTask(agt,mix(dest,1))\,;\\
+\left.\, release(agt,dest)\right]\,\,\mathbf{end}
+\end{multline*}
 \end{frame}
+
 
 \section{MIndiGolog}
 
 \begin{frame}
+\frametitle{MIndiGolog}
+Extend IndiGolog with features important for multi-agent domains:
+\begin{itemize}
+\item Robust integration of \emph{true concurrency}
+\item Explicit temporal component
+\item Seamless integration of \emph{natural actions}
+\end{itemize}
+\ \\
+\ \\
+For the moment, we restrict ourselves to deterministic domains.
+There are techniques for dealing with probabilistic domains (DTGolog).
+\end{frame}
+
+\begin{frame}
 \frametitle{Concurrent Execution}
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma.Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)
+\end{multline*}
+\ \\
+\ \\
+\pause
+Should take advantage of true concurrency.  Basic idea:
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge}\\ 
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Robust Concurrency}
+The combination of actions $(c_1\cup c_2)$ may not be possible.
+\begin{itemize}
+  \item Must check this explicitly
+\end{itemize}
+\ \\
+\ \\
+The same \emph{agent-initiated} action mustn't $Trans$ both programs.
+\begin{itemize}
+  \item otherwise dangerous 'skipping' of actions can occur
+  \item if two concurrent programs both call for $pay(Ryan,\$100)$ to be performed, it had better be performed twice!
+  \item skip with: $\mathbf{if}\,haventPayed\,\mathbf{then}\,pay(Ryan,\$100)\,\mathbf{end}$
+  \item Natural actions can transition both programs
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Robust Concurrency}
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
+\shoveright{\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_1||\gamma_2)\wedge s'=do(c_1\cup c_2,t,s)}\\
+\wedge Poss(c_1\cup c_2,t,s)\wedge\forall a.\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]
+\end{multline*}
 \end{frame}
 
 \begin{frame}
 \frametitle{Natural Actions}
-\end{frame}
-
-\begin{frame}
-\frametitle{Example Execution}
+Previous work required the programmer to explicitly predict natural actions
+and include them in the program.
+\ \\
+\ \\
+We modify $Trans$ to predict the occurrence of natural actions automatically.
+\begin{itemize}
+  \item The programmer can completely ignore natural actions
+  \item Relevant ones can be included directly in the program, to mean "wait for this natural action to occur"
+\end{itemize}
 \end{frame}
 
 \section{Distributed Planning}
 
 \begin{frame}
+\frametitle{Execution Planning is a Logic Program}
+The semantics of Golog can be neatly encoded as a logic program,
+traditionally in Prolog.  We use Oz for its strong distributed programming
+support.
+
+{\small \verbatiminput{listings/goloz_trans.oz} }{\small \par}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Execution Planning is a Logic Program}
+
+{\small \verbatiminput{listings/goloz_do.oz} }{\small \par}
+
+\end{frame}
+
+\begin{frame}
 \frametitle{Distributed Logic Programing with Oz}
+By utilizing techniques for distributed logic programming, the agents
+can share the computational workload:
+
+\centering {\small \verbatiminput{listings/goloz_do_parallel.oz} }{\small \par}
+
+Of course, this only works if all agents share the same information - 
+i.e. fully observable, completely specified worlds.
 \end{frame}
 
 \section{Conclusions}
 
 \begin{frame}
-\frametitle{Achievements}
-\end{frame}
-
-\begin{frame}
-\frametitle{Future Work}
-\end{frame}
-
-\begin{frame}
+\frametitle{Towards...}
+We have:
+\begin{itemize}
+  \item Developed an extension to IndiGolog suitable for describing the behavior of multi-agent teams
+  \item Demonstrated that the execution-planning workload can be shared using off-the-shelf techniques
+\end{itemize}
+\ \\
+\ \\
+In progress:
+\begin{itemize}
+  \item An account of multi-agent knowledge in partially-observable domains (in submission)
+  \item A knowledge-based distributed execution strategy (in preparation)
+  \item Workload sharing using distributed constraint satisfaction (in development)
+\end{itemize}
 \end{frame}
 
 \end{document}
