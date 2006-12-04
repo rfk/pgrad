@@ -1,0 +1,348 @@
+
+%\documentclass[handout, compress]{beamer}
+\documentclass[compress]{beamer}
+
+\mode<presentation>
+{
+  %\usetheme{Warsaw}
+  \usetheme{Dresden}
+  %\usetheme{Darmstadt}
+  % or ...
+  %\usecolortheme{dolphin}
+
+  \setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+\usepackage[english]{babel}
+
+\usepackage[latin1]{inputenc}
+
+\usepackage{amsmath}
+\usepackage[all]{xy}
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+
+
+\title
+{Property Persistence in the Situation Calculus}
+
+\author
+{Ryan F. Kelly\\
+and Adrian R. Pearce}
+
+\institute[The University of Melbourne]
+{
+  NICTA Victoria Research Laboratory\\
+  Department of Computer Science and Software Engineering\\
+  The University of Melbourne\\
+  Victoria, 3010, Australia\\
+  \{rfk,adrian\}@csse.unimelb.edu.au
+}
+
+\date[The University of Melbourne]
+{10th January 2007}
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+\pgfdeclareimage[height=1.2cm]{university-logo}{MINSilvr}
+\logo{\pgfuseimage{university-logo}}
+
+% If you wish to uncover everything in a step-wise fashion, uncomment
+% the following command: 
+
+%\beamerdefaultoverlayspecification{<+->}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Introduction}
+
+\begin{frame}
+\centering "Property Persistence in the Situation Calculus"
+\ \\
+\ \\
+\begin{itemize}
+\item Motivation
+\item Situation Calculus Review
+\item The Persistence Problem
+\item The Persistence Condition
+\item Applications
+\end{itemize}
+\end{frame}
+
+\section{Motivation}
+
+\begin{frame}
+\frametitle{Motivation}
+A situation calculus theory $\mathcal{D}$ contains a second-order induction axiom, so automated reasoning can be tricky:
+\begin{equation*}
+\mathcal{D} \models_{SOL} \psi
+\end{equation*}
+For some queries we can discard the second-order axiom:
+\begin{equation*}
+\mathcal{D} \models_{SOL} \exists s.\psi\,\,\,\,\,\mathit{iff}\,\,\,\,\,\mathcal{D}-\{I\}\models_{FOL}\exists s.\psi
+\end{equation*}
+Sometimes we can even "compile away" other axioms:
+\begin{equation*}
+\mathcal{D} \models_{SOL} \phi\,\,\,\,\,\mathit{iff}\,\,\,\,\,\mathcal{D}_{una}\cup\mathcal{D}_{S_0}\models_{FOL} \mathcal{R}^*_{\mathcal{D}}[\phi]
+\end{equation*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivation}
+Many interesting problems require \emph{universal} quantification over
+situations, meaning they require the induction axiom.
+\begin{itemize}
+  \item Goal impossibility: $\,\,\,\,\mathcal{D} \models \forall s\,.\,S_0 \leq s \rightarrow \neg G(s)$
+  \item Verifying state constraints
+  \item Need for cooperation: $\,\,\,\,\mathcal{D} \models \forall s'\,.\,s \leq_{OwnAction} s' \rightarrow \neg G(s')$
+  \item Knowledge with partialy observability of actions
+\end{itemize}
+\ \\
+\ \\
+Aim: effective automated reasoning for such queries
+\end{frame}
+
+\section{Background}
+
+\begin{frame}
+\frametitle{Review: The Situation Calculus}
+\emph{Actions} are instantaneous events causing the world to change
+\begin{itemize}
+  \item $pickup(Thomas,Bowl)$, $beginTask(Richard,mix(Bowl,1))$
+\end{itemize}
+\emph{Situations} are histories of actions that have been performed
+\begin{itemize}
+  \item $S_0$, $do(pickup(Harriet,Knife),S_0)$
+\end{itemize}
+\emph{Fluents} are situation-dependent properties of the world
+\begin{itemize}
+  \item $Poss(a,s)$, $Holding(Harriet,Knife1,s)$
+\end{itemize}
+\emph{Successor State Axioms} solve the frame problem
+\begin{itemize}
+  \item $Holding(i,r,do(a,s)) \equiv$ \\ $\,\,\,\,\,a=pickup(i,r) \vee Holding(i,r,s) \wedge a\neq drop(i,r)$
+\end{itemize}
+\ \\
+\end{frame}
+
+\begin{frame}
+\frametitle{Review: The Situation Calculus}
+Theories limited to a particular form for effective reasoning:
+\begin{equation*}
+\mathcal{D}\,\,=\,\,\Sigma\cup\mathcal{D}_{ss}\cup\mathcal{D}_{ap}\cup\mathcal{D}_{una}\cup\mathcal{D}_{S_0}
+\end{equation*}
+
+"Action Description Predicates" (e.g. $Poss(a,s)$):
+\begin{equation*}
+\alpha(A(\overrightarrow{x}),s) \equiv \Pi_A(\overrightarrow{x},s)\,\,\,\,\,\in\,\,\,\,\,\mathcal{D}_{ap}
+\end{equation*}
+
+"Uniform Formulae" (or \emph{properties})
+\begin{itemize}
+ \item combinations of fluents referring to common situation
+ \item do not contain action description predicates
+ \item $\phi[s]$ indicates replacement of situation term with $s$
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Review: The Situation Calculus}
+Ordering over situations:
+\begin{gather*}
+\neg\left(s \sqsubset S_0\right)\\
+s\sqsubset do(a,s')\equiv s\sqsubseteq s'
+\end{gather*}
+\ \\
+\ \\
+Restricted to actions satisfying a particular A.D.P:
+\begin{gather*}
+\neg\left(s <_{\alpha} S_0\right)\\
+s <_{\alpha} do(a,s')\equiv s \leq_{\alpha} s' \wedge \alpha(a,s')
+\end{gather*}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Review: The Situation Calculus}
+Regression is a syntactic transformation that "winds back" a formula
+uniform in $do(a,s)$ to a formula unform in $s$:
+\begin{equation*}
+\mathcal{D} \models \phi \equiv \mathcal{R}_{\mathcal{D}}[\phi]
+\end{equation*}
+If $\phi$ is uniform in a ground situation term, we can regress it all the
+way back to one uniform in $S_0$:
+\begin{equation*}
+\mathcal{D} \models \phi\,\,\,\,\,\mathit{iff}\,\,\,\,\,\mathcal{D}_{una}\cup\mathcal{D}_{S_0} \models \mathcal{R}^*_{\mathcal{D}}[\phi]
+\end{equation*}
+This idea is the main technique for effective reasoning in the situation calculus. However, not all formulae can be regressed.
+\end{frame}
+
+
+\section{Property Persistence}
+
+\begin{frame}
+\frametitle{Property Persistence}
+We are often interested in queries of the form:
+\begin{equation*}
+\mathcal{D} \models \forall s'\,.\,s \leq_{\alpha} s' \rightarrow \phi[s']
+\end{equation*}
+\ \\
+"$\phi$ holds in situation s, and if all further actions satisfy $\alpha$ then $\phi$ will continue to hold"
+\ \\
+\ \\
+Or just: "$\phi$ perists under $\alpha$"
+\ \\
+\ \\
+Universal quantification over situations means that we cannot use regression
+for such queries.
+\end{frame}
+
+\section{Persistence Condition}
+
+\begin{frame}
+\frametitle{The Persistence Condition}
+Idea: for a given $\phi$ and $\alpha$, calculate a uniform formula that implies the persistence of $\phi$ under $\alpha$:
+\begin{equation*}
+  \mathcal{D}-\mathcal{D}_{S_0} \models \left(\forall s'\,.\,s \leq_{\alpha} s' \rightarrow \phi[s']\right) \equiv \mathcal{P}_{\mathcal{D}}[\phi,\alpha][s]
+\end{equation*}
+
+Since this "persistence condition" is uniform in $s$, we can handle it using
+standard effective reasoning techniques.
+\ \\
+\ \\
+But, does it exist? Can we calculate it effectively?
+\end{frame}
+
+\begin{frame}
+\frametitle{A Tantilizing Possibility}
+Generalizing a result from Lin and Reiter's work on state constraints:
+\begin{gather*}
+\mathcal{D}-\mathcal{D}_{S_{0}}\models\forall s\,.\,\phi[s]\rightarrow\left(\forall s'\,.\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\\
+\mathit{iff}\\
+\mathcal{D}_{una}\models\forall s,a\,.\,\phi[s]\wedge\mathcal{R}_{\mathcal{D}}[\alpha(a,s)]\rightarrow\mathcal{R}_{\mathcal{D}}[\phi[do(a,s)]]
+\end{gather*}
+\ \\
+\ \\
+So, it's relatively straightforward to check whether $\phi \equiv \mathcal{P}_{\mathcal{D}}[\phi,\alpha]$
+\end{frame}
+
+\begin{frame}
+\frametitle{Persistence to Finite Depth}
+Define "persistence to depth 1" as:
+\begin{equation*}
+  \mathcal{P}^1_{\mathcal{D}}[\phi,\alpha]\,\,\isdef\,\,\phi[s] \wedge \forall a\,.\,\mathcal{R}_{\mathcal{D}}[\alpha(a,s)\rightarrow \phi[do(a,s)]]
+\end{equation*}
+
+Then "persistence to depth $n$" can be defined recursively:
+\begin{equation*}
+  \mathcal{P}^n_{\mathcal{D}}[\phi,\alpha]\,\,\isdef\,\,\mathcal{P}^1_{\mathcal{D}}[\mathcal{P}^{n-1}_{\mathcal{D}}[\phi,\alpha],\alpha]
+\end{equation*}
+
+Note that $\mathcal{P}^{n}_{\mathcal{D}}$ is always uniform in $s$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Persistence as a Fixed-Point}
+It is possible to show that:
+\begin{gather*}
+\mathcal{D}_{una}\models\forall s\,.\,\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha][s]\rightarrow\mathcal{P}_{\mathcal{D}}^{n+1}[\phi,\alpha][s]\label{eqn:pn_persists}\\
+\mathit{iff}\nonumber \\
+\mathcal{D}-\mathcal{D}_{s_{0}}\models\forall s\,.\,\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha][s]\equiv\mathcal{P_{D}}[\phi,\alpha][s]\label{eqn:pn_equiv_persists}
+\end{gather*}
+\ \\
+\ \\
+So $\mathcal{P}_{\mathcal{D}}$ is a fixed-point of $\mathcal{P}^1_{\mathcal{D}}$
+
+We can seek it using a straightforward iterative algorithm.
+\end{frame}
+
+\begin{frame}
+\frametitle{Algorithm for the Persistence Condition}
+%\begin{algorithm}
+%\caption{Calculate $\mathcal{P}_\mathcal{D}[\phi,\alpha]$}
+%\begin{algorithmic}
+%\STATE $\mathtt{pn} \Leftarrow \phi$
+%\STATE $\mathtt{pn1} \Leftarrow \mathcal{P}^1_\mathcal{D}[\mathtt{pn},\alpha]$
+%\WHILE{$\mathcal{D}_{una} \not\models \forall s\,.\,\mathtt{pn}[s] \rightarrow \mathtt{pn1}[s]$}
+%  \STATE $\mathtt{pn} \Leftarrow \mathtt{pn1}$
+%  \STATE $\mathtt{pn1} \Leftarrow \mathcal{P}^1_{\mathcal{D}}[\mathtt{pn},\alpha]$
+%\ENDWHILE
+%\STATE return $\mathtt{pn}$
+%\end{algorithmic}
+%\end{algorithm}
+
+Termination requires that applications of $\mathcal{P}^1_{\mathcal{D}}$ do not create infinite chains.  We are developing syntatic restrictions on successor state axioms that can guarantee this.
+\end{frame}
+
+\begin{frame}
+\frametitle{Effetiveness}
+Is this an effective technique in practice?
+\begin{itemize}
+ \item purely first-order reasoning
+ \item uses only the unique names axioms
+ \item result is uniform, so can be used with regression
+ \item $\mathcal{P}_{\mathcal{D}}$ can be cached for a given $\phi$ and $\alpha$
+ \item many properties fail to persist for small $n$
+\end{itemize}
+\ \\
+\ \\
+We also inherit potential disadvantages of regression operator:
+\begin{itemize}
+  \item Length of $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$ can be exponential in length of $\phi$
+\end{itemize}
+\end{frame}
+
+\section{Applications}
+
+\begin{frame}
+\frametitle{Applications}
+Goal Impossibility:
+\begin{equation*}
+\mathcal{D}_{una}\cup\mathcal{D}_{S_0} \models \mathcal{P}_{\mathcal{D}}[\neg G(s),Poss][S_0]
+\end{equation*}
+
+Goal Futility:
+\begin{equation*}
+\mathcal{D}_{una}\cup\mathcal{D}_{S_0} \models \mathcal{R}^*_{\mathcal{D}}[\mathcal{P}_{\mathcal{D}}[\neg G(s),Poss][s]]
+\end{equation*}
+
+Verifying State Constraints:
+\begin{equation*}
+\mathcal{D}_{una} \models \phi \equiv \mathcal{P}_{\mathcal{D}}[\phi,Poss]
+\end{equation*}
+
+%\end{frame}
+%
+%\begin{frame}
+%\frametitle{Applications}
+Knowledge with Partial Observability of Actions:
+\begin{multline*}
+\mathcal{R}_{\mathcal{D}}[\mathbf{Knows}(\phi,do(a,s))]\,\,=\\
+  \mathbf{Knows}(\mathcal{R}_{\mathcal{D}}[\mathcal{P}_{\mathcal{D}}[\phi,CantObs][do(a,now)]],s)
+\end{multline*}
+\end{frame}
+
+\section{Conclusions}
+
+\begin{frame}
+\end{frame}
+
+\begin{frame}
+\centering \large Thank You\\
+\end{frame}
+
+\end{document}
