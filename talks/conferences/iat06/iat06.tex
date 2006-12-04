@@ -37,8 +37,11 @@ and Adrian R. Pearce}
 
 \institute[The University of Melbourne]
 {
+  NICTA Victoria Research Laboratory\\
   Department of Computer Science and Software Engineering\\
-  The University of Melbourne
+  The University of Melbourne\\
+  Victoria, 3010, Australia\\
+  \{rfk,adrian\}@csse.unimelb.edu.au
 }
 
 \date[The University of Melbourne]
@@ -112,7 +115,20 @@ High-Level Programming is a promising approach from single-agent systems:
 \end{itemize}
 \ \\
 \ \\
-Vision: the cooperative, distributed execution of a shared high-level program by a team of autonomous agents.
+Vision: the cooperative execution of a shared high-level program by a team of autonomous agents.
+\end{frame}
+
+\begin{frame}
+\frametitle{Example Task Specification}
+\begin{multline*}
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\pi(agt)\left[acquire(agt,dest)\,;\right.\\
+\,beginTask(agt,mix(dest,1))\,;\\
+\left.\, release(agt,dest)\right]\,\,\mathbf{end}
+\end{multline*}
 \end{frame}
 
 \begin{frame}
@@ -130,8 +146,26 @@ Vision: the cooperative, distributed execution of a shared high-level program by
 \end{itemize}
 \ \\
 \ \\
-Ferrein, Lakemeyer et. al. have successfully controlled a RoboCup team using
+Ferrein, Lakemeyer et.al. have successfully controlled a RoboCup team using
 a Golog variant called "ReadyLog".
+\end{frame}
+
+\begin{frame}
+\frametitle{Why another Golog?}
+The "Golog Family" includes:
+\begin{itemize}
+  \item Original GOLOG
+  \item ConColog: interleaved concurrency
+  \item IndiGolog: online execution
+\end{itemize}
+\ \\
+\ \\
+MIndiGolog incorporates features important for M.A. domains:
+\begin{itemize}
+\item Robust integration of \emph{true concurrency}
+\item Explicit temporal component
+\item Seamless integration of \emph{natural actions}
+\end{itemize}
 \end{frame}
 
 
@@ -155,9 +189,6 @@ a Golog variant called "ReadyLog".
 \begin{itemize}
   \item $Poss(a,s)$, $Holding(Harriet,Knife1,s)$
 \end{itemize}
-\ \\
-\ \\
-Successor State Axioms - monotonic solution to frame problem
 \end{frame}
 
 \begin{frame}
@@ -167,12 +198,10 @@ Concurrency:
   \item Actions replaced with \emph{sets} of actions: $do(\{a_1,a_2\},s)$
   \item Need to be careful about interactions
 \end{itemize}
-\pause
 Explicit Time:
 \begin{itemize}
   \item Add temporal component: $do(c,t,s)$
 \end{itemize}
-\pause
 Predictable Exogenous Actions ("Natural Actions"):
 \begin{itemize}
   \item \emph{Must} occur whenever $Poss(a,t,s)$ permits
@@ -182,13 +211,11 @@ Predictable Exogenous Actions ("Natural Actions"):
 
 \begin{frame}
 \frametitle{Review: Golog}
-The "Golog Family":
-\begin{itemize}
-  \item Original GOLOG
-  \item ConColog: interleaved concurrency
-  \item IndiGolog: online execution
-  \item ...
-\end{itemize}
+Operators defined using transition semantics:
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma.Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)
+\end{multline*}
 \ \\
 \ \\
 Agents must reason about their actions to plan a \emph{legal execution} of
@@ -198,44 +225,15 @@ a high-level program $\delta$:
 \end{equation*}
 \end{frame}
 
-\begin{frame}
-\frametitle{Example Task Specification}
-\begin{multline*}
-\mathbf{proc}\, MakeSalad(dest)\\
-\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
-\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
-\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
-\pi(agt)\left[acquire(agt,dest)\,;\right.\\
-\,beginTask(agt,mix(dest,1))\,;\\
-\left.\, release(agt,dest)\right]\,\,\mathbf{end}
-\end{multline*}
-\end{frame}
-
-
 \section{MIndiGolog}
 
 \begin{frame}
-\frametitle{MIndiGolog}
-Extend IndiGolog with features important for multi-agent domains:
-\begin{itemize}
-\item Robust integration of \emph{true concurrency}
-\item Explicit temporal component
-\item Seamless integration of \emph{natural actions}
-\end{itemize}
-\ \\
-\ \\
-For the moment, we restrict ourselves to deterministic domains.
-There are techniques for dealing with probabilistic domains (DTGolog).
-\end{frame}
-
-\begin{frame}
-\frametitle{Concurrent Execution}
+\frametitle{Inetegrating True Concurrency}
 \begin{multline*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma.Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
-\vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]
 \end{multline*}
-\ \\
-\ \\
 \pause
 Should take advantage of true concurrency.  Basic idea:
 \begin{multline*}
@@ -289,6 +287,21 @@ We modify $Trans$ to predict the occurrence of natural actions automatically.
 \section{Distributed Planning}
 
 \begin{frame}
+\frametitle{Distributed Execution}
+ReadyLog: agents each plan a legal execution individually.
+\begin{itemize}
+ \item By using identical search strategies, agents plan identical executions.
+ \item Requires a fully observable, completely known world
+ \item Coordination without communication!
+\end{itemize}
+\ \\
+\ \\
+But, we can also take advantage of communication to share the planning
+workload between agents.
+
+\end{frame}
+
+\begin{frame}
 \frametitle{Execution Planning is a Logic Program}
 The semantics of Golog can be neatly encoded as a logic program,
 traditionally in Prolog.  We use Oz for its strong distributed programming
@@ -310,10 +323,10 @@ support.
 By utilizing techniques for distributed logic programming, the agents
 can share the computational workload:
 
-\centering {\small \verbatiminput{listings/goloz_do_parallel.oz} }{\small \par}
+\centering {\small \verbatiminput{listings/goloz_do_parallel.oz} }
 
-Of course, this only works if all agents share the same information - 
-i.e. fully observable, completely specified worlds.
+But, what about partially-observable domains?
+
 \end{frame}
 
 \section{Conclusions}
@@ -322,7 +335,7 @@ i.e. fully observable, completely specified worlds.
 \frametitle{Towards...}
 We have:
 \begin{itemize}
-  \item Developed an extension to IndiGolog suitable for describing the behavior of multi-agent teams
+  \item Developed an extension to IndiGolog suitable for specifying the behavior of multi-agent teams
   \item Demonstrated that the execution-planning workload can be shared using off-the-shelf techniques
 \end{itemize}
 
