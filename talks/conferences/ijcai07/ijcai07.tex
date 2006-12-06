@@ -108,7 +108,7 @@ situations, meaning they require the induction axiom.
   \item Goal impossibility: $\,\,\,\,\mathcal{D} \models \forall s\,.\,S_0 \leq s \rightarrow \neg G(s)$
   \item Verifying state constraints
   \item Need for cooperation: $\,\,\,\,\mathcal{D} \models \forall s'\,.\,s \leq_{OwnAction} s' \rightarrow \neg G(s')$
-  \item Knowledge with partialy observability of actions
+  \item Knowledge with partially observability of actions
 \end{itemize}
 \ \\
 \ \\
@@ -179,7 +179,7 @@ s <_{\alpha} do(a,s')\equiv s \leq_{\alpha} s' \wedge \alpha(a,s')
 \begin{frame}
 \frametitle{Review: The Situation Calculus}
 Regression is a syntactic transformation that "winds back" a formula
-uniform in $do(a,s)$ to a formula unform in $s$:
+uniform in $do(a,s)$ to a formula uniform in $s$:
 \begin{equation*}
 \mathcal{D} \models \phi \equiv \mathcal{R}_{\mathcal{D}}[\phi]
 \end{equation*}
@@ -204,7 +204,7 @@ We are often interested in queries of the form:
 "$\phi$ holds in situation s, and if all further actions satisfy $\alpha$ then $\phi$ will continue to hold"
 \ \\
 \ \\
-Or just: "$\phi$ perists under $\alpha$"
+Or just: "$\phi$ persists under $\alpha$"
 \ \\
 \ \\
 Universal quantification over situations means that we cannot use regression
@@ -228,7 +228,7 @@ But, does it exist? Can we calculate it effectively?
 \end{frame}
 
 \begin{frame}
-\frametitle{A Tantilizing Possibility}
+\frametitle{A Tantalizing Possibility}
 Generalizing a result from Lin and Reiter's work on state constraints:
 \begin{gather*}
 \mathcal{D}-\mathcal{D}_{S_{0}}\models\forall s\,.\,\phi[s]\rightarrow\left(\forall s'\,.\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\\
@@ -271,25 +271,18 @@ We can seek it using a straightforward iterative algorithm.
 \end{frame}
 
 \begin{frame}
-\frametitle{Algorithm for the Persistence Condition}
-%\begin{algorithm}
-%\caption{Calculate $\mathcal{P}_\mathcal{D}[\phi,\alpha]$}
-%\begin{algorithmic}
-%\STATE $\mathtt{pn} \Leftarrow \phi$
-%\STATE $\mathtt{pn1} \Leftarrow \mathcal{P}^1_\mathcal{D}[\mathtt{pn},\alpha]$
-%\WHILE{$\mathcal{D}_{una} \not\models \forall s\,.\,\mathtt{pn}[s] \rightarrow \mathtt{pn1}[s]$}
-%  \STATE $\mathtt{pn} \Leftarrow \mathtt{pn1}$
-%  \STATE $\mathtt{pn1} \Leftarrow \mathcal{P}^1_{\mathcal{D}}[\mathtt{pn},\alpha]$
-%\ENDWHILE
-%\STATE return $\mathtt{pn}$
-%\end{algorithmic}
-%\end{algorithm}
+\frametitle{Properties of the Fixed-Point}
+Since $\mathcal{P}^1_{\mathcal{D}}$ is monotone, $\mathcal{P}_{\mathcal{D}}$:
+\begin{itemize}
+  \item is guaranteed to exist
+  \item can be constructed by trans-finite iteration
+\end{itemize}
 
-Termination requires that applications of $\mathcal{P}^1_{\mathcal{D}}$ do not create infinite chains.  We are developing syntatic restrictions on successor state axioms that can guarantee this.
+Termination with \emph{finite} iteration requires that applications of $\mathcal{P}^1_{\mathcal{D}}$ do not create infinite chains.  We are developing syntactic restrictions on successor state axioms that can guarantee this.
 \end{frame}
 
 \begin{frame}
-\frametitle{Effetiveness}
+\frametitle{Effectiveness}
 Is this an effective technique in practice?
 \begin{itemize}
  \item purely first-order reasoning
@@ -320,15 +313,6 @@ Goal Futility:
 \mathcal{D}_{una}\cup\mathcal{D}_{S_0} \models \mathcal{R}^*_{\mathcal{D}}[\mathcal{P}_{\mathcal{D}}[\neg G(s),Poss][s]]
 \end{equation*}
 
-Verifying State Constraints:
-\begin{equation*}
-\mathcal{D}_{una} \models \phi \equiv \mathcal{P}_{\mathcal{D}}[\phi,Poss]
-\end{equation*}
-
-%\end{frame}
-%
-%\begin{frame}
-%\frametitle{Applications}
 Knowledge with Partial Observability of Actions:
 \begin{multline*}
 \mathcal{R}_{\mathcal{D}}[\mathbf{Knows}(\phi,do(a,s))]\,\,=\\
@@ -339,6 +323,19 @@ Knowledge with Partial Observability of Actions:
 \section{Conclusions}
 
 \begin{frame}
+\frametitle{Conclusions}
+We have significantly increased the scope of queries that can be effectively
+posed in the situation calculus:
+\begin{itemize}
+ \item Identified useful subset of universally quantified queries
+ \item Developed algorithm to transform them to managable form
+ \item Integrates well with existing tools for effective reasoning
+\end{itemize}
+Still to come:
+\begin{itemize}
+ \item Stronger termination guarantees
+ \item SitCalc extensions: concurrent actions, continuous time, ...
+\end{itemize}
 \end{frame}
 
 \begin{frame}
