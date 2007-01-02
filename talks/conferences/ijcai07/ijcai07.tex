@@ -107,7 +107,7 @@ situations, meaning they require the induction axiom.
   \item Goal impossibility: $\,\,\,\,\mathcal{D} \models \forall s\,.\,S_0 \leq s \rightarrow \neg G(s)$
   \item Verifying state constraints
   \item Need for cooperation: $\,\,\,\,\mathcal{D} \models \forall s'\,.\,s \leq_{OwnAction} s' \rightarrow \neg G(s')$
-  \item Knowledge with partially observability of actions
+  \item Knowledge with partial observability of actions
 \end{itemize}
 \ \\
 \ \\
@@ -120,26 +120,22 @@ Aim: effective automated reasoning for such queries
 \frametitle{Review: The Situation Calculus}
 \emph{Actions} are instantaneous events causing the world to change
 \begin{itemize}
-  \item $pickup(Thomas,Bowl)$, $beginTask(Richard,mix(Bowl,1))$
+  \item $pickup(Thomas,Block1)$, $move(Richard,Loc2)$
 \end{itemize}
 \emph{Situations} are histories of actions that have been performed
 \begin{itemize}
-  \item $S_0$, $do(pickup(Harriet,Knife),S_0)$
+  \item $S_0$, $do(pickup(Harriet,Block2),S_0)$
 \end{itemize}
 \emph{Fluents} are situation-dependent properties of the world
 \begin{itemize}
   \item $Poss(a,s)$, $Holding(Harriet,Knife1,s)$
-\end{itemize}
-\emph{Successor State Axioms} solve the frame problem
-\begin{itemize}
-  \item $Holding(i,r,do(a,s)) \equiv$ \\ $\,\,\,\,\,a=pickup(i,r) \vee Holding(i,r,s) \wedge a\neq drop(i,r)$
 \end{itemize}
 \ \\
 \end{frame}
 
 \begin{frame}
 \frametitle{Review: The Situation Calculus}
-Theories limited to a particular form for effective reasoning:
+Limit theories to a particular form for effective reasoning:
 \begin{equation*}
 \mathcal{D}\,\,=\,\,\Sigma\cup\mathcal{D}_{ss}\cup\mathcal{D}_{ap}\cup\mathcal{D}_{una}\cup\mathcal{D}_{S_0}
 \end{equation*}
@@ -148,6 +144,7 @@ Theories limited to a particular form for effective reasoning:
 "Uniform Formulae" (or \emph{properties})
 \begin{itemize}
  \item combinations of fluents referring to common situation
+ \item eg: $\,\,\,Holding(Thomas,Block1,s) \wedge At(Thomas,Loc1,s)$
  \item $\phi[s]$ indicates replacement of situation term with $s$
 \end{itemize}
 
@@ -175,17 +172,18 @@ s <_{\alpha} do(a,s')\equiv s \leq_{\alpha} s' \wedge \alpha(a,s')
 
 \begin{frame}
 \frametitle{Review: The Situation Calculus}
-Regression is a syntactic transformation that "winds back" a formula
-uniform in $do(a,s)$ to a formula uniform in $s$:
+Regression "winds back" a formula uniform in $do(a,s)$ to a formula uniform in $s$:
 \begin{equation*}
-\mathcal{D} \models \phi \equiv \mathcal{R}_{\mathcal{D}}[\phi]
+\mathcal{D} \models\,\,\, \phi \equiv \mathcal{R}_{\mathcal{D}}[\phi]
 \end{equation*}
-If $\phi$ is uniform in a ground situation term, we can regress it all the
-way back to one uniform in $S_0$:
+For a ground situation term, we can regress right back to $S_0$
 \begin{equation*}
 \mathcal{D} \models \phi\,\,\,\,\,\mathit{iff}\,\,\,\,\,\mathcal{D}_{una}\cup\mathcal{D}_{S_0} \models \mathcal{R}^*_{\mathcal{D}}[\phi]
 \end{equation*}
-This idea is the main technique for effective reasoning in the situation calculus. However, not all formulae can be regressed.
+This is the fundamental technique for effective reasoning.
+\ \\
+\ \\
+However, not all formulae can be regressed.
 \end{frame}
 
 
@@ -212,15 +210,15 @@ for such queries.
 
 \begin{frame}
 \frametitle{Our Solution: The Persistence Condition}
-Idea: for a given $\phi$ and $\alpha$, calculate a uniform formula that implies the persistence of $\phi$ under $\alpha$:
+Idea: calculate a uniform formula that is necessary and sufficient for the persistence of $\phi$ under $\alpha$:
 \begin{equation*}
   \mathcal{D}-\mathcal{D}_{S_0} \models \left(\forall s'\,.\,s \leq_{\alpha} s' \rightarrow \phi[s']\right) \equiv \mathcal{P}_{\mathcal{D}}[\phi,\alpha][s]
 \end{equation*}
-
 Since this "persistence condition" is uniform in $s$, we can handle it using
-standard effective reasoning techniques.
-\ \\
-\ \\
+standard regression:
+\begin{equation*}
+  \mathcal{D}_{una} \cup \mathcal{D}_{S_0} \models \mathcal{R}^{*}_\mathcal{D}[\mathcal{P}_\mathcal{D}[\phi,\alpha][s]]
+\end{equation*}
 But, does it exist? Can we calculate it effectively?
 \end{frame}
 
@@ -234,7 +232,7 @@ Generalizing a result from Lin and Reiter's work on state constraints:
 \end{gather*}
 \ \\
 \ \\
-So, it's relatively straightforward to check whether $\phi \equiv \mathcal{P}_{\mathcal{D}}[\phi,\alpha]$
+So it's straightforward to check whether $\phi \equiv \mathcal{P}_{\mathcal{D}}[\phi,\alpha]$
 \end{frame}
 
 \begin{frame}
@@ -262,9 +260,7 @@ We have shown that:
 \end{gather*}
 \ \\
 \ \\
-So $\mathcal{P}_{\mathcal{D}}$ is a fixed-point of $\mathcal{P}^1_{\mathcal{D}}$
-
-We can seek it using a straightforward iterative algorithm.
+$\mathcal{P}_{\mathcal{D}}$ is a fixed-point of $\mathcal{P}^1_{\mathcal{D}}$
 \end{frame}
 
 \begin{frame}
@@ -285,15 +281,15 @@ Is this an effective technique in practice?
 \begin{itemize}
  \item purely first-order reasoning
  \item uses only the unique names axioms
- \item result is uniform, so can be used with regression
+ \item result is uniform, therefore regressable
  \item $\mathcal{P}_{\mathcal{D}}$ can be cached for a given $\phi$ and $\alpha$
  \item many properties fail to persist for small $n$
 \end{itemize}
 \ \\
 \ \\
-We also inherit potential disadvantages of regression operator:
+Also inherits disadvantages of regression operator:
 \begin{itemize}
-  \item Length of $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$ can be exponential in length of $\phi$
+  \item length of $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$ can be exponential in length of $\phi$
 \end{itemize}
 \end{frame}
 
@@ -323,12 +319,14 @@ Knowledge with Partial Observability of Actions:
 \begin{frame}
 \frametitle{Conclusions}
 We have significantly increased the scope of queries that can be effectively
-posed in the situation calculus:
+posed in the Situation Calculus:
 \begin{itemize}
  \item Identified useful subset of universally quantified queries
  \item Developed algorithm to transform them to managable form
  \item Integrates well with existing tools for effective reasoning
 \end{itemize}
+\ \\
+\ \\
 Still to come:
 \begin{itemize}
  \item Stronger termination guarantees
