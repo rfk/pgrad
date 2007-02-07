@@ -35,7 +35,7 @@ situation calculus and an effective reasoning procedure for handling
 knowledge queries. Our approach generalizes existing work by reifying
 the observations made by each agent as the world evolves, allowing
 for agents that are partially or completely unaware of some of the
-actions that have occured. This also enables agents to reason effectively
+actions that have occurred. This also enables agents to reason effectively
 about knowledge using only their internal history of observations,
 rather than requiring a full history of the world. The result is a
 more robust and flexible account of knowledge suitable for use in
@@ -44,23 +44,23 @@ partially-observable multi-agent domains.
 
 \category{I.2.4}{Artificial Intelligence}{Knowledge Representation Formalisms and Methods}
 
-\terms{Theory, Algorithms}
+\terms{Theory}
 
 \keywords{Situation Calculus, Knowledge, Action, Observability}
 
 \section{Introduction}
 
 The situation calculus \cite{pirri99contributions_sitcalc},
- extened with knowledge \cite{scherl03sc_knowledge} and concurrent actions
+ extended with knowledge \cite{scherl03sc_knowledge} and concurrent actions
 \cite{scherl03conc_knowledge}, provides a rich formalism for modeling complex
 domains such as multi-agent systems.  However, existing techniques for
 effective reasoning require an omniscient viewpoint, with queries posed
 relative to the current situation.
-This makes it difficult for agents to reason about their own world
-unless they have a complete world history, which is unrealistic in many domains.
+This makes it difficult for situated agents to reason about their environment
+unless they have a complete history of the world, which is unrealistic in many domains.
 
 We overcome this limitation by explicitly reifying the observations made by
-each agent as the world evolves. Knowledge is axiomatized such that each agent
+each agent as the world evolves. Knowledge is axiomatised such that each agent
 considers possible any situation compatible with what it has observed.
 We then extend the traditional definition of regression
 over knowledge queries to operate using the agent's history of
@@ -94,17 +94,17 @@ $K(agt,s',s)$ indicates that {}``in situation $s$, the
 agent $agt$ considers the alternate situation $s'$ to be possible''.
 The macro $\mathbf{Knows}$ then acts as a shorthand for
 the standard possible-worlds definition of knowledge:
-\begin{equation}
+\begin{equation*}
 \mathbf{Knows}(agt,\phi,s)\,\isdef\,\forall s'\,.\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:knows_def}
-\end{equation}
+\end{equation*}
 
-The standard successor state axiom for the knowledge fluent (with
+The successor state axiom for the knowledge fluent (with
 multiple agents and concurrent actions) is:
-\begin{multline}
+\begin{multline*}
 K(agt,s'',do(c,s))\equiv\\
 \exists s'\,.\, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\\
 \wedge\,\forall a\in c.\left[agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\label{eqn:k_ssa_standard}
-\end{multline}
+\end{multline*}
  
 It is also necessary to permit alternate initial situations, which are
 identified by $Init(s)$. Every situation is \emph{rooted at}
@@ -116,26 +116,26 @@ While this is clearly infeasible for many multi-agent domains, it permits
 the regression operator \cite{pirri99contributions_sitcalc} to be used
 for effective reasoning about knowledge queries.
 For formulations that do not make this assumption (see e.g. 
- \cite{Lesperance99sitcalc_approach}) the successor-state axiom for $K$
+ \cite{Lesperance99sitcalc_approach}) the successor state axiom for $K$
 involves universal quantification over situation terms and standard
-regression techniques cannot be applied.  This has tradionally made
-automated reasoning infeasible under such formalisms.
+effective reasoning techniques cannot be applied.
 
-We utilise the recently developed notion of \emph{persistence condition}
-\cite{kelly07sc_persistence} to construct a more general formalism while
-retaining regression as a reasoning tool.  The operator 
-$\mathcal{P}_{\mathcal{D}}$ transforms a particular kind of universally
-quantified query into an equivalent uniform formula as follows:
-\begin{equation}
-\mathcal{D} \models \forall s'\,.\,s \leq_{\alpha} s' \rightarrow \phi[s']\,\,\equiv\,\, \mathcal{P}_{\mathcal{D}}(\phi,\alpha)[s]
-\end{equation}
+To construct a more general formalism while retaining regression as
+a reasoning tool, we utilise the recently developed notion of 
+\emph{persistence condition} \cite{kelly07sc_persistence}. The operator
+$\mathcal{P}_{\mathcal{D}}(\phi,\alpha)$ produces a uniform formula
+that will hold in $s$ if and only if $\phi$ will remain true in all future 
+situations brought about by actions 
+satisfying $\alpha$ (we say $\phi$ \emph{persists} under $\alpha$):
+\begin{equation*}
+\mathcal{D} \models \left(\forall s'\,.\,s \leq_{\alpha} s' \rightarrow \phi[s']\right)\,\,\equiv\,\, \mathcal{P}_{\mathcal{D}}(\phi,\alpha)[s]
+\end{equation*}
 
 \section{New Semantics of Knowledge}
 
 \label{sec:New-Semantics}
 
-To allow the existing accounts of knowledge to be generalized in a robust way,
-we introduce
+To generalize the existing account of knowledge in a robust way, we introduce 
 a distinction between \emph{actions}, which cause changes to the state
 of the world, and \emph{observations}, which cause an agent to become
 \emph{aware} of some change in the state of the world.
@@ -177,12 +177,12 @@ agent's local history of all the observations it has made. The situation
 is an omniscient view of the world, the observation history a local
 view.
 
-It is a basic tennet of epistemic reasoning that an agent's knowledge must
+It is a basic tenet of epistemic reasoning that an agent's knowledge must
 depend solely on its local history: the knowledge that it started out with
 combined with the observations it has made since then.
-Clearly, $s'$ should be related to $s$ if their root situations were
-$K$-related, $s'$ is legal, and it would result in the same sequence of
-observations as $s$:
+Clearly, $s'$ should be related to $s$ if their root situations are
+$K$-related, they result in the same sequence of observations, and 
+$s'$ is legal:
 \begin{multline}
 \label{eq:k-desired}
 \mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\,\wedge\\
@@ -192,7 +192,7 @@ Legal(s')\,\wedge\, ObsHist(agt,s')=ObsHist(agt,s)
 Unfortunately this formulation cannot be used directly in a basic action
 theory, as these require that fluent change be specified
 using successor state axioms.  We must formulate an appropriate axiom for
-$K$ which enforces equation \ref{eq:k-desired}.
+$K$ which enforces equation (\ref{eq:k-desired}).
 
 We first introduce $PbU(agt,c,s)$ as a notational convenience for {}``possible
 but unobservable'',
@@ -204,7 +204,7 @@ Poss(c,s)\wedge Obs(agt,c,s)=\{\}\label{eq:PbU_defn}
 \end{equation}
 
 By stating that $s\leq_{PbU(agt)}s'$ we assert that an agent would
-perceive no observations were the world to move from situation $s$ to
+perceive no observations were the world to change from situation $s$ to
 $s'$. If it considers $s$ possible then it must also consider $s'$ possible.
  Following this intuition, the successor state axiom below
 captures the desired dynamics of $K$:
@@ -223,22 +223,23 @@ actions $c'$ that result in identical observations. It also considers
 possible any future of such a situation in which is would perceive no
 more observations.
 
-Since situations
-where $S_{0}\leq_{PbU(agt)}s$ holds must be $K$-related to $S_{0}$ to
-satisfy equation (\ref{eq:k-desired}, we
+Since situations satisfying
+ $S_{0}\leq_{PbU(agt)}s$ holds must be $K$-related to $S_{0}$ for
+equation (\ref{eq:k-desired}) to be satisfied, we
 cannot use $K$ to encode the agent's initial knowledge.
 We introduce $K_{0}$ for this purpose as follows:
 \begin{multline}
-K_{0}(agt,s',s)\rightarrow Init(s')\wedge Init(s)\\
-\shoveleft{Init(s)\rightarrow K(agt,s'',s)\equiv}\\
-\exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{PbU(agt)}s'')\label{eqn:new_k_s0}\end{multline}
+Init(s)\rightarrow\\
+K(agt,s'',s)\equiv \exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{PbU(agt)}s''
+\label{eqn:new_k_s0}
+\end{multline}
 
-This axiomatizating is enough to ensure that knowledge meets to requirements
-set out in equation (\ref{eq:k-desired}.
+This axiomatisation is enough to ensure that knowledge meets to requirements
+set out in equation (\ref{eq:k-desired}).
 
 \begin{theorem}
-\label{thm:k_obs_equiv} For any basic action theory $\mathcal{D}$ axiomatizing
-knowledge according to (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}):
+\label{thm:k_obs_equiv} For any basic action theory $\mathcal{D}$ axiomatising
+knowledge according to equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}):
 \begin{multline*}
 \mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\,\wedge\\
 Legal(s')\,\wedge\, ObsHist(agt,s')=ObsHist(agt,s)
@@ -251,8 +252,8 @@ Straightforward, using equations (\ref{eqn:obshist_defn},\ref{eq:PbU_defn},\ref{
 Using this new formulation, an agent's knowledge is completely decoupled
 from the global notion of actions, instead depending only on the local
 information that it has observed. By allowing different kinds of term in
-the \noun{Observation} sort, and axiomatizing the $Obs$ function in
-different ways, a wide range of domains can be modelled.
+the \noun{Observation} sort, and axiomatising the $Obs$ function in
+different ways, a wide variety of domains can be modelled.
 
 Let us begin by considering the standard account of knowledge from
 \cite{scherl03sc_knowledge}. Its basic assumption that {}``all agents
@@ -270,20 +271,14 @@ like so:
 a\in c\wedge SR(a,s)=r\wedge agent(a)=agt\label{eq:ax_obs_std2}
 \end{multline}
 
-%Equations (\ref{eq:ax_obs_std1},\ref{eq:ax_obs_std2}) mean $Obs(agt,c,s)$
-%cannot be empty for non-empty $c$, so $s\leq_{PbU(agt)}s'$ iff $s=s'$.
-%Equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}) then amount to
-%simple transformations of equations (\ref{eqn:k_ssa_standard},\ref{eq:k_s0_standard})
-%respectively, meaning that $K$ behaves the same under both theories.
-
-Using these definitions, our new account of knowledge will behave
+Using equations (\ref{eq:ax_obs_std1},\ref{eq:ax_obs_std2}) as axioms, 
+our new account of knowledge behaves
 identically to the standard account.
 To generalize this for partial observability of actions we introduce
 a new action description predicate specifying
 when actions will be observed by agents: $CanObs(agt,a,s)$ indicates
 that agent $agt$ would observe action $a$ being performed in situation
-$s$. We can then formulate the $Obs()$ function according
-to:
+$s$. We can then formulate $Obs()$ according to:
 \begin{equation*}
 a\in Obs(agt,c,s)\equiv a\in c\wedge CanObs(agt,a,s)
 \end{equation*}
@@ -312,15 +307,16 @@ dynamics of knowledge update.
 
 \label{sec:Reasoning}
 
-Since equation (\ref{eqn:new_k_ssa}) universally quantifies over future
-situations, standard regression techniques cannot be applied to our formaism.
-To permit an effective reasoning procedure
-we appeal to the persistence condition meta-operator \cite{kelly07sc_persistence} to augment the regression techniques developed in 
-\cite{scherl03sc_knowledge}.
+Standard regression techniques cannot be applied to our formalism, 
+since equation (\ref{eqn:new_k_ssa}) uses $\leq_{PbU}$ and so universally 
+quantifies over situations.
+We have developed an effective reasoning procedure
+by using the persistence condition meta-operator \cite{kelly07sc_persistence}
+to augment the regression techniques in \cite{scherl03sc_knowledge}.
 
 Assuming that the knowledge fluent $K$ appears only in the context
 of a $\mathbf{Knows}$ macro, we propose the following to replace
-the existing regression clause for $\mathbf{Knows}$:
+the regression clause in \cite{scherl03sc_knowledge} for $\mathbf{Knows}$:
 \begin{multline}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,do(c,s)))=\\
 \exists o\,.\, Obs(agt,c,s)=o
@@ -335,9 +331,9 @@ its observations, $\phi$ cannot become false without it perceiving an
 observation.
 
 We must also specify the regression of $\mathbf{Knows}$ in the initial
-situation, as equation (\ref{eqn:new_k_s0}) also compares situation terms.
+situation, as equation (\ref{eqn:new_k_s0}) also uses $\leq_{PbU}$.
 This clause results in standard first-order modal reasoning
-over the $K_{0}$ relation, as required by the procedure in \cite{scherl03sc_knowledge}:
+over the $K_{0}$ relation, similarly to \cite{scherl03sc_knowledge}:
 \begin{multline}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,S_{0}))=\\
 \forall s\, K_{0}(agt,s,S_{0})\rightarrow\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt))[s]\label{eqn:R_s0}
@@ -360,7 +356,7 @@ be expected to have the full current situation $s$. However, it will
 have its current observation history $h$.
 The regression rules in equations (\ref{eqn:R_do_c_s},\ref{eqn:R_s0})
 can be modified to operate using an observation history rather than a
-situaion term, with the result being significantly simpler due to the
+situation term, with the result being significantly simpler due to the
 absence of empty observation sets:
 \begin{multline}
 \mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,o\cdot h))=\\
