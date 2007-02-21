@@ -8,14 +8,15 @@
 
 
 :- implementation.
-:- import_module fosg.
+:- import_module fof.
 :- import_module list.
-:- import_module int.
 
 main(!IO) :-
-    A = fosg.mkgraph(fosg.mkkernel(func("hello",[])),t,f),
-    B = fosg.mkgraph(fosg.mkkernel(func("there",[])),t,f),
-    C = fosg.mkgraph(fosg.mkkernel("hello",A),B,f),
-    J = fosg.not(C),
-    io.print(fosg.mkgraph(fosg.mkkernel("hello",A),t,t),!IO),
+    A = fof.atom("likes",[fof.ufunc("Mary",[]),fof.ufunc("John",[])]),
+    B = fof.atom("likes",[fof.ufunc("John",[]),fof.ufunc("Jane",[])]),
+    C = fof.and(A,fof.not(B)),
+    D = fof.and(C,C),
+    io.print(D,!IO),
+    io.write_string("\n",!IO),
+    io.print(fof.simplify(D),!IO),
     io.write_string("\n",!IO).
