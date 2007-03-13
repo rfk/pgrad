@@ -1,28 +1,56 @@
+%%
+%%  main.pl:  Top-level prolog file for ConGolog implementation
+%%
+%%  Author:  Ryan Kelly (rfk)
+%%
+%%  Date Created:  12/03/07
+%%
+%%    This file is the entry-point for a ConGolog program consisting
+%%    of the following files:
+%%
+%%      * Axioms of the situation calculus, in sitcalc.pl
+%%      * The ConGolog semantics, from congolog.pl
+%%      * A domain axiomatisation, from domain.pl
+%%
+%%    It imports the necessary prolog libraries and performs other
+%%    initialisation tasks.  It also provides the predicate main/1
+%%    which may be called to execute the ConGolog procedure named
+%%    'control'.
+%%
 
-:- dynamic(indi_exog/1).
-:- dynamic(currently/2).
-:- dynamic(temp/2).
+:- discontiguous trans/4, final/2, prim_action/1, natural/1, poss/3,
+                 conflicts/3, start/2.
 
-:- set_flag(all_dynamic,on).
+%%
+%%  Provide Syntactic operators for ConGolog programs
+%%
+:- op(660,xfy,/).  % Nondeterministic choice
+:- op(650,xfy,:).  % Sequence
+:- op(640,xfy,//). % Concurrent execution
+:- op(640,xfy,>>). % Prioritised concurrency
+:- op(620,fx,?).   % Test
 
-:- [golog].
-:- [domain].
+%%
+%%  Include the relevant definitions
+%%
+:- include(congolog).
+:- include(sitcalc).
+:- include(domain).
+:- include(program).
 
-retractall(H) :-
-    retract_all(H).
 
-% printFluentValues(+FluentList, +History): Print value of primitive fluents
-%     at the point where History actions have been performed
-printFluentValues([], _) :-
-    write('-----------------------------------------------'),
-    nl.
-
-printFluentValues([Hf | FluentList], History) :-
-    write('    Primitive fluent '),
-    write(Hf),
-    write(' has value '),
-    has_val(Hf, Hv, History),
-    write(Hv), nl,
-    printFluentValues(FluentList, History).
-
+%%
+%%  main(Args):  main entry-point for program execution
+%%
+%%  This predicate is designed as the entry-point for the program,
+%%  it calls the ConGolog procedure makeDinner in an off-line manner.
+%%
+main(Args) :-
+    ( length(Args,0) ->
+        do(makeDinner(Dish1,Dish2),s0,S), nl, show_action_history(S), nl,
+        write('Dish1: '), write(Dish1), nl,
+        write('Dish2: '), write(Dish2), nl, nl
+    ;
+        nl, display('ERROR: No arguments can be given'), nl
+    ).
 
