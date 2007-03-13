@@ -8,9 +8,8 @@
 
 %%  Main control program - prepare a nice meal
 %%
-proc(makeDinner(Dish1,Dish2),
+proc(makeDinner,
      makeSalad(thomas,bowl1) // makeCake(thomas,bowl2)
-     : ?and(contents(bowl1,Dish1,now),contents(bowl2,Dish2,now))
     ).
 
 %%  Ensure that the agent has control of an object

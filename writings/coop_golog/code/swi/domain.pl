@@ -48,9 +48,9 @@ prim_obj(Obj,board) :-
 prim_obj(Obj,oven) :-
     member(Obj,[oven1]).
 prim_obj(Obj,flour) :-     % flour measured in 'units' for simplicity
-    member(Obj,[flour1,flour2,flour3,flour4,flour5]).
+    member(Obj,[flour1,flour2]).
 prim_obj(Obj,sugar) :-     % same for the sugar
-    member(Obj,[sugar1,sugar2,sugar3,sugar4,sugar5,sugar6]).
+    member(Obj,[sugar1,sugar2]).
 prim_obj(Obj,egg) :-
     member(Obj,[egg1,egg2,egg3]).
 prim_obj(Obj,tomato) :-
@@ -89,7 +89,7 @@ obj_is_type(Obj,Type) :-
 %%
 %%  This predicate is true when Act is the name of a primitive action
 %%  in the world.  Actions are typically parameterised in terms of the
-%%  objects they act on.  See the details of the MIndiGolog situation
+%%  objects they act on.  See the details of the ConGolog situation
 %%  calculus for further information.
 %%
 
@@ -223,7 +223,7 @@ contents(Obj,Conts,do(A,S)) :-
       ;
       %% An agent mixed the contents.  If they were previously
       %% unmixed, they are encased in a mixed(conts) indicator.
-      A = mix(_,Obj,_), contents(Obj,OldConts,S),
+      A = mix(_,Obj), contents(Obj,OldConts,S),
       (  OldConts = mixed(MixConts) ->
              Conts = mixed(MixConts)
          ;
@@ -264,7 +264,7 @@ contents(Obj,Conts,do(A,S)) :-
         A = place_in(_,_,Obj)
         ;
         %% The contents were mixed
-        A = mix(_,Obj,_)
+        A = mix(_,Obj)
         ;
         %% The contents were chopped
         A = chop(_,Obj)
@@ -301,121 +301,4 @@ history_length(0,s0).
 %%
 
 % initially, nothing is true...
-
-
-%%
-%%  MIndiGolog procedures
-%%
-%%  The following are a collection of useful procedures in the domain,
-%%  from which larger programs can be built.
-%%
-
-
-%%  Ensure that the agent has control of an object
-proc(ensureHas(Agt,Obj),
-     if(has_object(Agt,Obj,now),nil,acquire_object(Agt,Obj))
-    ).
-
-%%  Carry out the necessary sequence of actions to place one object
-%%  inside another, releasing the destination container when done.
-proc(doPlaceIn(Agt,Obj,Dest),
-     ensureHas(Agt,Obj) // ensureHas(Agt,Dest)
-     : place_in(Agt,Obj,Dest)
-     : (release_object(Agt,Dest) / nil)
-    ).
-
-%%  Nondeterministically select an object of a given type, gain control
-%%  of it, and place it inside a container object.
-proc(doPlaceTypeIn(Agt,Type,Dest),
-     pi(obj,?obj_is_type(obj,Type)
-            : acquire_object(Agt,obj)
-            : doPlaceIn(Agt,obj,Dest))
-    ).
-
-%%  Carry out the necessary actions to transfer the contents of one
-%%  container to another, relasing both when finished.
-proc(doTransfer(Agt,Source,Dest),
-     ensureHas(Agt,Source) // ensureHas(Agt,Dest)
-     : transfer(Agt,Source,Dest)
-     : release_object(Agt,Source) // release_object(Agt,Dest)
-    ).
-
-%%  Make a simple cake mixture in the specified container.
-%%  The agents to perform the various steps are selected
-%%  nondeterministically.
-proc(makeCakeMix(Dest),
-     pi(agt,?agent(agt) : doPlaceTypeIn(agt,egg,Dest))
-     : pi(agt,?agent(agt) : doPlaceTypeIn(agt,flour,Dest))
-     : pi(agt,?agent(agt) : doPlaceTypeIn(agt,sugar,Dest))
-     : pi(agt, ?agent(agt) : acquire_object(agt,Dest)
-                           : mix(agt,Dest)
-                           : release_object(agt,Dest))
-    ).
-
-%%  Make a cake in the specified container.  This involves
-%%  making cake mix in the container, then baking it in an oven.
-proc(makeCake(Dest),
-     makeCakeMix(Dest)
-     : pi(myOven, ?obj_is_type(myOven,oven)
-                  : pi(agt, ensureHas(agt,myOven)
-                            : ensureHas(agt,Dest)
-                            : place_in(agt,Dest,myOven)
-                      )
-                  : pi(agt,pi(myBoard, ?obj_is_type(myBoard,board)
-                                       : doTransfer(agt,myOven,myBoard)
-                      ))
-         )
-    ).
-
-
-%%  Chop the given item then place it in the given container.
-%%  Releases control of the container when done.  An empty chopping
-%%  board is selected nondeterministically.
-proc(doChopInto(Agt,Obj,Dest),
-     ensureHas(Agt,Obj)
-     : pi(myBoard, ?obj_is_type(myBoard,board)
-                   : ?neg(contents(myBoard,_,now))
-                   : ensureHas(Agt,myBoard)
-                   : place_in(Agt,Obj,myBoard)
-                   : chop(Agt,myBoard)
-                   : ensureHas(Agt,Dest)
-                   : transfer(Agt,myBoard,Dest)
-                   : release_object(Agt,myBoard) // release_object(Agt,Dest)
-         )
-    ).
-
-
-%%  Make a salad in the specified container.  This involves selecting
-%%  appropriate vegetables, chopping them, placing them in the container,
-%%  and mixing briefly.
-proc(makeSalad(Dest),
-       pi(agt,pi(obj, ?obj_is_type(obj,lettuce)
-                      : acquire_object(agt,obj)
-                      : doChopInto(agt,obj,Dest)
-                )
-         )
-       //
-       pi(agt,pi(obj, ?obj_is_type(obj,tomato)
-                      : acquire_object(agt,obj)
-                      : doChopInto(agt,obj,Dest)
-                )
-         )
-      //
-      pi(agt,pi(obj, ?obj_is_type(obj,carrot)
-                      : acquire_object(agt,obj)
-                      : doChopInto(agt,obj,Dest)
-                )
-        )
-    : pi(agt, ensureHas(agt,Dest)
-              : mix(agt,Dest)
-              : release_object(agt,Dest)
-        )
-    ).
-
-
-%%  Main control program - prepare a nice meal
-proc(control,
-     makeSalad(bowl1) // makeCake(bowl2)
-     : ?(and(history_length(L,now),L<30))
-    ).
 

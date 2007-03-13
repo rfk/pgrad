@@ -5,7 +5,7 @@
 %%
 %%  Date Created:  12/03/07
 %%
-%%    This file is the entry-point for an ConGolog program consistint
+%%    This file is the entry-point for a ConGolog program consisting
 %%    of the following files:
 %%
 %%      * Axioms of the situation calculus, in sitcalc.pl
@@ -36,17 +36,21 @@
 :- include(congolog).
 :- include(sitcalc).
 :- include(domain).
+:- include(program).
 
 
 %%
 %%  main(Args):  main entry-point for program execution
 %%
 %%  This predicate is designed as the entry-point for the program,
-%%  it calls the MIndiGolog procedure "control" in an off-line manner.
+%%  it calls the ConGolog procedure makeDinner in an off-line manner.
 %%
 main(Args) :-
     ( length(Args,0) ->
-        do(control,s0,S), nl, show_action_history(S), nl
+        do(makeDinner,s0,S), nl, show_action_history(S), nl,
+        contents(bowl1,Dish1,S), contents(bowl2,Dish2,S),
+        write('Dish1: '), write(Dish1), nl,
+        write('Dish2: '), write(Dish2), nl, nl
     ;
         nl, display('ERROR: No arguments can be given'), nl
     ).
