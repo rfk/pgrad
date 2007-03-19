@@ -20,3 +20,4 @@ main(!IO) :-
     io.write_string("\n",!IO),
     io.print(fof.simplify(D),!IO),
     io.write_string("\n",!IO).
+
