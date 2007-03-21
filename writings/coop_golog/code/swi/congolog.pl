@@ -302,7 +302,7 @@ sub_list(X,Y,[T|Ts],[Tr|Trs]) :-
 %%
 trans*(D,S,D,S).
 trans*(D,S,Dp,Sp) :-
-    trans(D,S,Dr,Sr),
+    step(D,S,Dr,Sr),
     trans*(Dr,Sr,Dp,Sp).
 
 
@@ -336,7 +336,7 @@ step(D,S,Dp,Sp) :-
 %%  on-line.
 %%
 do(D,S,Sp) :-
-    trans*(D,S,Dp,Sp),
+    trans*(D,S,Dp,Sp), %nl, show_action_history(Sp), nl,
     final(Dp,Sp).
 
 %%  Predicate for printing the action history of a situation.

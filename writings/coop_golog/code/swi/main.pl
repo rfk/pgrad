@@ -47,10 +47,10 @@
 %%
 main(Args) :-
     ( length(Args,0) ->
-        do(makeDinner,s0,S), nl, show_action_history(S), nl,
-        contents(bowl1,Dish1,S), contents(bowl2,Dish2,S),
-        write('Dish1: '), write(Dish1), nl,
-        write('Dish2: '), write(Dish2), nl, nl
+        do(makeDinner,s0,S), nl, show_action_history(S), nl%,
+        %contents(bowl1,Dish1,S), contents(bowl2,Dish2,S),
+        %write('Dish1: '), write(Dish1), nl,
+        %write('Dish2: '), write(Dish2), nl, nl
     ;
         nl, display('ERROR: No arguments can be given'), nl
     ).

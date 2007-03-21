@@ -42,7 +42,7 @@ prim_obj(Obj) :-
 prim_obj(Obj,knife) :-
     member(Obj,[knife1,knife2,knife3]).
 prim_obj(Obj,bowl) :-
-    member(Obj,[bowl1,bowl2]).
+    member(Obj,[bowl1,bowl2,bowl3]).
 prim_obj(Obj,board) :-
     member(Obj,[board1,board2]).
 prim_obj(Obj,oven) :-
@@ -56,7 +56,7 @@ prim_obj(Obj,egg) :-
 prim_obj(Obj,tomato) :-
     member(Obj,[tomato1,tomato2]).
 prim_obj(Obj,lettuce) :-
-    member(Obj,[lettuce1]).
+    member(Obj,[lettuce1, lettuce2]).
 prim_obj(Obj,carrot) :-
     member(Obj,[carrot1,carrot2,carrot3]).
 

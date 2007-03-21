@@ -9,7 +9,7 @@
 %%  Main control program - prepare a nice meal
 %%
 proc(makeDinner,
-     makeSalad(thomas,bowl1) // makeCake(thomas,bowl2)
+     makeSalad(thomas,bowl1) : makeCake(thomas,bowl2) : makeOmelette(thomas,bowl3)
     ).
 
 %%  Ensure that the agent has control of an object
@@ -31,7 +31,7 @@ proc(doPlaceIn(Agt,Obj,Dest),
 %%  of it, and place it inside a container object.
 %%
 proc(doPlaceTypeIn(Agt,Type,Dest),
-     pi(obj,?obj_is_type(obj,Type)
+     pi(obj,?and(obj_is_type(obj,Type),not(used(obj,now)))
             : acquire_object(Agt,obj)
             : doPlaceIn(Agt,obj,Dest))
     ).
@@ -98,16 +98,19 @@ proc(doChopInto(Agt,Obj,Dest),
 %%  and mixing briefly.
 %%
 proc(makeSalad(Agt,Dest),
-       pi(obj, ?obj_is_type(obj,lettuce)
-                      : acquire_object(Agt,obj)
-                      : doChopInto(Agt,obj,Dest)
-         )
-       //
-       pi(obj, ?obj_is_type(obj,tomato)
+      %pi(obj, ?and(obj_is_type(obj,lettuce),not(used(obj,now)))
+      pi(obj, ?obj_is_type(obj,lettuce)
+                     : acquire_object(Agt,obj)
+                     : doChopInto(Agt,obj,Dest)
+        )
+      //
+      %pi(obj, ?and(obj_is_type(obj,tomato),not(used(obj,now)))
+      pi(obj, ?obj_is_type(obj,tomato)
                       : acquire_object(Agt,obj)
                       : doChopInto(Agt,obj,Dest)
          )
       //
+      %pi(obj, ?and(obj_is_type(obj,carrot),not(used(obj,now)))
       pi(obj, ?obj_is_type(obj,carrot)
                       : acquire_object(Agt,obj)
                       : doChopInto(Agt,obj,Dest)
@@ -117,4 +120,23 @@ proc(makeSalad(Agt,Dest),
       : release_object(Agt,Dest)
     ).
 
+
+%% Make an omelette.
+proc(makeOmelette(Agt,Dest),
+    doPlaceTypeIn(Agt,egg,Dest)
+    // doPlaceTypeIn(Agt,sugar,Dest)
+    // doPlaceTypeIn(Agt,sugar,Dest)
+    : pi(obj, ?obj_is_type(obj,tomato)
+        : acquire_object(Agt,obj)
+        : doChopInto(Agt,obj,Dest)
+        )
+    : ensureHas(Agt,Dest)
+    : mix(Agt,Dest)
+    : pi(myOven, ?obj_is_type(myOven,oven)
+        : ensureHas(Agt,myOven)
+        : place_in(Agt,Dest,myOven)
+        : pi(myBoard, ?obj_is_type(myBoard,board)
+        : doTransfer(Agt,myOven,myBoard)
+        ))
+).
 
