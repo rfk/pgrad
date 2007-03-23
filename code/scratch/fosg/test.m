@@ -17,7 +17,9 @@ main(!IO) :-
     C = fof.and(A,fof.not(B)),
     D = fof.and(C,C),
     io.print(D,!IO),
-    io.write_string("\n",!IO),
+    io.write_string("\n\n",!IO),
     io.print(fof.simplify(D),!IO),
-    io.write_string("\n",!IO).
+    io.write_string("\n\n",!IO),
+    fof.tester(!IO),
+    io.write_string("\n\n",!IO).
 
