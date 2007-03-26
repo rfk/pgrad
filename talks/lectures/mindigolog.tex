@@ -1,0 +1,248 @@
+
+%\documentclass[handout, compress]{beamer}
+\documentclass[compress]{beamer}
+
+\mode<presentation>
+{
+  %\usetheme{Warsaw}
+  \usetheme{Copenhagen}
+  %\usetheme{Darmstadt}
+  % or ...
+  %\usecolortheme{dolphin}
+
+  \setbeamercovered{transparent}
+  % or whatever (possibly just delete it)
+}
+
+\usepackage[english]{babel}
+
+\usepackage[latin1]{inputenc}
+
+\usepackage{amsmath}
+\usepackage[all]{xy}
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\usepackage{verbatim}
+\usepackage{subfigure}
+
+
+\title{MIndiGolog: Multi-Agent Golog}
+
+
+\author{Ryan Kelly}
+
+\institute[The University of Melbourne]
+{
+  Department of Computer Science and Software Engineering\\
+  The University of Melbourne\\
+  Victoria, 3010, Australia\\
+  rfk@csse.unimelb.edu.au
+}
+
+\date[The University of Melbourne]
+{27th March 2007}
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+\pgfdeclareimage[height=1.2cm]{university-logo}{MINSilvr}
+\logo{\pgfuseimage{university-logo}}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+\centering "MIndiGolog"\\
+\begin{itemize}
+\item Operators of ConGolog (Concurrency, Interrupts)
+\item Controlled Search of IndiGolog (in a later lecture)
+\item Richer Theory of Action:
+\begin{itemize}
+\item Robust integration of \emph{true concurrency}
+\item Explicit temporal component
+\item Seamless integration of \emph{natural actions}
+\end{itemize}
+\end{itemize}
+\ \\
+\ \\
+Vision: the cooperative execution of a shared high-level program by a team of autonomous agents.
+\end{frame}
+
+\begin{frame}
+\frametitle{Example Task Specification}
+\begin{multline*}
+\mathbf{proc}\, MakeSalad(dest)\\
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\pi(agt)\left[acquire(agt,dest)\,;\right.\\
+\,beginTask(agt,mix(dest,1))\,;\\
+\left.\, release(agt,dest)\right]\,\,\mathbf{end}
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Concurrent Situation Calculus}
+Replace action terms with sets of actions, all of which are performed
+at the same time:\[
+do(\{pickup(Thomas,Lettuce1),pickup(Richard,Tomato1)\},S_0)\]
+
+Precondition interaction:\[
+Poss(\{pickup(Richard,Obj),pickup(Harriet,Obj)\},s)\ ?\]
+
+Basic solution:\[
+Poss(C,s) \leftrightarrow \forall a \in C.Poss(a,s)\ \wedge\ \neg Conflicts(C,s)\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Integrating True Concurrency}
+\begin{multline*}
+\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
+\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]
+\end{multline*}
+
+Should take advantage of true concurrency.  Basic idea:
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge}\\ 
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Robust Concurrency}
+The combination of actions $(c_1\cup c_2)$ may not be possible.
+\begin{itemize}
+  \item Must check this explicitly
+\end{itemize}
+\ \\
+\ \\
+The same \emph{agent-initiated} action mustn't $Trans$ both programs.
+\begin{itemize}
+  \item otherwise dangerous 'skipping' of actions can occur
+  \item if two concurrent programs both call for $pay(Ryan,\$100)$ to be performed, it had better be performed twice!
+  \item Natural actions can transition both programs
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Robust Concurrency}
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
+\shoveright{\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_1||\gamma_2)\wedge s'=do(c_1\cup c_2,t,s)}\\
+\wedge Poss(c_1\cup c_2,t,s)\wedge\forall a.\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Time}
+Which is easier for a team to manage?
+\begin{itemize}
+  \pause
+  \item Perform a list of actions concurrently
+  \pause
+  \item Perform a list of actions concurrently at time $t$
+\end{itemize}
+\ \\
+\ \\
+\pause
+Assuming a good wall-clock is available, explicit time makes coordination easier.\\
+\ \\
+It is also generally a nice feature to have when representing dynamic worlds.
+Example: bake a cake for \emph{10 minutes}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Temporal Situation Calculus}
+We opt for a simple solution: attach an explicit time to each situation,
+indicating when it was brought about:\[
+\begin{array}{c}
+do(a_1,t_1,S_0),\ do(a_2,t_2,do(a_1,t_1,S_0))\\
+Poss(a,t,s) \leftrightarrow\ \dots\\
+start(do(a,t,s)) = t
+\end{array}\]
+
+Temporal Golog finds situations with \emph{constraints} on the
+time at which actions are performed:\[
+\begin{array}{c}
+do(a_2,t_2,do(a_1,t_1,S_0)\\
+t_1>0,\ t_2>t_1+5
+\end{array}\]
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Continuous Actions}
+Some actions have a finite duration: $mix(Thomas,Bowl1,5)$
+Others are instantaneous: $pickup(Robert,Lettuce1)$.
+So this concurrent action is problematic:\[
+\{mix(Thomas,Bowl1,5),pickup(Robert,Lettuce1)\}\]
+Standard solution: decompose continuous actions into instantaneous $begin$
+and $end$ actions:\[
+begin\_mix(Thomas,Bowl1,5) \dots end\_mix(Thomas,Bowl1,5)\]
+But $end\_mix()$ is not a standard action.  It cannot be performed at
+any time.  Rather, it \emph{must} occur whenever it is possible.
+\end{frame}
+
+\begin{frame}
+\frametitle{Natural Actions}
+\begin{itemize}
+  \item Natural Action:  an action that must occur whenever it is possible,
+        unless some earlier action prevents it.
+  \item $Poss(na,t,s)$ predicts when natural actions will occur.
+  \item Least Natural Time Point: the earliest time at which a natural
+        action will occur for a given situation:\[
+\begin{array}{c}
+lntp(s,t) \leftrightarrow \exists a [natural(a) \wedge Poss(a,t,s)] \wedge\\
+\forall a,t_a [natural(a) \wedge Poss(a,t_a,s) \rightarrow t \leq t_a]
+\end{array}\]
+  \item Legal Situation: one in which any natural actions that could have occured, did occur:\[
+\begin{array}{c}
+legal(do(c,t,s)) \leftrightarrow legal(s) \wedge\\
+Poss(c,t,s) \wedge start(s) \leq t \wedge\\
+\forall a,t_a [natural(a) \wedge Poss(a,t_a,s) \rightarrow (a \in c \vee t < t_a)]
+\end{array}\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Integrating Natural Actions}
+$Trans$ for a single action can proceed in one of four ways:
+\begin{itemize}
+\item If no natural actions are possible, just do the action
+\item If there are natural actions possible, either:
+\begin{itemize}
+\item Do the action \emph{before} the LNTP
+\item Do the action \emph{at} the LNTP, with the natural actions
+\item Wait for the natural actions to occur
+\end{itemize}
+\end{itemize}
+\ \\
+\ \\
+The equation for this wont fit on these slides in a readable manner...
+\end{frame}
+
+\begin{frame}
+\frametitle{In Summary}
+\begin{itemize}
+\item The same powerful operators as ConGolog
+\item A Robustly Multi-Agent Semantics:
+\begin{itemize}
+\item True Concurrency
+\item Explicit Time
+\item Natural Actions
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\end{document}
