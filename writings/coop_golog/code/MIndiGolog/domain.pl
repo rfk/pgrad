@@ -56,7 +56,7 @@ task(chop(Cont)) :-
     obj_is_type(Cont,container).
 
 %%
-%%  task_diration(Agt,Task,Dur):  specify duration of tasks
+%%  task_duration(Agt,Task,Dur):  specify duration of tasks
 %%
 %%  This predicate is true when Dur is the time taken by agent Agt
 %%  to perform the task Task.
@@ -93,9 +93,9 @@ prim_obj(Obj,board) :-
     member(Obj,[board1,board2]).
 prim_obj(Obj,oven) :-
     member(Obj,[oven1]).
-prim_obj(Obj,flour) :-     % flour measured in 'units' for simplicity
+prim_obj(Obj,flour) :-
     member(Obj,[flour1,flour2,flour3,flour4,flour5]).
-prim_obj(Obj,sugar) :-     % same for the sugar
+prim_obj(Obj,sugar) :-
     member(Obj,[sugar1,sugar2,sugar3,sugar4,sugar5,sugar6]).
 prim_obj(Obj,egg) :-
     member(Obj,[egg1,egg2,egg3]).
@@ -202,7 +202,7 @@ poss(set_timer(Agt,ID,_),_,S) :-
 %%  has precisely elapsed
 poss(ring_timer(ID),T,S) :-
     timer_set(ID,Dur,S),
-    start(S,SStart), T .=. SStart + Dur.
+    start(S,SStart), {T = SStart + Dur}.
 
 %%  Agents may place an object in a container provided they have possession
 %%  of both, and arent currently doing a task
@@ -230,7 +230,7 @@ poss(begin_task(Agt,chop(Obj)),_,S) :-
 %%  time has elapsed
 poss(end_task(Agt,Task),T,S) :-
     doing_task(Agt,Task,Remain,S),
-    start(S,SStart), T .=. SStart + Remain.
+    start(S,SStart), {T = SStart + Remain}.
 
 
 %%
@@ -311,7 +311,7 @@ used(Obj,do(C,_,S)) :-
 timer_set(ID,Dur,do(C,T,S)) :-
     member(set_timer(_,ID,Dur),C)
     ;
-    timer_set(ID,OldDur,S), start(S,SStart), Dur .=. OldDur-(T-SStart),
+    timer_set(ID,OldDur,S), start(S,SStart), {Dur = OldDur-(T-SStart)},
     \+ member(ring_timer(ID),C).
 
 %%
@@ -345,7 +345,7 @@ contents(Obj,Conts,do(C,T,S)) :-
       %% If they were previously mixed, the mixing time is increased.
       doing_task(_,mix(Obj,_),_,do(C,T,S)), contents(Obj,OldConts,S),
       (  OldConts = mixed(MixConts,OldP) ->
-             NewP .=. OldP+(T-SStart), Conts = mixed(MixConts,NewP)
+             {NewP = OldP+(T-SStart)}, Conts = mixed(MixConts,NewP)
          ;
              Conts = mixed(OldConts,0)
       )
@@ -353,7 +353,7 @@ contents(Obj,Conts,do(C,T,S)) :-
       %% An agent just completed mixing the contents.  The mixing time
       %% must be modified to take its final value.
       member(end_task(_,mix(Obj,_)),C), contents(Obj,mixed(MixConts,OldP),S),
-      NewP .=. OldP+(T-SStart), Conts = mixed(MixConts,NewP)
+      {NewP = OldP+(T-SStart)}, Conts = mixed(MixConts,NewP)
       ;
       %% An agent just completed chopping the contents.  They are
       %% encased in a chopped() indicator.
@@ -366,7 +366,7 @@ contents(Obj,Conts,do(C,T,S)) :-
       \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
       contents(Oven,Obj,do(C,T,S)), contents(Obj,OldConts,S),
       (  OldConts = baked(BakedConts,OldP) ->
-             NewP .=. OldP+(T-SStart), Conts = baked(BakedConts,NewP)
+             {NewP = OldP+(T-SStart)}, Conts = baked(BakedConts,NewP)
          ;
              Conts = baked(OldConts,0)
       )
@@ -376,7 +376,7 @@ contents(Obj,Conts,do(C,T,S)) :-
       \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
       contents(Oven,Obj,S), member(transfer(_,Oven,_),C),
       contents(Obj,baked(BakedConts,OldP),S),
-      NewP .=. OldP+(T-SStart), Conts = baked(BakedConts,NewP)
+      {NewP = OldP+(T-SStart)}, Conts = baked(BakedConts,NewP)
     )
     ;
     %% Or it was true, and didnt become false...
@@ -423,7 +423,7 @@ doing_task(Agt,Task,Remain,do(C,T,S)) :-
     member(begin_task(Agt,Task),C), task_duration(Agt,Task,Remain)
     ;
     doing_task(Agt,Task,OldRem,S), start(S,SStart),
-    OldRem .=. Remain-(T-SStart), \+ member(end_task(Agt,Task),C).
+    {OldRem = Remain-(T-SStart)}, \+ member(end_task(Agt,Task),C).
     
 
 %%
@@ -449,180 +449,4 @@ history_length(0,s0).
 
 start(s0,0).
 
-
-
-%%
-%%  MIndiGolog procedures
-%%
-%%  The following are a collection of useful procedures in the domain,
-%%  from which larger programs can be built.
-%%
-
-
-%%  Ensure that the agent has control of an object
-proc(ensureHas(Agt,Obj),
-     if(has_object(Agt,Obj,now),nil,acquire_object(Agt,Obj))
-    ).
-
-%%  Carry out the necessary sequence of actions to place one object
-%%  inside another, releasing the destination container when done.
-proc(doPlaceIn(Agt,Obj,Dest),
-     ensureHas(Agt,Obj) // ensureHas(Agt,Dest)
-     : place_in(Agt,Obj,Dest)
-     : (release_object(Agt,Dest) / nil)
-    ).
-
-%%  Nondeterministically select an object of a given type, gain control
-%%  of it, and place it inside a container object.
-proc(doPlaceTypeIn(Agt,Type,Dest),
-     pi(obj,?obj_is_type(obj,Type)
-            : acquire_object(Agt,obj)
-            : doPlaceIn(Agt,obj,Dest))
-    ).
-
-%%  Carry out the necessary actions to transfer the contents of one
-%%  container to another, relasing both when finished.
-proc(doTransfer(Agt,Source,Dest),
-     ensureHas(Agt,Source) // ensureHas(Agt,Dest)
-     : transfer(Agt,Source,Dest)
-     : release_object(Agt,Source) // release_object(Agt,Dest)
-    ).
-
-%%  Make a simple cake mixture in the specified container.
-%%  The agents to perform the various steps are selected
-%%  nondeterministically.
-proc(makeCakeMix(Dest),
-     pi(agt,?agent(agt) : doPlaceTypeIn(agt,egg,Dest))
-     : pi(agt,?agent(agt) : doPlaceTypeIn(agt,flour,Dest))
-     : pi(agt,?agent(agt) : doPlaceTypeIn(agt,sugar,Dest))
-     : pi(agt, ?agent(agt) : acquire_object(agt,Dest)
-                           : begin_task(agt,mix(Dest,5))
-                           : end_task(agt,mix(Dest,5))
-                           : release_object(agt,Dest))
-    ).
-
-%%  Make a cake in the specified container.  This involves
-%%  making cake mix in the container, then baking it in an oven.
-proc(makeCake(Dest),
-     makeCakeMix(Dest)
-     : pi(myOven, ?obj_is_type(myOven,oven)
-                  : pi(agt, ensureHas(agt,myOven)
-                            : ensureHas(agt,Dest)
-                            : place_in(agt,Dest,myOven)
-                            : set_timer(agt,cakeTimer,35)
-                      )
-                  : ring_timer(cakeTimer)
-                  : pi(agt,pi(myBoard, ?obj_is_type(myBoard,board)
-                                       : doTransfer(agt,myOven,myBoard)
-                      ))
-         )
-    ).
-
-
-%%  Chop the given item then place it in the given container.
-%%  Releases control of the container when done.  An empty chopping
-%%  board is selected nondeterministically.
-proc(doChopInto(Agt,Obj,Dest),
-     ensureHas(Agt,Obj)
-     : pi(myBoard, ?obj_is_type(myBoard,board)
-                   : ?neg(contents(myBoard,_,now))
-                   : ensureHas(Agt,myBoard)
-                   : place_in(Agt,Obj,myBoard)
-                   : begin_task(Agt,chop(myBoard))
-                   : end_task(Agt,chop(myBoard))
-                   : ensureHas(Agt,Dest)
-                   : transfer(Agt,myBoard,Dest)
-                   : release_object(Agt,myBoard) // release_object(Agt,Dest)
-         )
-    ).
-
-
-%%  Make a salad in the specified container.  This involves selecting
-%%  appropriate vegetables, chopping them, placing them in the container,
-%%  and mixing briefly.
-proc(makeSalad(Dest),
-       pi(agt,pi(obj, ?obj_is_type(obj,lettuce)
-                      : acquire_object(agt,obj)
-                      : doChopInto(agt,obj,Dest)
-                )
-         )
-       //
-       pi(agt,pi(obj, ?obj_is_type(obj,tomato)
-                      : acquire_object(agt,obj)
-                      : doChopInto(agt,obj,Dest)
-                )
-         )
-      //
-      pi(agt,pi(obj, ?obj_is_type(obj,carrot)
-                      : acquire_object(agt,obj)
-                      : doChopInto(agt,obj,Dest)
-                )
-        )
-    : pi(agt, ensureHas(agt,Dest)
-              : begin_task(agt,mix(Dest,1))
-              : end_task(agt,mix(Dest,1))
-              : release_object(agt,Dest)
-        )
-    ).
-
-
-%%  Main control program - prepare a nice meal
-%proc(control,
-%     makeSalad(bowl1) // makeCake(bowl2)
-%     : ?(and(history_length(L,now),L<30))
-%    ).
-proc(control,
-     ?neg(some(d,timer_set(timer1,d,now))) :
-     makeSalad(bowl1)
-    ).
-
-testsit1(do([set_timer(richard,timer1,5)],0,s0)).
-
-%%  Tests the operation of the LNTP condition
-proc(timerTest,
-     set_timer(thomas,timer1,5)
-     : set_timer(richard,timer2,7)
-     : ring_timer(timer2)
-    ).
-
-%%  Tests the operation of concurrency with nondeterminism
-proc(concTest,
-     doPlaceTypeIn(thomas,egg,bowl1) // doPlaceTypeIn(richard,egg,bowl2)
-    ).
-
-%%  Test the operation of nondeterministic argument selection
-proc(piTest,
-     acquire_object(thomas,egg1)
-     : pi(obj, ?and(obj_is_type(obj,egg),neg(has_object(_,obj,now)))
-               : acquire_object(richard,board1)
-               : acquire_object(richard,obj)
-         )
-    ).
-
-%%  Basic planning capability, from Reiter's KIA planning chapter
-proc(wsbfp(N,Goal),
-      plans(0,N,Goal)
-    ).
-
-proc(plans(M,N,Goal),
-     ?(M =< N)
-     : ( ( actionSequence(M) : ?(Goal) )
-       / ( pi(m2, ?(m2 is M + 1) : plans(m2,N,Goal)) )
-       )
-    ).
-
-proc(actionSequence(N),
-     ?(N = 0)
-     / ?(N > 0)
-       : pi(act, ?prim_action(act)
-                 : act
-                 : pi(n2, ?(n2 is N - 1)
-                          : actionSequence(n2)
-                     )
-           )
-    ).
-
-proc(doPlan,
-     wsbfp(3,has_object(thomas,egg1,now))
-    ).
 

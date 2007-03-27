@@ -178,7 +178,7 @@ trans(C,S,Dp,Sp) :-
           % This requires that no actions in the set are natural
           ( 
             \+ ( member(A,CA), natural(A) ),
-            T .>=. SStart+1, T .<. LNTP, poss(CA,T,S),
+            {T >= SStart+1}, {T < LNTP}, poss(CA,T,S),
             Sp = do(CA,T,S), Dp = nil
           )
           ;
@@ -198,7 +198,7 @@ trans(C,S,Dp,Sp) :-
         )
       )
     ;
-      poss(CA,T,S), T .>=. SStart+1, Sp = do(CA,T,S), Dp = nil
+      poss(CA,T,S), {T >= SStart+1}, Sp = do(CA,T,S), Dp = nil
     )
     .
 
@@ -446,17 +446,10 @@ step(D,S,Dp,Sp) :-
 %%  on-line.
 %%
 do(D,S,Sp) :-
-    % TODO:  prove that the semantics only generate legal situations,
-    %        remove the need for legal(Sp).
     trans*(D,S,Dp,Sp),
     %nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
     final(Dp,Sp),
-    ( legal(Sp) ->
-          show_action_history(Sp)
-      ;
-          display('ILLEGAL SITUATION PRODUCED!!')
-    ).
-
+    show_action_history(Sp).
 
 %%  Temporary predicate for printing the action history of a situation,
 %%  for debugging purposes only.
@@ -464,7 +457,7 @@ show_action_history(s0) :-
     nl.
 show_action_history(do(C,T,S)) :-
     show_action_history(S),
-    display('do '), display(C), display(' at '), display(T), nl.
+    write('do '), write(C), write(' at '), write(T), nl.
 
 
 %%
@@ -490,14 +483,15 @@ ol_do(D,S) :-
         ;
             start(S,SStart), MinT = SStart
         ),
-        display('do '), display(C), display(' at '), display(MinT), nl,
+        write('do '), write(C), write(' at '), write(MinT), nl,
         ( final(Dr,Sr) ->
-            display('SUCCEEDED!')
+            write('SUCCEEDED!')
         ;
             ol_do(Dr,do(C,MinT,S))
         )
     ;
-        display('FAILED!')
+        write('FAILED!'), nl, write('Remaining: '),
+        write(D), nl
     ).
 
 
