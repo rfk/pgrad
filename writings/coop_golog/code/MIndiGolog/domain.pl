@@ -9,7 +9,7 @@
 %%    in the Concurrent, Temporal Situation Calculus with Natural Actions.
 %%
 %%    The domain consists of several agents and inanimate objects of
-%%    different types (indicated by prim_object/2) which in turn may
+%%    different types (indicated by prim_obj/2) which in turn may
 %%    be part of super-types (indicated by super_type/2).
 %%
 %%    Agents may acquire objects, place them inside/on container objects,
@@ -113,8 +113,10 @@ prim_obj(Obj,carrot) :-
 %%  This predicate is true when all objects of type SubType are
 %%  also of type SuperType.
 %%  
+super_type(Type,cooking_appliance) :-
+    member(Type,[oven]).
 super_type(Type,container) :-
-    member(Type,[bowl,board,oven]).
+    member(Type,[bowl,board,cooking_appliance]).
 super_type(Type,ingredient) :-
     member(Type,[flour,egg,tomato,lettuce,sugar]).
 
@@ -208,6 +210,7 @@ poss(ring_timer(ID),T,S) :-
 %%  of both, and arent currently doing a task
 poss(place_in(Agt,Conts,Dest),_,S) :-
     has_object(Agt,Conts,S), has_object(Agt,Dest,S),
+    \+ obj_is_type(Conts,cooking_appliance),
     \+ doing_task(Agt,_,_,S).
 
 %%  Agents may transfer contents from one container to another as long
@@ -363,7 +366,7 @@ contents(Obj,Conts,do(C,T,S)) :-
       %% If the container is in an oven, its contents are baked.
       %% If they are not encapsulated in a baked() indicator then do
       %% so, otherwise update the baking time.
-      \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+      \+ obj_is_type(Obj,cooking_appliance), obj_is_type(Oven,oven),
       contents(Oven,Obj,do(C,T,S)), contents(Obj,OldConts,S),
       (  OldConts = baked(BakedConts,OldP) ->
              {NewP = OldP+(T-SStart)}, Conts = baked(BakedConts,NewP)
@@ -373,7 +376,7 @@ contents(Obj,Conts,do(C,T,S)) :-
       ;
       %% If the container was just taken out of the oven, updated
       %% the content to reflect the total baking time.
-      \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+      \+ obj_is_type(Obj,cooking_appliance), obj_is_type(Oven,oven),
       contents(Oven,Obj,S), member(transfer(_,Oven,_),C),
       contents(Obj,baked(BakedConts,OldP),S),
       {NewP = OldP+(T-SStart)}, Conts = baked(BakedConts,NewP)
@@ -401,11 +404,11 @@ contents(Obj,Conts,do(C,T,S)) :-
         member(end_task(_,chop(Obj)),C)
         ;
         %% The object is in an oven, hence will change
-        \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+        \+ obj_is_type(Obj,cooking_appliance), obj_is_type(Oven,oven),
         contents(Oven,Obj,do(C,T,S))
         ;
         %% The object was just taken out of an oven, hence will change
-        \+ obj_is_type(Obj,oven), obj_is_type(Oven,oven),
+        \+ obj_is_type(Obj,cooking_appliance), obj_is_type(Oven,oven),
         contents(Oven,Obj,S), member(transfer(_,Oven,_),C)
     )).
 
