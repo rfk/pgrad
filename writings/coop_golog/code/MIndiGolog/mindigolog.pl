@@ -228,7 +228,7 @@ trans(choice(D1,D2),S,Dp,Sp) :-
 %%  Nondeterministic choice of arguments may transition if there is an
 %%  appropriate binding of the arguments for which the program may transition.
 trans(pi(V,D),S,Dp,Sp) :-
-    sub(V,_,D,Dr), trans(Dr,S,Dp,Sp).
+    sub(V,_,D,Dr), step(Dr,S,Dp,Sp).
 
 %%  Iteration of a program may transition to the program followed by further
 %%  iteration, provided that the program may transition.
@@ -472,10 +472,8 @@ show_action_history(do(C,T,S)) :-
 %%  At this stage it simply prints each action performed to stdout,
 %%  performing each at the minimum possible time.
 %%
-%%  TODO: be clever here with a notion of 'current time' and perform
-%%        each action at the current time or later...
-%%
 ol_do(D,S) :-
+    %( ol_valid_step(D,S,Dr,Sr) ->
     ( step(D,S,Dr,Sr) ->
         Sr = do(C,T,S),
         ( inf(T,MinT) ->
@@ -494,4 +492,18 @@ ol_do(D,S) :-
         write(D), nl
     ).
 
+
+% If the step being called for contains a natural action, ensure that
+% the resulting program is not waiting for that action.
+ol_valid_step(D,S,Dr,do(C,T,S)) :-
+    step(D,S,Dr,do(C,T,S)),
+    %write('step: '), write(C), nl,
+    ( member(NA,C), natural(NA) ->
+        %write('contains NA'), nl,
+        \+ ( step(Dr,S,_,do(C2,_,S)),
+             member(NA,C2) %, write('which is broken'), nl
+           )
+      ;
+        true
+    ).
 

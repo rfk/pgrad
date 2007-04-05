@@ -88,7 +88,7 @@ prim_obj(Obj) :-
 prim_obj(Obj,knife) :-
     member(Obj,[knife1,knife2,knife3]).
 prim_obj(Obj,bowl) :-
-    member(Obj,[bowl1,bowl2]).
+    member(Obj,[bowl1,bowl2,bowl3]).
 prim_obj(Obj,board) :-
     member(Obj,[board1,board2]).
 prim_obj(Obj,oven) :-

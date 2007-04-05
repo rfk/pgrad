@@ -22,7 +22,7 @@ proc(doPlaceIn(Agt,Obj,Dest),
 %%  Nondeterministically select an object of a given type, gain control
 %%  of it, and place it inside a container object.
 proc(doPlaceTypeIn(Agt,Type,Dest),
-     pi(obj,?obj_is_type(obj,Type)
+     pi(obj,?and(obj_is_type(obj,Type),not(used(obj,now)))
             : acquire_object(Agt,obj)
             : doPlaceIn(Agt,obj,Dest))
     ).
@@ -44,7 +44,7 @@ proc(makeCakeMix(Dest),
      : pi(agt,?agent(agt) : doPlaceTypeIn(agt,sugar,Dest))
      : pi(agt, ?agent(agt) : acquire_object(agt,Dest)
                            : begin_task(agt,mix(Dest,5))
-                           : end_task(agt,mix(Dest,5))
+%                           : end_task(agt,mix(Dest,5))
                            : release_object(agt,Dest))
     ).
 
@@ -75,7 +75,7 @@ proc(doChopInto(Agt,Obj,Dest),
                    : ensureHas(Agt,myBoard)
                    : place_in(Agt,Obj,myBoard)
                    : begin_task(Agt,chop(myBoard))
-                   : end_task(Agt,chop(myBoard))
+%                   : end_task(Agt,chop(myBoard))
                    : ensureHas(Agt,Dest)
                    : transfer(Agt,myBoard,Dest)
                    : release_object(Agt,myBoard) // release_object(Agt,Dest)
@@ -106,7 +106,7 @@ proc(makeSalad(Dest),
         )
     : pi(agt, ensureHas(agt,Dest)
               : begin_task(agt,mix(Dest,1))
-              : end_task(agt,mix(Dest,1))
+%              : end_task(agt,mix(Dest,1))
               : release_object(agt,Dest)
         )
     ).
@@ -114,7 +114,7 @@ proc(makeSalad(Dest),
 
 %%  Main control program - prepare a nice meal
 proc(control,
-     makeSalad(bowl1) // makeCake(bowl2)
+     makeSalad(bowl1) // makeCake(bowl2) // makeCake(bowl3)
     ).
 
 %%  Tests the operation of the LNTP condition
