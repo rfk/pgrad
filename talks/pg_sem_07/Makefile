@@ -1,5 +1,4 @@
 
-
 TEX2PDF = pdflatex
 
 GRAPHICS = frame_soln.png poss_worlds.png k_unobs.png k_unobs_highlighted.png \
@@ -16,11 +15,13 @@ all: $(PDF)
 %.png: %.dia
 	dia -e $@ $<
 
-%.pdf: %.tex $(GRAPHICS)
+%.pdf: %.tex
 	$(TEX2PDF) $<
 
 view:	$(PDF)
 	evince $(PDF)
+
+sc_knowledge.pdf:  $(GRAPHICS)
 
 ##  Cleanup Commands
 

@@ -8,8 +8,8 @@
 
 \mode<presentation>{\usetheme{Dresden}}
 
-\title{Knowledge and Observation\\ in the Situation Calculus}
-\author[Ryan Kelly (rfk@csse.unimelb.edu.au)]{Ryan Kelly \and Adrian Pearce}
+\title{Knowledge, Observation,\\ and the Frame Problem}
+\author[Ryan Kelly (rfk@csse.unimelb.edu.au)]{Ryan Kelly \\ Supervisor: Adrian Pearce}
 \begin{document}
 
 \begin{frame}
@@ -51,7 +51,7 @@ by a distributed team of agents.
 
 Knowledge is a modal operator
 \begin{itemize}
-\item Typically represented as: $\mathbf{Knows}(\phi)$ or $\mathbf{Knows}(Ryan,\phi)$
+\item Typically represented as: $\mathbf{Knows}(\phi)$ or $\mathbf{Knows}(Thomas,\phi)$
 \item $\neg\mathbf{Knows}(\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(\neg\phi)$
 \end{itemize}
 \ \\
@@ -84,6 +84,7 @@ The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
 "Possible worlds" works well for reasoning about a static knowledge base,
 but what if the world itself is changing?
 \begin{itemize}
+\item  Does the agent \emph{know} that the world has changed?
 \item  How should the worlds considered possible change in response?
 \item  What of all the associated reasoning-about-actions problems? (frame, quantification, ramification, ...)
 \end{itemize}
@@ -97,6 +98,27 @@ I happen to know just the thing...
 \end{frame}
 
 \section{Knowledge \& Action}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+\emph{Actions} are instantaneous events causing the world to change
+\begin{itemize}
+  \item $pickup(Thomas,Bowl)$, $beginTask(Richard,mix(Bowl,1))$
+\end{itemize}
+\emph{Situations} are histories of actions that have been performed
+\begin{itemize}
+  \item $S_0$, $do(pickup(Harriet,Knife),S_0)$
+\end{itemize}
+\emph{Fluents} are situation-dependent properties of the world
+\begin{itemize}
+  \item $Poss(a,s)$, $Holding(Harriet,Knife,s)$
+\end{itemize}
+\emph{Successor State Axioms} define what holds after an action in terms of what held before the action
+\begin{itemize}
+  \item $Holding(agt,obj,do(a,s)) \equiv a = pickup(agt,obj)$ \\
+        $\,\,\,\,\,\,\,\,\,\,\,\,\,\vee Holding(agt,obj,s) \wedge \neg\left(a = drop(agt,obj)\right)$
+\end{itemize}
+\end{frame}
 
 \begin{frame}
 \frametitle{Knowledge in the Situation Calculus}
@@ -119,12 +141,12 @@ Approach due (mainly) to Scherl and Levesque:\\
 Recall that all statements about the world are relative to a situation.
 So, we must talk about the knowledge of an agent in a particular situation.
 \begin{equation*}
-\mathbf{Knows}(\phi,s)\ \ \mathrm{or}\ \ \mathbf{Knows}(agt,\phi,s)
+\mathbf{Knows}(agt,\phi,s)
 \end{equation*}
 \pause
 Replace "possible worlds" with "possible situations".  Introduce a fluent
-$K(s',s)$ meaning that "in situation $s$, the agent considers it possible
-that the world may be in situation $s'$".
+$K(agt,s',s)$ meaning that "in situation $s$, the agent $agt$ considers it
+possible that the world may be in situation $s'$".
 \end{frame}
 
 \begin{frame}
@@ -134,7 +156,7 @@ that the world may be in situation $s'$".
 \end{center}
 
 We can then define knowledge as a simple macro:
-\[ \mathbf{Knows}(\phi,s)\ \isdef\ \forall s'\left[K(s',s)\rightarrow \phi(s')\right] \]
+\[ \mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\left[K(agt,s',s)\rightarrow \phi(s')\right] \]
 \end{frame}
 
 \begin{frame}
@@ -142,8 +164,8 @@ We can then define knowledge as a simple macro:
 To specify what the agent knows initially, restrict the properties of situations
 K-related to $S_0$:
 \begin{gather*}
-  \mathbf{Knows}(\neg Holding(Sandwich),S_0) \\
-  \Rightarrow \ \ \forall s \left[K(s,S_0) \rightarrow \neg Holding(Sandwich,s) \right]
+  \mathbf{Knows}(Richard,\neg Holding(Thomas,Knife),S_0) \\
+  \Rightarrow \ \ \forall s \left[K(Richard,s,S_0) \rightarrow \neg Holding(Thomas,Knife,s) \right]
 \end{gather*}
 
 \pause
@@ -259,84 +281,40 @@ of this approach?
 Basically, replace actions with sets of actions that all occur at the same
 instant:
 \begin{equation*}
-  do(\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s)
+  do(\left\{pickup(Richard,Knife),drop(Thomas,Bowl)\right\},s)
 \end{equation*}
-\pause
-Different agents may be aware of different subsets of the actions that
-have occurred.
+Agents may not be aware of all actions that have ocurred.  In fact, they
+may not even be aware that \emph{any} actions have occurred.
 \ \\
 \ \\
-When will an agent observe the occurrence of an action?
-\end{frame}
-
-\begin{frame}
-\frametitle{Observability}
-Well, let's axiomatize it!
-\begin{multline*}
-  CanObs(agt1,eat(agt2,obj),s) \equiv \\
-     agt1=agt2 \vee facing(agt1,agt2,s)
-\end{multline*}
-$CanObs$ handles action observability in the same way that $Poss$ handles
-action possibility.
-\ \\
-\ \\
-\pause
-Could also ask, when will an agent observe the sensing outcome from an
-action?
-\begin{multline*}
-  CanSense(agt1,getTrainTimes(agt2,obj),s) \equiv \\ withinEarshot(agt1,agt2,s)
-\end{multline*}
+When a set of actions occurs, what will each agent observe?
 \end{frame}
 
 \begin{frame}
 \frametitle{Observations}
-We can now formalise the Observations made by each agent when some set of
-concurrent actions is performed.  It is a set of (action,result) pairs such
-that:
+Well, let's talk about it explicitly:
+\begin{equation*}
+  Obs(agt,c,s) = \{o1,o2,...\}
+\end{equation*}
+Note that it's possible for $Obs(agt,c,s) = \{\}$. In any situation, each
+agent will have made some sequence of observations:
 \begin{multline*}
-Observations(agt,c,s) = o \equiv \forall a,r \left[\right. <a,r> \in o \equiv \\
-  a \in c \wedge CanObs(agt,a,s) \wedge \\
-  (CanSense(agt,r) \rightarrow r = SR(a,s)) \wedge \\
-  (\neg CanSense(agt,a,s) \rightarrow r = "?") \left.\right]\\
-\end{multline*}
-
-\end{frame}
-
-\begin{frame}
-\frametitle{For Example}
-\begin{multline*}
-  Obs(Ryan,\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s) = \\
-     \left\{<eat(John,Sandwich),"OK">,<drink(Ryan,Water),"OK">\right\}
-\end{multline*}
-\pause
-\begin{multline*}
-  Obs(John,\left\{eat(John,Sandwich),drink(Ryan,Water)\right\},s) = \\
-     \left\{<eat(John,Sandwich),"OK">\right\}
+  ObsHist(agt,S_0) = \epsilon \\
+  \shoveleft{ObsHist(agt,do(c,s)) = h \,\equiv\, \exists o . Obs(agt,c,s) = o}\\
+  \shoveright{\wedge\, \left(o = \{\} \rightarrow h = ObsHist(agt,s)\right)}\\
+  \wedge\, \left(o \neq \{\} \rightarrow h = o \cdot ObsHist(agt,s)\right)
 \end{multline*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Observation Histories}
-We can also track the observations made by an agent as the world has evolved,
-by making a list of the observations made in each situation:
-\begin{multline*}
-ObsHist(agt,\epsilon,S_0)
-\end{multline*}
-\begin{multline*}
-ObsHist(agt,h,do(c,s)) \equiv \\
-    \exists o . Observations(agt,c,s) = o \wedge \\
-    o = \{\} \rightarrow ObsHist(agt,h,s) \wedge \\
-    o \not = \{\} \rightarrow \exists h' . h=o\cdot h' \wedge ObsHist(agt,h',s)
-\end{multline*}
-\end{frame}
-
-\begin{frame}
-\frametitle{Observation Histories}
-Situations are a history of \emph{all actions} that have happened in the world.
+\frametitle{Global vs Local Perspective}
+\begin{itemize}
+\item \emph{Action}: global event, changes state of world
+\item \emph{Observation}: local event, changes state of agent's knowledge\\
 \ \\
-\ \\
-Observation histories track the subset of those actions that were
-\emph{observed} by an agent.
+\item \emph{Situation}: history of actions, omniscient viewpoint
+\item \emph{Obs Hist}: history of observations, local viewpoint
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -350,13 +328,9 @@ observed since then"
 \ \\
 Clearly, we require:
 \begin{multline*}
-\mathbf{Knows}(agt,\phi,s)\ \equiv\ \exists h . ObsHist(agt,h,s) \wedge \\
-    \forall s' . \left[ObsHist(agt,h,s') \rightarrow \phi[s']\right]
+K(agt,s',s)\ \equiv\ ObsHist(agt,s') = ObsHist(agt,s)
 \end{multline*}
-\pause
-\begin{equation*}
-K(agt,s',s)\ \ \equiv\ \ \exists h . ObsHist(agt,h,s) \wedge ObsHist(agt,h,s')
-\end{equation*}
+We must enforce this in the successor state axiom for $K$.
 \end{frame}
 
 \begin{frame}
@@ -368,19 +342,44 @@ K(agt,s',s)\ \ \equiv\ \ \exists h . ObsHist(agt,h,s) \wedge ObsHist(agt,h,s')
 
 \begin{frame}
 \frametitle{SSA for Knowledge}
-First, let's define:
-\begin{multline*}
-  \mathbf{Unobs}(agt,s,s'')\ \isdef\ \\
-    \forall c',s' . s < do(c',s') \leq s'' \rightarrow Observations(agt,c',s') = \{\}
-\end{multline*}
+First, some notation:
+\begin{equation*}
+  s <_{\alpha} do(c,s')\ \equiv\ s \leq_{\alpha} s' \wedge \alpha(c,s')
+\end{equation*}
+\begin{equation*}
+  PbU(agt,c,s)\ \isdef\ Poss(c,s) \wedge Obs(agt,c,s) = \{\}
+\end{equation*}
 \pause
-Then the following successor state axioms captures the intended dynamics of
+Then the following successor state axiom captures the intended dynamics of
 knowledge update:
 \begin{multline*}
-  K(agt,s'',do(c,s))\ \equiv\ Observations(agt,c,s) = \{\} \wedge K(agt,s'',s)\\
-  \vee\ \exists o,c',s'.Observations(agt,c,s) = o \wedge o  \neq \{\} \wedge Legal(s'') \\
-  \wedge Observations(agt,c',s')= o \wedge K(agt,s',s) \wedge \mathbf{Unobs}(agt,do(c',s'),s'')
+  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
+  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
+  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
 \end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Axiomatizing Observations}
+But what are these "observations" really?  In the simplest case, they
+can just be actions that the agent is aware of, e.g:
+\begin{equation*}
+a \in Obs(agt,c,s)\ equiv\ a \in c \wedge actor(a) = agt
+\end{equation*}
+\begin{equation*}
+a \in Obs(agt,c,s)\ equiv\ a \in c \wedge InSameRoomAs(agt,actor(a))
+\end{equation*}
+\ \\
+\ \\
+\pause
+To handle sensing information, we can use $(action = result)$ pairs:
+\begin{equation*}
+(a=r) \in Obs(agt,c,s)\ equiv\ a \in c \wedge actor(a) = agt \wedge SR(a,s) = r
+\end{equation*}
+\ \\
+\ \\
+More complex scenarios are also possible.
 \end{frame}
 
 \begin{frame}
@@ -393,9 +392,10 @@ We've gone from this:
 \pause
 To this:
 \begin{multline*}
-  K(agt,s'',do(c,s))\ \equiv\ Observations(agt,c,s) = \{\} \wedge K(agt,s'',s)\\
-  \vee\ \exists o,c',s'.Observations(agt,c,s) = o \wedge o  \neq \{\} \wedge Legal(s'') \\
-  \wedge Observations(agt,c',s')= o \wedge K(agt,s',s) \wedge \mathbf{Unobs}(agt,do(c',s'),s'')
+  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
+  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
+  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
 \end{multline*}
 \pause
 It's messier, but it's also hiding a much bigger problem...
@@ -405,8 +405,9 @@ It's messier, but it's also hiding a much bigger problem...
 
 \begin{frame}
 \frametitle{Regression}
-Recall that $\mathbf{Unobs}$ is defined by quantifying over situations.
-So regression cannot be applied to the RHS of our successor state axiom.
+Recall that $\leq_{PbU(agt)}$ is defined by (implicitly) quantifying over
+situations. So regression cannot be applied to the RHS of our successor state
+axiom.
 \ \\
 \ \\
 Observation-based knowledge \alert{cannot} be approached using
@@ -428,10 +429,11 @@ on with the business of doing regression.
 Define the \emph{persistence condition} $\mathcal{P}[\phi,\alpha]$ of a formula
  $\phi$ and action conditions $\alpha$ to mean: assuming all future actions
 satisfy $\alpha$, $\phi$ will remain true.
-\begin{multline*}
-  \mathcal{P}[\alpha,\phi](s)\ \equiv\ \forall s''.s \leq s'' \ \wedge\\
-    \left( \forall c',s' . s<do(c',s')\leq s'' \rightarrow \alpha (c',s') \right) \rightarrow \phi(s')
-\end{multline*}
+\begin{equation*}
+  \mathcal{P}[\alpha,\phi](s)\ \equiv\ \forall s' . s \leq_{\alpha} s' \rightarrow \phi(s')
+\end{equation*}
+Like $\mathcal{R}$, the idea is to transform a query into a form that is easier
+to deal with.
 \end{frame}
 
 \begin{frame}
@@ -446,29 +448,11 @@ satisfy $\alpha$, $\phi$ will remain true.
 It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
 \begin{multline*}
   \mathcal{R}[\mathbf{Knows}(agt,\phi,do(c,s))] = \\
-     \left[ Observations(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
-     \wedge \left[ \exists o . Observations(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
-     \mathbf{Knows}(agt,\forall c' . Observations(agt,c',s')=o \rightarrow \\
-     \left.\mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)](do(c',s'))],s)\right]
+     \left[ Obs(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
+     \wedge \left[ \exists o . Obs(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
+     \mathbf{Knows}(agt,\forall c' . Obs(agt,c',now)=o \rightarrow \\
+     \left.\mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],s)\right]
 \end{multline*}
-\begin{equation*}
-  \mathbf{UA}(agt,c,s)\ \isdef\ Poss(c,s) \wedge Observations(agt,c,s) = \{\}
-\end{equation*}
-\end{frame}
-
-\begin{frame}
-\frametitle{Calculating Persistence}
-Define $\mathcal{P}^{1}[\phi,\alpha]$ to be "persistence to depth 1":
-\begin{equation*}
-  \mathcal{P}^{1}[\phi,\alpha](s)\ \isdef\ \phi(s) \wedge \forall c . \left[\alpha(c,s) \rightarrow \mathcal{R}[\phi(do(c,s))]\right]
-\end{equation*}
-We can assert that a property holds to depth 2, 3, ... by repeatedly applying
-$\mathcal{P}^{1}$:
-\begin{equation*}
-  \mathcal{P}^{n}[\phi,\alpha] = \mathcal{P}^{1}[\mathcal{P}^{n-1}[\phi,\alpha],\alpha]
-\end{equation*}
-We want persistence \emph{for any n}:  need the least-fixed-point of $\mathcal{P}^{1}$. \\
-Fixed-point theory guarantees we can calculate this by trans-finite iteration.
 \end{frame}
 
 \begin{frame}
@@ -495,8 +479,8 @@ The regression operator can be modified to act over observation histories,
 instead of over situations:
 \begin{multline*}
   \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
-  \mathbf{Knows}(agt,\forall c' . Observations(agt,c',s')=o \rightarrow \\
-     \mathcal{R}[\mathcal{P}[\phi,\mathbf{UA}(agt)](do(c',s'))],h)
+  \mathbf{Knows}(agt,\forall c' . Obs(agt,c',s')=o \rightarrow \\
+     \mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],h)
 \end{multline*}
 We can equip agents with a situation calculus model of their own environment.
 \end{frame}
@@ -530,10 +514,14 @@ What did we want?
 \pause
 Future work:
 \begin{itemize}
-  \item Extend implementation to handle concurrent actions
-  \item Efficient calculation of persistence condition
+  \item Data Structures for efficient computation
+  \item Interactions between concurrent actions
 \end{itemize}
 
+\end{frame}
+
+\begin{frame}
+\centering \large Thank You\\
 \end{frame}
 \end{document}
 
