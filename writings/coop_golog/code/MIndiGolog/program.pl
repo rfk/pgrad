@@ -138,3 +138,7 @@ proc(piTest,
          )
     ).
 
+proc(simple(Agt),
+     pi(obj, ?and(obj_is_type(obj,lettuce),not(used(obj,now)))
+             : acquire_object(Agt,obj))).
+

@@ -259,26 +259,25 @@ trans(while(Cond,D),S,Dp,Sp) :-
 %%      and perform both concurrently.  The remaining program is the
 %%      concurrent execution of the remainders of the individual programs
 %%
-trans(conc(D1,D2),S,Dp,Sp) :-
+
+trans_true_conc(conc(D1,D2),S,Dp,Sp) :-
     step(D1,S,Dr1,do(C1,T,S)),
     step(D2,S,Dr2,do(C2,T,S)),
-    % TODO:  discuss best semantics for concurrent execution union
-    %        For the moment, I'm going with a split between natural
-    %        and agent-initiated actions.  Natural actions can be
-    %        shared between concurrently execution programs, but
-    %        agent-initiated actions cannot.
     % TODO:  if one part is waiting for a natural action, do the other first.
     %        This will produce solutions in which as much as possible is done
     %        while waiting for a natural actions.  Such solutions are already
     %        entailed but are not the first solution encountered.
     \+ ( member(A,C1), member(A,C2), actor(A,_) ),
     union(C1,C2,CT), trans(CT,S,nil,Sp),
-    Dp = conc(Dr1,Dr2)
+    Dp = conc(Dr1,Dr2).
+
+trans(conc(D1,D2),S,Dp,Sp) :-
+    call_with_depth_limit(trans_true_conc(conc(D1,D2),S,Dp,Sp),4,R),
+    R \= depth_limit_exceeded
     ;
     Dp = conc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;
-    Dp = conc(D1,Dr2), trans(D2,S,Dr2,Sp)
-    .
+    Dp = conc(D1,Dr2), trans(D2,S,Dr2,Sp).
 
 %%  Prioritised concurrent execution may transition by transitioning the
 %%  first program, leaving its remainder to be executed in pconc with
@@ -457,6 +456,11 @@ show_action_history(s0) :-
     nl.
 show_action_history(do(C,T,S)) :-
     show_action_history(S),
+    ( inf(T,MinT) ->
+        T = MinT
+    ;
+        start(S,SStart), T = SStart
+    ),
     write('do '), write(C), write(' at '), write(T), nl.
 
 

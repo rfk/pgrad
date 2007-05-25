@@ -102,7 +102,7 @@ prim_obj(Obj,egg) :-
 prim_obj(Obj,tomato) :-
     member(Obj,[tomato1,tomato2]).
 prim_obj(Obj,lettuce) :-
-    member(Obj,[lettuce1]).
+    member(Obj,[lettuce1,lettuce2,lettuce3]).
 prim_obj(Obj,carrot) :-
     member(Obj,[carrot1,carrot2,carrot3]).
 

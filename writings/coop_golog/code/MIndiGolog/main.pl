@@ -61,7 +61,7 @@
 %%
 main(Args) :-
     ( length(Args,0) ->
-        nl, ol_do(control,s0), nl
+        nl, ol_do(simple(thomas) // simple(richard) // simple(harriet),s0), nl
     ;
         nl, display('ERROR: No arguments can be given'), nl
     ).
