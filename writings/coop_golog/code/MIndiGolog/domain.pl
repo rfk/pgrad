@@ -300,7 +300,7 @@ used(Obj,do(C,_,S)) :-
     (
       used(Obj,S)
       ;
-      member(place_in(_,Obj,_),C)
+      member(acquire_object(_,Obj),C)
     ).
 
 %%
