@@ -1,0 +1,198 @@
+#LyX 1.4.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 245
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+\end_preamble
+\language english
+\inputencoding auto
+\fontscheme default
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes true
+\end_header
+
+\begin_body
+
+\begin_layout Title
+A Multi-Agent Planning Operator for MIndiGolog
+\end_layout
+
+\begin_layout Author
+Ryan F.
+ Kelly and Adrian R.
+ Pearce
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset LatexCommand \cite{kelly06hlp_dps}
+
+\end_inset
+
+ we introduced MIndiGolog, a variant of the programming language Golog designed
+ to be cooperatively executed by a team of agents.
+ However, the implementation described in that paper assumed a fully-observable
+ domain.
+ Under this assumption the semantics of planning are equivalent to planning
+ for the single-agent case in IndiGolog.
+\end_layout
+
+\begin_layout Standard
+In this paper we define a new semantics for planning in partially-observable
+ domains.
+ We adapt the notion of 
+\begin_inset Quotes eld
+\end_inset
+
+epistemically feasible plan
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset LatexCommand \cite{giacomo04sem_delib_indigolog}
+
+\end_inset
+
+ to the multi-agent setting and define the desired outcomes of the planning
+ process in terms of it.
+\end_layout
+
+\begin_layout Section
+Background
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset LatexCommand \cite{giacomo04sem_delib_indigolog}
+
+\end_inset
+
+ it is argued that the outcome of the planning process must be some form
+ of 
+\begin_inset Quotes eld
+\end_inset
+
+epistemically feasible program
+\begin_inset Quotes erd
+\end_inset
+
+ - a program where, at every stage of the excution, the agent is guaranteed
+ to know what (unique) action is should perform next.
+\end_layout
+
+\begin_layout Standard
+However, EF programs can still require significant amounts of deliberation
+ to execute.
+ In particular, and agent must interrogate its knowledge base to decide
+ which branche to take in an if-statement.
+ An alternative approach is presented in 
+\begin_inset LatexCommand \cite{Levesque96-WhatPlanning}
+
+\end_inset
+
+ where the outcome of a planning process is represetned in a kind of agent
+ 
+\begin_inset Quotes eld
+\end_inset
+
+assembly language
+\begin_inset Quotes erd
+\end_inset
+
+ which requires no reasoning in order to execute.
+ We combine these approaches by representing such reactive plans directly
+ the the Golog language, allowing us to specify and reason about their semantics
+ while maintaining the run-time efficiency of the approach.
+\end_layout
+
+\begin_layout Standard
+To do so, we must add a new operator to the MIndiGolog language that allows
+ an agent to branch according to the observations it makes about the world.
+\begin_inset Formula \begin{multline*}
+Trans(case(agt,obs,\delta_{1},\delta_{2}),do(c,s),\delta',do(c,s))\equiv\\
+if\, obs\subset Obs(agt,c,s)\, then\,\delta'=\delta_{1}\\
+else\, Trans(\delta_{2},do(c,s),\delta',do(c,s))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+(TODO: will we run into trouble here with chains of case();case() statements
+ all being consumed at once?)
+\end_layout
+
+\begin_layout Standard
+(TODO: we also need to add another for reactive processing of loops)
+\end_layout
+
+\begin_layout Section
+Semantics for Multiagent Planning
+\end_layout
+
+\begin_layout Standard
+Since a multiagent plan is ultimately a composition of the plans of the
+ individual agents, in a multi-agent context the planning process should
+ produce a set of epistemically feasible programs, one for each agent.
+ The planning process should also be able to take advantage of the distributed
+ knowledge of the team.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+Trans(\Sigma\delta,s,\{\delta_{agt}\},s)\equiv\mathbf{DKnows}(IsValidPlan(\delta,\{\delta_{agt}\},s))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{multline*}
+IsValidPlan(\delta,\{\delta_{agt}\},s)\equiv\forall agt\,.\, IsEFP(agt,\delta_{agt},s)\,\,\wedge\,\,\\
+CantGetStuck(||\{\delta_{agt}\},s)\,\,\wedge\,\, Specialises(\delta,||\{\delta_{agt}\},s)\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+TODO: what about plans that require joint action?
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand \bibtex[plain]{/storage/uni/pgrad/library/references}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

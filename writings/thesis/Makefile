@@ -93,6 +93,10 @@ clobber: clean
 view:  thesis.pdf
 	evince thesis.pdf &
 
+# counting words in a latex file, from http://wlug.org.nz/LatexWordcount
+wc:  thesis.dvi
+	dvi2tty -w100 thesis.dvi | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
+
 ##  Specific dependenices
 
 thesis.dvi: thesis.tex intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex persistence.tex
