@@ -99,6 +99,6 @@ wc:  thesis.dvi
 
 ##  Specific dependenices
 
-thesis.dvi: thesis.tex intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex persistence.tex
+thesis.dvi: thesis.tex intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex reasoning.tex
 
 
