@@ -28,7 +28,7 @@ PDF = thesis.pdf # List PDF Files
 RTF = # List of RTF Files
 HTML = # List HTML Files
 
-CHAPTERS = intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex reasoning_t.tex reasoning_p.tex abstract.tex
+CHAPTERS = intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex reasoning.tex abstract.tex
 
 
 ## Basic Dependencies
