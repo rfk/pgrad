@@ -65,6 +65,8 @@ rtf: $(RTF)
 	bibtex $*
 	latex $<
 	latex $<
+	bibtex $*
+	latex $<
 
 
 # DVI converters for different formats
