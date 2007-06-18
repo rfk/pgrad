@@ -28,6 +28,8 @@ PDF = thesis.pdf # List PDF Files
 RTF = # List of RTF Files
 HTML = # List HTML Files
 
+CHAPTERS = intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex reasoning.tex abstract.tex
+
 
 ## Basic Dependencies
 
@@ -97,8 +99,13 @@ view:  thesis.pdf
 wc:  thesis.dvi
 	dvi2tty -w100 thesis.dvi | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
 
+# spellchecking each individual file with aspell
+sp:
+	aspell -t -c thesis.tex
+	for FN in $(CHAPTERS); do aspell -t -c $$FN; done;
+
 ##  Specific dependenices
 
-thesis.dvi: thesis.tex intro.tex background.tex conclusion.tex implementation.tex knowledge.tex mindigolog.tex offline_exec.tex online_exec.tex reasoning.tex
+thesis.dvi: thesis.tex $(CHAPTERS)
 
 
