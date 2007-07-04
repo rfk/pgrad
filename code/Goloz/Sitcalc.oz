@@ -60,6 +60,7 @@ define
   proc {Poss C T S}
     C = _|_
     {PossAll C T S}
+    {Time.less {Start S} T}
     {LP.neg proc {$} {Domain.conflicts C T S} end}
   end
 

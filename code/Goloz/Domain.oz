@@ -2,24 +2,39 @@
 functor 
 import
 
-  LP at 'LP.ozf'
-  Domain at 'Domain.ozf'
+  Time
+  LP
+  Sitcalc
 
 export
 
-  actor: Actor
-  start: Start
-  preceeds: Preceeds
-  preceeds_eq: PreceedsEq
-  legal: Legal
+  natural: Natural
+  poss: Poss
+  agent: Agent
+  holds: Holds
 
 define
 
-  proc {Actor}
-  proc {Start}
-  proc {Preceeds}
-  proc {PreceedsEq}
-  proc {Legal}
+  proc {Agent A}
+    choice  A = thomas
+    []      A = richard
+    []      A = harriet
+    end
+  end
+
+  proc {Natural Act}
+    choice  Act = ring_timer(_)
+    []      Act = end_task(_)
+    end
+  end
+
+  proc {Poss A T S}
+    skip
+  end
+
+  proc {Holds F S}
+    skip
+  end
 
 end
 

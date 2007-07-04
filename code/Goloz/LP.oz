@@ -8,6 +8,7 @@ export
 
   neg: Neg
   member: Member
+  union: Union
 
 define
 
@@ -22,6 +23,20 @@ define
   proc {Member Elem List}
     choice  List = Elem|_
     []      NewL in List=_|NewL {Member Elem NewL}
+    end
+  end
+
+  proc {Union L1 L2 LF}
+    case L1 of
+        nil then LF = L2
+    []  H|T then local LI in 
+          LI = {Union T L2}
+          if {Member H LI} then
+            LF = LI
+          else
+            LF = H|LI
+          end
+        end
     end
   end
 
