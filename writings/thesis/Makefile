@@ -20,13 +20,15 @@ L2RTF = latex2rtf
 ## File Lists
 ## Adjust $GARBAGE to add extra files for deletion in `make clean`
 
-LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt
-GARBAGE = $(LATEX_GARBAGE) *~
-
 PS =  # List PS Files
 PDF = thesis.pdf # List PDF Files
 RTF = # List of RTF Files
 HTML = # List HTML Files
+
+LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt
+GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex
+
+CLOBBERAGE = *.ch.pdf
 
 CHAPTERS = intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex    app_code.tex proofs.tex
 
@@ -68,6 +70,14 @@ rtf: $(RTF)
 	bibtex $*
 	latex $<
 
+%.ch.tex: %.tex
+	echo '\\include{preamble}' > $@
+	echo '\\begin{document}' >> $@
+	echo -n '\\include{' >> $@
+	echo -n $* >> $@
+	echo '}' >> $@
+	echo '\\include{postamble}' >> $@
+	echo '\\end{document}' >> $@
 
 # DVI converters for different formats
 %.ps: %.dvi
@@ -89,7 +99,7 @@ clean:
 	rm -rf $(GARBAGE)
 
 clobber: clean
-	rm -rf $(PDF) $(PS) $(HTML) $(RTF)
+	rm -rf $(PDF) $(PS) $(HTML) $(RTF) $(CLOBBERAGE)
 
 
 ## Other Misc Commands
