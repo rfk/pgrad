@@ -27,7 +27,7 @@
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt
 GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex
 
-CLOBBERAGE = *.ch.pdf *.tmp.pdf
+CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf
 
 CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
@@ -86,7 +86,7 @@ clean:
 	rm -rf $(GARBAGE)
 
 clobber: clean
-	rm -rf $(PDF) $(PS) $(HTML) $(RTF) $(CLOBBERAGE)
+	rm -rf $(CLOBBERAGE)
 
 
 ## Other Misc Commands
@@ -122,9 +122,10 @@ publish:
 	for FN in $(APPENDICES); do make `basename $$FN .tex`.ch.pdf; done;
 	mkdir upload-thesis
 	cp *.pdf ./upload-thesis/
+	tar -czvf upload-thesis/thesis.tar.gz *.tex Makefile
 	tar -czvf upload-thesis.tar.gz upload-thesis
 	scp upload-thesis.tar.gz rfk@mundula.cs.mu.oz.au:
-	ssh mundula.cs.mu.oz.au 'gunzip upload-thesis.tar.gz && cd www_public && tar -xvf ~/upload-thesis.tar && mv upload-thesis/* thesis/ && rm -r upload-thesis ~/upload-thesis.tar && chmod 755 thesis && chmod 644 thesis/*.pdf'
+	ssh mundula.cs.mu.oz.au 'gunzip upload-thesis.tar.gz && cd www_public && tar -xvf ~/upload-thesis.tar && mv upload-thesis/* thesis/ && rm -r upload-thesis ~/upload-thesis.tar && chmod 755 thesis && chmod 644 thesis/*'
 	rm -rf upload-thesis upload-thesis.tar.gz
 
 
