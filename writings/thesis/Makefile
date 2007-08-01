@@ -27,9 +27,9 @@
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt
 GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex
 
-CLOBBERAGE = *.ch.pdf
+CLOBBERAGE = *.ch.pdf *.tmp.pdf
 
-CHAPTERS = intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex 
+CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
 
 ## Additional variables
@@ -110,6 +110,22 @@ sp-%: %.tex
 # easy viewing of entire thesis
 view: thesis.pdf
 	$(VIEWER) thesis.pdf &
+
+view-%: %.ch.pdf
+	cp $< $<.tmp.pdf
+	$(VIEWER) $<.tmp.pdf &
+
+# publish latest versions to my website
+publish:
+	make thesis.pdf
+	for FN in $(CHAPTERS); do make `basename $$FN .tex`.ch.pdf; done;
+	for FN in $(APPENDICES); do make `basename $$FN .tex`.ch.pdf; done;
+	mkdir upload-thesis
+	cp *.pdf ./upload-thesis/
+	tar -czvf upload-thesis.tar.gz upload-thesis
+	scp upload-thesis.tar.gz rfk@mundula.cs.mu.oz.au:
+	ssh mundula.cs.mu.oz.au 'gunzip upload-thesis.tar.gz && cd www_public && tar -xvf ~/upload-thesis.tar && mv upload-thesis/* thesis/ && rm -r upload-thesis ~/upload-thesis.tar && chmod 755 thesis && chmod 644 thesis/*.pdf'
+	rm -rf upload-thesis upload-thesis.tar.gz
 
 
 ##  Specific dependenices
