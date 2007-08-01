@@ -15,8 +15,7 @@
 #    wc:   count words over the entire thesis
 #    wc-<chapter>:   count words in a specific chapter
 #
-#  Note that these wordcounts are not terribly accurate, and include
-#  words in bibliographies, tables, headers, appendicies, etc.  I'll
+#  Note that these wordcounts are not terribly accurate. I'll
 #  try to work on that in the future...
 #    
 
@@ -28,7 +27,8 @@ GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex
 
 CLOBBERAGE = *.ch.pdf
 
-CHAPTERS = intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex    app_code.tex proofs.tex
+CHAPTERS = intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex 
+APPENDICES = app_code.tex proofs.tex
 
 ## Additional variables
 
@@ -44,10 +44,10 @@ all: thesis.pdf
 %.dvi: %.tex
 	$(LTX) $<
 	$(LTX) $<
-	$(BTX) $*
+	$(BTX) $* || true
 	$(LTX) $<
 	$(LTX) $<
-	$(BTX) $*
+	$(BTX) $* || true
 	$(LTX) $<
 
 # Generate a temporary latex file that will built a single chapter
@@ -57,7 +57,17 @@ all: thesis.pdf
 	echo -n '\include{' >> $@
 	echo -n $* >> $@
 	echo '}' >> $@
-	echo '\include{postamble}' >> $@
+	echo '\include{bibcmds}' >> $@
+	echo '\end{document}' >> $@
+
+# Generate a temporary latex file that will build a single chapter,
+# without bibliography
+%.nb.ch.tex: %.tex
+	echo '\include{preamble}' > $@
+	echo '\begin{document}' >> $@
+	echo -n '\include{' >> $@
+	echo -n $* >> $@
+	echo '}' >> $@
 	echo '\end{document}' >> $@
 
 # DVI converters for different formats
@@ -82,13 +92,14 @@ clobber: clean
 wc:  thesis.dvi
 	dvi2tty -w100 thesis.dvi | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
 
-wc-%: %.ch.dvi
+wc-%: %.nb.ch.dvi
 	dvi2tty -w100 $< | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
 
 # spellchecking each individual file with aspell
 sp:
 	aspell -t -c thesis.tex
 	for FN in $(CHAPTERS); do aspell -t -c $$FN; done;
+	for FN in $(APPENDICES); do aspell -t -c $$FN; done;
 
 sp-%: %.tex
 	aspell -t -c $<
@@ -96,6 +107,6 @@ sp-%: %.tex
 
 ##  Specific dependenices
 
-thesis.dvi: thesis.tex $(CHAPTERS)
+thesis.dvi: thesis.tex $(CHAPTERS) $(APPENDICES)
 
 
