@@ -15,6 +15,8 @@
 #    wc:   count words over the entire thesis
 #    wc-<chapter>:   count words in a specific chapter
 #
+#    view: built entire thesis, then view it as a pdf
+#
 #  Note that these wordcounts are not terribly accurate. I'll
 #  try to work on that in the future...
 #    
@@ -32,14 +34,15 @@ APPENDICES = app_code.tex proofs.tex
 
 ## Additional variables
 
-LTX = latex -interaction=batchmode
+LTX = latex -interaction=nonstopmode
 BTX = bibtex -terse
-PDFLTX = pdflatex -interaction=batchmode
+PDFLTX = pdflatex
+VIEWER = evince
 
 ## Basic Dependencies
 
 all: thesis.pdf
-
+#
 # Run LaTeX a few times to generate DVI file, and get refs etc correct
 %.dvi: %.tex
 	$(LTX) $<
@@ -103,6 +106,10 @@ sp:
 
 sp-%: %.tex
 	aspell -t -c $<
+
+# easy viewing of entire thesis
+view: thesis.pdf
+	$(VIEWER) thesis.pdf &
 
 
 ##  Specific dependenices
