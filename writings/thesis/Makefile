@@ -1,29 +1,27 @@
-
-## Macro Definitions
+####
 #
-#  The following define the programs to use to generate various documentation
-#  types, as follows:
+#  Makefile for generating thesis document, or parts thereof.
 #
-#    * HTML:		latex2html
-#    * PostScript:	dvips 
-#    * PDF:		dvipdf 
+#  The main thesis document is thesis.tex, with individual chapters stored
+#  in separate latex files and listed in $CHAPTERS.  We use pdflatex for
+#  building our output files.  Here are some useful targets:
 #
-#  Command-line options can be added/changed here, or other software with a
-#  compatible interface can be substituted.
-
-L2H = latex2html -split 0 -show_section_numbers -toc_depth 5 -ascii_mode -images
-DVIPS = dvips
-PDFLT = pdflatex
-L2RTF = latex2rtf
-
+#    all:  create PDF for the entire thesis document
+#    <chapter>.ch.pdf:  create PDF for a specific chapter
+#
+#    sp:   spell-check the entire thesis
+#    sp-<chapter>: spell-check a specific chapter
+#
+#    wc:   count words over the entire thesis
+#    wc-<chapter>:   count words in a specific chapter
+#
+#  Note that these wordcounts are not terribly accurate, and include
+#  words in bibliographies, tables, headers, appendicies, etc.  I'll
+#  try to work on that in the future...
+#    
 
 ## File Lists
 ## Adjust $GARBAGE to add extra files for deletion in `make clean`
-
-PS =  # List PS Files
-PDF = thesis.pdf # List PDF Files
-RTF = # List of RTF Files
-HTML = # List HTML Files
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt
 GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex
@@ -32,66 +30,42 @@ CLOBBERAGE = *.ch.pdf
 
 CHAPTERS = intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex    app_code.tex proofs.tex
 
+## Additional variables
+
+LTX = latex -interaction=batchmode
+BTX = bibtex -terse
+PDFLTX = pdflatex -interaction=batchmode
 
 ## Basic Dependencies
 
-# Default target makes all doc types
-all: ps pdf html rtf
+all: thesis.pdf
 
-ps: $(PS)
-pdf: $(PDF)
-html: $(HTML)
-rtf: $(RTF)
-
-#
-# Export graphics from various file formats into EPS for easy inclusion
-
-%.eps: %.dia
-	dia -e $@ $<
-
-%.eps: %.jpg
-	convert $< $@
-
-%.eps: %.png
-	convert $< $@
-
-
-# Export from LyX to LaTeX
-%.tex: %.lyx
-	lyx -e latex $<
-
-# Run LaTeX a few times to generate DVI file
+# Run LaTeX a few times to generate DVI file, and get refs etc correct
 %.dvi: %.tex
-	latex $<
-	latex $<
-	bibtex $*
-	latex $<
-	latex $<
-	bibtex $*
-	latex $<
+	$(LTX) $<
+	$(LTX) $<
+	$(BTX) $*
+	$(LTX) $<
+	$(LTX) $<
+	$(BTX) $*
+	$(LTX) $<
 
+# Generate a temporary latex file that will built a single chapter
 %.ch.tex: %.tex
-	echo '\\include{preamble}' > $@
-	echo '\\begin{document}' >> $@
-	echo -n '\\include{' >> $@
+	echo '\include{preamble}' > $@
+	echo '\begin{document}' >> $@
+	echo -n '\include{' >> $@
 	echo -n $* >> $@
 	echo '}' >> $@
-	echo '\\include{postamble}' >> $@
-	echo '\\end{document}' >> $@
+	echo '\include{postamble}' >> $@
+	echo '\end{document}' >> $@
 
 # DVI converters for different formats
 %.ps: %.dvi
-	$(DVIPS) -o $@ $<
+	dvips -o $@ $<
 
 %.pdf: %.dvi
-	$(PDFLT) $*.tex
-
-%/index.html: %.tex
-	$(L2H) $<
-
-%.rtf: %.dvi
-	$(L2RTF) $*.tex
-
+	$(PDFLTX) $*.tex
 
 ##  Cleanup Commands
 
@@ -104,17 +78,21 @@ clobber: clean
 
 ## Other Misc Commands
 
-view:  thesis.pdf
-	evince thesis.pdf &
-
 # counting words in a latex file, from http://wlug.org.nz/LatexWordcount
 wc:  thesis.dvi
 	dvi2tty -w100 thesis.dvi | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
+
+wc-%: %.ch.dvi
+	dvi2tty -w100 $< | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
 
 # spellchecking each individual file with aspell
 sp:
 	aspell -t -c thesis.tex
 	for FN in $(CHAPTERS); do aspell -t -c $$FN; done;
+
+sp-%: %.tex
+	aspell -t -c $<
+
 
 ##  Specific dependenices
 
