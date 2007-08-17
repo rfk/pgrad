@@ -1,0 +1,11 @@
+%
+%
+%
+
+functor
+
+define
+
+  skip
+
+end

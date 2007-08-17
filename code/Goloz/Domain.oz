@@ -1,10 +1,5 @@
 
 functor 
-import
-
-  Time
-  LP
-  Sitcalc
 
 export
 
