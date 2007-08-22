@@ -8,6 +8,9 @@ FUNCTORS = LP.ozf FOF.ozf Time.ozf Sitcalc.ozf Domain.ozf Agent.ozf MIndiGolog.o
 %.oza: %.oz
 	ozc -c $< -o $@
 
+%.exe: %.oz
+	ozc -x $< -o $@
+
 goloz: Goloz.oz $(FUNCTORS)
 	ozc -x $< -o goloz 
 

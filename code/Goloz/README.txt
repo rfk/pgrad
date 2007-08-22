@@ -8,6 +8,9 @@ of the following files:
   LP.oz:    Basic logic-programming predicates (to make things a little
             more like prolog).
 
+  BDD.oz:   A generic BDD-structure library, upon which we build a
+            pseudo-first-order theorem prover.
+
   FOF.oz:   Implements first-order formulae as an abstract data type,
             including inferencing precedures.
 

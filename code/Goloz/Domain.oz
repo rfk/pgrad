@@ -11,14 +11,14 @@ export
 define
 
   proc {Agent A}
-    choice  A = thomas
+    dis  A = thomas
     []      A = richard
     []      A = harriet
     end
   end
 
   proc {Natural Act}
-    choice  Act = ring_timer(_)
+    dis  Act = ring_timer(_)
     []      Act = end_task(_)
     end
   end

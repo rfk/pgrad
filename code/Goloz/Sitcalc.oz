@@ -24,7 +24,7 @@ define
   end
 
   proc {Start S T}
-    choice  S = s0  T = 0
+    dis  S = s0  T = 0
     []      S = res(_ T _)
     end
   end
@@ -36,13 +36,13 @@ define
   end
 
   proc {PreceedsEq S1 S2}
-    choice  S1 = S2
+    dis  S1 = S2
     []      {Preceeds S1 S2}
     end
   end
 
   proc {Legal S1 S2}
-    choice  S1 = S2
+    dis  S1 = S2
     []      C T Sp in S2 = res(C T Sp)
             {Poss C T Sp}
             {Time.lessEq {Start S2} T}
@@ -65,7 +65,7 @@ define
   end
 
   proc {PossAll C T S}
-    choice  C = nil
+    dis  C = nil
     []      A Cs in C = A|Cs {Domain.poss A T S} {PossAll Cs T S}
     end
   end

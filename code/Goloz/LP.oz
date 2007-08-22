@@ -9,10 +9,12 @@ functor
 import
 
   Search
+  Browser
 
 export
 
   neg: Neg
+  ifNot: IfNot
   member: Member
   union: Union
   subInTerm: SubInTerm
@@ -30,11 +32,46 @@ define
   end
 
   %
+  % Execute Proc2 if Proc1 has no solutions.
+  % This is useful to avoid unnecesary re-computiation of Proc1, as would
+  % be done by the following (equivalent) prolog:
+  %
+  %   ifnot(P1,P2,Res) :-  P1(Res) ; not(P1(_)), P2(Res)
+  %
+  % We expect Proc1 and Proc2 to be unary procedures as usual.
+  % Results will be bound to the output variable Res.
+  %
+  proc {IfNot Proc1 Proc2 Res}
+    Searcher Soln
+  in
+    Searcher = {New Search.object script(Proc1)}
+    {Searcher next(Soln)}
+    case Soln of stopped then fail
+    []  nil then {Proc2 Res}
+    []  [Res1] then choice Res = Res1
+                    [] {YieldAll Searcher Res}
+                    end
+    end
+  end
+
+  proc {YieldAll Searcher Res}
+    Soln
+  in
+    {Searcher next(Soln)}
+    case Soln of stopped then fail
+    []  nil then fail
+    []  [Res1] then choice Res = Res1
+                    [] {YieldAll Searcher Res}
+                    end
+    end
+  end
+
+  %
   % Backtracking list-membership checking, allowing the members
   % to be enumerated.
   % 
   proc {Member Elem List}
-    choice  List = Elem|_
+    dis  List = Elem|_
     []      NewL in List=_|NewL {Member Elem NewL}
     end
   end
