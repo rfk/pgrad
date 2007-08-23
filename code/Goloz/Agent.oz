@@ -11,8 +11,12 @@
 
 functor
 
+export
+
+  name: Name
+
 define
 
-  skip
+  Name = thomas
 
 end

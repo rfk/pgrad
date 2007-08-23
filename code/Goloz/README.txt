@@ -5,14 +5,18 @@ This is a full implementation of the multi-agent Golog variant "MIndiGolog"
 using Oz/Mozart as a distributed logic programming platform.  It consists
 of the following files:
 
+  RDict.oz: Dictionary class clone that can use arbitrary records as its
+            keys, as long as they are completely determined.
+
   LP.oz:    Basic logic-programming predicates (to make things a little
             more like prolog).
 
-  BDD.oz:   A generic BDD-structure library, upon which we build a
-            pseudo-first-order theorem prover.
+  BDD.oz:   A generic library for handling and exploring BDD-like structures.
+            Includes memoization.
 
-  FOF.oz:   Implements first-order formulae as an abstract data type,
-            including inferencing precedures.
+  FOF.oz:   Implements almost-first-order formulae that are suitable to our
+            needs, including a complete inference procedure.  This is *not*
+            a full first-order theorem prover, but close enough.
 
   Time.oz:  Implements time-points as an abstract data type.  At the moment,
             they're simply integers.

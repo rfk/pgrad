@@ -1,5 +1,15 @@
+%
+%  Domain.oz:  specifics of the sitcalc domain under operation
+%
+%  This file specifies the specific dynamics of the domain being executed
+%  in, such as successor-state axioms and possibility axioms.
+%
 
 functor 
+
+import
+
+  FOF
 
 export
 

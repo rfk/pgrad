@@ -9,7 +9,6 @@ functor
 import
 
   Search
-  Browser
 
 export
 
@@ -60,7 +59,7 @@ define
     {Searcher next(Soln)}
     case Soln of stopped then fail
     []  nil then fail
-    []  [Res1] then choice Res = Res1
+    []  [Res1] then dis Res = Res1
                     [] {YieldAll Searcher Res}
                     end
     end

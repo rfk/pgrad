@@ -1,28 +1,28 @@
 %
-%  FOF.oz:  first-order formulae
+%  FOF.oz:  first-order formulae (almost)
 %
-%  This functor defines datastrctures and procedures for operating
+%  This functor defines datastructures and procedures for operating
 %  on first-order formulae as an abstract data type.  The implementation
 %  is currently based on shannon graphs with a simple reasoning procedure
 %  that is "complete enough" for our purposes.
 %
-%  The implementation of this functor is complicated by the need for
-%  memoization when constructing shannon graphs, combined with the need
-%  to manipulate FOFs within subordinate computation spaces.
+%  We make the following restrictions to make reasoning easier:
 %
-%   Problem:  subordinate spaces cannot mutate state in their parent space
-%   Solution: run a separate thread that handles the state, and accepts
-%             function calls as messages on a port
+%    * all functions are unique names, so unification decides equality
+%    * variables all range over finite domains
 %
-%  This also has the advantage of serializing access to the internal cache
-%  structures, making locking unnecessary.
+%  The interface may be treated as being side-effect free, although in
+%  actualality it isn't.  All exported procedures are wrapped up in
+%  asynchronous services so that they can be called in subordinated
+%  spaces but still do clever things with side-effects.
 %
 
 functor 
 
 import
 
-  RDict
+  BDD
+  Service
 
 export
 
@@ -37,7 +37,6 @@ export
   exists: I_Exists
 
   simplify: I_Simplify
-  reallySimplify: I_ReallySimplify
 
   tautology: I_Tautology
   falsehood: I_Falsehood
