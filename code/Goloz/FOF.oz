@@ -130,23 +130,14 @@ define
 
   %
   % FOF are represented by first-order shannon graphs, a BDD-like
-  % structure defined as follows:
+  % structure (see BDD.oz) where the kernels may be:
   %
-  %   * 0 is a shannon graph represnting falsehood
-  %   * 1 is a shannon graph representing truthity
-  %   * ite(Kernel TEde FEdge) is a shannon graph, where:
-  %       - Kernel is a shannon kernel, defined below
-  %       - TEdge and FEdge are shannon graphs
-  %
-  % A shannon kernel is:
   %   * p(Pred) where Pred is a first-order predicate
-  %   * q(SG) where SG is a shannon graph
+  %   * q(Nm,SG) where Nm is a variable name and SG is a shannon graph
   %
   % The terms used to construct predicates are simply Oz records in the
-  % standard syntax.  However, the special function v_(N) is reserved
-  % for variables, where N is an integer.  N represents the number of
-  % quantifiers between the occurance of the variable and its binding.
-  % TODO: find the reference for this technique
+  % standard syntax.  However, the special function v_(Nm) is reserved
+  % for variables, where Nm is a name.
   %
 
   %

@@ -12,6 +12,11 @@
 %
 %     init(D):  Initialize and return local data for path exploration
 %
+%     transNode(D KIn KOut):
+%               Called when a new node is encountered on the path, but
+%               before it is added.  This is an opportunity for the each
+%               theory to globally transform the node.
+%
 %     addNode(K E DIn DOut Outcome):
 %               Called when a new node is added to the current path.
 %               K is the node's kernel, E is the edge taken through
@@ -23,8 +28,8 @@
 %     endPath(L DIn DOut Outcome):
 %               Called when a leaf node is encountered.  L is the
 %               leaf node found (0 or 1).  This is called until
-%               a theory responds with extend(B R) or all theories
-%               have been tried.  Outcome may be: ok, extend(B R)
+%               a theory responds with extend(B) or all theories
+%               have been tried.  Outcome may be: ok, extend(B)
 %
 %     termPath(L D Outcome):
 %               Called when a leaf node has been encountered and
@@ -37,8 +42,7 @@
 %     ok:         the node was added, continue
 %     closed:     the current path has been closed
 %     stop(R):    halt exploration, return R as the result
-%     extend(B R):  the current path should be extended by the given BDD,
-%                   renamed according to R
+%     extend(B):  the current path should be extended by the given BDD
 %
 %  The final outcome will be one of ok, closed or stop(R).
 %
@@ -206,6 +210,9 @@ define
   in
     {Explore_endPath Leaf Theories Data DOut Outcome}
     case Outcome of ok then {Explore_termPath Leaf Theories DOut Res}
+    %%
+    %% TODO: incorrect, need to pop the renaming when we reach next leaf
+    %%
     else extend(B Rn2) = Outcome in {Explore_RenameAdd Rn Rn2 RnOut}
                                     {Explore_path B RnOut Theories DOut Res} 
     end
@@ -273,37 +280,6 @@ define
          case Outcome of closed then Res=closed
          else {Explore_addNode K E TTail DTail DOutTail Res}
          end
-    end
-  end
-
-  proc {Explore_Rename TIn Rn TOut}
-    case Rn of nil then TIn = TOut
-    else T2 Old#New|RnT = Rn in {LP.subInTerm Old New TIn T2}
-                                {Explore_Rename T2 RnT TOut}
-    end
-  end
-
-  proc {Explore_RenameAdd Rn1 Rn2 RnOut}
-    {Explore_RenameAddAcc Rn1 Rn2 nil RnOut}
-  end
-
-  proc {Explore_RenameAddAcc Rn1 Rn2 RnAcc RnOut}
-    case Rn1 of nil then RnOut = {List.append Rn2 RnAcc}
-    else Old#New|Rn1T = Rn1
-        in
-         if {Explore_RenameContains Rn2 Old} then
-           {Explore_RenameAddAcc Rn1T Rn2 RnAcc RnOut}
-         else
-           {Explore_RenameAddAcc Rn1T Rn2 Old#New|RnAcc RnOut}
-         end
-    end
-  end
-
-  proc {Explore_RenameContains Rn Old B}
-    case Rn of nil then B = false
-    else ROld#_|RnT = Rn
-        in
-         B = if ROld == Old then true else {Explore_RenameContains RnT Old} end
     end
   end
 
