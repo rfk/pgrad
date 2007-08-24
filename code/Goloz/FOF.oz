@@ -1,5 +1,5 @@
 %
-%  FOF.oz:  first-order formulae (almost)
+%  FOF.oz:  (almost) first-order formulae
 %
 %  This functor defines datastructures and procedures for operating
 %  on first-order formulae as an abstract data type.  The implementation
@@ -12,7 +12,7 @@
 %    * variables all range over finite domains
 %
 %  The interface may be treated as being side-effect free, although in
-%  actualality it isn't.  All exported procedures are wrapped up in
+%  actuality it isn't.  All exported procedures are wrapped up in
 %  asynchronous services so that they can be called in subordinated
 %  spaces but still do clever things with side-effects.
 %
@@ -22,254 +22,155 @@ functor
 import
 
   BDD
-  Service
 
 export
 
-  atom: I_Atom
-  natom: I_NAtom
-  neg: I_Neg
-  conj: I_Conj
-  disj: I_Disj
-  impl: I_Impl
-  equiv: I_Equiv
-  all: I_All
-  exists: I_Exists
+  Atom
+  Natom
+  Neg
+  Conj
+  Disj
+  Impl
+  Equiv
+  All
+  Exists
 
-  simplify: I_Simplify
+  ParseRecord
 
-  tautology: I_Tautology
-  falsehood: I_Falsehood
+  Simplify
+
+  Tautology_e
+  Tautology_a
+  Falsehood_e
+  Falsehood_a
 
 define
-
-  %%%%%   Interface Functions   %%%%%
-
-  %
-  %  Interface functions send messages to this port, which are
-  %  handled by a separate thread that calls the actual (private)
-  %  implementation functions.
-  %
-  local IStream in
-    IPort = {Port.new IStream}
-    thread
-      for Msg#Resp in IStream do
-        case Msg of atom(A) then Resp={Atom A}
-        []   natom(A) then Resp={NAtom A}
-        []   neg(F) then Resp={Neg F}
-        []   conj(F1 F2) then Resp={Conj F1 F2}
-        []   disj(F1 F2) then Resp={Disj F1 F2}
-        []   impl(F1 F2) then Resp={Impl F1 F2}
-        []   equiv(F1 F2) then Resp={Equiv F1 F2}
-        []   all(F) then Resp={All F}
-        []   exists(F) then Resp={Exists F}
-        []   simplify(F) then Resp={Simplify F}
-        []   reallySimplify(F) then Resp={ReallySimplify F}
-        []   tautology(F) then Resp={Tautology F}
-        []   falsehood(F) then Resp={Falsehood F}
-        else Resp = nil
-        end
-      end
-    end
-  end
-
-  fun {I_Atom A}
-    {Port.sendRecv IPort atom(A)}
-  end
-
-  fun {I_NAtom A}
-    {Port.sendRecv IPort natom(A)}
-  end
-
-  fun {I_Neg F}
-    {Port.sendRecv IPort neg(F)}
-  end
-
-  fun {I_Conj F1 F2}
-    {Port.sendRecv IPort conj(F1 F2)}
-  end
-
-  fun {I_Disj F1 F2}
-    {Port.sendRecv IPort disj(F1 F2)}
-  end
-
-  fun {I_Impl F1 F2}
-    {Port.sendRecv IPort impl(F1 F2)}
-  end
-
-  fun {I_Equiv F1 F2}
-    {Port.sendRecv IPort equiv(F1 F2)}
-  end
-
-  fun {I_All F}
-    {Port.sendRecv IPort all(F)}
-  end
-
-  fun {I_Exists F}
-    {Port.sendRecv IPort exists(F)}
-  end
-
-  fun {I_Simplify F}
-    {Port.sendRecv IPort simplify(F)}
-  end
-
-  fun {I_ReallySimplify F}
-    {Port.sendRecv IPort reallySimplify(F)}
-  end
-
-  fun {I_Tautology F}
-    {Port.sendRecv IPort tautology(F)}
-  end
-
-  fun {I_Falsehood F}
-    {Port.sendRecv IPort falsehood(F)}
-  end
-
-
-  %%%%%   Implementation Functions   %%%%%
 
   %
   % FOF are represented by first-order shannon graphs, a BDD-like
   % structure (see BDD.oz) where the kernels may be:
   %
   %   * p(Pred) where Pred is a first-order predicate
-  %   * q(Nm,SG) where Nm is a variable name and SG is a shannon graph
+  %   * q(SG) where SG is a shannon graph
   %
   % The terms used to construct predicates are simply Oz records in the
-  % standard syntax.  However, the special function v_(Nm) is reserved
-  % for variables, where Nm is a name.
+  % standard syntax.  However, two special record names are used to denote
+  % variables:
+  %
+  %    * v_b(N) is a bound variable, where N is a natural number.
+  %             We use de Bruijn indexing for bound variables to avoid
+  %             having to rename them, and improve structure sharing.
+  %
+  %    * v_f(Nm) is a free variable, where Nm is an atom naming the variable.
+  %              These variables are globally free in the formula, and their
+  %              semantics varies depending on the type of reasoning being
+  %              performed.
   %
 
-  %
-  %  Each FOSG is identified by an integer which is treated
-  %  as a pointer.  The FOSG_Map dictionary derefs the pointer to
-  %  give the kernel of the graph as well as its T and F edges.
-  %  FOSG_Count maintains the next free pointer value.
-  %
-  FOSG_Count = {NewCell 2}
-  FOSG_Map = {Dictionary.new}
-  {Dictionary.put FOSG_Map 0 0}
-  {Dictionary.put FOSG_Map 1 1}
-
-  %
-  %  FOSG_Cache is used for memoization when creating graphs.
-  %  FOSG_Funcache is used for memoization of other procedure calls.
-  %
-  FOSG_Cache = {RDict.new}
-  FOSG_Funcache = {RDict.new}
-
-  %
-  %  Construct a shannon graph with the given kernel and edges.
-  %  Uses FOSG_Cache for memoization.
-  %
-  proc {MakeFOSG Kernel TEdge FEdge G}
-    Cached
-  in
-    Cached = {RDict.condGet FOSG_Cache Kernel#TEdge#FEdge unit}
-    case Cached of unit then
-        {Exchange FOSG_Count G thread G+1 end}
-        {RDict.put FOSG_Cache Kernel#TEdge#FEdge G}
-        {Dictionary.put FOSG_Map G ite(Kernel TEdge FEdge)}
-    else
-        G = Cached
-    end
-  end
-
-  %
-  %  Dereference the "pointer" to a FOSG
-  %
-  proc {Deref Graph ITE}
-    ITE = {Dictionary.get FOSG_Map Graph}
-  end
-
-  %
-  %  Replace elements inside a shannon graph with a different graph.
-  %  Graph is the FOSG to modify, Repls is a list of Old#New graph
-  %  pairs to be simultaneously replaced, and NewG is the resulting graph.
-  %
-  proc {Replace Graph Repls NewG}
-    Cache
-  in
-    Cache = {RDict.condGet FOSG_Funcache replace#Graph#Repls unit}
-    case Cache of unit then GRepl in
-        GRepl = {PairSearch Repls Graph}
-        case GRepl of unit then
-            case {Deref Graph} of 0 then NewG = 0
-            [] 1 then NewG = 1
-            [] ite(K T F) then NewG = {MakeFOSG K {Replace T Repls} {Replace F Repls}}
-            end
-        else NewG = GRepl
-        end
-        {RDict.put FOSG_Funcache replace#Graph#Repls NewG}
-    else NewG = Cache
-    end
-  end
-
-  proc {PairSearch List Key Value}
-    case List of nil then Value=unit
-    [] H|T then
-      case H of !Key#V then Value=V
-      else {PairSearch T Key Value}
-      end
-    end
-  end
 
   fun {Atom A}
-    {MakeFOSG A 1 0}
+    {BDD.BDD p(A) 1 0}
   end
 
-  fun {NAtom A}
-    {MakeFOSG A 0 1}
+  fun {Natom A}
+    {BDD.BDD p(A) 0 1}
   end
 
   fun {Neg F}
-    {Replace F [1#0 0#1]}
+    {BDD.replaceLeaves F 0 1}
   end
 
   fun {Conj F1 F2}
-    {Replace F1 [1#F2]}
+    {BDD.replaceLeaves F1 F2 0}
   end
 
   fun {Disj F1 F2}
-    {Replace F1 [0#F2]}
+    {BDD.replaceLeaves F1 1 F2}
   end
 
   fun {Impl F1 F2}
-    {Replace F1 [0#1 1#F2]}
+    {BDD.replaceLeaves F1 F2 1}
   end
 
   fun {Equiv F1 F2}
-    {Replace F1 [0#{Neg F2} 1#F2]}
+    {BDD.replaceLeaves F1 F2 {Neg F2}}
   end
 
   fun {All F}
-    {MakeFOSG F 1 0}
+    {BDD.BDD q(F) 1 0}
   end
 
   fun {Exists F}
-    {MakeFOSG {Neg F} 0 1}
+    {BDD.BDD q({Neg F}) 0 1}
+  end
+
+  proc {ParseRecord Rec F}
+    case Rec of true then F = 1
+    []   false then F = 0
+    []   conj(...) then case {Record.toList Rec} of nil then F = 1
+                        [] H|Ts then HF = {ParseRecord H}
+                                     TFs = {List.map Ts ParseRecord}
+                                    in
+                                     F = {List.foldL TFs Conj H}
+                        end
+    []   disj(...) then case {Record.toList Rec} of nil then F = 0
+                        [] H|Ts then HF = {ParseRecord H}
+                                     TFs = {List.map Ts ParseRecord}
+                                    in
+                                     F = {List.foldL TFs Disj H}
+                        end
+    []   neg(R) then F = {Neg {ParseRecord R}}
+    []   impl(R1 R2) then F = {Impl {ParseRecord R1} {ParseRecord R2}}
+    []   equiv(R1 R2) then F = {Equiv {ParseRecord R1} {ParseRecord R2}}
+    []   all(Nm R) then F = {All {ParseRecord {BindVar Nm 0 R}}}
+    []   exists(Nm R) then F = {Exists {ParseRecord {BindVar Nm 0 R}}}
+    else F = {Atom Rec}
+    end
+  end
+
+  proc {BindVar Nm Idx RIn ROut}
+    case RIn of Nm then ROut = v_b(Idx)
+    []   all(Nm2 R2) then if Nm == Nm2 then
+                            ROut = all(Nm2 R2)
+                          else
+                            ROut = all(Nm2 {BindVar Nm Idx+1 R2})
+                          end
+    []   exists(Nm2 R2) then if Nm == Nm2 then
+                               ROut = exists(Nm2 R2)
+                             else
+                               ROut = exists(Nm2 {BindVar Nm Idx+1 R2})
+                             end
+    else {Record.clone RIn ROut}
+         for Feature in {Record.Arity RIn} do
+           ROut.Feature = {BindVar Nm Idx RIn.Feature}
+         end
+    end
   end
 
   fun {Simplify F}
     F
   end
 
-  fun {ReallySimplify F}
-    {Simplify F}
-  end
-
-  fun {Tautology F}
+  fun {Tautology_e F}
     case F of 1 then yes
     [] 0 then no
     else unknown
     end
   end
 
-  fun {Falsehood F}
+  fun {Tautology_a F}
+    {Tautology_e F}
+  end
+
+  fun {Falsehood_e F}
     case F of 1 then no
     [] 0 then yes
     else unknown
     end
+  end
+
+  fun {Falsehood_a F}
+    {Falsehood_e F}
   end
 
 end

@@ -6,36 +6,21 @@
 %  work by exploring the BDD.
 %
 %  This module does no proving on its own.  It expects the BDD-exploring
-%  procedure to be called with a list of "theories" that implement specific
-%  aspects of reasoning.  They are expected to be records with the following
-%  interface:
+%  procedure to be called with a "theory" object that directs the exploration
+%  of the graph to implement a reasoning procedure.  It is expected to be
+%  a record with the following interface:
 %
 %     init(D):  Initialize and return local data for path exploration
-%
-%     transNode(D KIn KOut):
-%               Called when a new node is encountered on the path, but
-%               before it is added.  This is an opportunity for the each
-%               theory to globally transform the node.
 %
 %     addNode(K E DIn DOut Outcome):
 %               Called when a new node is added to the current path.
 %               K is the node's kernel, E is the edge taken through
-%               the node (0 or 1), D is the path data, and Outcome
-%               controls how exploration should proceed.  This is
-%               called for every theory in the list.  Outcome may
-%               be:  ok, closed
+%               the node (0 or 1), D is the path data. Outcome
+%               controls how exploration should proceed (see below).
 %
 %     endPath(L DIn DOut Outcome):
 %               Called when a leaf node is encountered.  L is the
-%               leaf node found (0 or 1).  This is called until
-%               a theory responds with extend(B) or all theories
-%               have been tried.  Outcome may be: ok, extend(B)
-%
-%     termPath(L D Outcome):
-%               Called when a leaf node has been encountered and
-%               was not extended by a call to endPath for any theory.
-%               Note that this cannot alter the path data.
-%               Outcome may be: ok, closed, stop(R)
+%               leaf node found (0 or 1).
 %
 %  Acceptable outcomes reported by these functions are:
 %
@@ -46,21 +31,28 @@
 %
 %  The final outcome will be one of ok, closed or stop(R).
 %
+%  This functor exports its basic procedures as asynchronous serviecs
+%  rather than vanilla procedure definitions, so that BDDs can be manipulated
+%  inside subordinated spaces.  Since they have a functional interface, this
+%  should be perfectly OK. The implementation versions are found in
+%  I_<procname>.
+%
 
 functor 
 
 import
 
   RDict
-  LP
 
 export
 
-  bdd: BDD
-  alias: Alias
-  memoGet: MemoGet
-  memoSet: MemoSet
-  explore: Explore
+  BDD
+  Alias
+  MemoGet
+  MemoSet
+  MemoCall
+  ReplaceLeaves
+  Explore
 
 define
 
@@ -92,19 +84,30 @@ define
 
   %
   %  Construct a BDD with the given kernel and edges.
-  %  Uses memoization to ensure canonicity.
+  %  Uses memoization to ensure canonicity.  Provided
+  %  as a service for use in subordinated spaces.
   %
-  proc {BDD Kernel TEdge FEdge B}
-    M
-    Key = Kernel#TEdge#FEdge
-    Funcname = 'bdd.bdd'
+
+  proc {I_BDD Args B}
+    {I_MemoCall 'bdd.bdd' Args M_BDD B}
+  end
+
+  proc {M_BDD Args B}
+    [Kernel TEdge FEdge] = Args
   in
-    M = {MemoGet Funcname Key}
-    case M of nil then
-        {Exchange BDD_Count B thread B+1 end}
-        {MemoSet Funcname Key B}
-        {Dictionary.put BDD_Map B ite(Kernel TEdge FEdge)}
-    else [B]=M
+    {Exchange BDD_Count B thread B+1 end}
+    {Dictionary.put BDD_Map B ite(Kernel TEdge FEdge)}
+  end
+
+  local IPort IStream in
+    IPort = {Port.new IStream}
+    thread
+      for Args#Res in IStream do
+        thread {I_BDD Args Res} end
+      end
+    end
+    proc {BDD K T F Res}
+      Res = {Port.sendRecv IPort [K T F]}
     end
   end
 
@@ -119,33 +122,74 @@ define
   %  So if you call MemoGet and receive nil, you *must* then call
   %  MemoSet to give it some value.
   %
+  %  To conveniently deploy a memoized function, use MemoCall, passing it
+  %  a reference to another procedure that will calculate the value if
+  %  it is missing.
+  %
   %  Naturally, the arguments must all be things that can be stored in
   %  an RDict, i.e. they must be immutable.
   %
   BDD_Memo = {RDict.new}
 
-  proc {MemoGet Funcname Args Res}
-    Val MyVal
+  proc {I_MemoGet Funcname Args Res}
+    Val SyncVal
     Key = Funcname#Args
   in
-    % This is for locking purposes - only one thread will receive nil,
-    % the others will recieve that thread's MyVar, which will eventually
-    % be made non-nil.  They syncronise it to their own variable.
-    {RDict.condExchange BDD_Memo Key nil Val MyVal}
-    case Val of nil then MyVal = [_] Res=nil
-    []  [V2] then MyVal=Val Res = [!!V2]
-    else Res=nil
+    {RDict.condExchange BDD_Memo Key nil Val SyncVal}
+    case Val of nil then SyncVal=[_] Res=nil
+    []  [V2] then SyncVal=Val Res=[!!V2]
     end
   end
 
-  proc {MemoSet Funcname Args Value}
+  local IPort IStream in
+    IPort = {Port.new IStream}
+    thread
+      for [Funcname Args]#Res in IStream do
+        thread {I_MemoGet Funcname Args Res} end
+      end
+    end
+    proc {MemoGet Funcname Args Res}
+      Res = {Port.sendRecv IPort [Funcname Args]}
+    end
+  end
+
+  proc {I_MemoSet Funcname Args Value}
     {RDict.get BDD_Memo Funcname#Args} = [Value]
   end
 
+  local IPort IStream in
+    IPort = {Port.new IStream}
+    thread
+      for [Funcname Args Val]#Res in IStream do
+        thread {I_MemoSet Funcname Args Val} Res=unit end
+      end
+    end
+    proc {MemoSet Funcname Args Val}
+      _ = {Port.sendRecv IPort [Funcname Args Val]}
+    end
+  end
+
+  proc {I_MemoCall Funcname Args Proc Result}
+    M = {I_MemoGet Funcname Args}
+  in
+    case M of nil then {Proc Args Result}
+                       {I_MemoSet Funcname Args Result}
+    else [Result]=M
+    end
+  end
+
+  proc {MemoCall Funcname Args Proc Result}
+    M = {MemoGet Funcname Args}
+  in
+    case M of nil then {Proc Args Result}
+                       {MemoSet Funcname Args Result}
+    else [Result]=M
+    end
+  end
 
   %
   %  Dereference the "pointer" to a BDD.
-  %  Returns one of 0, 1 or ite(B T F).
+  %  Returns one of 0, 1 or ite(K T F).
   %
   proc {Deref B ITE}
     Val
@@ -161,21 +205,20 @@ define
   %  to modify, TNew is the replacement for all 1 leaves, and FNew
   %  is the replacement for all 0 leaves.
   %
+
   proc {ReplaceLeaves B TNew FNew BNew}
-    M
-    Funcname = 'bdd.replaceleaves'
-    Key = B#TNew#FNew
+    {MemoCall 'bdd.replaceleaves' [B TNew FNew] M_ReplaceLeaves BNew}
+  end
+
+  proc {M_ReplaceLeaves Args BNew}
+    [B TNew FNew] = Args
+    Bd = {Deref B}
   in
-    M = {MemoGet Funcname Key}
-    case M of nil then Bd = {Deref B} in
-        case Bd of 0 then BNew = FNew
-        []  1 then BNew = TNew
-        []  ite(K T F) then BNew = {BDD K {ReplaceLeaves T TNew FNew}
-                                          {ReplaceLeaves F TNew FNew}}
-        else BNew=B
-        end
-        {MemoSet Funcname Key BNew}
-    else [BNew] = M
+    case Bd of 0 then BNew = FNew
+    []  1 then BNew = TNew
+    []  ite(K T F) then BNew = {BDD K {ReplaceLeaves T TNew FNew}
+                                      {ReplaceLeaves F TNew FNew}}
+    else BNew=B
     end
   end
 
@@ -183,102 +226,67 @@ define
   %  Mark B1 as an alias of B2.  You would typically do this if
   %  B2 is equivalent to B1 but simpler.
   %
-  proc {Alias B1 B2}
+  proc {I_Alias B1 B2}
     {Dictionary.put BDD_Map B1 alias(B2)}
+  end
+
+  local IPort IStream in
+    IPort = {Port.new IStream}
+    thread
+      for [B1 B2]#Res in IStream do
+        thread {I_Alias B1 B2} Res=unit end
+      end
+    end
+    proc {Alias B1 B2}
+      _ = {Port.sendRecv IPort [B1 B2]}
+    end
   end
 
   %
   %  Top-level procedure for exploring a BDD.
-  %  Initialize path data for each theory, then start exploring
+  %  Initialize path data for the theory, then start exploring.
   %
-  proc {Explore B Rn Theories Res}
-    Data = {List.map Theories proc {$ T D} {T.init D} end}
+  proc {Explore B Theory Res}
+    Data = {Theory.init}
   in
-    {Explore_path B Rn Theories Data Res}
+    {Explore_path B Theory Data Res}
   end
 
-  proc {Explore_path B Rn Theories Data Res}
+  proc {Explore_path B Theory Data Res}
     ITE = {Deref B}
   in
-    case ITE of ite(_ _ _) then {Explore_ITE ITE Rn Theories Data Res}
-    else {Explore_Leaf ITE Rn Theories Data Res}
+    case ITE of ite(_ _ _) then {Explore_ITE ITE Theory Data Res}
+    else {Explore_Leaf ITE Theory Data Res}
     end
   end
 
-  proc {Explore_Leaf Leaf Rn Theories Data Res}
-    Outcome DOut RnOut
+  proc {Explore_Leaf Leaf Theory Data Res}
+    Outcome DOut
   in
-    {Explore_endPath Leaf Theories Data DOut Outcome}
-    case Outcome of ok then {Explore_termPath Leaf Theories DOut Res}
-    %%
-    %% TODO: incorrect, need to pop the renaming when we reach next leaf
-    %%
-    else extend(B Rn2) = Outcome in {Explore_RenameAdd Rn Rn2 RnOut}
-                                    {Explore_path B RnOut Theories DOut Res} 
+    % If asked to extend, continue exploring down that path.
+    % Otherwise, halt with the reported outcome.
+    {Theory.endPath Leaf Data DOut Outcome}
+    case Outcome of extend(B) then {Explore_path B Theory DOut Res} 
+    else Res = Outcome
     end
   end
 
-  %%  TODO:  do we need to enforce fairness between theories?
-  proc {Explore_endPath Leaf Theories DIn DOut Outcome}
-    case Theories of nil then Outcome = ok DOut = nil
-    else THead|TTail = Theories
-         DHead|DTail = DIn
-         Out2 DOutHead DOutTail
-        in
-         DOut = DOutHead|DOutTail
-         {THead.endPath Leaf DHead DOutHead Out2}
-         case Out2 of extend(B R) then Outcome = extend(B R) DOutTail=DTail
-         else {Explore_endPath Leaf TTail DTail DOutTail Outcome}
-         end
-    end
-  end
-
-  proc {Explore_termPath Leaf Theories Data Res}
-    case Theories of nil then Res = ok
-    else THead|TTail = Theories
-         DHead|DTail = Data
-         Out2
-        in
-         {THead.termPath Leaf DHead Out2}
-         case Out2 of closed then Res = closed
-         []  stop(V) then Res = stop(V)
-         else {Explore_termPath Leaf TTail DTail Res}
-         end
-    end
-  end
-
-  proc {Explore_ITE B Rn Theories Data Res}
-    OutT OutT1 OutF OutF1
-    DOutT DOutF Kr
+  proc {Explore_ITE B Theory Data Res}
+    ResT ResT1 ResF ResF1 DOutT DOutF
     ite(K TEdge FEdge) = B
   in
-    Kr = {Explore_Rename K Rn}
-    {Explore_addNode Kr 1 Theories Data DOutT OutT1}
-    case OutT1 of closed then OutT = closed
-    else {Explore_path TEdge Rn Theories DOutT OutT}
+    {Theory.addNode K 1 Data DOutT ResT1}
+    case ResT1 of closed then ResT = closed
+    else {Explore_path TEdge Theory DOutT ResT}
     end
-    case OutT of stop(V) then Res=stop(V)
-    else {Explore_addNode Kr 0 Theories Data DOutF OutF1}
-         case OutF1 of closed then OutF = closed
-         else {Explore_path FEdge Rn Theories DOutF OutF}
+    case ResT of stop(V) then Res=stop(V)
+    else {Theory.addNode K 0 Data DOutF ResF1}
+         case ResF1 of closed then ResF = closed
+         else {Explore_path FEdge Theory DOutF ResF}
          end
-         case OutF of stop(V) then Res=stop(V)
-         []   closed then Res = OutT
-         else Res = OutF
-         end
-    end
-  end
-
-  proc {Explore_addNode K E Theories Data DOut Res}
-    case Theories of nil then Res = ok DOut = nil
-    else THead|TTail = Theories
-         DHead|DTail = Data
-         DOutHead DOutTail Outcome
-        in
-         DOut = DOutHead|DOutTail
-         {THead.addNode K E DHead DOutHead Outcome}
-         case Outcome of closed then Res=closed
-         else {Explore_addNode K E TTail DTail DOutTail Res}
+         case ResF of stop(V) then Res=stop(V)
+         []   closed then Res = ResT
+         else Res = ResF
          end
     end
   end
