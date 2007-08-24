@@ -111,13 +111,13 @@ define
                         [] H|Ts then HF = {ParseRecord H}
                                      TFs = {List.map Ts ParseRecord}
                                     in
-                                     F = {List.foldL TFs Conj H}
+                                     F = {List.foldL TFs Conj HF}
                         end
     []   disj(...) then case {Record.toList Rec} of nil then F = 0
                         [] H|Ts then HF = {ParseRecord H}
                                      TFs = {List.map Ts ParseRecord}
                                     in
-                                     F = {List.foldL TFs Disj H}
+                                     F = {List.foldL TFs Disj HF}
                         end
     []   neg(R) then F = {Neg {ParseRecord R}}
     []   impl(R1 R2) then F = {Impl {ParseRecord R1} {ParseRecord R2}}
@@ -129,7 +129,7 @@ define
   end
 
   proc {BindVar Nm Idx RIn ROut}
-    case RIn of Nm then ROut = v_b(Idx)
+    case RIn of !Nm then ROut = v_b(Idx)
     []   all(Nm2 R2) then if Nm == Nm2 then
                             ROut = all(Nm2 R2)
                           else
@@ -141,7 +141,7 @@ define
                                ROut = exists(Nm2 {BindVar Nm Idx+1 R2})
                              end
     else {Record.clone RIn ROut}
-         for Feature in {Record.Arity RIn} do
+         for Feature in {Record.arity RIn} do
            ROut.Feature = {BindVar Nm Idx RIn.Feature}
          end
     end
