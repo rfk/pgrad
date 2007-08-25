@@ -236,7 +236,7 @@ define
 
   proc {Tautology_e F Binding Result}
     Binding = {Dictionary.new}
-    case F of 1 then Binding = Result=yes
+    case F of 1 then Result=yes
     [] 0 then Result=no
     else Result=unknown
     end

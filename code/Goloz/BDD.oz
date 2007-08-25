@@ -156,7 +156,7 @@ define
   end
 
   proc {I_MemoSet Funcname Args Value}
-    MDict = {Dict.get BDD_Memo Funcname}
+    MDict = {Dictionary.get BDD_Memo Funcname}
   in
     {ListDict.get MDict Args} = [Value]
   end

@@ -22,7 +22,7 @@ export
 define
 
   proc {New D}
-    D = ld(o: {OpenMap.new} n: {Cell.new nil}}
+    D = ld(o: {OpenMap.new} n: {Cell.new nil})
     {Cell.assign D.n nil}
   end
 
@@ -56,9 +56,9 @@ define
 
   proc {Exchange D Ls Vout Vin}
     if Ls == nil then Vold Vnew in
-        {Cell.exhange D.n Vold Vnew}
+        {Cell.exchange D.n Vold Vnew}
         if Vold == nil then Vnew = nil raise system end
-        else [Vout] = Vold [Vin] = VNew end
+        else [Vout] = Vold [Vin] = Vnew end
     else H|Ts = Ls  D2 = {OpenMap.map D.o H} in
         if {IsFree D2} then {New D2} end
         {Exchange D2 Ts Vout Vin}
@@ -67,7 +67,7 @@ define
 
   proc {CondExchange D Ls Vd Vout Vin}
     if Ls == nil then Vold in
-        {Cell.exhange D.n Vold [Vin]}
+        {Cell.exchange D.n Vold [Vin]}
         if Vold == nil then Vout = Vd
         else [Vout] = Vold end
     else H|Ts = Ls  D2 = {OpenMap.map D.o H} in

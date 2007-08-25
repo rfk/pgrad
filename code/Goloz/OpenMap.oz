@@ -32,7 +32,7 @@ define
     else
       K2#V2|M2 = M in
       if K == K2 then V = [V2]
-      else {Get M2 K V}
+      else {Get M2 K V} end
     end
   end
 

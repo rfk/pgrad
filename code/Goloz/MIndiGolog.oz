@@ -68,7 +68,7 @@ define
               {Trans D1 E D1p E1p}
               Dp = conc(D1p D2)
               Ep = {Sitcalc.ex.thred 1 E1p}
-          []  D2p EpH EpT in
+          []  D2p E2p in
               {Trans D2 E D2p E2p}
               Dp = conc(D1 D2p)
               Ep = {Sitcalc.ex.thred 2 E2p}
@@ -118,10 +118,6 @@ define
     {MakePlanRec D nil nil P}
   end
   MakePlan = MakePlan
-
-
-  HoldsEx = holds(yes: proc {$} skip end
-                  no:  proc {$} skip end)
 
   proc {Final D E}
     skip
