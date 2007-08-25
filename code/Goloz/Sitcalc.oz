@@ -5,70 +5,78 @@ import
 
   LP
   Domain
-  Time
+  FOF
 
 export
 
-  actor: Actor
-  start: Start
-  preceeds: Preceeds
-  preceeds_eq: PreceedsEq
-  legal: Legal
-  poss: Poss
+  Actor
+
+  Uniformize
+  Regress
 
 define
 
+  %
+  %  Extract the actor from a given action.
+  %  Fails if the action is exogenous.
+  %
   proc {Actor Actn Agt}
     {LP.neg proc {$} {Domain.natural Actn} end}
     Agt = Actn.1
   end
 
-  proc {Start S T}
-    dis  S = s0  T = 0
-    []      S = res(_ T _)
+  %
+  %  Flatten defined fluents according to their defnitions in the domain
+  %
+  proc {Uniformize F U}
+    {FOF.memoCall 'sitcalc.uniformize' M_Uniformize [F] U}
+  end
+  proc {M_Uniformize Args U}
+    [F] = Args
+  in
+    {FOF.transform Uniformize_atom Uniformize nil F U}
+  end
+  proc {Uniformize_atom P _ U}
+    {FOF.memoCall 'sitcalc.uniformize_atom' M_Uniformize_atom [P] U}
+  end
+  proc {M_Uniformize_atom Args U}
+    [P] = Args
+  in
+    U = {FOF.atom P}
+  end
+
+  %
+  %  Regress the formula over the given action.
+  %
+  proc {Regress F A R}
+    {FOF.memoCall 'sitcalc.regress' M_Regress [F A] R}
+  end
+  proc {M_Regress Args R}
+    [F A] = Args
+    Rp
+  in
+    {FOF.transform Regress_atom Regress [A] F Rp}
+    {FOF.simplify Rp R}
+  end
+  proc {Regress_atom P [A] U}
+    U = {Domain.regress P A}
+  end
+
+  %
+  %  Determine whether the given formula holds in the given
+  %  situation.
+  %
+  proc {Holds F S B}
+    case S of res(C Sr) then Fr = {Regress F C} in B={Holds Fr Sr}
+    else B={HoldsInit F}
     end
   end
 
-  proc {Preceeds S1 S2}
-  C T Sp in
-     S2 = res(C T Sp) {Poss C T Sp}
-     {PreceedsEq S1 Sp} {Time.lessEq {Start Sp} T}
+  proc {HoldsInit F B}
+  in
+    {FOF.tautology_e F _ B}
   end
-
-  proc {PreceedsEq S1 S2}
-    dis  S1 = S2
-    []      {Preceeds S1 S2}
-    end
-  end
-
-  proc {Legal S1 S2}
-    dis  S1 = S2
-    []      C T Sp in S2 = res(C T Sp)
-            {Poss C T Sp}
-            {Time.lessEq {Start S2} T}
-            {LP.neg proc {$} NA T2 in
-                {Domain.natural NA}
-                {Poss NA T2 S2}
-                {Time.lessEq T2 T}
-                {LP.neg proc {$}
-                  {LP.member NA C}
-                end}
-            end}
-    end
-  end
-
-  proc {Poss C T S}
-    C = _|_
-    {PossAll C T S}
-    {Time.less {Start S} T}
-    {LP.neg proc {$} {Domain.conflicts C T S} end}
-  end
-
-  proc {PossAll C T S}
-    dis  C = nil
-    []      A Cs in C = A|Cs {Domain.poss A T S} {PossAll Cs T S}
-    end
-  end
+  
 
 end
 

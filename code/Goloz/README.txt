@@ -5,8 +5,11 @@ This is a full implementation of the multi-agent Golog variant "MIndiGolog"
 using Oz/Mozart as a distributed logic programming platform.  It consists
 of the following files:
 
-  RDict.oz: Dictionary class clone that can use arbitrary records as its
-            keys, as long as they are completely determined.
+  OpenMap.oz:  A key->value mapping class using open-ended lists, meaning it
+               can be constructed a piece at a time.
+
+  ListDict.oz: Dictionary class clone that accepts lists of records as its
+               keys, rather than simple atoms.
 
   LP.oz:    Basic logic-programming predicates (to make things a little
             more like prolog).

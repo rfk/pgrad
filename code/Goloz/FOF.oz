@@ -36,13 +36,17 @@ export
   Exists
 
   ParseRecord
+  Transform
 
   Simplify
-
   Tautology_e
   Tautology_a
   Falsehood_e
   Falsehood_a
+
+  MemoGet
+  MemoSet
+  MemoCall
 
 define
 
@@ -215,6 +219,10 @@ define
     end
   end
 
+  proc {Transform Proc Fin Fout}
+    {BDD.transform Proc Fin Fout}
+  end
+
   %
   %  Procedures that explore shannon graphs to do various kinds of
   %  reasoning, from straightforward simplification to full-blown
@@ -257,6 +265,13 @@ define
   fun {Falsehood_a F}
     {Falsehood_e F _}
   end
+
+  %
+  % Expose BDD memo functions directly
+  %
+  MemoGet = BDD.memoGet
+  MemoSet = BDD.memoSet
+  MemoCall = BDD.memoCall
 
 end
 

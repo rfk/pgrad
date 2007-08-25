@@ -89,7 +89,7 @@ define
   %
 
   proc {I_BDD Args B}
-    {I_MemoCall 'bdd.bdd' Args M_BDD B}
+    {I_MemoCall 'bdd.bdd' M_BDD Args B}
   end
 
   proc {M_BDD Args B}
@@ -173,7 +173,7 @@ define
     end
   end
 
-  proc {I_MemoCall Funcname Args Proc Result}
+  proc {I_MemoCall Funcname Proc Args Result}
     M = {I_MemoGet Funcname Args}
   in
     case M of nil then {Proc Args Result}
@@ -182,7 +182,7 @@ define
     end
   end
 
-  proc {MemoCall Funcname Args Proc Result}
+  proc {MemoCall Funcname Proc Args Result}
     M = {MemoGet Funcname Args}
   in
     case M of nil then {Proc Args Result}
@@ -211,7 +211,7 @@ define
   %
 
   proc {ReplaceLeaves B TNew FNew BNew}
-    {MemoCall 'bdd.replaceleaves' [B TNew FNew] M_ReplaceLeaves BNew}
+    {MemoCall 'bdd.replaceleaves' M_ReplaceLeaves [B TNew FNew] BNew}
   end
 
   proc {M_ReplaceLeaves Args BNew}
