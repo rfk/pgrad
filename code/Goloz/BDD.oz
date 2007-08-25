@@ -42,7 +42,7 @@ functor
 
 import
 
-  MemoDict
+  ListDict
 
 export
 
@@ -133,11 +133,14 @@ define
   proc {I_MemoGet Funcname Args Res}
     ValD SyncValD ValM SyncValM MDict
   in
+    %  Get the ListDict corresponding to that funcname.
     {Dictionary.condExchange BDD_Memo Funcname nil ValD SyncValD}
-    case ValD of nil then SyncValD = [{MemoDict.new}]
-    case Val of nil then SyncVal=[_] Res=nil
-    []  [V2] then SyncVal=Val Res=[!!V2]
-    end
+    if ValD == nil then MDict = {ListDict.new} SyncValD = [MDict]
+    else SyncValD = ValD [MDict] = ValD end
+    %  Find the entry corresponding to those arguments
+    {ListDict.condExchange MDict Args nil ValM SyncValM}
+    if ValM == nil then SyncValM = [_] Res = nil
+    else [V2] = ValM in SyncValM = ValM Res=[!!V2] end
   end
 
   local IPort IStream in
@@ -153,7 +156,9 @@ define
   end
 
   proc {I_MemoSet Funcname Args Value}
-    {RDict.get BDD_Memo Funcname#Args} = [Value]
+    MDict = {Dict.get BDD_Memo Funcname}
+  in
+    {ListDict.get MDict Args} = [Value]
   end
 
   local IPort IStream in
