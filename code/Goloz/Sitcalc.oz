@@ -34,7 +34,10 @@ define
   proc {M_Uniformize Args U}
     [F] = Args
   in
-    {FOF.transform Uniformize_atom Uniformize nil F U}
+    {FOF.transform Uniformize_atom R_Uniformize nil F U}
+  end
+  proc {R_Uniformize F _ U}
+    {Uniformize F U}
   end
   proc {Uniformize_atom P _ U}
     {FOF.memoCall 'sitcalc.uniformize_atom' M_Uniformize_atom [P] U}
@@ -55,11 +58,11 @@ define
     [F A] = Args
     Rp
   in
-    {FOF.transform Regress_atom Regress [A] F Rp}
+    {FOF.transform Regress_atom Regress A F Rp}
     {FOF.simplify Rp R}
   end
-  proc {Regress_atom P [A] U}
-    U = {Domain.regress P A}
+  proc {Regress_atom P A U}
+    U = {FOF.simplify {FOF.parseRecord {Domain.regress P A}}}
   end
 
   %

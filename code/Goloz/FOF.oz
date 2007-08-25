@@ -219,8 +219,22 @@ define
     end
   end
 
-  proc {Transform Proc Fin Fout}
-    {BDD.transform Proc Fin Fout}
+  proc {Transform ProcP ProcR Args Fin Fout}
+    ITE = {Deref Fin}
+  in
+    case ITE of ite(K T F) then 
+        TF = {ProcR T Args}
+        FF = {ProcR F Args}
+       in
+        if K == p(P) then KF in
+          KF = {ProcP P Args}
+          Fout = {BDD.replaceLeaves KF TF FF}
+        else q(Q) = K QF in
+          QF = q({ProcR Q Args})
+          Fout = {BDD.BDD QF TF FF}
+        end
+    else Fout = ITE
+    end
   end
 
   %
