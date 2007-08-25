@@ -42,7 +42,7 @@ functor
 
 import
 
-  RDict
+  MemoDict
 
 export
 
@@ -126,10 +126,9 @@ define
   %  a reference to another procedure that will calculate the value if
   %  it is missing.
   %
-  %  Naturally, the arguments must all be things that can be stored in
-  %  an RDict, i.e. they must be immutable.
+  %  Naturally, the arguments must all be immutable for this to work.
   %
-  BDD_Memo = {RDict.new}
+  BDD_Memo = {MemoDict.new}
 
   proc {I_MemoGet Funcname Args Res}
     Val SyncVal
@@ -271,6 +270,7 @@ define
     end
   end
 
+  %% TODO: allow paths to be extended in the middle?
   proc {Explore_ITE B Theory Data Res}
     ResT ResT1 ResF ResF1 DOutT DOutF
     ite(K TEdge FEdge) = B
