@@ -128,13 +128,13 @@ define
   %
   %  Naturally, the arguments must all be immutable for this to work.
   %
-  BDD_Memo = {MemoDict.new}
+  BDD_Memo = {Dictionary.new}
 
   proc {I_MemoGet Funcname Args Res}
-    Val SyncVal
-    Key = Funcname#Args
+    ValD SyncValD ValM SyncValM MDict
   in
-    {RDict.condExchange BDD_Memo Key nil Val SyncVal}
+    {Dictionary.condExchange BDD_Memo Funcname nil ValD SyncValD}
+    case ValD of nil then SyncValD = [{MemoDict.new}]
     case Val of nil then SyncVal=[_] Res=nil
     []  [V2] then SyncVal=Val Res=[!!V2]
     end
