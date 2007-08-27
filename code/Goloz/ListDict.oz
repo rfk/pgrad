@@ -19,6 +19,8 @@ export
   Exchange
   CondExchange
 
+  Test
+
 define
 
   proc {New D}
@@ -74,6 +76,31 @@ define
         if {IsFree D2} then {New D2} end
         {CondExchange D2 Ts Vd Vout Vin}
     end
+  end
+
+
+  proc {Test}
+    D = {New}
+    V1 V2
+    L1 = [a b c]
+    L2 = [a c]
+  in
+    try
+      {Get D L1 V1}
+      raise testfailed(1) end
+    catch E then 
+      case E of testfailed(_) then raise E end else skip end
+    end
+    {CondGet D L1 nil nil}
+    {Put D L1 1}
+    {CondGet D L1 nil 1}
+    {Get D L1 1}
+    {Exchange D L1 1 V1}
+    {CondExchange D L2 bob bob bill}
+    {IsFree V1 true}
+    V1 = 2
+    {Get D L1 2}
+    {Get D L2 bill}
   end
 
 end

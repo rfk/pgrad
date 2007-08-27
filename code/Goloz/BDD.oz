@@ -47,12 +47,15 @@ import
 export
 
   BDD
+  Deref
   Alias
   MemoGet
   MemoSet
   MemoCall
   ReplaceLeaves
   Explore
+
+  Test
 
 define
 
@@ -94,9 +97,11 @@ define
 
   proc {M_BDD Args B}
     [Kernel TEdge FEdge] = Args
+    BTmp
   in
-    {Exchange BDD_Count B thread B+1 end}
-    {Dictionary.put BDD_Map B ite(Kernel TEdge FEdge)}
+    {Exchange BDD_Count BTmp thread BTmp+1 end}
+    {Dictionary.put BDD_Map BTmp ite(Kernel TEdge FEdge)}
+    B = BTmp  % don't bind B until it is in the dictionary, to avoid races
   end
 
   local IPort IStream in
@@ -107,7 +112,7 @@ define
       end
     end
     proc {BDD K T F Res}
-      Res = {Port.sendRecv IPort [K T F]}
+      Res = !!{Port.sendRecv IPort [K T F]}
     end
   end
 
@@ -140,7 +145,7 @@ define
     %  Find the entry corresponding to those arguments
     {ListDict.condExchange MDict Args nil ValM SyncValM}
     if ValM == nil then SyncValM = [_] Res = nil
-    else [V2] = ValM in SyncValM = ValM Res=[!!V2] end
+    else [V2] = ValM in SyncValM = ValM Res = [!!V2] end
   end
 
   local IPort IStream in
@@ -151,12 +156,12 @@ define
       end
     end
     proc {MemoGet Funcname Args Res}
-      Res = {Port.sendRecv IPort [Funcname Args]}
+      Res = !!{Port.sendRecv IPort [Funcname Args]}
     end
   end
 
   proc {I_MemoSet Funcname Args Value}
-    MDict = {Dictionary.get BDD_Memo Funcname}
+    [MDict] = {Dictionary.get BDD_Memo Funcname}
   in
     {ListDict.get MDict Args} = [Value]
   end
@@ -294,6 +299,43 @@ define
          else Res = ResF
          end
     end
+  end
+
+
+  proc {Test}
+    {Test_memo}
+    {Test_basic}
+  end
+
+  proc {Test_basic}
+    B1 B2 B3 B4
+  in
+    B1 = {BDD p(1 2) 1 0}
+    {Deref B1} = ite(p(1 2) 1 0)
+    B2 = {ReplaceLeaves B1 0 1}
+    {Deref B2} = ite(p(1 2) 0 1)
+    B2 = {ReplaceLeaves B1 0 1}
+    B2 = {ReplaceLeaves B2 1 0}
+    B1 = {ReplaceLeaves B2 0 1}
+    B3 = {BDD q(B2) B1 0}
+    B3 = 4
+    {Deref B3} = ite(q(B2) B1 0)
+    B4 = {ReplaceLeaves B3 0 1}
+    {Deref B4} = ite(q(B2) B2 1)
+  end
+
+  proc {Test_memo}
+    V1 V2 V3 V4
+    C = {Cell.new 1}
+  in
+    {MemoGet 'bdd.test_memo' [1 2 3] V1}
+    {IsFree V1 false}
+    V1 = nil
+    {MemoGet 'bdd.test_memo' [1 2 3] [V2]}
+    {IsFuture V2 true}
+    {MemoSet 'bdd.test_memo' [1 2 3] 7}
+    V2 = 7
+    {MemoGet 'bdd.test_memo' [1 2 3] [7]}
   end
 
 end

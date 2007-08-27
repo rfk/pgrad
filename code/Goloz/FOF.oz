@@ -220,16 +220,16 @@ define
   end
 
   proc {Transform ProcP ProcR Args Fin Fout}
-    ITE = {Deref Fin}
+    ITE = {BDD.deref Fin}
   in
     case ITE of ite(K T F) then 
         TF = {ProcR T Args}
         FF = {ProcR F Args}
        in
-        if K == p(P) then KF in
+        case K of p(P) then KF in
           KF = {ProcP P Args}
           Fout = {BDD.replaceLeaves KF TF FF}
-        else q(Q) = K QF in
+        [] q(Q) then QF in
           QF = q({ProcR Q Args})
           Fout = {BDD.BDD QF TF FF}
         end

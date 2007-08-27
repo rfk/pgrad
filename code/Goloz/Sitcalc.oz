@@ -76,10 +76,8 @@ define
   end
 
   proc {HoldsInit F B}
-  in
     {FOF.tautology_e F _ B}
   end
   
-
 end
 
