@@ -46,7 +46,7 @@ import
 
 export
 
-  BDD
+  bdd: BDD
   Deref
   Alias
   MemoGet
@@ -99,9 +99,14 @@ define
     [Kernel TEdge FEdge] = Args
     BTmp
   in
-    {Exchange BDD_Count BTmp thread BTmp+1 end}
-    {Dictionary.put BDD_Map BTmp ite(Kernel TEdge FEdge)}
-    B = BTmp  % don't bind B until it is in the dictionary, to avoid races
+    if TEdge == FEdge then
+      B = TEdge
+    else
+      {Exchange BDD_Count BTmp thread BTmp+1 end}
+      {Dictionary.put BDD_Map BTmp ite(Kernel TEdge FEdge)}
+      % don't bind B until it is in the dictionary, to avoid races
+      B = BTmp
+    end
   end
 
   local IPort IStream in
@@ -305,6 +310,7 @@ define
   proc {Test}
     {Test_memo}
     {Test_basic}
+    {Test_explore}
   end
 
   proc {Test_basic}
@@ -325,7 +331,7 @@ define
   end
 
   proc {Test_memo}
-    V1 V2 V3 V4
+    V1 V2 V3 V4 P
     C = {Cell.new 1}
   in
     {MemoGet 'bdd.test_memo' [1 2 3] V1}
@@ -336,6 +342,39 @@ define
     {MemoSet 'bdd.test_memo' [1 2 3] 7}
     V2 = 7
     {MemoGet 'bdd.test_memo' [1 2 3] [7]}
+    proc {P _ Res}
+      {Cell.exchange C Res thread Res+1 end}
+    end
+    {MemoCall 'bdd.test_memocall' P [4 3 2] V3}
+    {IsDet V3 true}
+    V3 = 1
+    {MemoCall 'bdd.test_memocall' P [4 3 2] V4}
+    {IsDet V4 true}
+    V4 = 1
+    2 = @C
+  end
+
+  proc {Test_explore}
+    Theory
+    B = {BDD p(a b) {BDD q(e f) 1 0} {BDD p(c d) 0 1}}
+    C = {Cell.new 0}
+  in
+    Theory = unit(
+      init: proc {$ D} D = nil#nil end
+      addNode: proc {$ K E DIn DOut Outcome}
+                 Ks#Es = DIn
+               in
+                 DOut = (K|Ks)#(E|Es)
+                 Outcome = ok
+               end
+      endPath: proc {$ L DIn DOut Outcome}
+                 DOut = DIn
+                 C := @C+1
+                 Outcome = ok
+               end
+    )
+    {Explore B Theory ok}
+    @C = 4
   end
 
 end

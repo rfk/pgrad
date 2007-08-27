@@ -81,7 +81,7 @@ define
 
   proc {Test}
     D = {New}
-    V1 V2
+    V1
     L1 = [a b c]
     L2 = [a c]
   in

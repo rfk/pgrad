@@ -12,7 +12,7 @@ define
   proc {Proc1 Res}
     choice Res = a
     []     Res = b
-    []     Res = c
+    []     Res = c 
     end
   end
 

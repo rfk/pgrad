@@ -22,6 +22,10 @@ functor
 import
 
   BDD
+  TermSet
+
+  Search
+  Browser
 
 export
 
@@ -47,6 +51,8 @@ export
   MemoGet
   MemoSet
   MemoCall
+
+  Test
 
 define
 
@@ -76,12 +82,12 @@ define
   %  the various logical operators.
   %
 
-  fun {Atom A}
-    {BDD.BDD p(A) 1 0}
+  proc {Atom A F}
+    F = {BDD.bdd p(A) 1 0}
   end
 
   fun {Natom A}
-    {BDD.BDD p(A) 0 1}
+    {BDD.bdd p(A) 0 1}
   end
 
   fun {Neg F}
@@ -105,11 +111,11 @@ define
   end
 
   fun {All F}
-    {BDD.BDD q(F) 1 0}
+    {BDD.bdd q(F) 1 0}
   end
 
   fun {Exists F}
-    {BDD.BDD q({Neg F}) 0 1}
+    {BDD.bdd q({Neg F}) 0 1}
   end
 
   %
@@ -196,14 +202,14 @@ define
   proc {ParseRecordB Rec B F}
     case Rec of true then F = 1
     []   false then F = 0
-    []   conj(...) then case {Record.toList Rec} of nil then F = 1
+    []   and(...) then case {Record.toList Rec} of nil then F = 1
                         [] H|Ts then HF = {ParseRecordB H B}
                                      M = proc {$ Q G} {ParseRecordB Q B G} end
                                      TFs = {List.map Ts M}
                                     in
                                      F = {List.foldL TFs Conj HF}
                         end
-    []   disj(...) then case {Record.toList Rec} of nil then F = 0
+    []   'or'(...) then case {Record.toList Rec} of nil then F = 0
                         [] H|Ts then HF = {ParseRecordB H B}
                                      M = proc {$ Q G} {ParseRecordB Q B G} end
                                      TFs = {List.map Ts M}
@@ -231,7 +237,7 @@ define
           Fout = {BDD.replaceLeaves KF TF FF}
         [] q(Q) then QF in
           QF = q({ProcR Q Args})
-          Fout = {BDD.BDD QF TF FF}
+          Fout = {BDD.bdd QF TF FF}
         end
     else Fout = ITE
     end
@@ -256,6 +262,48 @@ define
     F = FNew
   end
 
+  TheoryA = unit(
+
+    init: proc {$ Data}
+            Data = path(pT: {TermSet.init}
+                        pF: {TermSet.init}
+                        qT: nil qF: nil)
+          end
+
+    addNode: proc {$ K E DIn DOut Res}
+               case K of p(P) then
+                   if E == 1 then
+                       PT2 = {TermSet.put P DIn.pT} in
+                       DOut = {Record.adjoinAt DIn pT PT2}
+                       dis {TermSet.unify P DIn.pF} Res=closed
+                       [] {TermSet.noUnify P DIn.pF} Res=ok
+                       end
+                   else
+                       PF2 = {TermSet.put P DIn.pF} in
+                       DOut = {Record.adjoinAt DIn pF PF2}
+                       dis {TermSet.unify P DIn.pT} Res=closed
+                       [] {TermSet.noUnify P DIn.pT} Res=ok
+                       end
+                   end
+               [] q(Q) then
+                   if E == 1 then
+                       DOut = {Record.adjoinAt DIn qT (Q|DIn.qT)}
+                   else
+                       DOut = {Record.adjoinAt DIn qF (Q|DIn.qF)}
+                   end
+                   Res = ok
+               else DIn = DOut Res = ok
+               end
+             end
+
+    endPath: proc {$ L DIn DOut Res}
+               DIn = DOut
+               if L == 0 then Res = stop(open_0)
+               else Res = ok end
+             end
+
+  )
+
   proc {Tautology_e F Binding Result}
     Binding = {Dictionary.new}
     case F of 1 then Result=yes
@@ -265,7 +313,10 @@ define
   end
 
   fun {Tautology_a F}
-    {Tautology_e F _}
+    Res
+  in
+    Res = {Search.base.one proc {$ Res} {BDD.explore F TheoryA Res} end}
+    Res.1
   end
 
   fun {Falsehood_e F Binding}
@@ -286,6 +337,21 @@ define
   MemoGet = BDD.memoGet
   MemoSet = BDD.memoSet
   MemoCall = BDD.memoCall
+
+
+  proc {Test}
+    R1 = impl(and(impl(a b) impl(b c)) impl(a c))
+    R2 = impl(and(impl(a b) impl(b c)) impl(d c))
+    F1 F2
+    Res1 Res2
+  in
+    F1 = {ParseRecord R1}
+    Res1 = {Tautology_a F1}
+    {IsDet Res1 true} Res1=ok
+    F2 = {ParseRecord R2}
+    Res2 = {Tautology_a F2}
+    {IsDet Res2 true} Res2=stop(open_0)
+  end
 
 end
 

@@ -47,9 +47,11 @@ define
     {Searcher next(Soln)}
     case Soln of stopped then fail
     []  nil then {Proc2 Res}
-    []  [Res1] then choice Res = Res1
-                    [] {YieldAll Searcher Res}
-                    end
+% TODO: this was working but now its not - some problem with locking apparently
+%    []  [Res1] then choice Res = Res1
+%                    [] {YieldAll Searcher Res}
+%                    end
+    else {Proc1 Res}
     end
   end
 
