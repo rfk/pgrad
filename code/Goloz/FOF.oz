@@ -23,6 +23,7 @@ import
 
   BDD
   TermSet
+  QuantSet
 
   Search
   Browser
@@ -262,47 +263,77 @@ define
     F = FNew
   end
 
-  TheoryA = unit(
+  proc {Theory_init Data}
+    Data = path(pT: {TermSet.init}
+                pF: {TermSet.init}
+                qT: {QuantSet.init}
+                qF: {QuantSet.init}
+                b:  {Binding.init}
+                okLeaf: _
+                fvBind: _)
+  end
 
-    init: proc {$ Data}
-            Data = path(pT: {TermSet.init}
-                        pF: {TermSet.init}
-                        qT: nil qF: nil)
-          end
+  proc {Theory_init_taut_a D}
+    D = {Theory_init}
+    D.okLeaf = 1
+    D.fvBind = false
+  end
 
-    addNode: proc {$ K E DIn DOut Res}
-               case K of p(P) then
-                   if E == 1 then
-                       PT2 = {TermSet.put P DIn.pT} in
-                       DOut = {Record.adjoinAt DIn pT PT2}
-                       dis {TermSet.unify P DIn.pF} Res=closed
-                       [] {TermSet.noUnify P DIn.pF} Res=ok
-                       end
-                   else
-                       PF2 = {TermSet.put P DIn.pF} in
-                       DOut = {Record.adjoinAt DIn pF PF2}
-                       dis {TermSet.unify P DIn.pT} Res=closed
-                       [] {TermSet.noUnify P DIn.pT} Res=ok
-                       end
-                   end
-               [] q(Q) then
-                   if E == 1 then
-                       DOut = {Record.adjoinAt DIn qT (Q|DIn.qT)}
-                   else
-                       DOut = {Record.adjoinAt DIn qF (Q|DIn.qF)}
-                   end
-                   Res = ok
-               else DIn = DOut Res = ok
-               end
-             end
+  proc {Theory_p_addNode P E DIn DOut Res}
+    if E == 1 then
+      PT2 = {TermSet.put P DIn.pT} in
+      DOut = {Record.adjoinAt DIn pT PT2}
+      dis {TermSet.unify P DIn.pF} Res=closed
+      [] {TermSet.noUnify P DIn.pF} Res=ok
+      end
+    else
+      PF2 = {TermSet.put P DIn.pF} in
+      DOut = {Record.adjoinAt DIn pF PF2}
+      dis {TermSet.unify P DIn.pT} Res=closed
+      [] {TermSet.noUnify P DIn.pT} Res=ok
+      end
+    end
+  end
 
-    endPath: proc {$ L DIn DOut Res}
-               DIn = DOut
-               if L == 0 then Res = stop(open_0)
-               else Res = ok end
-             end
+  proc {Theory_q_addNode Q E DIn DOut Res}
+    if E == 1 then
+      QT2 = {QuantSet.put Q DIn.b DIn.qT} in
+      DOut = {Record.adjoinAt DIn qT QT2}
+    else
+      QF2 = {QuantSet.put Q DIn.b DIn.qF} in
+      DOut = {Record.adjoinAt DIn qF QF2}
+    end
+    Res = ok
+  end
 
-  )
+  proc {Theory_addNode K E DIn DOut Res}
+    case K of p(P) then
+            Pb = {Binding.bind DIn.b P} in
+            {Theory_p_addNode Pb E DIn DOut Res}
+    []  q(Q) then
+            {Theory_q_addNode Q E DIn DOut Res}
+    else DIn = DOut Res=ok
+    end
+  end
+
+  proc {Theory_endPath L DIn DOut Res}
+    if DIn.okLeaf == L then DIn=DOut Res=ok
+    else Qf Bf Sf in
+      Sf = {QuantSet.pop Qf Bf DIn.qF}
+      if Qf == nil then Qt Bt St in
+         St = {QuantSet.inst Qt Bt DIn.qT}
+         if Qt == nil then
+           DIn=DOut Res=stop(open(L))
+         else
+           DOut = {Record.adjoinList DIn [qT#St b#Bt]}
+           Res = extend(Qt)
+         end
+      else
+         DOut = {Record.adjoinList DIn [qF#Sf b#Bf]}
+         Res = extend(Qf)
+      end
+    end
+  end
 
   proc {Tautology_e F Binding Result}
     Binding = {Dictionary.new}
@@ -312,11 +343,12 @@ define
     end
   end
 
-  fun {Tautology_a F}
-    Res
+  proc {Tautology_a F Res}
+    Theory = th(init: Theory_init_taut_a
+                addNode: Theory_addNode
+                endPath: Theory_endPath)
   in
-    Res = {Search.base.one proc {$ Res} {BDD.explore F TheoryA Res} end}
-    Res.1
+    [Res] = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
   end
 
   fun {Falsehood_e F Binding}
@@ -350,7 +382,7 @@ define
     {IsDet Res1 true} Res1=ok
     F2 = {ParseRecord R2}
     Res2 = {Tautology_a F2}
-    {IsDet Res2 true} Res2=stop(open_0)
+    {IsDet Res2 true} Res2=stop(open(0))
   end
 
 end

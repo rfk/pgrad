@@ -1,6 +1,6 @@
 
 
-FUNCTORS = ListDict.ozf OpenMap.ozf LP.ozf BDD.ozf FOF.ozf Time.ozf Sitcalc.ozf Domain.ozf Agent.ozf MIndiGolog.ozf TermSet.ozf
+FUNCTORS = ListDict.ozf OpenMap.ozf LP.ozf BDD.ozf FOF.ozf Time.ozf Sitcalc.ozf Domain.ozf Agent.ozf MIndiGolog.ozf TermSet.ozf QuantSet.ozf
 
 %.ozf: %.oz
 	ozc -c $< -o $@
