@@ -347,8 +347,12 @@ define
     Theory = th(init: Theory_init_taut_a
                 addNode: Theory_addNode
                 endPath: Theory_endPath)
+    ResP
   in
-    [Res] = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
+    ResP = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
+    case ResP of [R] then Res=R
+    else Res=error
+    end
   end
 
   fun {Falsehood_e F Binding}
