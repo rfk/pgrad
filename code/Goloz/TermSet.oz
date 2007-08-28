@@ -9,14 +9,11 @@
 %  a dictionary and must use an in/out threading  approach.
 %
 %  The main procedures exported are Put which (clearly) puts a new term
-%  into the set, and Unify, which will attempt to unify a given term
-%  with an entry in the set.  It creates a choicepoint for each possible
-%  unification, or fails if no unification is possible.  This operation can
-%  bind variables within the set (and in fact this is usually its intention).
-%
-%  We also provide the procedure NoUnify, which posts constraints stating
-%  that a term must never become unified with anything in the set. This
-%  could be useful in pruning a search space, for example.
+%  into the set, and Unify.  Unify attempts to unify a given term with
+%  a term from the set.  It creates a choicepoint for each such unification
+%  that it finds possible, as well as one option where no unification
+%  is done.  To determine whether unification was performed or not,
+%  it sets a boolean output variable.
 %
 
 functor
@@ -30,14 +27,13 @@ export
   Init
   Put
   Unify
-  NoUnify
 
   Test
 
 define
 
   proc {Init TS}
-    TS = unit()
+    TS = ts()
   end
 
   proc {Put Term TSin TSout}
@@ -47,49 +43,34 @@ define
     TList
   in
     LMap1 = {Value.condSelect TSin W nil}
-    if LMap1 == nil then LMapIn=unit() TList=nil
+    if LMap1 == nil then LMapIn=lm() TList=nil
     else LMapIn=LMap1 TList={Value.condSelect LMapIn L nil} end
     LMapOut = {Record.adjoinAt LMapIn L Term|TList}
     TSout = {Record.adjoinAt TSin W LMapOut}
   end
 
-  proc {Unify Term TS}
+  proc {Unify Term TS Res}
     W = {Record.width Term}
     L = {Record.label Term}
     LMap TList
   in
     LMap = {Value.condSelect TS W nil}
-    if LMap == nil then fail end
-    TList = {Value.condSelect LMap L nil}
-    {Unify_rec Term TList}
-  end
-
-  proc {Unify_rec Term TList}
-    case TList of T|Ts then
-        dis Term = T
-        []  {Unify_rec Term Ts}
-        end
-    else fail
-    end
-  end
-
-  proc {NoUnify Term TS}
-    W = {Record.width Term}
-    L = {Record.label Term}
-    LMap TList
-  in
-    LMap = {Value.condSelect TS W nil}
-    if LMap \= nil then
+    if LMap == nil then Res=false
+    else
       TList = {Value.condSelect LMap L nil}
-      {NoUnify_rec Term TList}
+      {Unify_rec Term TList Res}
     end
   end
 
-  proc {NoUnify_rec Term TList}
+  proc {Unify_rec Term TList Res}
     case TList of T|Ts then
-        not Term = T end
-        {NoUnify_rec Term Ts}
-    else skip
+        % When skiping a potentially unifying term, post a constraint
+        % to ensure that it never unifies.  This should help prune
+        % the search space.
+        dis Term = T Res=true
+        []  not Term = T end {Unify_rec Term Ts Res}
+        end
+    else Res = false
     end
   end
 
@@ -106,10 +87,10 @@ define
     {Put a(2 3) {Put b(c d) TS1} TS2}
     {List.length TS2.2.a 2}
     {List.length TS2.2.b 1}
-    Bindings = {Search.base.all proc {$ S} S=a(_ _) {Unify S TS2} end}
+    Bindings = {Search.base.all proc {$ S} S=a(_ _) {Unify S TS2 true} end}
     {List.length Bindings 2}
     TS3 = {Put b(x y) TS2}
-    Bind2 = {Search.base.all proc {$ S} S=b(_ _) {NoUnify S TS2} {Unify S TS3} end}
+    Bind2 = {Search.base.all proc {$ S} S=b(_ _) {Unify S TS2 false} {Unify S TS3 true} end}
     Bind2 = [b(x y)]
   end
 

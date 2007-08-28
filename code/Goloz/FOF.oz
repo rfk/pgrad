@@ -6,15 +6,30 @@
 %  is currently based on shannon graphs with a simple reasoning procedure
 %  that is "complete enough" for our purposes.
 %
-%  We make the following restrictions to make reasoning easier:
+%  We use the following assumption to make reasoning easier:
 %
 %    * all functions are unique names, so unification decides equality
-%    * variables all range over finite domains
 %
-%  The interface may be treated as being side-effect free, although in
-%  actuality it isn't.  All exported procedures are wrapped up in
-%  asynchronous services so that they can be called in subordinated
-%  spaces but still do clever things with side-effects.
+%  Coupled with an "essentially propositional" domain, this gives a
+%  decision procedure for entailment in the logic.
+%
+%  The interface may be treated as being side-effect free (although in
+%  actuality it does some clever memoization and other tricks).
+%
+%  This functor exports a free variable in FOF.lang, which importing
+%  modules should instantiate with a structure describing the particular
+%  language they are proving in.  It should have the following features:
+%
+%     FOF.lang.wff:  a procedure that takes a predicate in the language,
+%                    and posts constraints ensuring that if is well formed.
+%                    For example, this might post constraints about the
+%                    domains of variables, inferring their type from their
+%                    location in the predicate.
+%
+%  This is done using a free variable rather than e.g. a cell because it
+%  affects memoization and other features of the module.  Each consumer of
+%  this module should use {Module.link} to create their own private
+%  copy.
 %
 
 functor 
@@ -30,6 +45,10 @@ import
 
 export
 
+  ParseRecord
+  Transform
+  Lang
+
   Atom
   Natom
   Neg
@@ -40,10 +59,6 @@ export
   All
   Exists
 
-  ParseRecord
-  Transform
-
-  Simplify
   Tautology_e
   Tautology_a
   Falsehood_e
@@ -76,6 +91,10 @@ define
   %              These variables are globally free in the formula, and their
   %              semantics varies depending on the type of reasoning being
   %              performed.
+  %
+  % If you use the {ParseRecord} procedure to construct your formulae, you
+  % need only worry about free variables, bound variables will be created
+  % automatically.
   %
 
   %
@@ -120,7 +139,7 @@ define
   end
 
   %
-  %  Binding:  routines for managing a stack of variable bindings using
+  %  Binding:  routines for managing a stack of variable bindings
   %  using de Bruijn indices.  Values to be pushed are simply names.
   %  When applied to a record with {bind}, terms of the form v_b(N)
   %  are replaced with the appropriate entry from the stack.
@@ -191,9 +210,16 @@ define
 
 
   %
+  %  To allow consumers to determine the language we operate on,
+  %  expose the free variable Lang
+  %
+  Lang = _
+
+  %
   %  For easier writing and manipulation of formulae, this gives us
   %  the ability to construct the shannon graph for a record term.
-  %  It also takes care of the variable indexing.
+  %  It also takes care of the variable indexing automatically (so
+  %  one uses terms like all(x p(x)) with explicit variable names.
   %
 
   proc {ParseRecord Rec F}
@@ -226,6 +252,11 @@ define
     end
   end
 
+  %
+  %  Utility procedure for transforming a FOF via an atom mapping function,
+  %  i.e. a function that maps Atoms -> FOFs and can be pushed inside all
+  %  logical operators.
+  %
   proc {Transform ProcP ProcR Args Fin Fout}
     ITE = {BDD.deref Fin}
   in
@@ -259,81 +290,92 @@ define
   %  equivalent.
   %
 
-  proc {Simplify F FNew}
-    F = FNew
-  end
-
-  proc {Theory_init Data}
-    Data = path(pT: {TermSet.init}
+  proc {Theory_init SData PData}
+    SData = state(fvBind: _)
+    PData = path(b: {Binding.init}
+                pT: {TermSet.init}
                 pF: {TermSet.init}
-                qT: {QuantSet.init}
-                qF: {QuantSet.init}
-                b:  {Binding.init}
-                okLeaf: _
-                fvBind: _)
+                qs: {QuantSet.init}
+                polarity: _)
   end
 
-  proc {Theory_init_taut_a D}
-    D = {Theory_init}
-    D.okLeaf = 1
-    D.fvBind = false
+  proc {Theory_done _}
+    skip
   end
 
-  proc {Theory_p_addNode P E DIn DOut Res}
+  proc {Theory_init_taut_a SData PData}
+    {Theory_init SData PData}
+    PData.polarity = 0
+  end
+
+  proc {Theory_p_addNode P E SDIn#SDOut PDIn#PDOut Res}
     if E == 1 then
-      PT2 = {TermSet.put P DIn.pT} in
-      DOut = {Record.adjoinAt DIn pT PT2}
-      dis {TermSet.unify P DIn.pF} Res=closed
-      [] {TermSet.noUnify P DIn.pF} Res=ok
-      end
+      PT2 = {TermSet.put P PDIn.pT}  Unifies in
+      PDOut = {Record.adjoinAt PDIn pT PT2}
+      Unifies = {TermSet.unify P PDIn.pF}
+      if Unifies then Res=closed else Res=ok end
     else
-      PF2 = {TermSet.put P DIn.pF} in
-      DOut = {Record.adjoinAt DIn pF PF2}
-      dis {TermSet.unify P DIn.pT} Res=closed
-      [] {TermSet.noUnify P DIn.pT} Res=ok
-      end
+      PF2 = {TermSet.put P PDIn.pF}  Unifies in
+      PDOut = {Record.adjoinAt PDIn pF PF2}
+      Unifies = {TermSet.unify P PDIn.pT}
+      if Unifies then Res=closed else Res=ok end
     end
+    SDIn = SDOut
   end
 
-  proc {Theory_q_addNode Q E DIn DOut Res}
+  proc {Theory_q_addNode Q E SDIn#SDOut PDIn#PDOut Res}
+    QS2
+  in
     if E == 1 then
-      QT2 = {QuantSet.put Q DIn.b DIn.qT} in
-      DOut = {Record.adjoinAt DIn qT QT2}
+      QS2 = {QuantSet.pushA PDIn.qs Q PDIn.b}
     else
-      QF2 = {QuantSet.put Q DIn.b DIn.qF} in
-      DOut = {Record.adjoinAt DIn qF QF2}
+      QS2 = {QuantSet.pushE PDIn.qs Q PDIn.b}
     end
+    PDOut = {Record.adjoinAt PDIn qs QS2}
+    SDIn = SDOut
     Res = ok
   end
 
-  proc {Theory_addNode K E DIn DOut Res}
+  proc {Theory_addNode K E SDIn#SDOut PDIn#PDOut Res}
     case K of p(P) then
-            Pb = {Binding.bind DIn.b P} in
-            {Theory_p_addNode Pb E DIn DOut Res}
+            Pb = {Binding.bind PDIn.b P} in
+            %{Lang.wff Pb}
+            {Theory_p_addNode Pb E SDIn#SDOut PDIn#PDOut Res}
     []  q(Q) then
-            {Theory_q_addNode Q E DIn DOut Res}
-    else DIn = DOut Res=ok
+            {Theory_q_addNode Q E SDIn#SDOut PDIn#PDOut Res}
+    else SDIn = SDOut PDIn = PDOut Res=ok
     end
   end
 
-  proc {Theory_endPath L DIn DOut Res}
-    if DIn.okLeaf == L then DIn=DOut Res=ok
+  proc {Theory_endPath L SDIn#SDOut PDIn#PDOut Res}
+    % Don't bother closing nodes of opposite polarity, they're irrelevant
+    if PDIn.polarity \= L then SDIn=SDOut PDIn=PDOut Res=ok
     else Qf Bf Sf in
-      Sf = {QuantSet.pop Qf Bf DIn.qF}
+      Sf = {QuantSet.popE PDIn.qs Qf Bf}
       if Qf == nil then Qt Bt St in
-         St = {QuantSet.inst Qt Bt DIn.qT}
+         St = {QuantSet.instA PDIn.qs Qt Bt}
          if Qt == nil then
-           DIn=DOut Res=stop(open(L))
+           % Cant extend path and cant close it, can only fail
+           fail
          else
-           DOut = {Record.adjoinList DIn [qT#St b#Bt]}
+           % Extended by a positively quantified subgraph, only
+           % 1-paths need to be considered.
+           PDOut = {Record.adjoinList PDIn [qs#St b#Bt polarity#1]}
            Res = extend(Qt)
          end
       else
-         DOut = {Record.adjoinList DIn [qF#Sf b#Bf]}
+         % Extended by a negatively quantified subgraph, only
+         % 0-paths need to be considered.
+         PDOut = {Record.adjoinList PDIn [qs#Sf b#Bf polarity#0]}
          Res = extend(Qf)
       end
     end
+    SDIn = SDOut
   end
+
+
+  %
+
 
   proc {Tautology_e F Binding Result}
     Binding = {Dictionary.new}
@@ -346,12 +388,13 @@ define
   proc {Tautology_a F Res}
     Theory = th(init: Theory_init_taut_a
                 addNode: Theory_addNode
-                endPath: Theory_endPath)
+                endPath: Theory_endPath
+                done: Theory_done)
     ResP
   in
     ResP = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
-    case ResP of [R] then Res=R
-    else Res=error
+    case ResP of [_] then Res=true
+    else Res=false
     end
   end
 
@@ -376,17 +419,19 @@ define
 
 
   proc {Test}
-    R1 = impl(and(impl(a b) impl(b c)) impl(a c))
-    R2 = impl(and(impl(a b) impl(b c)) impl(d c))
-    F1 F2
-    Res1 Res2
+    Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
+          impl(and(impl(a b) impl(b c)) impl(d c))
+          impl(all(x p(x)) p(a))
+          impl(all(x p(x)) q(b))]
+    Bs = [true false true false]
   in
-    F1 = {ParseRecord R1}
-    Res1 = {Tautology_a F1}
-    {IsDet Res1 true} Res1=ok
-    F2 = {ParseRecord R2}
-    Res2 = {Tautology_a F2}
-    {IsDet Res2 true} Res2=stop(open(0))
+    Lang = lang(wff: proc {$ P} skip end)
+    for F in Fs B in Bs do local T P in
+      P = {ParseRecord F}
+      T = {Tautology_a P}
+      {IsDet T true}
+      B = T
+    end end
   end
 
 end

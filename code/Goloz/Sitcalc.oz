@@ -5,7 +5,8 @@ import
 
   LP
   Domain
-  FOF
+
+  Module
 
 export
 
@@ -15,6 +16,19 @@ export
   Regress
 
 define
+
+  %
+  %  Create our private FOF reasoning module.
+  %  We delegate determination of WFF to the Domain module.
+  %
+  FOF = _
+  {Module.link ['FOF.ozf'] [FOF]}
+  FOF.lang = lang(
+    wff: proc {$ P}
+           % TODO: ensure well-formedness of predicates
+           skip
+         end
+  )
 
   %
   %  Extract the actor from a given action.

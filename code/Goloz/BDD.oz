@@ -10,26 +10,29 @@
 %  of the graph to implement a reasoning procedure.  It is expected to be
 %  a record with the following interface:
 %
-%     init(D):  Initialize and return local data for path exploration
+%     init(SD PD):  Initialize and return local state data and path data
 %
-%     addNode(K E DIn DOut Outcome):
+%     addNode(K E SDIn#SDOut PDIn#PDOut Outcome):
 %               Called when a new node is added to the current path.
 %               K is the node's kernel, E is the edge taken through
-%               the node (0 or 1), D is the path data. Outcome
-%               controls how exploration should proceed (see below).
+%               the node (0 or 1). Outcome controls how exploration
+%               should proceed (see below).
 %
-%     endPath(L DIn DOut Outcome):
+%     endPath(L SDIn#SDOut PDIn#PDOut Outcome):
 %               Called when a leaf node is encountered.  L is the
 %               leaf node found (0 or 1).
+%
+%     done(SD):  Called when exploration of the entire BDD is complete.
+%                SD will be the final state data.
 %
 %  Acceptable outcomes reported by these functions are:
 %
 %     ok:         the node was added, continue
 %     closed:     the current path has been closed
-%     stop(R):    halt exploration, return R as the result
 %     extend(B):  the current path should be extended by the given BDD
 %
-%  The final outcome will be one of ok, closed or stop(R).
+%  Of course, the procedures may also fail to indicate the exploration
+%  could not be completed. The final outcome will be either 'ok' or 'closed'.
 %
 %  This functor exports its basic procedures as asynchronous serviecs
 %  rather than vanilla procedure definitions, so that BDDs can be manipulated
@@ -258,52 +261,53 @@ define
 
   %
   %  Top-level procedure for exploring a BDD.
-  %  Initialize path data for the theory, then start exploring.
+  %  Initialize data for the theory, then start exploring.
   %
   proc {Explore B Theory Res}
-    Data = {Theory.init}
+    SDIn SDOut PData
   in
-    {Explore_path B Theory Data Res}
+    {Theory.init SDIn PData}
+    {Explore_path B Theory SDIn#SDOut PData Res}
+    {Theory.done SDOut}
   end
 
-  proc {Explore_path B Theory Data Res}
+  proc {Explore_path B Theory SDIn#SDOut PData Res}
     ITE = {Deref B}
   in
-    case ITE of ite(_ _ _) then {Explore_ITE ITE Theory Data Res}
-    else {Explore_Leaf ITE Theory Data Res}
+    case ITE of ite(_ _ _) then {Explore_ITE ITE Theory SDIn#SDOut PData Res}
+    else {Explore_Leaf ITE Theory SDIn#SDOut PData Res}
     end
   end
 
-  proc {Explore_Leaf Leaf Theory Data Res}
-    Outcome DOut
+  proc {Explore_Leaf Leaf Theory SDIn#SDOut PDIn Res}
+    Out SDOut1 PDOut
   in
     % If asked to extend, continue exploring down that path.
     % Otherwise, halt with the reported outcome.
-    {Theory.endPath Leaf Data DOut Outcome}
-    case Outcome of extend(B) then {Explore_path B Theory DOut Res} 
-    else Res = Outcome
+    {Theory.endPath Leaf SDIn#SDOut1 PDIn#PDOut Out}
+    case Out of extend(B) then {Explore_path B Theory SDOut1#SDOut PDOut Res} 
+    else Res = Out SDOut=SDOut1
     end
   end
 
   %% TODO: allow paths to be extended in the middle?
-  proc {Explore_ITE B Theory Data Res}
-    ResT ResT1 ResF ResF1 DOutT DOutF
+  proc {Explore_ITE B Theory SDIn#SDOut PDIn Res}
+    SDOut1 SDOut2 SDOut3 SDOut4
+    PDOutT PDOutF
+    ResT1 ResT ResF1 ResF
     ite(K TEdge FEdge) = B
   in
-    {Theory.addNode K 1 Data DOutT ResT1}
-    case ResT1 of closed then ResT = closed
-    else {Explore_path TEdge Theory DOutT ResT}
+    {Theory.addNode K 1 SDIn#SDOut1 PDIn#PDOutT ResT1}
+    case ResT1 of closed then ResT = closed SDOut2=SDOut1
+    else {Explore_path TEdge Theory SDOut1#SDOut2 PDOutT ResT}
     end
-    case ResT of stop(V) then Res=stop(V)
-    else {Theory.addNode K 0 Data DOutF ResF1}
-         case ResF1 of closed then ResF = closed
-         else {Explore_path FEdge Theory DOutF ResF}
-         end
-         case ResF of stop(V) then Res=stop(V)
-         []   closed then Res = ResT
-         else Res = ResF
-         end
+    {Theory.addNode K 0 SDOut2#SDOut3 PDIn#PDOutF ResF1}
+    case ResF1 of closed then ResF = closed SDOut4 = SDOut3
+    else {Explore_path FEdge Theory SDOut3#SDOut4 PDOutF ResF}
     end
+    SDOut = SDOut4
+    if ResF == closed then Res = ResT
+    else Res = ResF end
   end
 
 
@@ -360,18 +364,21 @@ define
     C = {Cell.new 0}
   in
     Theory = unit(
-      init: proc {$ D} D = nil#nil end
-      addNode: proc {$ K E DIn DOut Outcome}
-                 Ks#Es = DIn
+      init: proc {$ SD PD} SD=unit PD=nil#nil end
+      addNode: proc {$ K E SDIn#SDOut PDIn#PDOut Outcome}
+                 Ks#Es = PDIn
                in
-                 DOut = (K|Ks)#(E|Es)
+                 PDOut = (K|Ks)#(E|Es)
+                 SDOut = SDIn
                  Outcome = ok
                end
-      endPath: proc {$ L DIn DOut Outcome}
-                 DOut = DIn
+      endPath: proc {$ L SDIn#SDOut PDIn#PDOut Outcome}
+                 PDOut = PDIn
+                 SDOut = SDIn
                  C := @C+1
                  Outcome = ok
                end
+      done: proc {$ _} skip end
     )
     {Explore B Theory ok}
     @C = 4
