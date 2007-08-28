@@ -76,7 +76,7 @@ define
     case TList of T|Ts then
         % When skiping a potentially unifying term, post a constraint
         % to ensure that it never unifies with that term.
-        % This should help prune the search space.
+        % This should help eliminate redundant branches in any search.
         dis Term = T Res=true
         []  not Term = T end {Unify_rec Term Ts Res}
         end
