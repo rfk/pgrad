@@ -5,9 +5,6 @@ FUNCTORS = ListDict.ozf OpenMap.ozf LP.ozf BDD.ozf FOF.ozf Time.ozf Sitcalc.ozf 
 %.ozf: %.oz
 	ozc -c $< -o $@
 
-%.oza: %.oz
-	ozc -c $< -o $@
-
 %.exe: %.oz
 	ozc -x $< -o $@
 
@@ -18,5 +15,5 @@ test: RunTests.exe $(FUNCTORS)
 	./RunTests.exe
 
 clean:
-	rm -rf *.ozf *.oza *.exe goloz
+	rm -rf *.ozf *.exe goloz
 

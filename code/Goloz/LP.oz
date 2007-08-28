@@ -9,14 +9,17 @@ functor
 import
 
   Search
+  Space
 
 export
 
-  neg: Neg
-  ifNot: IfNot
-  member: Member
-  union: Union
-  subInTerm: SubInTerm
+  Neg
+  IfNot
+  Member
+  Union
+  SubInTerm
+  TermEq
+  Test
 
 define
 
@@ -121,6 +124,36 @@ define
     {ForAll Fields proc {$ F}
                      {SubInTerm VOld VNew RIn.F ROut.F}
                    end}
+  end
+
+
+  %
+  %  Check for structural equality between terms without blocking.
+  %  This is similar to the == predicate in prolog i.e. it treats
+  %  different variables as unequal.
+  %
+  proc {TermEq T1 T2 B}
+    TestProc = proc {$ _}  if (T1 == T2) then skip else fail end end
+    TestSpace = {Space.new TestProc}
+  in
+    case {Space.askVerbose TestSpace} of failed then B=false
+    []   suspended(_) then B=false
+    []   succeeded(_) then B=true
+    else raise termEqFailed end
+    end
+  end
+
+
+  proc {Test}
+    V1 V2
+  in
+    {TermEq a a true}
+    {TermEq a b false}
+    {TermEq t(V1 V2) t(V1 V2) true}
+    {TermEq t(V1 V2) t(V1 V1) false}
+    {TermEq t(V1 V2) t(b V2) false}
+    {TermEq V1 V1 true}
+    {TermEq V2 V1 false}
   end
 
 end

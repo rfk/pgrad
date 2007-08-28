@@ -40,7 +40,7 @@ define
   end
 
   %
-  %  Flatten defined fluents according to their defnitions in the domain
+  %  Flatten defined fluents according to their definitions in the domain
   %
   proc {Uniformize F U}
     {FOF.memoCall 'sitcalc.uniformize' M_Uniformize [F] U}
@@ -76,7 +76,11 @@ define
     {FOF.simplify Rp R}
   end
   proc {Regress_atom P A U}
-    U = {FOF.simplify {FOF.parseRecord {Domain.regress P A}}}
+    EpsP EpsN
+  in
+    EpsP = {Domain.causes_true A P}
+    EpsN = {Domain.causes_false A P}
+    U = {FOF.simplify {FOF.parseRecord 'or'(EpsP and(P neg(EpsN)))}}
   end
 
   %
