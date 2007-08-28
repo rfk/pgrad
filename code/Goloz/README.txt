@@ -17,9 +17,16 @@ of the following files:
   BDD.oz:   A generic library for handling and exploring BDD-like structures.
             Includes memoization.
 
+  TermSet.oz:  Implements a set of terms (records) with the ability to
+               unify a term against members from the set with sensible
+               efficiency.
+
+  QuantSet.oz:  Implements a set of quantified formulae, including routines
+                for instantiating them and managing variable bindings.
+
   FOF.oz:   Implements almost-first-order formulae that are suitable to our
             needs, including a complete inference procedure.  This is *not*
-            a full first-order theorem prover, but close enough.
+            a full first-order theorem prover, but it's pretty close.
 
   Time.oz:  Implements time-points as an abstract data type.  At the moment,
             they're simply integers.
