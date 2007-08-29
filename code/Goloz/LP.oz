@@ -19,6 +19,8 @@ export
   Union
   SubInTerm
   TermEq
+  TermDiff
+  TermDiffP
   Test
 
 define
@@ -140,6 +142,43 @@ define
     []   suspended(_) then B=false
     []   succeeded(_) then B=true
     else raise termEqFailed end
+    end
+  end
+
+  %
+  %  List the differences between two terms.
+  %  The output is a list of pairs D1#D2 where D1 is a term within
+  %  Term1, and D2 is a *different* term from the same location within
+  %  Term2.  If the output list is empty, the terms are identical.
+  %
+  %  In the extended version {TermDiffP}, Atomic is a
+  %  predicate that determines whether a given term should
+  %  be treated as atomic i.e. not descended into.
+  %
+  proc {TermDiff Term1 Term2 Diffs}
+    Atomic = proc {$ T B}
+      {IsFree T B}
+    end
+  in
+    {TermDiffP Term1 Term2 Atomic Diffs}
+  end
+
+  proc {TermDiffP Term1 Term2 Atomic Diffs}
+    if {Atomic Term1} orelse {Atomic Term2} then
+      if {TermEq Term1 Term2} then
+        Diffs = nil
+      else
+        Diffs = [Term1#Term2]
+      end
+    else
+      if {Record.label Term1} == {Record.label Term2} andthen
+      {Record.width Term1} == {Record.width Term2} then DiffList in
+          {List.zip {Record.toList Term1} {Record.toList Term2}
+                    proc {$ T1 T2 R} {TermDiffP T1 T2 Atomic R} end DiffList}
+          Diffs = {List.flatten DiffList}
+      else
+        Diffs = [Term1#Term2]
+      end
     end
   end
 

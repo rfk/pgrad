@@ -36,7 +36,7 @@ define
   proc {Init QS}
     % The E formulae are simply stored on a list, since they can only
     % be used once.  The A formulae are stored on a queue so they are
-    % selected fairly.
+    % selected fairly (round robin).
     QS = qs( e: nil
              a: a(head:nil tail:nil))
   end
@@ -56,13 +56,20 @@ define
   end
 
   proc {PopE QSIn Q B QSOut}
-    case QSIn.e of QH|QHs then BOld in
+    case QSIn.e of QH|QHs then BOld Nm V in
         (Q#BOld) = QH
         QSOut = {Record.adjoinAt QSIn e QHs}
-        B = _|BOld
-        % TODO: needs to be a new name, not a free variable
-        % TODO: constraint any previously-introduced free vars not to unify
-        %       with it, or we'll be unsound!
+        % We're relying on the receiving code to give the variable a new name
+        B = v_e(Nm V)|BOld
+        % To maintain soundness, none of the free variables on this path
+        % can be allowed to unify with this new variable (since they 
+        % universally quantify over it
+        % TODO: confirm these semantics
+        for Vf in BOld do
+          if {IsFree Vf} then
+              not Vf = v_e(Nm V) end
+          end
+        end
     else 
         QSOut=QSIn Q=nil B=nil
     end

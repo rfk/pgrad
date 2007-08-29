@@ -36,12 +36,14 @@ functor
 
 import
 
+  LP
   BDD
   TermSet
   QuantSet
+  EQSet
 
   Search
-  Browser
+  System
 
 export
 
@@ -87,14 +89,18 @@ define
   %             We use de Bruijn indexing for bound variables to avoid
   %             having to rename them, and improve structure sharing.
   %
-  %    * v_f(Nm) is a free variable, where Nm is an atom naming the variable.
-  %              These variables are globally free in the formula, and their
-  %              semantics varies depending on the type of reasoning being
-  %              performed.
+  %    * v_e(Nm,V) is an free existentially-quantified variable. Nm is
+  %                a (globally unique) name for the variable, and V is
+  %                a free Oz variable used to constrain its possible values.
+  %                This setup avoids accidentally unifying V with another
+  %                term during proof search.
   %
   % If you use the {ParseRecord} procedure to construct your formulae, you
   % need only worry about free variables, bound variables will be created
   % automatically.
+  %
+  % We use terms of the for v_e(skv(N),V) for skolem variables internally.
+  % Dont name your free variables like this unless you want to break things.
   %
 
   %
@@ -291,12 +297,14 @@ define
   %
 
   proc {Theory_init SData PData}
-    SData = state(fvBind: _)
+    SData = state(fvBind: _
+                  skvNum: 0)
     PData = path(b: {Binding.init}
                 pT: {TermSet.init}
                 pF: {TermSet.init}
                 qs: {QuantSet.init}
                 polarity: _)
+    {System.show init()}
   end
 
   proc {Theory_done _}
@@ -336,15 +344,95 @@ define
     Res = ok
   end
 
+  proc {Theory_eq_addNode T1 T2 E SDIn#SDOut PDIn#PDOut Res}
+    Diffs
+  in
+    % We need to take care that we don't accidentally bind, or
+    % assume a particular binding for, v_e terms.  Instead, we
+    % assert constraints on their values for the path to be consistent.
+    % These constraints should be periodically checked to ensure
+    % it's still possible to give a value to that variable.
+    % 
+    % We proceed by finding all the places where the terms differ.
+    % If one side of such a diff is a v_e term, we can put that in
+    % the constraints.
+    Diffs = {LP.termDiffP T1 T2 Theory_eq_diffAtomic}
+    if E == 1 then
+        {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
+    else EQOut in
+        dis T1=T2 SDIn=SDOut PDIn=PDOut Res=closed
+        [] not Diffs = nil end
+           EQOut = {EQSet.addF PDIn.eqs {List.map Diffs StripVE}}
+           PDOut = {Record.adjoinAt PDIn eqs EQOut}
+           SDIn=SDOut Res=ok
+        end
+    end
+  end
+
+  fun {Theory_eq_diffAtomic T}
+    {IsFree T} orelse {Record.label T} == v_e
+  end
+
+  proc {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
+    % We can close a true eq() node by asserting that any particular
+    % pair from Diffs fails to unify. Alternately, we can assert that
+    % they all unify and leave the path open.  Only one thing to watch
+    % out for - we cannot assert non-unification on v_e terms.
+    case Diffs of D1#D2|Ds then EQOut C in
+      case D1 of v_e(_ VE1) then VE2 in
+        case D2 of v_e(_ VE2p) then VE2=VE2p
+        else VE2 = D2 end
+        try
+          EQOut = {EQSet.addT PDIn.eqs VE1#VE2} C=true
+        catch _ then C=false end
+        if C then PDOut1 in
+          PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
+          {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
+        else SDIn=SDOut PDIn=PDOut Res=closed end
+      else
+        case D2 of v_e(_ VE2) then
+          try
+            EQOut = {EQSet.addT PDIn.eqs D1#VE2} C=true
+          catch _ then C=false end
+          if C then PDOut1 in
+            PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
+            {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
+          else SDIn=SDOut PDIn=PDOut Res=closed end
+        else
+          dis not D1=D2 end SDIn=SDOut PDIn=PDOut Res=closed
+          []  D1=D2  {Theory_eq_closeT Ds SDIn#SDOut PDIn#PDOut Res}
+          end
+        end
+      end
+    else SDIn=SDOut PDIn=PDOut Res=ok end
+  end
+
+  proc {StripVE TIn TOut}
+    if {IsFree TIn} then TOut = TIn
+    else
+      case TIn of v_e(_ V) then TOut = V
+      else
+        TOut = {Record.map TIn StripVE}
+      end
+    end
+  end
+
   proc {Theory_addNode K E SDIn#SDOut PDIn#PDOut Res}
     case K of p(P) then
             Pb = {Binding.bind PDIn.b P} in
+            % TODO: strip v_e terms down to pure variables when
+            % sending them off for checking
             %{Lang.wff Pb}
-            {Theory_p_addNode Pb E SDIn#SDOut PDIn#PDOut Res}
+            case Pb of eq(T1 T2) then
+              {Theory_eq_addNode T1 T2 E SDIn#SDOut PDIn#PDOut Res}
+            else
+              {Theory_p_addNode Pb E SDIn#SDOut PDIn#PDOut Res}
+            end
     []  q(Q) then
             {Theory_q_addNode Q E SDIn#SDOut PDIn#PDOut Res}
     else SDIn = SDOut PDIn = PDOut Res=ok
     end
+    {System.show addNode(K E Res PDOut)}
   end
 
   proc {Theory_endPath L SDIn#SDOut PDIn#PDOut Res}
@@ -356,6 +444,7 @@ define
          St = {QuantSet.instA PDIn.qs Qt Bt}
          if Qt == nil then
            % Cant extend path and cant close it, can only fail
+           {System.show endPath(L SDIn failed)}
            fail
          else
            % Extended by a positively quantified subgraph, only
@@ -363,14 +452,18 @@ define
            PDOut = {Record.adjoinList PDIn [qs#St b#Bt polarity#1]}
            Res = extend(Qt)
          end
+         SDIn = SDOut
       else
+         % Generate a new unique name for the introduced variable
+         Bf = v_e(skv(SDIn.skvNum) _)|_
+         SDOut = {Record.adjoinAt SDIn skvNum SDIn.skvNum+1}
          % Extended by a negatively quantified subgraph, only
          % 0-paths need to be considered.
          PDOut = {Record.adjoinList PDIn [qs#Sf b#Bf polarity#0]}
          Res = extend(Qf)
       end
     end
-    SDIn = SDOut
+    {System.show endPath(L Res SDOut)}
   end
 
 
@@ -422,8 +515,10 @@ define
     Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
           impl(and(impl(a b) impl(b c)) impl(d c))
           impl(all(x p(x)) p(a))
-          impl(all(x p(x)) q(b))]
-    Bs = [true false true false]
+          impl(all(x p(x)) q(b))
+          impl(p(a) exists(x p(x)))
+          impl(exists(x p(x)) all(x p(x)))]
+    Bs = [true false true false true false]
   in
     Lang = lang(wff: proc {$ P} skip end)
     for F in Fs B in Bs do local T P in

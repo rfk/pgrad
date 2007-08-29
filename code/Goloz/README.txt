@@ -24,6 +24,10 @@ of the following files:
   QuantSet.oz:  Implements a set of quantified formulae, including routines
                 for instantiating them and managing variable bindings.
 
+  EQSet.oz:  Implements a set of equalities and inequalities between terms.
+             Allows for consistency checking, and posting corresponding
+             constraints.
+
   FOF.oz:   Implements almost-first-order formulae that are suitable to our
             needs, including a complete inference procedure.  This is *not*
             a full first-order theorem prover, but it's pretty close.

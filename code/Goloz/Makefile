@@ -1,6 +1,6 @@
 
 
-FUNCTORS = ListDict.ozf OpenMap.ozf LP.ozf BDD.ozf FOF.ozf Time.ozf Sitcalc.ozf Domain.ozf Agent.ozf MIndiGolog.ozf TermSet.ozf QuantSet.ozf
+FUNCTORS = ListDict.ozf OpenMap.ozf LP.ozf BDD.ozf FOF.ozf Time.ozf Sitcalc.ozf Domain.ozf Agent.ozf MIndiGolog.ozf TermSet.ozf QuantSet.ozf EQSet.ozf
 
 %.ozf: %.oz
 	ozc -c $< -o $@
@@ -16,4 +16,7 @@ test: RunTests.exe $(FUNCTORS)
 
 clean:
 	rm -rf *.ozf *.exe goloz
+
+todo:
+	grep 'TODO' *.*
 

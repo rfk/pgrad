@@ -31,7 +31,7 @@
 %     closed:     the current path has been closed
 %     extend(B):  the current path should be extended by the given BDD
 %
-%  Of course, the procedures may also fail to indicate the exploration
+%  Of course the procedures may also fail, indicating that the exploration
 %  could not be completed. The final outcome will be either 'ok' or 'closed'.
 %
 %  This functor exports its basic procedures as asynchronous serviecs
@@ -51,7 +51,6 @@ export
 
   bdd: BDD
   Deref
-  Alias
   MemoGet
   MemoSet
   MemoCall
@@ -73,15 +72,9 @@ define
   %
   %  Each BDD is identified by an integer which is treated
   %  as a pointer.  The BDD_Map dictionary derefs the pointers
-  %  to give either:
+  %  to give a BDD.
   %
-  %   * a BDD
-  %   * a term alias(BDD_ID)
-  %
-  %  The function Deref follows aliases to give the proper
-  %  representation of a BDD. BDD_Count maintains the next
-  %  free pointer value.
-  %  
+  %  BDD_Count maintains the next free pointer value.
   %
   BDD_Count = {NewCell 2}
   BDD_Map = {Dictionary.new}
@@ -209,12 +202,7 @@ define
   %  Returns one of 0, 1 or ite(K T F).
   %
   proc {Deref B ITE}
-    Val
-  in
-    Val = {Dictionary.get BDD_Map B}
-    case Val of alias(B2) then ITE = {Deref B2}
-    else ITE = Val
-    end
+    ITE = {Dictionary.get BDD_Map B}
   end
 
   %
@@ -239,25 +227,6 @@ define
     end
   end
 
-  %
-  %  Mark B1 as an alias of B2.  You would typically do this if
-  %  B2 is equivalent to B1 but simpler.
-  %
-  proc {I_Alias B1 B2}
-    {Dictionary.put BDD_Map B1 alias(B2)}
-  end
-
-  local IPort IStream in
-    IPort = {Port.new IStream}
-    thread
-      for [B1 B2]#Res in IStream do
-        thread {I_Alias B1 B2} Res=unit end
-      end
-    end
-    proc {Alias B1 B2}
-      _ = {Port.sendRecv IPort [B1 B2]}
-    end
-  end
 
   %
   %  Top-level procedure for exploring a BDD.
@@ -290,7 +259,6 @@ define
     end
   end
 
-  %% TODO: allow paths to be extended in the middle?
   proc {Explore_ITE B Theory SDIn#SDOut PDIn Res}
     SDOut1 SDOut2 SDOut3 SDOut4
     PDOutT PDOutF
