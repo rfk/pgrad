@@ -89,17 +89,18 @@ define
   %             We use de Bruijn indexing for bound variables to avoid
   %             having to rename them, and improve structure sharing.
   %
-  %    * v_e(Nm,V) is an free existentially-quantified variable. Nm is
-  %                a (globally unique) name for the variable, and V is
-  %                a free Oz variable used to constrain its possible values.
-  %                This setup avoids accidentally unifying V with another
-  %                term during proof search.
+  %    * v_e(Nm) is an free existentially-quantified variable. Nm is
+  %              a (globally unique) name for the variable.  These are
+  %              internally translated into the form v_e(Nm V) during
+  %              proof search, where V is a free Oz variable used to
+  %              constrint the values tekn by the variable.  This setup
+  %              avoid accidentally binding V during the search.
   %
   % If you use the {ParseRecord} procedure to construct your formulae, you
   % need only worry about free variables, bound variables will be created
   % automatically.
   %
-  % We use terms of the for v_e(skv(N),V) for skolem variables internally.
+  % We use terms of the form v_e(skv(N)) for skolem variables internally.
   % Dont name your free variables like this unless you want to break things.
   %
 
@@ -297,7 +298,8 @@ define
   %
 
   proc {Theory_init SData PData}
-    SData = state(fvBind: _
+    SData = state(fvBind: fvb
+                  fvMode: _
                   skvNum: 0)
     PData = path(b: {Binding.init}
                 pT: {TermSet.init}
@@ -308,11 +310,30 @@ define
   end
 
   proc {Theory_done _}
-    skip
+    {System.show done()}
   end
 
   proc {Theory_init_taut_a SData PData}
     {Theory_init SData PData}
+    SData.fvMode = e
+    PData.polarity = 0
+  end
+
+  proc {Theory_init_taut_e SData PData}
+    {Theory_init SData PData}
+    SData.fvMode = a
+    PData.polarity = 0
+  end
+
+  proc {Theory_init_false_a SData PData}
+    {Theory_init SData PData}
+    SData.fvMode = e
+    PData.polarity = 0
+  end
+
+  proc {Theory_init_false_e SData PData}
+    {Theory_init SData PData}
+    SData.fvMode = a
     PData.polarity = 0
   end
 
@@ -356,6 +377,7 @@ define
     % We proceed by finding all the places where the terms differ.
     % If one side of such a diff is a v_e term, we can put that in
     % the constraints.
+    %
     Diffs = {LP.termDiffP T1 T2 Theory_eq_diffAtomic}
     if E == 1 then
         {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
@@ -363,8 +385,12 @@ define
         dis T1=T2 SDIn=SDOut PDIn=PDOut Res=closed
         [] not Diffs = nil end
            EQOut = {EQSet.addF PDIn.eqs {List.map Diffs StripVE}}
-           PDOut = {Record.adjoinAt PDIn eqs EQOut}
-           SDIn=SDOut Res=ok
+           if {EQSet.consistent EQOut} then
+             PDOut = {Record.adjoinAt PDIn eqs EQOut}
+             SDIn=SDOut Res=ok
+           else
+             PDOut=PDIn SDOut=SDIn Res=closed
+           end
         end
     end
   end
@@ -378,33 +404,30 @@ define
     % pair from Diffs fails to unify. Alternately, we can assert that
     % they all unify and leave the path open.  Only one thing to watch
     % out for - we cannot assert non-unification on v_e terms.
-    case Diffs of D1#D2|Ds then EQOut C in
+    case Diffs of D1#D2|Ds then EQOut PDOut1 in
       case D1 of v_e(_ VE1) then VE2 in
         case D2 of v_e(_ VE2p) then VE2=VE2p
         else VE2 = D2 end
-        try
-          EQOut = {EQSet.addT PDIn.eqs VE1#VE2} C=true
-        catch _ then C=false end
-        if C then PDOut1 in
-          PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
-          {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
-        else SDIn=SDOut PDIn=PDOut Res=closed end
+        EQOut = {EQSet.addT PDIn.eqs VE1#VE2}
+        PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
+        {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
       else
         case D2 of v_e(_ VE2) then
-          try
-            EQOut = {EQSet.addT PDIn.eqs D1#VE2} C=true
-          catch _ then C=false end
-          if C then PDOut1 in
-            PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
-            {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
-          else SDIn=SDOut PDIn=PDOut Res=closed end
+          EQOut = {EQSet.addT PDIn.eqs D1#VE2}
+          PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
+          {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
         else
           dis not D1=D2 end SDIn=SDOut PDIn=PDOut Res=closed
           []  D1=D2  {Theory_eq_closeT Ds SDIn#SDOut PDIn#PDOut Res}
           end
         end
       end
-    else SDIn=SDOut PDIn=PDOut Res=ok end
+    else if {EQSet.consistent PDIn.eqs} then
+           SDIn=SDOut PDIn=PDOut Res=ok
+         else
+           SDIn=SDOut PDIn=PDOut Res=closed
+         end
+    end
   end
 
   proc {StripVE TIn TOut}
@@ -417,16 +440,35 @@ define
     end
   end
 
+  proc {BindVE TIn Binding Mode TOut}
+    if {IsFree} TIn then TOut=TIn
+    else
+      case TIn of v_e(Nm) then
+        if {Not {Record.hasFeature Binding Nm}} then
+          if Mode == a then Binding.Nm = v_e(Nm,_)
+          else Binding.Nm = _ end
+        end
+        TOut = Binding.Nm
+      else
+        TOut = {Record.map TIn fun {$ T} {BindVE T Binding Mode} end}
+      end
+    end
+  end
+
   proc {Theory_addNode K E SDIn#SDOut PDIn#PDOut Res}
-    case K of p(P) then
-            Pb = {Binding.bind PDIn.b P} in
-            % TODO: strip v_e terms down to pure variables when
-            % sending them off for checking
-            %{Lang.wff Pb}
-            case Pb of eq(T1 T2) then
+    case K of p(P) then Pb Pe in
+            % Transform the predicate into proving form.
+            % First, apply the current bindings to bound vars.
+            Pb = {Binding.bind PDIn.b P}
+            % Then, bind e-vars according to operating mode.
+            Pe = {BindVE Pb SDIn.fvBind SDIn.fvMode}
+            % Strip v_e terms down to their representative variable
+            % when sending them off for type constraints.
+            {Lang.wff {StripVE Pe}}
+            case Pe of eq(T1 T2) then
               {Theory_eq_addNode T1 T2 E SDIn#SDOut PDIn#PDOut Res}
             else
-              {Theory_p_addNode Pb E SDIn#SDOut PDIn#PDOut Res}
+              {Theory_p_addNode Pe E SDIn#SDOut PDIn#PDOut Res}
             end
     []  q(Q) then
             {Theory_q_addNode Q E SDIn#SDOut PDIn#PDOut Res}
@@ -438,6 +480,9 @@ define
   proc {Theory_endPath L SDIn#SDOut PDIn#PDOut Res}
     % Don't bother closing nodes of opposite polarity, they're irrelevant
     if PDIn.polarity \= L then SDIn=SDOut PDIn=PDOut Res=ok
+    % e-inconsistent paths can be immediately closed
+    elseif {Not {Theory_e_consistent SDIn PDIn}} then
+      skip
     else Qf Bf Sf in
       Sf = {QuantSet.popE PDIn.qs Qf Bf}
       if Qf == nil then Qt Bt St in
