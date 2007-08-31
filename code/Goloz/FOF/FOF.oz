@@ -42,6 +42,7 @@ functor
 import
 
   LP at '../LP.ozf'
+  Memo at '../Memo/Memo.ozf'
   BDD
   Binding
   TermSet
@@ -56,6 +57,7 @@ export
 
   ParseRecord
   Transform
+  Transformation
   Lang
 
   Atom
@@ -199,6 +201,10 @@ define
   %  i.e. a function that maps Atoms -> FOFs and can be pushed inside all
   %  logical operators.
   %
+  %  ProcP:  procedure to transform a single atom
+  %  ProcR:  recursive call to transform an entire FOF
+  %  Args:   additional arguments to the transformation
+  %
   proc {Transform ProcP ProcR Args Fin Fout}
     ITE = {BDD.deref Fin}
   in
@@ -214,6 +220,44 @@ define
           Fout = {BDD.bdd QF TF FF}
         end
     else Fout = ITE
+    end
+  end
+
+  %
+  %  Produce a function that will transform a FOF by calling
+  %  the given procedure Proc on each kernel.
+  %
+  proc {Transformation FName Proc Trans}
+   M_Trans R_Trans R_Proc
+  in
+    case {Procedure.arity Proc} of 2 then
+          proc {Trans F T}
+            {Memo.memoCall FName M_Trans [F] T}
+          end
+          proc {M_Trans Args T}
+            [F] = Args
+          in
+            {Transform R_Proc R_Trans nil F T}
+          end
+          proc {R_Proc F _ T}
+            {Proc F T}
+          end
+          proc {R_Trans F _ T}
+            {Trans F T}
+          end
+    []  3 then
+          proc {Trans F A T}
+            {Memo.memoCall FName M_Trans [F A] T}
+          end
+          proc {M_Trans Args T}
+            [F A] = Args
+          in
+            {Transform Proc R_Trans A F T}
+          end
+          proc {R_Trans F A T}
+            {Trans F A T}
+          end
+    else fail
     end
   end
 

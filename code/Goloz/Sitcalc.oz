@@ -15,6 +15,8 @@ export
   Uniformize
   Regress
 
+  Ex
+
 define
 
   %
@@ -26,6 +28,10 @@ define
   FOF.lang = lang(
     wff: proc {$ P}
            % TODO: ensure well-formedness of predicates
+           skip
+         end
+    assign: proc {$ Vs}
+           % TODO: assign values to free variables
            skip
          end
   )
@@ -42,39 +48,15 @@ define
   %
   %  Flatten defined fluents according to their definitions in the domain
   %
-  proc {Uniformize F U}
-    {FOF.memoCall 'sitcalc.uniformize' M_Uniformize [F] U}
-  end
-  proc {M_Uniformize Args U}
-    [F] = Args
-  in
-    {FOF.transform Uniformize_atom R_Uniformize nil F U}
-  end
-  proc {R_Uniformize F _ U}
-    {Uniformize F U}
-  end
-  proc {Uniformize_atom P _ U}
-    {FOF.memoCall 'sitcalc.uniformize_atom' M_Uniformize_atom [P] U}
-  end
-  proc {M_Uniformize_atom Args U}
-    [P] = Args
-  in
+  Uniformize = {FOF.transformation 'sitcalc.uniformize' Uniformize_atom}
+  proc {Uniformize_atom P U}
     U = {FOF.atom P}
   end
 
   %
   %  Regress the formula over the given action.
   %
-  proc {Regress F A R}
-    {FOF.memoCall 'sitcalc.regress' M_Regress [F A] R}
-  end
-  proc {M_Regress Args R}
-    [F A] = Args
-    Rp
-  in
-    {FOF.transform Regress_atom Regress A F Rp}
-    {FOF.simplify Rp R}
-  end
+  Regress = {FOF.transformation 'sitcalc.regress' Regress_atom}
   proc {Regress_atom P A U}
     EpsP EpsN
   in
@@ -96,6 +78,47 @@ define
   proc {HoldsInit F B}
     {FOF.tautology_e F _ B}
   end
+
+  
+  %
+  %  Procedures for dealing with executions.
+  %  An execution is like a situation with some extra meta-data attached.
+  %
+  Ex = ex(
+
+    init: proc {$ S E}
+            E=ex(nil S)
+          end
+
+    append: proc {$ EIn R EOut}
+              ex(Rs S) = EIn
+              Test = {Value.condSelect R test true}
+              Act = {Value.condSelect R action nil}
+              Thred = {Value.condSelect R thred nil}
+            in
+              EOut = ex(r(test:Test action:Act thred:Thred)|Rs S)
+            end
+
+    addtest: proc {$ EIn C EOut}
+               ex(Run S) = EIn
+             in
+               case Run of R|Rs then Rp in
+                  Rp = {Record.adjoinAt R test and(C R.test)}
+                  EOut = ex(Rp|Rs S)
+               else
+                  EOut = {Ex.append EIn r(test: C)}
+               end
+             end
+
+    addthred: proc {$ EIn T EOut}
+                ex(Run S) = EIn
+              in
+                case Run of R|Rs then Rp in
+                  Rp = {Record.adjoinAt R thred T|R.thred}
+                  EOut = ex(Rp|Rs S)
+                else EIn = EOut end
+              end
+  )
   
 end
 

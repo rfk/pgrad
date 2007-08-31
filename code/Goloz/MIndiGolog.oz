@@ -42,7 +42,7 @@ define
     []  test(Cond) then
           {HoldsEx Cond E}
           Dp = nil
-          Ep = {Sitcalc.ex.append ex(test:Cond action:nil) E}
+          Ep = {Sitcalc.ex.append E r(test:Cond)}
     []  seq(D1 D2) then
           dis D1p in {Trans D1 E D1p Ep}
               Dp = seq(D1p D2)
@@ -63,7 +63,7 @@ define
             {Trans D E D2 Ep}
             Dp = seq(D2 star(D1))
           end
-    []  ifte(Cond D1 D2) then Ep2
+    []  ifte(Cond D1 D2) then Ep2 in
           dis
               {HoldsEx Cond E}
               {Trans D1 E Dp Ep2}
@@ -83,11 +83,11 @@ define
           dis D1p E1p in
               {Trans D1 E D1p E1p}
               Dp = conc(D1p D2)
-              Ep = {Sitcalc.ex.thred 1 E1p}
+              Ep = {Sitcalc.ex.addthred 1 E1p}
           []  D2p E2p in
               {Trans D2 E D2p E2p}
               Dp = conc(D1 D2p)
-              Ep = {Sitcalc.ex.thred 2 E2p}
+              Ep = {Sitcalc.ex.addthred 2 E2p}
           end
     []  pconc(D1 D2) then Res in
           % Use LP.ifNot to avoid re-computation on D1
@@ -114,27 +114,28 @@ define
     else local Act in 
           Act = D
           Dp = nil
-          Ep = {Sitcalc.ex.append ex(test:true action:Act) E}
+          Ep = {Sitcalc.ex.append r(action:Act) E}
          end
     end
   end
 
   proc {Final D E}
-  case D of
-      nil then skip
-  []  seq(D1 D2) then {Final D1 E} {Final D2 E}
-  []  either(D1 D2) then dis {Final D1 E} [] {Final D2 E} end
-  []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
-  []  star(_) then skip
-  []  ifte(Cond D1 D2) then
+   case D of
+       nil then skip
+   []  seq(D1 D2) then {Final D1 E} {Final D2 E}
+   []  either(D1 D2) then dis {Final D1 E} [] {Final D2 E} end
+   []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
+   []  star(_) then skip
+   []  ifte(Cond D1 D2) then
                dis  {HoldsEx Cond E} {Final D1 E}
                []   {HoldsEx neg(Cond) E} {Final D2 E}
                end
-  []  wloop(Cond D1) then dis {HoldsEx neg(Cond) E} [] {Final D1 E} end
-  []  conc(D1 D2) then {Final D1 E} {Final D2 E}
-  []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
-  []  cstar(_) then skip
-  []  pcall(D1) then local Body in {Program.procDef D1 Body} {Final Body E} end
+   []  wloop(Cond D1) then dis {HoldsEx neg(Cond) E} [] {Final D1 E} end
+   []  conc(D1 D2) then {Final D1 E} {Final D2 E}
+   []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
+   []  cstar(_) then skip
+   []  pcall(D1) then local Body in {Program.procDef D1 Body} {Final Body E} end
+   end
   end
 
 
