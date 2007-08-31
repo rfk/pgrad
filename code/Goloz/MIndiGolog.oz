@@ -1,8 +1,12 @@
 %
-%  Goloz.oz
+%  MIndiGolog.oz:  implementation of MIndiGolog semantics
 %
-%  Top-level implementation of MIndiGolog semantics in Oz.  We operate
-%  over 'executions' rather than situations, which encode more information.
+%  This functor implements the MIndiGolog semantics as a pair of
+%  procedures Trans() and Final().  Rather than operating over ordinary
+%  situation terms, they operate over executions and keep some additional
+%  bookkeeping information.
+%
+%  To support
 %
 
 functor 
@@ -13,7 +17,16 @@ import
   Program
   Sitcalc
 
+export
+
+  HoldsEx
+  Trans
+  Final
+  MakePlan
+
 define
+
+  HoldsEx = _
 
   %
   %  Trans(D,E,Dp,Ep)
@@ -27,7 +40,7 @@ define
     case D of 
         nil then fail
     []  test(Cond) then
-          {Sitcalc.ex.holds.yes Cond E}
+          {HoldsEx Cond E}
           Dp = nil
           Ep = {Sitcalc.ex.append ex(test:Cond action:nil) E}
     []  seq(D1 D2) then
@@ -50,17 +63,20 @@ define
             {Trans D E D2 Ep}
             Dp = seq(D2 star(D1))
           end
-    []  ifte(Cond D1 D2) then
+    []  ifte(Cond D1 D2) then Ep2
           dis
-              {Sitcalc.ex.holds.yes Cond E}
-              {Trans D1 E Dp Ep}
-          []  {Sitcalc.ex.holds.no Cond E}
-              {Trans D2 E Dp Ep}
+              {HoldsEx Cond E}
+              {Trans D1 E Dp Ep2}
+              {Sitcalc.ex.addtest Ep2 Cond Ep}
+          []  {HoldsEx neg(Cond) E}
+              {Trans D2 E Dp Ep2}
+              {Sitcalc.ex.addtest Ep2 neg(Cond) Ep}
           end
-    []  wloop(Cond D1) then
+    []  wloop(Cond D1) then Ep2 in
           local D2 in
-            {Sitcalc.ex.holds.yes Cond E}
-            {Trans D1 E D2 Ep}
+            {HoldsEx Cond E}
+            {Trans D1 E D2 Ep2}
+            {Sitcalc.ex.addtest Ep2 Cond Ep}
             Dp = seq(D2 wloop(Cond D1))
           end
     []  conc(D1 D2) then
@@ -98,30 +114,45 @@ define
     else local Act in 
           Act = D
           Dp = nil
-          Ep = {Sitcalc.ex.append ex(test:nil action:Act) E}
+          Ep = {Sitcalc.ex.append ex(test:true action:Act) E}
          end
     end
   end
 
+  proc {Final D E}
+  case D of
+      nil then skip
+  []  seq(D1 D2) then {Final D1 E} {Final D2 E}
+  []  either(D1 D2) then dis {Final D1 E} [] {Final D2 E} end
+  []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
+  []  star(_) then skip
+  []  ifte(Cond D1 D2) then
+               dis  {HoldsEx Cond E} {Final D1 E}
+               []   {HoldsEx neg(Cond) E} {Final D2 E}
+               end
+  []  wloop(Cond D1) then dis {HoldsEx neg(Cond) E} [] {Final D1 E} end
+  []  conc(D1 D2) then {Final D1 E} {Final D2 E}
+  []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
+  []  cstar(_) then skip
+  []  pcall(D1) then local Body in {Program.procDef D1 Body} {Final Body E} end
+  end
+
+
   proc {MakePlanRec D E PAcc P}
     dis
         {Final D E}
-        P = PAcc
+        P = {Sitcalc.plan.finish PAcc}
     []  Dr Er in
         {Trans D E Dr Er}
-        {Sitcalc.extendPlan E PAcc Er P}
+        {Sitcalc.plan.extend E PAcc Er P}
         {Sitcalc.forEachBranch proc {$ B Pb} {MakePlanRec Dr Er B Pb} end}
     end
   end
 
-  proc {MakePlan D P}
-    {MakePlanRec D nil nil P}
+  proc {MakePlan D E P}
+    {MakePlanRec D E nil P}
   end
   MakePlan = MakePlan
-
-  proc {Final D E}
-    skip
-  end
 
 end
 

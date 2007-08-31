@@ -53,3 +53,19 @@ of the following files:
 
   Goloz.oz:    Root functor, top-level program entry point.
 
+
+Record labels used to build program terms:
+
+   nil
+   test
+   seq
+   either
+   pick
+   star
+   ifte
+   wloop
+   conc
+   pconc
+   cstar
+   pcall
+

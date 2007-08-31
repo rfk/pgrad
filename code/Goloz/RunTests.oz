@@ -7,8 +7,9 @@ import
   Application
 
   LP
-  OpenMap
-  ListDict
+  OpenMap at 'Memo/OpenMap.ozf'
+  ListDict at 'Memo/ListDict.ozf'
+  Memo at 'Memo/Memo.ozf'
   TermSet at 'FOF/TermSet.ozf'
   QuantSet at 'FOF/QuantSet.ozf'
   EQSet at 'FOF/EQSet.ozf'
@@ -34,6 +35,10 @@ define
 
   {Print "\n==  Testing ListDict\n"}
   {ListDict.test}
+  {Print passed}
+
+  {Print "\n==  Testing Memo\n"}
+  {Memo.test}
   {Print passed}
 
   {Print "\n==  Testing TermSet\n"}
