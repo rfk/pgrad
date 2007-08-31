@@ -22,8 +22,11 @@
 %               Called when a leaf node is encountered.  L is the
 %               leaf node found (0 or 1).
 %
-%     done(SD):  Called when exploration of the entire BDD is complete.
-%                SD will be the final state data.
+%     done(SD Outcome Res):
+%               Called when exploration of the entire BDD is complete.
+%               SD will be the final state data and Outcome the final
+%               outcome of the exploration. Res gives what should be
+%               returned from the call to {Explore}.
 %
 %  Acceptable outcomes reported by these functions are:
 %
@@ -45,15 +48,12 @@ functor
 
 import
 
-  ListDict
+  Memo at '../Memo.ozf'
 
 export
 
   bdd: BDD
   Deref
-  MemoGet
-  MemoSet
-  MemoCall
   ReplaceLeaves
   Explore
 
@@ -88,7 +88,7 @@ define
   %
 
   proc {I_BDD Args B}
-    {I_MemoCall 'bdd.bdd' M_BDD Args B}
+    {Memo.memoCall 'bdd.bdd' M_BDD Args B}
   end
 
   proc {M_BDD Args B}
@@ -118,86 +118,6 @@ define
   end
 
   %
-  %  Provide facilities for memoizing arbitrary functions on BDDs.
-  %  MemoGet will return a one-element list [Value], or nil if no
-  %  value has yet been stored.  MemoSet will set the value in the
-  %  memo.
-  %
-  %  Note that MemoGet will only ever return nil *once*.  Multiple calls
-  %  will return a future to the value that it assumes is being calculated.
-  %  So if you call MemoGet and receive nil, you *must* then call
-  %  MemoSet to give it some value.
-  %
-  %  To conveniently deploy a memoized function, use MemoCall, passing it
-  %  a reference to another procedure that will calculate the value if
-  %  it is missing.
-  %
-  %  Naturally, the arguments must all be immutable for this to work.
-  %
-  BDD_Memo = {Dictionary.new}
-
-  proc {I_MemoGet Funcname Args Res}
-    ValD SyncValD ValM SyncValM MDict
-  in
-    %  Get the ListDict corresponding to that funcname.
-    {Dictionary.condExchange BDD_Memo Funcname nil ValD SyncValD}
-    if ValD == nil then MDict = {ListDict.new} SyncValD = [MDict]
-    else SyncValD = ValD [MDict] = ValD end
-    %  Find the entry corresponding to those arguments
-    {ListDict.condExchange MDict Args nil ValM SyncValM}
-    if ValM == nil then SyncValM = [_] Res = nil
-    else [V2] = ValM in SyncValM = ValM Res = [!!V2] end
-  end
-
-  local IPort IStream in
-    IPort = {Port.new IStream}
-    thread
-      for [Funcname Args]#Res in IStream do
-        thread {I_MemoGet Funcname Args Res} end
-      end
-    end
-    proc {MemoGet Funcname Args Res}
-      Res = !!{Port.sendRecv IPort [Funcname Args]}
-    end
-  end
-
-  proc {I_MemoSet Funcname Args Value}
-    [MDict] = {Dictionary.get BDD_Memo Funcname}
-  in
-    {ListDict.get MDict Args} = [Value]
-  end
-
-  local IPort IStream in
-    IPort = {Port.new IStream}
-    thread
-      for [Funcname Args Val]#Res in IStream do
-        thread {I_MemoSet Funcname Args Val} Res=unit end
-      end
-    end
-    proc {MemoSet Funcname Args Val}
-      _ = {Port.sendRecv IPort [Funcname Args Val]}
-    end
-  end
-
-  proc {I_MemoCall Funcname Proc Args Result}
-    M = {I_MemoGet Funcname Args}
-  in
-    case M of nil then {Proc Args Result}
-                       {I_MemoSet Funcname Args Result}
-    else [Result]=M
-    end
-  end
-
-  proc {MemoCall Funcname Proc Args Result}
-    M = {MemoGet Funcname Args}
-  in
-    case M of nil then {Proc Args Result}
-                       {MemoSet Funcname Args Result}
-    else [Result]=M
-    end
-  end
-
-  %
   %  Dereference the "pointer" to a BDD.
   %  Returns one of 0, 1 or ite(K T F).
   %
@@ -212,7 +132,7 @@ define
   %
 
   proc {ReplaceLeaves B TNew FNew BNew}
-    {MemoCall 'bdd.replaceleaves' M_ReplaceLeaves [B TNew FNew] BNew}
+    {Memo.memoCall 'bdd.replaceleaves' M_ReplaceLeaves [B TNew FNew] BNew}
   end
 
   proc {M_ReplaceLeaves Args BNew}
@@ -233,11 +153,11 @@ define
   %  Initialize data for the theory, then start exploring.
   %
   proc {Explore B Theory Res}
-    SDIn SDOut PData
+    SDIn SDOut PData Outcome
   in
     {Theory.init SDIn PData}
-    {Explore_path B Theory SDIn#SDOut PData Res}
-    {Theory.done SDOut}
+    {Explore_path B Theory SDIn#SDOut PData Outcome}
+    Res = {Theory.done SDOut Outcome}
   end
 
   proc {Explore_path B Theory SDIn#SDOut PData Res}
@@ -280,7 +200,6 @@ define
 
 
   proc {Test}
-    {Test_memo}
     {Test_basic}
     {Test_explore}
   end
@@ -300,30 +219,6 @@ define
     {Deref B3} = ite(q(B2) B1 0)
     B4 = {ReplaceLeaves B3 0 1}
     {Deref B4} = ite(q(B2) B2 1)
-  end
-
-  proc {Test_memo}
-    V1 V2 V3 V4 P
-    C = {Cell.new 1}
-  in
-    {MemoGet 'bdd.test_memo' [1 2 3] V1}
-    {IsFree V1 false}
-    V1 = nil
-    {MemoGet 'bdd.test_memo' [1 2 3] [V2]}
-    {IsFuture V2 true}
-    {MemoSet 'bdd.test_memo' [1 2 3] 7}
-    V2 = 7
-    {MemoGet 'bdd.test_memo' [1 2 3] [7]}
-    proc {P _ Res}
-      {Cell.exchange C Res thread Res+1 end}
-    end
-    {MemoCall 'bdd.test_memocall' P [4 3 2] V3}
-    {IsDet V3 true}
-    V3 = 1
-    {MemoCall 'bdd.test_memocall' P [4 3 2] V4}
-    {IsDet V4 true}
-    V4 = 1
-    2 = @C
   end
 
   proc {Test_explore}
@@ -346,7 +241,7 @@ define
                  C := @C+1
                  Outcome = ok
                end
-      done: proc {$ _} skip end
+      done: proc {$ _ _ _} skip end
     )
     {Explore B Theory ok}
     @C = 4

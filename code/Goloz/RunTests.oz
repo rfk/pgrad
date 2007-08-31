@@ -9,11 +9,11 @@ import
   LP
   OpenMap
   ListDict
-  TermSet
-  QuantSet
-  EQSet
-  BDD
-  FOF
+  TermSet at 'FOF/TermSet.ozf'
+  QuantSet at 'FOF/QuantSet.ozf'
+  EQSet at 'FOF/EQSet.ozf'
+  BDD at 'FOF/BDD.ozf'
+  FOF at 'FOF/FOF.ozf'
 
 define
 

@@ -21,7 +21,7 @@ functor
 
 import
 
-  LP
+  LP at '../LP.ozf'
   Search
 
 export

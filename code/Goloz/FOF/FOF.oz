@@ -26,6 +26,11 @@
 %                    domains of variables, inferring their type from their
 %                    location in the predicate.
 %
+%     FOF.lang.assign:  a procedure taking a list of free variables, and
+%                       assigning them to terms from the domain.  This is
+%                       used as a final check of whether a particular set
+%                       of constraints is consistent.
+%
 %  This is done using a free variable rather than e.g. a cell because it
 %  affects memoization and other features of the module.  Each consumer of
 %  this module should use {Module.link} to create their own private
@@ -36,14 +41,16 @@ functor
 
 import
 
-  LP
+  LP at '../LP.ozf'
   BDD
+  Binding
   TermSet
   QuantSet
   EQSet
 
   Search
   System
+  Property
 
 export
 
@@ -66,13 +73,12 @@ export
   Falsehood_e
   Falsehood_a
 
-  MemoGet
-  MemoSet
-  MemoCall
-
   Test
 
 define
+
+  {Property.put 'print.width' 10000}
+  {Property.put 'print.depth' 10000}
 
   %
   % FOF are represented by first-order shannon graphs, a BDD-like
@@ -93,7 +99,7 @@ define
   %              a (globally unique) name for the variable.  These are
   %              internally translated into the form v_e(Nm V) during
   %              proof search, where V is a free Oz variable used to
-  %              constrint the values tekn by the variable.  This setup
+  %              constrain the values taken by the variable.  This setup
   %              avoid accidentally binding V during the search.
   %
   % If you use the {ParseRecord} procedure to construct your formulae, you
@@ -144,77 +150,6 @@ define
   fun {Exists F}
     {BDD.bdd q({Neg F}) 0 1}
   end
-
-  %
-  %  Binding:  routines for managing a stack of variable bindings
-  %  using de Bruijn indices.  Values to be pushed are simply names.
-  %  When applied to a record with {bind}, terms of the form v_b(N)
-  %  are replaced with the appropriate entry from the stack.
-  %  Conversely, the procedure {unbind} replaces the names on the stack
-  %  with the appropriate v_b(N) term.
-  %
-  Binding = unit(
-
-      init: proc {$ S}
-              S=nil
-            end
-
-      push: proc {$ SIn Nm SOut}
-              SOut = Nm|SIn
-            end
-
-      pop:  proc {$ SIn V SOut}
-              case SIn of nil then V=nil SOut=nil
-              else SIn = V|SOut
-              end
-            end
-
-      getVar: proc {$ S Nm Var}
-                {Binding.getVarRec S 0 Nm Var}
-              end
-      getVarRec: proc {$ S I Nm Var}
-                   case S of nil then Var = nil
-                   else N2|S2 = S in if Nm == N2 then Var = I
-                                     else {Binding.getVarRec S2 I+1 Nm Var} end
-                   end
-                 end
-
-      getName: proc {$ S Var Nm}
-                 {Binding.getNameRec S 0 Var Nm}
-               end
-      getNameRec: proc {$ S I Var Nm}
-                    case S of nil then Nm = v_b(Var)
-                    else N2|S2=S in if Var == I then Nm = N2
-                                    else {Binding.getNameRec S2 I+1 Var Nm} end
-                    end
-                  end
-
-      bind: proc {$ S RIn ROut}
-               case RIn of v_b(Var) then ROut = {Binding.getName S Var}
-               else Fields = {Record.arity RIn} in
-                    case Fields of nil then ROut = RIn
-                    else {Record.clone RIn ROut}
-                         for F in Fields do
-                           ROut.F = {Binding.bind S RIn.F}
-                         end
-                    end
-               end
-            end
-
-      unbind: proc {$ S RIn ROut}
-                Var = {Binding.getVar S RIn}
-              in
-                if Var == nil then Fields = {Record.arity RIn} in
-                    case Fields of nil then ROut = RIn
-                    else {Record.clone RIn ROut}
-                         for F in Fields do
-                           ROut.F = {Binding.unbind S RIn.F}
-                         end
-                    end
-                else ROut = v_b(Var) end
-              end
-  )
-
 
   %
   %  To allow consumers to determine the language we operate on,
@@ -283,6 +218,51 @@ define
   end
 
   %
+  %  Strip free variable terms v_e(Nm V) from a record, leaving in
+  %  their place just the Oz variable V.  This is useful for handing
+  %  the terms off to the outside world for e.g. checking consistency.
+  %
+  proc {StripVE TIn TOut}
+    if {IsFree TIn} then TOut = TIn
+    else
+      case TIn of v_e(_ V) then TOut = V
+      else
+        TOut = {Record.map TIn StripVE}
+      end
+    end
+  end
+
+  %
+  %  Bind free-variable terms v_e(Nm) in a record, according to how they
+  %  are to be dealth with.  If Mode is 'a' then we're interested in all
+  %  possible assignments to these variables, so they should be replaced
+  %  with v_e(Nm V) for internal theorem-proving purposes.  If Mode is 'e'
+  %  then we're only interested in finding one particular assignment to
+  %  these variables, so just replace them with free vars.
+  %
+  %  Binding is a dictionary mapping names to bindings, which is updated
+  %  as new names are discovered. This is done thread-safely.
+  %
+  proc {BindVE TIn Mode Binding TOut}
+    if {IsFree TIn} then TOut=TIn
+    elseif {Not {Record.is TIn}} then TOut=TIn
+    else
+      case TIn of v_e(Nm) then OldB NewB in
+        {Binding.condExchange Binding Nm nil OldB NewB}
+        if {IsFree OldB} orelse OldB \= nil then
+            TOut = OldB  NewB = OldB
+        else
+          if Mode == a then NewB = v_e(Nm _)
+          else NewB = _ end
+          TOut = NewB
+        end
+      else
+        TOut = {Record.map TIn fun {$ T} {BindVE T Mode Binding} end}
+      end
+    end
+  end
+
+  %
   %  Procedures that explore shannon graphs to do various kinds of
   %  reasoning, from straightforward simplification to full-blown
   %  theorem proving.
@@ -298,19 +278,29 @@ define
   %
 
   proc {Theory_init SData PData}
-    SData = state(fvBind: fvb
+    SData = state(fvBind: {Dictionary.new}
                   fvMode: _
-                  skvNum: 0)
+                  skvNum: 0
+                  aVars: nil)
     PData = path(b: {Binding.init}
                 pT: {TermSet.init}
                 pF: {TermSet.init}
                 qs: {QuantSet.init}
+                eqs: {EQSet.init}
+                eVars: nil
                 polarity: _)
-    {System.show init()}
+    {System.printInfo "\n\n -- init -- \n\n"}
   end
 
-  proc {Theory_done _}
-    {System.show done()}
+  %
+  %  Called when exploration is complete.  Finds a consitent set of
+  %  bindings for all a-quantified variables, to make sure we haven't
+  %  stuffed up.
+  %
+  proc {Theory_done SData Outcome Res}
+    {Lang.assign SData.aVars}
+    Res = SData
+    {System.printInfo "\n\n -- done -- \n\n"}
   end
 
   proc {Theory_init_taut_a SData PData}
@@ -337,7 +327,11 @@ define
     PData.polarity = 0
   end
 
-  proc {Theory_p_addNode P E SDIn#SDOut PDIn#PDOut Res}
+  %
+  %  Add a generic predicate to the current path.
+  %  P is the predicate term, E indicates the edge it was traversed through.
+  %
+  proc {Theory_addPred P E SDIn#SDOut PDIn#PDOut Res}
     if E == 1 then
       PT2 = {TermSet.put P PDIn.pT}  Unifies in
       PDOut = {Record.adjoinAt PDIn pT PT2}
@@ -352,7 +346,11 @@ define
     SDIn = SDOut
   end
 
-  proc {Theory_q_addNode Q E SDIn#SDOut PDIn#PDOut Res}
+  %
+  %  Add a quantified sub-graph to the current path.
+  %  Q is the sub-graph, E indicates the edge it was traversed through.
+  %
+  proc {Theory_addQuant Q E SDIn#SDOut PDIn#PDOut Res}
     QS2
   in
     if E == 1 then
@@ -365,7 +363,12 @@ define
     Res = ok
   end
 
-  proc {Theory_eq_addNode T1 T2 E SDIn#SDOut PDIn#PDOut Res}
+  %
+  %  Add an equality to the current path.
+  %  T1 and T2 are the terms to be made equal. E gives the
+  %  edge through which it was traversed.
+  %
+  proc {Theory_addEq T1 T2 E SDIn#SDOut PDIn#PDOut Res}
     Diffs
   in
     % We need to take care that we don't accidentally bind, or
@@ -399,11 +402,16 @@ define
     {IsFree T} orelse {Record.label T} == v_e
   end
 
+  %
+  %  Attempt to close a path that has just had a true eq-node added.
+  %  This can be done by asserting that any particular pair from the
+  %  Diffs list fails to unify.  Alternately, we can assert that they
+  %  all unify and leave the path open.
+  %
+  %  The only complication is v_e terms, which we can only insert
+  %  into the list of path constraints.
+  %
   proc {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
-    % We can close a true eq() node by asserting that any particular
-    % pair from Diffs fails to unify. Alternately, we can assert that
-    % they all unify and leave the path open.  Only one thing to watch
-    % out for - we cannot assert non-unification on v_e terms.
     case Diffs of D1#D2|Ds then EQOut PDOut1 in
       case D1 of v_e(_ VE1) then VE2 in
         case D2 of v_e(_ VE2p) then VE2=VE2p
@@ -430,31 +438,31 @@ define
     end
   end
 
-  proc {StripVE TIn TOut}
-    if {IsFree TIn} then TOut = TIn
+  %
+  %  Prove that there's a consistent assignment to all e-vars on
+  %  the current path.  We use Lang.assign to ensure that there is one.
+  %
+  proc {Theory_eq_consistent SData PData B}
+    EVars Res Check
+  in
+    if SData.fvMode == a then
+      EVars = {List.append EVars
+                           {List.map {Dictionary.items SData.fvBind} StripVE}}
     else
-      case TIn of v_e(_ V) then TOut = V
-      else
-        TOut = {Record.map TIn StripVE}
-      end
+       EVars = PData.eVars
     end
+    proc {Check R}
+      {EQSet.assert PData.eqs}
+      {Lang.assign EVars}
+      R = unit
+    end
+    Res = {Search.base.one Check}
+    B = (Res \= nil)
   end
 
-  proc {BindVE TIn Binding Mode TOut}
-    if {IsFree} TIn then TOut=TIn
-    else
-      case TIn of v_e(Nm) then
-        if {Not {Record.hasFeature Binding Nm}} then
-          if Mode == a then Binding.Nm = v_e(Nm,_)
-          else Binding.Nm = _ end
-        end
-        TOut = Binding.Nm
-      else
-        TOut = {Record.map TIn fun {$ T} {BindVE T Binding Mode} end}
-      end
-    end
-  end
-
+  %
+  %  Add the given kernel to the current path.
+  %
   proc {Theory_addNode K E SDIn#SDOut PDIn#PDOut Res}
     case K of p(P) then Pb Pe in
             % Transform the predicate into proving form.
@@ -466,24 +474,32 @@ define
             % when sending them off for type constraints.
             {Lang.wff {StripVE Pe}}
             case Pe of eq(T1 T2) then
-              {Theory_eq_addNode T1 T2 E SDIn#SDOut PDIn#PDOut Res}
+              {Theory_addEq T1 T2 E SDIn#SDOut PDIn#PDOut Res}
+              {System.show addEq(T1 T2 Res PDOut)}
             else
-              {Theory_p_addNode Pe E SDIn#SDOut PDIn#PDOut Res}
+              {Theory_addPred Pe E SDIn#SDOut PDIn#PDOut Res}
+              {System.show addPred(Pe E Res PDOut)}
             end
     []  q(Q) then
-            {Theory_q_addNode Q E SDIn#SDOut PDIn#PDOut Res}
+            {Theory_addQuant Q E SDIn#SDOut PDIn#PDOut Res}
+            {System.show addQuant(Q E Res PDOut)}
     else SDIn = SDOut PDIn = PDOut Res=ok
     end
-    {System.show addNode(K E Res PDOut)}
   end
 
+  %
+  %  Attempt to end the current path at the given leaf.
+  %
   proc {Theory_endPath L SDIn#SDOut PDIn#PDOut Res}
-    % Don't bother closing nodes of opposite polarity, they're irrelevant
-    if PDIn.polarity \= L then SDIn=SDOut PDIn=PDOut Res=ok
-    % e-inconsistent paths can be immediately closed
-    elseif {Not {Theory_e_consistent SDIn PDIn}} then
-      skip
+    if PDIn.polarity \= L then
+      % Don't bother closing nodes of opposite polarity, they're irrelevant
+      SDIn=SDOut PDIn=PDOut Res=ok
+    elseif {Not {Theory_eq_consistent SDIn PDIn}} then
+      % e-inconsistent paths can be immediately closed
+      SDIn=SDOut SDIn=PDOut Res=closed
     else Qf Bf Sf in
+      % Otherwise, we can extend the paths by quantified subgraphs.
+      % Apply e-quants before a-quants since they get used up.
       Sf = {QuantSet.popE PDIn.qs Qf Bf}
       if Qf == nil then Qt Bt St in
          St = {QuantSet.instA PDIn.qs Qt Bt}
@@ -491,20 +507,22 @@ define
            % Cant extend path and cant close it, can only fail
            {System.show endPath(L SDIn failed)}
            fail
-         else
+         else NewVar in
            % Extended by a positively quantified subgraph, only
            % 1-paths need to be considered.
+           Bt = NewVar|_
+           SDOut = {Record.adjoinAt SDIn aVars NewVar|SDIn.aVars}
            PDOut = {Record.adjoinList PDIn [qs#St b#Bt polarity#1]}
            Res = extend(Qt)
          end
-         SDIn = SDOut
       else
          % Generate a new unique name for the introduced variable
          Bf = v_e(skv(SDIn.skvNum) _)|_
-         SDOut = {Record.adjoinAt SDIn skvNum SDIn.skvNum+1}
+         SDOut = {Record.adjoinAt SDIn skvNum (SDIn.skvNum+1)}
          % Extended by a negatively quantified subgraph, only
          % 0-paths need to be considered.
-         PDOut = {Record.adjoinList PDIn [qs#Sf b#Bf polarity#0]}
+         PDOut = {Record.adjoinList PDIn [qs#Sf b#Bf polarity#0
+                                          eVars#(Bf.1.2|PDIn.eVars)]}
          Res = extend(Qf)
       end
     end
@@ -514,46 +532,61 @@ define
 
   %
 
-
-  proc {Tautology_e F Binding Result}
-    Binding = {Dictionary.new}
-    case F of 1 then Result=yes
-    [] 0 then Result=no
-    else Result=unknown
-    end
-  end
-
-  proc {Tautology_a F Res}
-    Theory = th(init: Theory_init_taut_a
+  proc {Explore F Init SDOut}
+    Theory = th(init: Init
                 addNode: Theory_addNode
                 endPath: Theory_endPath
                 done: Theory_done)
-    ResP
+    Res
   in
-    ResP = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
-    case ResP of [_] then Res=true
-    else Res=false
+    Res = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
+    case Res of [SD] then SDOut=SD
+    else SDOut=nil
     end
   end
 
+  %
+  %  Determine whether some binding of the free variables make F tautology.
+  %  Returns either nil (not a tautology) or a record mapping variable
+  %  names to values.
+  %
+  proc {Tautology_e F Binding}
+    SDOut = {Explore F Theory_init_taut_e}
+  in
+    if SDOut == nil then Binding = nil
+    else Binding = {Dictionary.toRecord b SDOut.fvBind} end
+  end
+
+  %
+  %  Determine whether F is a tautology for all possible bindings of
+  %  the free variables.  Returns a Bool.
+  %
+  proc {Tautology_a F Res}
+    SDOut = {Explore F Theory_init_taut_a}
+  in
+    if SDOut == nil then Res = false
+    else Res = true end
+  end
+
+  %
+  %  Like Tautology_e, but checking falsehood.
+  %
   fun {Falsehood_e F Binding}
-    Binding = {Dictionary.new}
-    case F of 1 then no
-    [] 0 then yes
-    else unknown
-    end
-  end
-
-  fun {Falsehood_a F}
-    {Falsehood_e F _}
+    SDOut = {Explore F Theory_init_false_e}
+  in
+    if SDOut == nil then Binding = nil
+    else Binding = {Dictionary.toRecord b SDOut.fvBind} end
   end
 
   %
-  % Expose BDD memo functions directly
+  %  Like Tautology_a, but checking falsehood.
   %
-  MemoGet = BDD.memoGet
-  MemoSet = BDD.memoSet
-  MemoCall = BDD.memoCall
+  fun {Falsehood_a F Res}
+    SDOut = {Explore F Theory_init_false_a}
+  in
+    if SDOut == nil then Res = false
+    else Res = true end
+  end
 
 
   proc {Test}
@@ -565,7 +598,8 @@ define
           impl(exists(x p(x)) all(x p(x)))]
     Bs = [true false true false true false]
   in
-    Lang = lang(wff: proc {$ P} skip end)
+    Lang = lang(wff: proc {$ _} skip end
+                assign: proc {$ _} skip end)
     for F in Fs B in Bs do local T P in
       P = {ParseRecord F}
       T = {Tautology_a P}
