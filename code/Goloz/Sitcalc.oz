@@ -1,3 +1,34 @@
+%
+%  Sitcalc.oz:  fundamental datastructures and code for reasoning in
+%               the situation calculus.
+%
+%  This functor implements domain-independent functionality for reasoning
+%  in the situation calculus.  Whenever it needs domain-specific information
+%  it requests this from a sibling functor called "Domain".
+%
+%  We provide the following new notions over the basic sitcalc:
+%
+%    Step:    a step is an action that tracks some additional metadata
+%             about what happened and why.  It pairs a (concurrent) action
+%             with the following information:
+%                 - test:  additional conditions that held before the action
+%                 - thred: indicates which thred of execution the action
+%                          was performed in service of
+%                 - obs: indicates the observations made as a result of
+%                        that action
+%
+%    Execution:  an execution is like a situation, but tracks steps rather
+%                than just actions.  It is formed either by the special
+%                situation term 'now' or an execution term ex(Step Ex).
+%
+%    CondPlan:   a conditional plan for execution.  This is a simplified
+%                MIndiGolog program containing only the following operators:
+%                    nil   seq(A CP)  obs(Obs CPt CPf)
+%
+%    JointPlan:  a mapping from agents to conditional plans.  The point of
+%                planning is to produce a shared JointPlan that can then be
+%                executed without further delibaration.
+%
 
 functor
 
@@ -16,6 +47,7 @@ export
   Regress
 
   Ex
+  Jplan
 
 define
 
@@ -86,38 +118,86 @@ define
   %
   Ex = ex(
 
-    init: proc {$ S E}
-            E=ex(nil S)
-          end
-
-    append: proc {$ EIn R EOut}
-              ex(Rs S) = EIn
-              Test = {Value.condSelect R test true}
-              Act = {Value.condSelect R action nil}
-              Thred = {Value.condSelect R thred nil}
+    append: proc {$ EIn Step EOut}
+              Test = {Value.condSelect Step test true}
+              Act = {Value.condSelect Step action nil}
+              Thred = {Value.condSelect Step thred nil}
+              Obs = {Value.condSelect Step obs nil}
             in
-              EOut = ex(r(test:Test action:Act thred:Thred)|Rs S)
+              EOut = ex(step(test:Test action:Act thred:Thred obs:Obs) EIn)
             end
 
     addtest: proc {$ EIn C EOut}
-               ex(Run S) = EIn
-             in
-               case Run of R|Rs then Rp in
-                  Rp = {Record.adjoinAt R test and(C R.test)}
-                  EOut = ex(Rp|Rs S)
-               else
-                  EOut = {Ex.append EIn r(test: C)}
-               end
+              case EIn of ex(Step E2) then Step2 in
+                Step2 = {Record.adjoinAt Step test and(C Step.test)}
+                EOut = ex(Step2 E2)
+              else
+                EOut = {Ex.append EIn step(test: C)}
+              end
              end
 
     addthred: proc {$ EIn T EOut}
-                ex(Run S) = EIn
-              in
-                case Run of R|Rs then Rp in
-                  Rp = {Record.adjoinAt R thred T|R.thred}
-                  EOut = ex(Rp|Rs S)
+                case EIn of ex(Step E2) then Step2 in
+                  Step2 = {Record.adjoinAt Step thred T|Step.thred}
+                  EOut = ex(Step2 E2)
                 else EIn = EOut end
               end
+
+    addobs: proc {$ EIn O EOut}
+             case EIn of ex(Step E2) then Step2 in
+               Step2 = {Record.adjoinAt Step obs O|Step.obs}
+               EOut = ex(Step2 E2)
+             else EIn = EOut end
+            end
+
+    outcomes: proc {$ E Outcomes}
+                Outcomes = [E]
+              end
+
+  )
+
+
+  Jplan = jplan(
+
+    finish: proc {$ JP}
+              for CP in {Record.toList JP} do
+                CP = nil
+              end
+            end
+
+    extend: proc {$ JP E Branches}
+              Outcomes = {Ex.outcomes E}
+            in
+              if {List.length Outcomes} == 1 then
+                JP2 = {Jplan.addstep JP E} in
+                Branches = [E#JP2]
+              else
+                {Jplan.extendRec JP Outcomes Branches}
+              end
+            end
+
+    extendRec: proc {$ JP Outcomes Branches}
+                 case Outcomes of E|Es then JPt JPf B2 in
+                   {Jplan.addobs JP E JPt JPf}
+                   Branches = E#JPt|B2
+                   {Jplan.extendRec JPf Es B2}
+                 else
+                   {Jplan.finish JP}
+                   Branches = nil
+                 end
+               end
+
+    addstep: proc {$ JP E JPOut}
+               JPOut = {Record.clone JP}
+               for Agt in {Record.arity JP} do
+                 JP.Agt = seq(E.1.action JPOut.Agt)
+               end
+             end
+
+    addobs: proc {$ JP E JPt JPf}
+              skip
+            end
+
   )
   
 end

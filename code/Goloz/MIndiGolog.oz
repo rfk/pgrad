@@ -3,10 +3,8 @@
 %
 %  This functor implements the MIndiGolog semantics as a pair of
 %  procedures Trans() and Final().  Rather than operating over ordinary
-%  situation terms, they operate over executions and keep some additional
+%  situation terms, they operate over executions to keep some additional
 %  bookkeeping information.
-%
-%  To support
 %
 
 functor 
@@ -21,8 +19,9 @@ export
 
   HoldsEx
   Trans
+  Step
   Final
-  MakePlan
+  FindJointPlan
 
 define
 
@@ -138,22 +137,60 @@ define
    end
   end
 
-
-  proc {MakePlanRec D E PAcc P}
-    dis
-        {Final D E}
-        P = {Sitcalc.plan.finish PAcc}
-    []  Dr Er in
-        {Trans D E Dr Er}
-        {Sitcalc.plan.extend E PAcc Er P}
-        {Sitcalc.forEachBranch proc {$ B Pb} {MakePlanRec Dr Er B Pb} end}
+  proc {Step D E Dr Er}
+    Ep Dp
+  in
+    {Trans D E Dp Ep}
+    % Since {Trans} may change the execution without actually adding
+    % a step, we must check only the history for equality
+    if Ep == now then
+      {Step Dp Ep Dr Er}
+    else
+      if E == now then
+        Dr = Dp  Er = Ep
+      else
+        ex(_ H) = E
+        ex(_ Hp) = Ep in
+        if {LP.termEq H Hp} then
+          {Step Dp Ep Dr Er}
+        else
+          Dr = Dp  Er = Ep
+        end
+      end
     end
   end
 
-  proc {MakePlan D E P}
-    {MakePlanRec D E nil P}
+
+  proc {FindJointPlan D JP}
+    {FindJointPlanEx D now JP}
   end
-  MakePlan = MakePlan
+
+  proc {FindJointPlanEx D E JP}
+     Branches
+  in
+    dis
+        {Final D E}
+        {Sitcalc.jplan.finish JP}
+    []  Ds Es in
+        {Step D E Ds Es}
+        Branches = {Sitcalc.jplan.extend JP Es}
+        for Eb#JPb in Branches do
+          {FindJointPlanEx Ds Eb JPb}
+        end
+    end
+  end
+
+  proc {ExtendJointPlanRec EOuts JP Branches}
+    case EOuts of E|Es then JPt JP2 B2 in
+      {Sitcalc.jplan.addobs JP E.1.obs JPt JP2}
+      Branches = E#JPt|B2
+      {ExtendJointPlanRec Es JP2 B2}
+    else
+      {Sitcalc.jplan.finish JP}
+      Branches = nil
+    end
+  end
+
 
 end
 

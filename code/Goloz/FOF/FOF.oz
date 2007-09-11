@@ -50,7 +50,7 @@ import
   EQSet
 
   Search
-  System
+  Space
   Property
 
 export
@@ -333,7 +333,6 @@ define
                 eqs: {EQSet.init}
                 eVars: nil
                 polarity: _)
-    {System.printInfo "\n\n -- init -- \n\n"}
   end
 
   %
@@ -344,7 +343,6 @@ define
   proc {Theory_done SData Outcome Res}
     {Lang.assign SData.aVars}
     Res = SData
-    {System.printInfo "\n\n -- done -- \n\n"}
   end
 
   proc {Theory_init_taut_a SData PData}
@@ -487,21 +485,21 @@ define
   %  the current path.  We use Lang.assign to ensure that there is one.
   %
   proc {Theory_eq_consistent SData PData B}
-    EVars Res Check
+    EVars Check S
   in
     if SData.fvMode == a then
-      EVars = {List.append EVars
+      EVars = {List.append PData.eVars
                            {List.map {Dictionary.items SData.fvBind} StripVE}}
     else
        EVars = PData.eVars
     end
-    proc {Check R}
+    proc {Check _}
       {EQSet.assert PData.eqs}
       {Lang.assign EVars}
-      R = unit
     end
-    Res = {Search.base.one Check}
-    B = (Res \= nil)
+    S = {Space.new Check}
+    case {Space.askVerbose S} of failed then B = false
+    else B = true end
   end
 
   %
@@ -519,14 +517,11 @@ define
             {Lang.wff {StripVE Pe}}
             case Pe of eq(T1 T2) then
               {Theory_addEq T1 T2 E SDIn#SDOut PDIn#PDOut Res}
-              {System.show addEq(T1 T2 Res PDOut)}
             else
               {Theory_addPred Pe E SDIn#SDOut PDIn#PDOut Res}
-              {System.show addPred(Pe E Res PDOut)}
             end
     []  q(Q) then
             {Theory_addQuant Q E SDIn#SDOut PDIn#PDOut Res}
-            {System.show addQuant(Q E Res PDOut)}
     else SDIn = SDOut PDIn = PDOut Res=ok
     end
   end
@@ -549,7 +544,6 @@ define
          St = {QuantSet.instA PDIn.qs Qt Bt}
          if Qt == nil then
            % Cant extend path and cant close it, can only fail
-           {System.show endPath(L SDIn failed)}
            fail
          else NewVar in
            % Extended by a positively quantified subgraph, only
@@ -570,7 +564,6 @@ define
          Res = extend(Qf)
       end
     end
-    {System.show endPath(L Res SDOut)}
   end
 
 
@@ -639,9 +632,13 @@ define
           impl(all(x p(x)) p(a))
           impl(all(x p(x)) q(b))
           impl(p(a) exists(x p(x)))
-          impl(exists(x p(x)) all(x p(x)))]
-    Bs = [true false true false true false]
+          impl(exists(x p(x)) all(x p(x)))
+          all(x all(y impl(eq(x y) eq(y x))))
+          all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
+          all(a all(b all(c impl(eq(a b) eq(c b)))))]
+    Bs = [true false true false true false true true false]
   in
+    {List.length Fs} = {List.length Bs}
     Lang = lang(wff: proc {$ _} skip end
                 assign: proc {$ _} skip end)
     for F in Fs B in Bs do local T P in
