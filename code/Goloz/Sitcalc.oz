@@ -154,6 +154,11 @@ define
                 Outcomes = [E]
               end
 
+    matches: proc {$ E1 E2 Agt B}
+               % TODO: implement Sitcalc.ex.matches
+               B = false
+             end
+
   )
 
 

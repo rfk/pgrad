@@ -14,6 +14,7 @@ import
   LP
   Program
   Sitcalc
+  PlanFront
 
 export
 
@@ -21,7 +22,7 @@ export
   Trans
   Step
   Final
-  FindJointPlan
+  JointPlan
 
 define
 
@@ -137,6 +138,11 @@ define
    end
   end
 
+  proc {IsFinal D E B}
+    try {Final D E} B = true
+    catch _ then B = false end
+  end
+
   proc {Step D E Dr Er}
     Ep Dp
   in
@@ -160,37 +166,66 @@ define
     end
   end
 
-
-  proc {FindJointPlan D JP}
-    {FindJointPlanEx D now JP}
+  %
+  %  Search for a join plan executing program D in the current situation.
+  %  To do so, construct a closed PlanFront starting from now#D#JP
+  %
+  proc {JointPlan D JP}
+    {ClosePlanFront {PlanFront.init now#D#JP} _}
   end
 
-  proc {FindJointPlanEx D E JP}
-     Branches
-  in
-    dis
-        {Final D E}
-        {Sitcalc.jplan.finish JP}
-    []  Ds Es in
-        {Step D E Ds Es}
-        Branches = {Sitcalc.jplan.extend JP Es}
-        for Eb#JPb in Branches do
-          {FindJointPlanEx Ds Eb JPb}
-        end
-    end
-  end
-
-  proc {ExtendJointPlanRec EOuts JP Branches}
-    case EOuts of E|Es then JPt JP2 B2 in
-      {Sitcalc.jplan.addobs JP E.1.obs JPt JP2}
-      Branches = E#JPt|B2
-      {ExtendJointPlanRec Es JP2 B2}
+  %
+  %  Expand the given PlanFront into a closed state.
+  %
+  proc {ClosePlanFront PFIn PFOut}
+    if {PlanFront.closed PFIn} then
+      PFOut = PFIn
     else
-      {Sitcalc.jplan.finish JP}
-      Branches = nil
+      PF2 = {ExpandPlanFront PFIn} in
+      PFOut = {ClosePlanFront PF2}
     end
   end
 
+  %
+  %  Expand the given plan front by a single step.
+  %  This involves selecting an open execution from the front,
+  %  finding a step for it that is compatible with all other
+  %  executions in the front, and updating the front with this
+  %  new info.
+  %
+  proc {ExpandPlanFront PFIn PFOut}
+    E#D#_ = {PlanFront.select PFIn}
+    Ep Matching NewOpen NewClosed PF2 PF3
+  in
+    {Step D E _ Ep}
+    Matching = {PlanFront.matching PFIn E {Sitcalc.actors Ep.1.action}}
+    {ExpandExecutions Matching Ep.1.action NewOpen NewClosed}
+    PF2 = {PlanFront.remove PFIn Matching}
+    PF3 = {PlanFront.addOpen PF2 NewOpen}
+    PFOut = {PlanFront.addClosed PF3 NewClosed}
+  end
+
+  %
+  %  For every E#D#J entry in the input list, check that it has a
+  %  step compatible with the given action and add all possible executions
+  %  using that step to the appropriate output list.
+  %
+  proc {ExpandExecutions Ins Action OutOpen OutClosed}
+    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Jp in
+      {Step D E Dp Ep}
+      Ep.1.action = Action
+      % TODO: expand for each different outcome of Action
+      % TODO: add to J as appropriate
+      Jp = J
+      if {IsFinal Dp Ep} then
+        OutOpen = OutOT
+        OutClosed = (Ep#Dp#Jp)|OutCT
+      else
+        OutOpen = (Ep#Dp#J)|OutOT
+        OutClosed = OutCT
+      end
+      {ExpandExecutions InsT Step OutOT OutCT}
+    else OutOpen = nil  OutClosed = nil end
+  end
 
 end
-

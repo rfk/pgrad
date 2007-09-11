@@ -32,7 +32,6 @@ define
   end
 
   proc {AddT EQIn VIn EQOut}
-    % TODO: check for consistency when adding?
     if {List.is VIn} then
       EQOut = {Record.adjoinAt EQIn t VIn|EQIn.t}
     else 
@@ -41,7 +40,6 @@ define
   end
 
   proc {AddF EQIn VIn EQOut}
-    % TODO: check for consistency when adding?
     if {List.is VIn} then
       EQOut = {Record.adjoinAt EQIn f VIn|EQIn.f}
     else 
