@@ -18,15 +18,12 @@ import
 
 export
 
-  HoldsEx
   Trans
   Step
   Final
   JointPlan
 
 define
-
-  HoldsEx = _
 
   %
   %  Trans(D,E,Dp,Ep)
@@ -40,7 +37,7 @@ define
     case D of 
         nil then fail
     []  test(Cond) then
-          {HoldsEx Cond E}
+          {Sitcalc.ex.holds Cond E}
           Dp = nil
           Ep = {Sitcalc.ex.append E r(test:Cond)}
     []  seq(D1 D2) then
@@ -65,16 +62,16 @@ define
           end
     []  ifte(Cond D1 D2) then Ep2 in
           dis
-              {HoldsEx Cond E}
+              {Sitcalc.ex.holds Cond E}
               {Trans D1 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 Cond Ep}
-          []  {HoldsEx neg(Cond) E}
+          []  {Sitcalc.ex.holds neg(Cond) E}
               {Trans D2 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 neg(Cond) Ep}
           end
     []  wloop(Cond D1) then Ep2 in
           local D2 in
-            {HoldsEx Cond E}
+            {Sitcalc.ex.holds Cond E}
             {Trans D1 E D2 Ep2}
             {Sitcalc.ex.addtest Ep2 Cond Ep}
             Dp = seq(D2 wloop(Cond D1))
@@ -127,10 +124,11 @@ define
    []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               dis  {HoldsEx Cond E} {Final D1 E}
-               []   {HoldsEx neg(Cond) E} {Final D2 E}
+               dis  {Sitcalc.ex.holds Cond E} {Final D1 E}
+               []   {Sitcalc.ex.holds neg(Cond) E} {Final D2 E}
                end
-   []  wloop(Cond D1) then dis {HoldsEx neg(Cond) E} [] {Final D1 E} end
+   []  wloop(Cond D1) then dis {Sitcalc.ex.holds neg(Cond) E} 
+                           [] {Final D1 E} end
    []  conc(D1 D2) then {Final D1 E} {Final D2 E}
    []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
    []  cstar(_) then skip
@@ -143,6 +141,13 @@ define
     catch _ then B = false end
   end
 
+
+  %
+  %  Determine a single step of execution of program D in execution E.
+  %  This differs from {Trans} in that {Trans} may make a transition
+  %  without performing an action, while {Step} will guarantee that an
+  %  action is performed.
+  %
   proc {Step D E Dr Er}
     Ep Dp
   in
