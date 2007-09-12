@@ -216,21 +216,37 @@ define
   %  using that step to the appropriate output list.
   %
   proc {ExpandExecutions Ins Action OutOpen OutClosed}
-    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Jp in
+    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Jp Outcomes in
       {Step D E Dp Ep}
       Ep.1.action = Action
-      % TODO: expand for each different outcome of Action
-      % TODO: add to J as appropriate
-      Jp = J
-      if {IsFinal Dp Ep} then
-        OutOpen = OutOT
-        OutClosed = (Ep#Dp#Jp)|OutCT
-      else
-        OutOpen = (Ep#Dp#J)|OutOT
-        OutClosed = OutCT
-      end
+      Outcomes = {ExpandWithOutcomes {Sitcalc.ex.outcomes Ep} Dp J}
+      {AssignToList Outcomes OutOpen OutClosed OutOT OutCT}
       {ExpandExecutions InsT Step OutOT OutCT}
-    else OutOpen = nil  OutClosed = nil end
+    else OutOpen=nil OutClosed=nil end
+  end
+
+  proc {AssignToList Outcomes Open Closed OpenT ClosedT}
+    case Outcomes of E#D#J|Os then Open1 Closed1
+      if {IsFinal D E} then
+        Open = Open1
+        Closed = (p#D#J)|Closed1
+      else
+        Open = (E#D#J)|Open1
+        Closed = Closed1
+      end
+      {AssignToList Os Open1 Closed1 OpenT ClosedT}
+    else OpenT=Open ClosedT=Closed end
+  end
+
+  %
+  %  Process each execution in Exs as an outcome of an execution step,
+  %  with J being the joint plan for the execution from that step onward
+  %  and Dp being the program left to execute.  Returns a list of
+  %  E#D#J tuples representing the new plan heads.
+  %
+  proc {ExpandWithOutcomes Exs Dp J Outcomes}
+    %TODO: MIndiGolog.expandWithOutcomes
+    Outcomes=nil
   end
 
 end

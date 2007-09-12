@@ -22,5 +22,5 @@ clean:
 	rm -rf *.ozf *.exe FOF/*.ozf Memo/*.ozf goloz
 
 todos:
-	grep 'TODO' *.* FOF/*.*
+	grep 'TODO' *.* FOF/*.* Memo/*.*
 

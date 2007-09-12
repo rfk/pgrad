@@ -114,7 +114,7 @@ define
   
   %
   %  Procedures for dealing with executions.
-  %  An execution is like a situation with some extra meta-data attached.
+  %  An execution is like a situation with some extra metadata attached.
   %
   Ex = ex(
 
@@ -150,14 +150,54 @@ define
              else EIn = EOut end
             end
 
+    %
+    %  Generate the set of possible outcomes of the last step of E,
+    %  returning a list of executions, one for each outcome.
+    %  TODO: enumerating action outcomes, interacting with knowledge
+    %
     outcomes: proc {$ E Outcomes}
                 Outcomes = [E]
               end
 
+    %
+    %  Determine whether two executions are indistinguishable from the
+    %  point of view of a single agent.
+    %
     matches: proc {$ E1 E2 Agt B}
-               % TODO: implement Sitcalc.ex.matches
-               B = false
+               if E1 == now and E2 == now then B=true
+               else  Obs1 Eo1 Obs2 Eo2 in
+                 {Ex.unwindToObs E1 Agt Obs1 Eo1}
+                 {Ex.unwindToObs E2 Agt Obs2 Eo2}
+                 if Obs1 == Obs2 then
+                   B = {Ex.matches {Ex.unwind E1} {Ex.unwind E2} Agt}
+                 else B=false end
+               end
              end
+
+
+    unwind: proc {$ EIn EOut}
+              case EIn of ex(_ E2) then EOut = E2
+              else EOut = EIn end
+            end
+
+    unwindToObs: proc{$ EIn Agt Obs EOut}
+                   if EIn == now then Obs=nil EOut=now
+                   else
+                     Obs2 = {Ex.getobs EIn Agt}
+                    in
+                     if Obs2 == nil then
+                       E2 = {Ex.unwind EIn}
+                       {Ex.unwindToObs E2 Obs EOut}
+                     else
+                       Obs=Obs2 EOut=EIn
+                     end
+                   end
+                 end
+
+    getobs: proc {$ E Agt Obs}
+              %TODO: Sitcalc.ex.getobs
+              Obs = nil
+            end
 
   )
 
