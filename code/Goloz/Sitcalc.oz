@@ -115,6 +115,7 @@ define
   %
   %  Procedures for dealing with executions.
   %  An execution is like a situation with some extra metadata attached.
+  %  It bottoms out in 'now' rather than s0.
   %
   Ex = ex(
 
@@ -153,7 +154,7 @@ define
     %
     %  Generate the set of possible outcomes of the last step of E,
     %  returning a list of executions, one for each outcome.
-    %  TODO: enumerating action outcomes, interacting with knowledge
+    %  TODO: enumerating action outcomes, interacting with knowledge.
     %
     outcomes: proc {$ E Outcomes}
                 Outcomes = [E]
@@ -175,11 +176,18 @@ define
              end
 
 
+    %
+    %  Unwind a step of the execution, or remain in 'now' if no steps.
+    %  This is basically the opposite of {append}.
+    %
     unwind: proc {$ EIn EOut}
               case EIn of ex(_ E2) then EOut = E2
               else EOut = EIn end
             end
 
+    %
+    %  Unwind to the last observation made by the given agent.
+    %
     unwindToObs: proc{$ EIn Agt Obs EOut}
                    if EIn == now then Obs=nil EOut=now
                    else
@@ -194,10 +202,29 @@ define
                    end
                  end
 
+    %
+    %  Get the observation made by the given agent during the last
+    %  step of the execution.  May be nil.
+    %
     getobs: proc {$ E Agt Obs}
               %TODO: Sitcalc.ex.getobs
               Obs = nil
             end
+
+    %
+    %  Determine whether F is known to hold after the execution of E.
+    %  The definition of 'known' can be any knowledge operator for
+    %  which we have an implementation, and which is equivalent across
+    %  agents (e.g: distributed knowledge, common knowledge)
+    %
+    %  Note that since this is based on knowledge, there's no excluded
+    %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
+    %  be false.
+    %
+    holds: proc {$ F E B}
+             %TODO: Sitcalc.ex.holds
+             B= true
+           end
 
   )
 
@@ -234,12 +261,14 @@ define
 
     addstep: proc {$ JP E JPOut}
                JPOut = {Record.clone JP}
+               %TODO: Sitcalc.jplan.addstep on per-agent basis
                for Agt in {Record.arity JP} do
                  JP.Agt = seq(E.1.action JPOut.Agt)
                end
              end
 
     addobs: proc {$ JP E JPt JPf}
+              %TODO: Sitcalc.jplan.addobs
               skip
             end
 

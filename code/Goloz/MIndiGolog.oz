@@ -37,7 +37,7 @@ define
     case D of 
         nil then fail
     []  test(Cond) then
-          {Sitcalc.ex.holds Cond E}
+          {Sitcalc.ex.holds Cond E true}
           Dp = nil
           Ep = {Sitcalc.ex.append E r(test:Cond)}
     []  seq(D1 D2) then
@@ -62,16 +62,16 @@ define
           end
     []  ifte(Cond D1 D2) then Ep2 in
           dis
-              {Sitcalc.ex.holds Cond E}
+              {Sitcalc.ex.holds Cond E true}
               {Trans D1 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 Cond Ep}
-          []  {Sitcalc.ex.holds neg(Cond) E}
+          []  {Sitcalc.ex.holds neg(Cond) E true}
               {Trans D2 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 neg(Cond) Ep}
           end
     []  wloop(Cond D1) then Ep2 in
           local D2 in
-            {Sitcalc.ex.holds Cond E}
+            {Sitcalc.ex.holds Cond E true}
             {Trans D1 E D2 Ep2}
             {Sitcalc.ex.addtest Ep2 Cond Ep}
             Dp = seq(D2 wloop(Cond D1))
@@ -124,10 +124,10 @@ define
    []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               dis  {Sitcalc.ex.holds Cond E} {Final D1 E}
-               []   {Sitcalc.ex.holds neg(Cond) E} {Final D2 E}
+               dis  {Sitcalc.ex.holds Cond E true} {Final D1 E}
+               []   {Sitcalc.ex.holds neg(Cond) E true} {Final D2 E}
                end
-   []  wloop(Cond D1) then dis {Sitcalc.ex.holds neg(Cond) E} 
+   []  wloop(Cond D1) then dis {Sitcalc.ex.holds neg(Cond) E true} 
                            [] {Final D1 E} end
    []  conc(D1 D2) then {Final D1 E} {Final D2 E}
    []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
@@ -216,37 +216,26 @@ define
   %  using that step to the appropriate output list.
   %
   proc {ExpandExecutions Ins Action OutOpen OutClosed}
-    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Jp Outcomes in
+    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Jp Branches in
       {Step D E Dp Ep}
       Ep.1.action = Action
-      Outcomes = {ExpandWithOutcomes {Sitcalc.ex.outcomes Ep} Dp J}
-      {AssignToList Outcomes OutOpen OutClosed OutOT OutCT}
+      Branches = {Sitcalc.jplan.extend J E}
+      {AssignBranchesToList Branches Dp OutOpen OutClosed OutOT OutCT}
       {ExpandExecutions InsT Step OutOT OutCT}
     else OutOpen=nil OutClosed=nil end
   end
 
-  proc {AssignToList Outcomes Open Closed OpenT ClosedT}
-    case Outcomes of E#D#J|Os then Open1 Closed1
+  proc {AssignBranchesToList Branches D Open Closed OpenT ClosedT}
+    case Branches of E#J|Bs then Open1 Closed1
       if {IsFinal D E} then
         Open = Open1
-        Closed = (p#D#J)|Closed1
+        Closed = (E#D#J)|Closed1
       else
         Open = (E#D#J)|Open1
         Closed = Closed1
       end
-      {AssignToList Os Open1 Closed1 OpenT ClosedT}
+      {AssignBranchesToList Bs Open1 Closed1 OpenT ClosedT}
     else OpenT=Open ClosedT=Closed end
-  end
-
-  %
-  %  Process each execution in Exs as an outcome of an execution step,
-  %  with J being the joint plan for the execution from that step onward
-  %  and Dp being the program left to execute.  Returns a list of
-  %  E#D#J tuples representing the new plan heads.
-  %
-  proc {ExpandWithOutcomes Exs Dp J Outcomes}
-    %TODO: MIndiGolog.expandWithOutcomes
-    Outcomes=nil
   end
 
 end
