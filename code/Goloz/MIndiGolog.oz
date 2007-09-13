@@ -6,6 +6,9 @@
 %  situation terms, they operate over executions to keep some additional
 %  bookkeeping information.
 %
+%  It also exports the procedure JointPlan, a logic program searching
+%  for a joint plan to execute a given program.
+%
 
 functor 
 
@@ -39,7 +42,7 @@ define
     []  test(Cond) then
           {Sitcalc.ex.holds Cond E true}
           Dp = nil
-          Ep = {Sitcalc.ex.append E r(test:Cond)}
+          Ep = {Sitcalc.ex.append E step(test:Cond)}
     []  seq(D1 D2) then
           dis D1p in {Trans D1 E D1p Ep}
               Dp = seq(D1p D2)
@@ -97,7 +100,7 @@ define
                       Res2 = pconc(D1 D2p)#E2p
                     end
                     Res}
-          Res = Dp#Ep
+          Dp#Ep = Res
     []  cstar(D1) then
           local D2 in
             {Trans D1 E D2 Ep}
@@ -111,7 +114,7 @@ define
     else local Act in 
           Act = D
           Dp = nil
-          Ep = {Sitcalc.ex.append r(action:Act) E}
+          Ep = {Sitcalc.ex.append step(action:Act) E}
          end
     end
   end
@@ -152,22 +155,10 @@ define
     Ep Dp
   in
     {Trans D E Dp Ep}
-    % Since {Trans} may change the execution without actually adding
-    % a step, we must check only the history for equality
-    if Ep == now then
+    if {Sitcalc.ex.actions Ep}=={Sitcalc.ex.actions E} then
       {Step Dp Ep Dr Er}
     else
-      if E == now then
-        Dr = Dp  Er = Ep
-      else
-        ex(_ H) = E
-        ex(_ Hp) = Ep in
-        if {LP.termEq H Hp} then
-          {Step Dp Ep Dr Er}
-        else
-          Dr = Dp  Er = Ep
-        end
-      end
+      Dr=Dp Er=Ep
     end
   end
 
@@ -216,7 +207,7 @@ define
   %  using that step to the appropriate output list.
   %
   proc {ExpandExecutions Ins Action OutOpen OutClosed}
-    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Jp Branches in
+    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Branches in
       {Step D E Dp Ep}
       Ep.1.action = Action
       Branches = {Sitcalc.jplan.extend J E}
@@ -226,7 +217,7 @@ define
   end
 
   proc {AssignBranchesToList Branches D Open Closed OpenT ClosedT}
-    case Branches of E#J|Bs then Open1 Closed1
+    case Branches of E#J|Bs then Open1 Closed1 in
       if {IsFinal D E} then
         Open = Open1
         Closed = (E#D#J)|Closed1
@@ -234,7 +225,7 @@ define
         Open = (E#D#J)|Open1
         Closed = Closed1
       end
-      {AssignBranchesToList Bs Open1 Closed1 OpenT ClosedT}
+      {AssignBranchesToList Bs D Open1 Closed1 OpenT ClosedT}
     else OpenT=Open ClosedT=Closed end
   end
 

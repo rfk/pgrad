@@ -7,14 +7,18 @@ import
   Application
 
   LP
+
   OpenMap at 'Memo/OpenMap.ozf'
   ListDict at 'Memo/ListDict.ozf'
   Memo at 'Memo/Memo.ozf'
+
   TermSet at 'FOF/TermSet.ozf'
   QuantSet at 'FOF/QuantSet.ozf'
   EQSet at 'FOF/EQSet.ozf'
   BDD at 'FOF/BDD.ozf'
   FOF at 'FOF/FOF.ozf'
+
+  Sitcalc
 
 define
 
@@ -59,6 +63,10 @@ define
 
   {Print "\n==  Testing FOF\n"}
   {FOF.test}
+  {Print passed}
+
+  {Print "\n==  Testing Sitcalc\n"}
+  {Sitcalc.test}
   {Print passed}
   
   {Print "\n\n===  Done  ===\n\n"}
