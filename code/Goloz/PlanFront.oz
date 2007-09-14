@@ -64,21 +64,26 @@ define
     MatchesO MatchesC
   in
     MatchesO = for collect:C E#D#J in PF.open do
-                 for break:B Agt in Agts do
-                   if {Sitcalc.ex.matches Ex E Agt} then
+                 for break:B Agt in Agts do O1 O2 in
+                   O1 = {Sitcalc.ex.observations Ex Agt}
+                   O2 = {Sitcalc.ex.observations E Agt}
+                   if O1 == O2 then
                      {C E#D#J} {B}
                    end
                  end
                end
     MatchesC = for collect:C E#D#J in PF.closed do
-                 for break:B Agt in Agts do
-                   if {Sitcalc.ex.matches Ex E Agt} then
+                 for break:B Agt in Agts do O1 O2 in
+                   O1 = {Sitcalc.ex.observations Ex Agt}
+                   O2 = {Sitcalc.ex.observations E Agt}
+                   if O1 == O2 then
                      {C E#D#J} {B}
                    end
                  end
                end
     Matches = {List.append MatchesO MatchesC}
   end 
+
 
   %
   %  Remove the given E#D#J entries from the PlanFront

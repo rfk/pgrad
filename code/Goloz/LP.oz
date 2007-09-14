@@ -17,10 +17,12 @@ export
   IfNot
   Member
   Union
+  ListAcc
   SubInTerm
   TermEq
   TermDiff
   TermDiffP
+
   Test
 
 define
@@ -97,6 +99,21 @@ define
             LF = H|LI
           end
         end
+    end
+  end
+
+  %
+  %  Incrementally build a list without heaps of ugly temporary vars.
+  %  This procedure returns a list and an accumulator function.  Each
+  %  call to the accumulator function pushes a value onto the end of
+  %  the list.
+  %
+  proc {ListAcc Lst Acc}
+    Tail = {Cell.new Lst}
+  in
+    proc {Acc V} NewTail in
+      case V of nil then @Tail=nil
+      else {Cell.exchange Tail V|NewTail NewTail} end
     end
   end
 
@@ -184,7 +201,7 @@ define
 
 
   proc {Test}
-    V1 V2
+    V1 V2 Lst Acc
   in
     {TermEq a a true}
     {TermEq a b false}
@@ -193,6 +210,14 @@ define
     {TermEq t(V1 V2) t(b V2) false}
     {TermEq V1 V1 true}
     {TermEq V2 V1 false}
+    {ListAcc Lst Acc}
+    {IsFree Lst true}
+    {Acc 1}
+    Lst = 1|_
+    {Acc 2}
+    Lst = 1|2|_
+    {Acc nil}
+    Lst = [1 2]
   end
 
 end

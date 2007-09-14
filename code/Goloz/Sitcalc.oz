@@ -123,6 +123,11 @@ define
     %TODO: Sitcalc.agents
     L = [thomas]
   end
+
+  proc {ActionOutcomes Act Outcomes}
+    %TODO: Sitcalc.actionOutcomes
+    Outcomes = nil
+  end 
   
   %
   %  Procedures for dealing with executions.
@@ -188,7 +193,6 @@ define
     %  returning a list of executions, one for each outcome. This
     %  basically involves enumerating the possible observations for
     %  each agent and each action.
-    %  TODO: enumerating action outcomes
     %
     outcomes: proc {$ E Outcomes}
                 case E of ex(Step E2) then
@@ -197,24 +201,56 @@ define
               end
 
     outcomesActs: proc {$ E Actions Outcomes}
-                    case Actions of A|As then
-                      {Ex.outcomesAgts E A {Agents} Outcomes}
+                    case Actions of A|As then OutA in
+                      OutA = {Ex.outcomesAgts E A {Agents}}
+                      Outcomes = for append:A ExA in OutA do
+                                   {A {Ex.outcomesActs ExA As}}
+                                 end
                     else
                       Outcomes = [E]
                     end
                   end
 
+    %
+    %  Enumerate outcome executions for a single action for each agent
+    %
     outcomesAgts: proc {$ E Act Agents Outcomes}
-                    case Agents of Agt|As then Out2 in
-                      Outcomes = {Ex.outcomesAA E Act Agt}|Out2
-                      {Ex.outcomesAgts E Aact As Out2}
+                    case Agents of Agt|As then OutA in
+                      OutA = {Ex.outcomesAA E Act Agt}
+                      Outcomes = for append:A ExA in OutA do
+                                   {A {Ex.outcomesAgts ExA Act As}}
+                                 end
                     else
                       Outcomes = nil
                     end
                   end
 
+    %
+    %  Enumerate outcome executions for the given (single) action and Agent.
+    %
     outcomesAA: proc {$ E Act Agt Outcomes}
-                  skip
+                  CanObs = {Ex.holdsW E canObs(Agt Act)}
+                in
+                  if CanObs == no then
+                    Outcomes = [E]
+                  else
+                    Acc = {LP.listAcc Outcomes}
+                    CanSense = {Ex.holdsW E canSense(Agt Act)} 
+                   in
+                    if CanObs == unknown then
+                      {Acc E}
+                    end
+                    if CanSense \= yes then
+                      {Acc {Ex.addobs E o(Agt: Act)}}
+                    end
+                    if CanSense \= no then
+                      for Res#Cond in {ActionOutcomes Act} do
+                        if {Ex.holds E neg(Cond)} then skip
+                        else {Acc {Ex.addobs E o(Agt: Act#Res)}} end
+                      end
+                    end
+                    {Acc nil}
+                  end
                 end
 
     %
@@ -264,8 +300,25 @@ define
     %
     holds: proc {$ F E B}
              %TODO: Sitcalc.ex.holds
-             B= true
+             B = true
            end
+
+    %
+    %  Determine if it is known whether F holds after the execution of E.
+    %  Unlike Ex.holds, this procedure returns one of 'yes', 'no' or 
+    %  'unkown'.
+    %
+    holdsW: proc{$ F E Res}
+              if {Ex.holds F E} then
+                Res = yes
+              else
+                if {Ex.holds neg(F) E} then
+                  Res = no
+                else
+                  Res = unkown
+                end
+              end
+            end
 
     %
     %  Lazily produces the list of actions corresponding to the given
@@ -359,7 +412,7 @@ define
 
 
   proc {Test_ex}
-    E1 E2 E3 E4 E5 E6 E7 O
+    E1 E2 E3 E4 E5 E6 E7
   in
     E1 = {Ex.append now step(test: p(a b))}
     E1.1.obs = nil
@@ -372,16 +425,16 @@ define
     E3.1.test = and(q(b a) true)
     E4 = {Ex.addthred {Ex.addthred E3 1} 0}
     E4.1.thred = [0 1]
-    {Ex.matches E1 E2 thomas true}
-    {Ex.matches E1 E3 thomas true}
+    {Ex.observations E1 thomas} = {Ex.observations E2 thomas}
+    {Ex.observations E1 thomas} = {Ex.observations E3 thomas}
     E5 = {Ex.addobs E4 o(thomas: [o1 o2])}
     {Ex.getobs E5 thomas [o1 o2]}
     E6 = {Ex.addobs E5 o(thomas: [o3])}
     {Ex.getobs E6 thomas [o3 o1 o2]}
-    {Ex.matches E5 E4 thomas false}
-    {Ex.matches E5 E6 thomas false}
+    false=({Ex.observations E5 thomas} == {Ex.observations E4 thomas})
+    false=({Ex.observations E5 thomas} == {Ex.observations E6 thomas})
     E7 = {Ex.addobs E1 o(thomas: [o3 o1 o2])}
-    {Ex.matches E6 E7 thomas true}
+    {Ex.observations E6 thomas} = {Ex.observations E7 thomas}
   end
   
 end
