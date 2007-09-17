@@ -19,6 +19,7 @@ export
   Contains
   Member
   Union
+  ToList
 
   Test
 
@@ -51,6 +52,10 @@ define
     case S2 of H|Ts then
       SOut = {Union {Insert S1 H} Ts}
     else SOut = S1 end
+  end
+
+  proc {ToList S L}
+    S = L
   end
 
   proc {Test}

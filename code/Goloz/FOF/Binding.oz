@@ -9,6 +9,10 @@
 
 functor
 
+import
+
+  LP at '../LP.ozf'
+
 export
 
   Init
@@ -37,7 +41,7 @@ define
   proc {GetVarRec S I Nm Var}
     case S of nil then Var = nil
     else N2|S2 = S in
-        if Nm == N2 then Var = I
+        if {LP.termEq Nm N2} then Var = I
         else {GetVarRec S2 I+1 Nm Var} end
     end
   end

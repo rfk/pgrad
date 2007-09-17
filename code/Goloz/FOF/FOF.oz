@@ -192,6 +192,8 @@ define
     []   equiv(R1 R2) then F = {Equiv {ParseRecordB R1 B} {ParseRecordB R2 B}}
     []   all(Nm R) then F = {All {ParseRecordB R {Binding.push B Nm}}}
     []   exists(Nm R) then F={Exists {ParseRecordB R {Binding.push B Nm}}}
+    []   nall(Nm R) then F = {Exists {ParseRecordB neg(R) {Binding.push B Nm}}}
+    []   nexists(Nm R) then F={All {ParseRecordB neg(R) {Binding.push B Nm}}}
     else F = {Atom {Binding.unbind B Rec}}
     end
   end

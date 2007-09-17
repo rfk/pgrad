@@ -13,17 +13,18 @@ import
 
 export
 
-  Init
+  New
   Insert
   Contains
   Member
   Union
+  ToList
 
   ToSet
 
 define
 
-  proc {Init S}
+  proc {New S}
     S = {Cell.new {Set.init}}
   end
 
@@ -48,6 +49,10 @@ define
       S2Val = {Cell.access S2} in
       {Cell.exchange S1 OldVal {Set.union OldVal S2Val}}
     end
+  end
+
+  proc {ToList S L}
+    {Set.toList {Cell.access S} L}
   end
 
   proc {ToSet MS S}

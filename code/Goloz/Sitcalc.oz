@@ -35,16 +35,12 @@ functor
 import
 
   LP
-  MutableSet
-  Domain
 
   Module
 
 export
 
-  Dom
   Actor
-  Uniformize
   Regress
 
   Ex
@@ -72,78 +68,19 @@ define
   )
 
   %
-  %  Procedures for building a domain description.  We export
-  %  this for usein Domain.oz
+  %  Make a private DomainBuilder, and import definitions from Domain.oz
+  %  We'll pass all domain-dependant queries to DB.query
   %
-  Dom = dom(
-      %
-      %  Our own internal bookkeeping structure
-      %
-      data: data(agents: {MutableSet.init}
-                 objects: {Cell.new unit}
-                 superTypes: {Cell.new nil} 
-                 actions: {Cell.new unit}
-                 conflicts: {Cell.new nil}
-                 fluents: {Cell.new unit}
-                 adfluents: {Cell.new unit}
-                 causesTrue: {Cell.new unit}
-                 causesFalse: {Cell.new unit}
-                )
-      %
-      %  Specify the name of an agent
-      %
-      agent: proc {$ Agent}
-               AgtList = Dom.data.agents in
-               {MutableSet.insert AgtList Agent}
-             end
-      %
-      %  Specify object types, and the number of each type of object.
-      %  Objects will then be named Type(1) through to Type(N).
-      %
-      object: proc {$ Type Num}
-                ObjR = Dom.data.objects OldR in
-                {Cell.exchange ObjR OldR {Record.adjoinAt OldR Type Num}}
-              end
-      %
-      %  Specify supertype/subtype relationships between object types.
-      %
-      superType: proc {$ Super Sub}
-                   STList = Dom.data.superTypes OldList in
-                   {Cell.exchange STList OldList (Super#Sub)|OldList}
-                 end
-      %
-      %  Specify primitive actions, and the types of their arguments.
-      %  Expects a record term of type action(arg1type arg2type ...).
-      %
-      action: proc {$ Action}
-                ActR = Dom.data.actions OldR
-                Args = {Record.toList Action}
-                Lbl = {Record.label Action} in
-                {Cell.exchange ActR OldR {Record.adjoinAt OldR Lbl Args}}
-              end
+  DB = _
+  {Module.link ['DomainBuilder.ozf' 'Domain.ozf'] [DB _]}
 
-      conflicts: proc {$ Fun}
-                   skip
-                 end
-      
-  )
 
   %
   %  Extract the actor from a given action.
-  %  Fails if the action is exogenous.
   %
   proc {Actor Actn Agt}
-    {LP.neg proc {$} {Domain.natural Actn} end}
     Agt = Actn.1
   end
-
-  %
-  %  Flatten defined fluents according to their definitions in the domain
-  %
-  proc {Uniformize_atom P U}
-    U = {FOF.atom P}
-  end
-  Uniformize = {FOF.transformation 'sitcalc.uniformize' Uniformize_atom}
 
   %
   %  Regress the formula over the given action.
@@ -151,34 +88,16 @@ define
   proc {Regress_atom P A U}
     EpsP EpsN
   in
-    EpsP = {Domain.causes_true A P}
-    EpsN = {Domain.causes_false A P}
+    EpsP = {DB.query.causesTrue P A}
+    EpsN = {DB.query.causesFalse P A}
     U = {FOF.simplify {FOF.parseRecord 'or'(EpsP and(P neg(EpsN)))}}
   end
   Regress = {FOF.transformation 'sitcalc.regress' Regress_atom}
 
-  %
-  %  Determine whether the given formula holds in the given
-  %  situation.
-  %
-  proc {Holds F S B}
-    case S of res(C Sr) then Fr = {Regress F C} in B={Holds Fr Sr}
-    else B={HoldsInit F}
-    end
-  end
-
-  proc {HoldsInit F B}
-    {FOF.tautology_e F _ B}
-  end
 
   proc {NewAgentMap M}
-    %TODO: Sitcalc.newAgentMap
-    M = agtmap(thomas: _)
-  end
-
-  proc {Agents L}
-    %TODO: Sitcalc.agents
-    L = [thomas]
+    names = {DB.query.agents} in
+    M = {Record.adjoinList agtmap {List.map names fun {$ E} E#_ end}}
   end
 
   proc {ActionOutcomes Act Outcomes}
@@ -311,45 +230,10 @@ define
                 end
 
     %
-    %  Determine whether two executions are indistinguishable from the
-    %  point of view of a single agent.
-    %
-    matches: proc {$ E1 E2 Agt B}
-               B = ({Ex.observations E1 Agt}=={Ex.observations E2 Agt})
-             end
-
-
-    %
-    %  Unwind a step of the execution, or remain in 'now' if no steps.
-    %  This is basically the opposite of {append}.
-    %
-    unwind: proc {$ EIn EOut}
-              case EIn of ex(_ E2) then EOut = E2
-              else EOut = EIn end
-            end
-
-    %
-    %  Unwind to the last observation made by the given agent.
-    %
-    unwindToObs: proc{$ EIn Agt Obs EOut}
-                   if EIn == now then Obs=nil EOut=now
-                   else
-                     Obs2 = {Ex.getobs EIn Agt}
-                    in
-                     if Obs2 == nil then
-                       E2 = {Ex.unwind EIn} in
-                       {Ex.unwindToObs E2 Agt Obs EOut}
-                     else
-                       Obs=Obs2 EOut=EIn
-                     end
-                   end
-                 end
-
-    %
     %  Determine whether F is known to hold after the execution of E.
     %  The definition of 'known' can be any knowledge operator for
     %  which we have an implementation, and which is equivalent across
-    %  agents (e.g: dknows, eknows, cknows)
+    %  agents (e.g: dknows, sknows, cknows)
     %
     %  Note that since this is based on knowledge, there's no excluded
     %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
@@ -418,6 +302,10 @@ define
 
 
   Jplan = jplan(
+
+    init: proc {$ JP}
+            JP = {NewAgentMap}
+          end
 
     finish: proc {$ JP}
               for CP in {Record.toList JP} do

@@ -9,12 +9,12 @@ functor
 
 import
 
-  Sitcalc
+  DomainBuilder
   LP
 
 define
 
-  D = Sitcalc.dom
+  D = DomainBuilder.def
 
   {D.agent thomas}
   {D.agent richard}
@@ -45,48 +45,59 @@ define
   {D.action place_in(agent object container)}
   {D.action transfer(agent container container)}
 
-  {D.adfluent poss(acquire) fun {$ _ Obj}
-        and(nexists(a has_object(a Obj)) neg(used(Obj)))
-        
-  end}
-  {D.adfluent poss(release) fun {$ Agt Obj}
-        has_object(Agt Obj)
-  end}
-  {D.adfluent poss(transfer) fun {$ Agt Src Dst}
-        and(has_object(Agt Src) has_object(Agt Dst))
-  end}
-  {D.adfluent poss(place_in)  fun {$ Agt Obj Dst}
-        and(has_object(Agt Obj) has_object(Agt Dst)
-            neg(obj_is_type(Obj appliance)))
-            
-  end}
-
   {D.fluent has_object(agent object)}
   {D.fluent used(object)}
-  {D.fluent contents(object object)}
+  {D.fluent contents(container object)}
 
-  {D.causesTrue has_object acquire fun {$ Agt#Obj Agt#Obj} true end}
-  {D.causesFalse has_object release fun {$ Agt#Obj Agt#Obj} true end}
-  {D.causesFalse has_object place_in fun {$ Agt#Obj Agt#Obj#_}
-        obj_is_type(Obj ingredient)
+  {D.adfluent poss}
+  {D.adfluent canObs(agent)}
+  {D.adfluent canSense(agent)}
+
+  {D.adfDef poss acquire fun {$ _ [_ Obj]}
+        and(all(a neg(has_object(a Obj))) neg(used(Obj)))
+  end}
+  {D.adfDef poss release fun {$ _ [Agt Obj]}
+        has_object(Agt Obj)
+  end}
+  {D.adfDef poss transfer fun {$ _ [Agt Src Dst]}
+        and(has_object(Agt Src) has_object(Agt Dst)
+            exists(c contents(Src c)))
+  end}
+  {D.adfDef poss place_in fun {$ _ [Agt Obj Dst]}
+        and(has_object(Agt Obj) has_object(Agt Dst)
+            neg(obj_is_type(Obj appliance)))
   end}
 
-  {D.causesTrue used acquire_object fun {$ Obj _#Obj} true end}
-
-  {D.causesTrue contents place_in fun {$ Obj#Conts Agt#OConts#Obj}
-      'or'(and(neg(exists(c contents(Obj c))) eq(OConts Conts))
-           exists(c and(contents(Obj c) eq(Conts add(OConts c)))a))
+  {D.causesTrue has_object acquire fun {$ [Af Of] [Aa Oa]}
+      and(eq(Af Aa) eq(Of Oa))
   end}
-  {D.causesTrue contents transfer fun {$ Obj#Conts Agt#Src#Obj}
-      exists(cs and(contents(Src cs)
-        'or'(and(neg(exists(c contents(Obj c))) eq(cs Conts))
-             exists(c and(contents(Obj c) eq(Conts add(cs c)))))))
+  {D.causesFalse has_object release fun {$ [Af Of] [Aa Oa]}
+      and(eq(Af Aa) eq(Of Oa))
+  end}
+  {D.causesFalse has_object place_in fun {$ [Af Of] [Aa Oa _]}
+      and(eq(Af Aa) eq(Of Oa) obj_is_type(Of ingredient))
+  end}
+
+  {D.causesTrue used acquire_object fun {$ [Of] [_ Oa]}
+      eq(Of Oa)
+  end}
+
+  {D.causesTrue contents place_in fun {$ [ObjF ContsF] [_ ContsA ObjA]}
+      and(eq(ObjF ObjA)
+      'or'(and(neg(exists(c contents(ObjF c))) eq(ContsF ContsA))
+           exists(c and(contents(ObjF c) eq(ContsF add(ContsA c))))))
+  end}
+  {D.causesTrue contents transfer fun {$ [ObjF ContsF] [_ SrcA DstA]}
+      and(eq(ObjF DstA)
+      exists(cs and(contents(SrcA cs)
+        'or'(and(neg(exists(c contents(ObjF c))) eq(cs ContsF))
+             exists(c and(contents(ObjF c) eq(ContsF add(cs c))))))))
   end}
 
   {D.conflicts proc {$ Act} A1 A2 Obj in
        {LP.member acquire_object(A1 Obj) Act}
        {LP.member acquire_object(A2 Obj) Act}
-       (A1 \= A2) = true
+       (A1 \= A2)=true
   end}
 
 end
