@@ -46,7 +46,7 @@ define
   {D.action transfer(agent container container)}
 
   {D.adfluent poss(acquire) fun {$ _ Obj}
-        "~exists(a has_object(a " # Obj # ") & ~used(" # Obj # ")"
+        and(nexists(a has_object(a Obj)) neg(used(Obj)))
         
   end}
   {D.adfluent poss(release) fun {$ Agt Obj}
@@ -56,8 +56,9 @@ define
         and(has_object(Agt Src) has_object(Agt Dst))
   end}
   {D.adfluent poss(place_in)  fun {$ Agt Obj Dst}
-        and(and(has_object(Agt Obj) has_object(Agt Dst))
+        and(has_object(Agt Obj) has_object(Agt Dst)
             neg(obj_is_type(Obj appliance)))
+            
   end}
 
   {D.fluent has_object(agent object)}

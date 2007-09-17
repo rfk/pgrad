@@ -35,6 +35,7 @@ functor
 import
 
   LP
+  MutableSet
   Domain
 
   Module
@@ -78,7 +79,7 @@ define
       %
       %  Our own internal bookkeeping structure
       %
-      data: data(agents: {Cell.new nil}
+      data: data(agents: {MutableSet.init}
                  objects: {Cell.new unit}
                  superTypes: {Cell.new nil} 
                  actions: {Cell.new unit}
@@ -92,8 +93,8 @@ define
       %  Specify the name of an agent
       %
       agent: proc {$ Agent}
-               AgtList = Dom.data.agents OldList in
-               {Cell.exchange AgtList OldList Agent|OldList}
+               AgtList = Dom.data.agents in
+               {MutableSet.insert AgtList Agent}
              end
       %
       %  Specify object types, and the number of each type of object.
