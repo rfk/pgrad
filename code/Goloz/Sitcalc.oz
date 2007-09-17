@@ -33,7 +33,6 @@
 functor
 
 import
-  System
 
   LP
   Domain
@@ -42,8 +41,8 @@ import
 
 export
 
+  Dom
   Actor
-
   Uniformize
   Regress
 
@@ -69,6 +68,63 @@ define
            % TODO: assign values to free variables
            skip
          end
+  )
+
+  %
+  %  Procedures for building a domain description.  We export
+  %  this for usein Domain.oz
+  %
+  Dom = dom(
+      %
+      %  Our own internal bookkeeping structure
+      %
+      data: data(agents: {Cell.new nil}
+                 objects: {Cell.new unit}
+                 superTypes: {Cell.new nil} 
+                 actions: {Cell.new unit}
+                 conflicts: {Cell.new nil}
+                 fluents: {Cell.new unit}
+                 adfluents: {Cell.new unit}
+                 causesTrue: {Cell.new unit}
+                 causesFalse: {Cell.new unit}
+                )
+      %
+      %  Specify the name of an agent
+      %
+      agent: proc {$ Agent}
+               AgtList = Dom.data.agents OldList in
+               {Cell.exchange AgtList OldList Agent|OldList}
+             end
+      %
+      %  Specify object types, and the number of each type of object.
+      %  Objects will then be named Type(1) through to Type(N).
+      %
+      object: proc {$ Type Num}
+                ObjR = Dom.data.objects OldR in
+                {Cell.exchange ObjR OldR {Record.adjoinAt OldR Type Num}}
+              end
+      %
+      %  Specify supertype/subtype relationships between object types.
+      %
+      superType: proc {$ Super Sub}
+                   STList = Dom.data.superTypes OldList in
+                   {Cell.exchange STList OldList (Super#Sub)|OldList}
+                 end
+      %
+      %  Specify primitive actions, and the types of their arguments.
+      %  Expects a record term of type action(arg1type arg2type ...).
+      %
+      action: proc {$ Action}
+                ActR = Dom.data.actions OldR
+                Args = {Record.toList Action}
+                Lbl = {Record.label Action} in
+                {Cell.exchange ActR OldR {Record.adjoinAt OldR Lbl Args}}
+              end
+
+      conflicts: proc {$ Fun}
+                   skip
+                 end
+      
   )
 
   %
@@ -195,7 +251,7 @@ define
     %  each agent and each action.
     %
     outcomes: proc {$ E Outcomes}
-                case E of ex(Step E2) then
+                case E of ex(Step _) then
                   {Ex.outcomesActs E Step.action Outcomes}
                 else Outcomes = [E] end
               end

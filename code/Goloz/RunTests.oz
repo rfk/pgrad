@@ -7,6 +7,7 @@ import
   Application
 
   LP
+  Set
 
   OpenMap at 'Memo/OpenMap.ozf'
   ListDict at 'Memo/ListDict.ozf'
@@ -31,6 +32,10 @@ define
 
   {Print "\n==  Testing LP\n"}
   {LP.test}
+  {Print passed}
+
+  {Print "\n==  Testing Set\n"}
+  {Set.test}
   {Print passed}
 
   {Print "\n==  Testing OpenMap\n"}
