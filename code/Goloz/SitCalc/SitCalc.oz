@@ -73,7 +73,10 @@ define
   %  We'll pass all domain-dependant queries to DB.query
   %
   DB = _
-  {Module.link ['SitCalc/DomainBuilder.ozf' 'Domain.ozf'] [DB _]}
+  Domain = _
+  {Module.link ['SitCalc/DomainBuilder.ozf' 'Domain.ozf'] [DB Domain]}
+  % Ensure that Domain module is loaded
+  {Wait Domain}
 
 
   %
@@ -91,7 +94,7 @@ define
   in
     EpsP = {DB.query.causesTrue P A}
     EpsN = {DB.query.causesFalse P A}
-    U = {FOF.simplify {FOF.parseRecord 'or'(EpsP and(P neg(EpsN)))}}
+    U = {FOF.parseRecord 'or'(EpsP and(P neg(EpsN))) _}
   end
   Regress = {FOF.transformation 'sitcalc.regress' Regress_atom}
 
@@ -240,22 +243,48 @@ define
     %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
     %  be false.
     %
-    % Since this is used during program search, we want to find
-    % a binding of the free variables in F that make it hold.
+    %  Since this is used during program search, we want to find
+    %  a binding of the free variables in F that make it hold.
+    %  In an attempt to save on regression steps for long histories,
+    %  we check whether it's a tautology falsehood before regressing.
     %
     holds: proc {$ F E B}
              Fml VM Bind
            in
              Fml = {FOF.parseRecord F VM}
-             {FOF.tautology_e Fml Bind}
-             if Bind == nil then B = false
-             else {VarMap.bind VM Bind} B = true end
+             Bind = {Ex.holdsFOF Fml E}
+             if Bind \= nil then
+               {VarMap.bind VM Bind}
+               B = true
+             else B = false end
            end
+
+    holdsFOF: proc {$ Fml E Bind}
+                Bind2 
+              in
+                case E of ex(Step E2) then
+                  {FOF.tautology_e Fml Bind2}
+                  if Bind2 \= nil then
+                    Bind = Bind2
+                  elseif {FOF.falsehood_a Fml} then
+                    Bind = nil
+                  else FmlR in
+                    %TODO: include observations in regression for holdsFOF
+                    FmlR = {Regress Fml Step.action}
+                    {Ex.holdsFOF FmlR E2 Bind}
+                  end
+                else
+                  %TODO: sitcalc.holdsNow
+                  {FOF.tautology_e Fml Bind}
+                end
+              end
 
     %
     %  Determine if it is known whether F holds after the execution of E.
     %  Unlike Ex.holds, this procedure returns one of 'yes', 'no' or 
     %  'unkown'.
+    %
+    %  TODO: how should Ex.holdsW handle free variables in F?
     %
     holdsW: proc{$ F E Res}
               if {Ex.holds F E} then

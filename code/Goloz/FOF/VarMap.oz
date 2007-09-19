@@ -51,6 +51,7 @@ define
         Out = {MakeName}
         {MList.cons VM Term#Out}
       else Out = Nm end
+    elseif {Not {Record.is Term}} then Out = Term
     else
       Out = {Record.map Term proc {$ I O} {Map VM I O} end}
     end
@@ -63,6 +64,7 @@ define
             end
       if {IsFree Var} then Out = Var
       else Out = Term end
+    elseif {Not {Record.is Term}} then Out = Term
     else
       Out = {Record.map Term proc {$ I O} {Unmap VM I O} end}
     end

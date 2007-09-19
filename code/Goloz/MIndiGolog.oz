@@ -24,6 +24,7 @@ export
   Trans
   Step
   Final
+  Plan
   JointPlan
 
   Test
@@ -162,6 +163,13 @@ define
       {Step Dp Ep Dr Er}
     else
       Dr=Dp Er=Ep
+    end
+  end
+
+  proc {Plan D EIn EOut}
+    choice
+       {Final D EIn} EIn = EOut
+    [] Dr Er in {Trans D EIn Dr Er} {Plan Dr Er EOut}
     end
   end
 

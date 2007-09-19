@@ -76,6 +76,7 @@ export
   Tautology_a
   Falsehood_e
   Falsehood_a
+  ToRecord
 
   Test
 
@@ -147,6 +148,10 @@ define
     {BDD.replaceLeaves F1 F2 {Neg F2}}
   end
 
+  fun {Ite C F1 F2}
+    {BDD.replaceLeaves C F1 F2}
+  end
+
   fun {All F}
     {BDD.bdd q(F) 1 0}
   end
@@ -198,11 +203,21 @@ define
     []   neg(R) then F = {Neg {ParseRecordB R B VM}}
     []   impl(R1 R2) then F={Impl {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
     []   equiv(R1 R2) then F={Equiv {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
+    []   ite(C R1 R2) then F={Ite {ParseRecordB C B VM} {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
     []   all(Nm R) then F = {All {ParseRecordB R {Binding.push B Nm} VM}}
     []   exists(Nm R) then F={Exists {ParseRecordB R {Binding.push B Nm} VM}}
     []   nall(Nm R) then F = {Exists {ParseRecordB neg(R) {Binding.push B Nm} VM}}
     []   nexists(Nm R) then F={All {ParseRecordB neg(R) {Binding.push B Nm} VM}}
     else F = {Atom {Binding.unbind B {VarMap.map VM Rec}}}
+    end
+  end
+
+
+  proc {ToRecord Fml Rec}
+    ITE = {BDD.deref Fml} in
+    case ITE of ite(K T F) then Rec = ite(K {ToRecord T} {ToRecord F})
+    [] 1 then Rec = true
+    else Rec = false
     end
   end
 
@@ -278,6 +293,7 @@ define
   %
   proc {StripVE TIn TOut}
     if {IsFree TIn} then TOut = TIn
+    elseif {Not {Record.is TIn}} then TOut = TIn
     else
       case TIn of v_e(_ V) then TOut = V
       else
@@ -451,7 +467,15 @@ define
   end
 
   fun {Theory_eq_diffAtomic T}
-    {IsFree T} orelse {Record.label T} == v_e
+    {IsFree T} orelse {Not {Record.is T}} orelse {Record.label T} == v_e
+  end
+
+  proc {IsEVar V B}
+    if {IsFree V} then B = false
+    else
+      case V of v_e(...) then B = true
+      else B = false end
+    end
   end
 
   %
@@ -464,15 +488,17 @@ define
   %  into the list of path constraints.
   %
   proc {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
-    case Diffs of D1#D2|Ds then EQOut PDOut1 in
-      case D1 of v_e(_ VE1) then VE2 in
-        case D2 of v_e(_ VE2p) then VE2=VE2p
+    case Diffs of D1#D2|Ds then EQOut PDOut1 V1 V2 in
+      if {IsEVar D1} then VE1 VE2 in
+        D1 = v_e(_ VE1)
+        if {IsEVar D2} then D2 = v_e(_ VE2)
         else VE2 = D2 end
         EQOut = {EQSet.addT PDIn.eqs VE1#VE2}
         PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
         {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
       else
-        case D2 of v_e(_ VE2) then
+        if {IsEVar D2} then VE2 in
+          D2 = v_e(_ VE2)
           EQOut = {EQSet.addT PDIn.eqs D1#VE2}
           PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
           {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
@@ -521,7 +547,6 @@ define
             % First, apply the current bindings to bound vars.
             Pb = {Binding.bind PDIn.b P}
             % Then, bind e-vars according to operating mode.
-            if {Dictionary.is SDIn.fvBind} then skip else raise SDIn.fvBind end end
             Pe = {BindVE Pb SDIn.fvMode SDIn.fvBind}
             % Strip v_e terms down to their representative variable
             % when sending them off for type constraints.
@@ -580,17 +605,13 @@ define
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  proc {Explore F Init SDOut}
+  proc {Explore F Init Searcher}
     Theory = th(init: Init
                 addNode: Theory_addNode
                 endPath: Theory_endPath
                 done: Theory_done)
-    Res
   in
-    Res = {Search.base.one proc {$ R} {BDD.explore F Theory R} end}
-    case Res of [SD] then SDOut=SD
-    else SDOut=nil
-    end
+    Searcher = {New Search.object script(proc {$ R} {BDD.explore F Theory R} end)}
   end
 
   %
@@ -599,10 +620,22 @@ define
   %  names to values.
   %
   proc {Tautology_e F Binding}
-    SDOut = {Explore F Theory_init_taut_e}
+    Searcher = {Explore F Theory_init_taut_e}
   in
+    {YieldNextBinding Searcher Binding}
+  end
+
+  proc {YieldNextBinding Searcher Binding}
+    SDOut
+  in
+    SDOut = {Searcher next($)}
     if SDOut == nil then Binding = nil
-    else Binding = {Dictionary.toRecord b SDOut.fvBind} end
+    else
+     choice
+        Binding = {Dictionary.toRecord b SDOut.1.fvBind}
+     [] {YieldNextBinding Searcher Binding}
+     end
+    end
   end
 
   %
@@ -610,7 +643,8 @@ define
   %  the free variables.  Returns a Bool.
   %
   proc {Tautology_a F Res}
-    SDOut = {Explore F Theory_init_taut_a}
+    Searcher = {Explore F Theory_init_taut_a}
+    SDOut = {Searcher next($)}
   in
     if SDOut == nil then Res = false
     else Res = true end
@@ -619,18 +653,18 @@ define
   %
   %  Like Tautology_e, but checking falsehood.
   %
-  fun {Falsehood_e F Binding}
-    SDOut = {Explore F Theory_init_false_e}
+  proc {Falsehood_e F Binding}
+    Searcher = {Explore F Theory_init_false_e}
   in
-    if SDOut == nil then Binding = nil
-    else Binding = {Dictionary.toRecord b SDOut.fvBind} end
+    {YieldNextBinding Searcher Binding}
   end
 
   %
   %  Like Tautology_a, but checking falsehood.
   %
-  fun {Falsehood_a F Res}
-    SDOut = {Explore F Theory_init_false_a}
+  proc {Falsehood_a F Res}
+    Searcher = {Explore F Theory_init_false_a}
+    SDOut = {Searcher next($)}
   in
     if SDOut == nil then Res = false
     else Res = true end
@@ -664,6 +698,7 @@ define
   end
 
   proc {Test_prover}
+    V1
     Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
           impl(and(impl(a b) impl(b c)) impl(d c))
           impl(all(x p(x)) p(a))
@@ -673,9 +708,10 @@ define
           all(x all(y impl(eq(x y) eq(y x))))
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
           all(a all(b all(c impl(eq(a b) eq(c b)))))
-          impl(p(a) p(_))]
-    Be = [true false true false true false true true false true]
-    Ba = [true false true false true false true true false false]
+          impl(p(a) p(_))
+          ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)]
+    Be = [true false true false true false true true false true true]
+    Ba = [true false true false true false true true false false false]
   in
     {List.length Fs} = {List.length Be}
     {List.length Fs} = {List.length Ba}
@@ -683,7 +719,7 @@ define
                 assign: proc {$ _} skip end)
     for F in Fs B in Be do local T P VM BM in
       P = {ParseRecord F VM}
-      BM = {Tautology_e P}
+      BM = {Search.base.one proc {$ R} {Tautology_e P R} end}.1
       T = (BM \= nil)
       {IsDet T true}
       if B == T then skip else raise F end end

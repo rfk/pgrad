@@ -58,15 +58,21 @@ define
   end
  
   proc {Bind S RIn ROut}
-    case RIn of v_b(Var) then ROut = {GetName S Var}
-    else ROut = {Record.map RIn fun {$ I} {Bind S I} end}
+    if {Not {Record.is RIn}} then ROut = RIn
+    else
+      case RIn of v_b(Var) then ROut = {GetName S Var}
+      else ROut = {Record.map RIn fun {$ I} {Bind S I} end}
+      end
     end
   end
 
   proc {Unbind S RIn ROut}
     Var = {GetVar S RIn}
   in
-    if Var == nil then ROut = {Record.map RIn fun {$ I} {Unbind S I} end}
+    if Var == nil then
+      if {Record.is RIn} then
+        ROut = {Record.map RIn fun {$ I} {Unbind S I} end}
+      else ROut = RIn end
     else ROut = v_b(Var) end
   end
 

@@ -8,13 +8,18 @@ import
   Browser
   Search
   Explorer
+  Property
 
 define
 
+  {Property.put 'print.width' 1000}
+  {Property.put 'print.depth' 1000}
+  {Property.put 'errors.width' 1000}
+  {Property.put 'errors.depth' 1000}
+
   local JP Dp Ep Q in
     proc {Q A}
-      Dp#Ep = A in
-      {MIndiGolog.trans test(impl(p(a) p(_))) now Dp Ep}
+      {MIndiGolog.plan pick(obj seq(seq(acquire(thomas board(2)) acquire(thomas knife(1))) test(has_object(thomas obj)))) now A}
     end
     %{Explorer.object script(Q)}
     {Browser.browse {Search.base.all Q}}
