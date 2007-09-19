@@ -293,7 +293,9 @@ define
                   end
                 else
                   %TODO: sitcalc.holdsNow
-                  Axioms = {FOF.parseRecord {List.toTuple and {DB.query.initially}} _} in
+                  Axioms1 = {List.toTuple and {DB.query.initially}}
+                  Axioms2 = {List.toTuple and {DB.query.constraints}}
+                  Axioms = {FOF.parseRecord and(Axioms1 Axioms2) _} in
                   {FOF.tautology_e {FOF.impl Axioms Fml} Bind}
                 end
               end

@@ -105,4 +105,7 @@ define
   {D.initially nexists(obj used(obj))}
   {D.initially all(obj nexists(c contents(obj c)))}
 
+  % TODO: this constraint hangs the prover
+  %{D.constraint all(agt1 all(agt2 all(obj impl(and(has_object(agt1 obj) has_object(agt2 obj)) eq(agt1 agt2)))))}
+
 end

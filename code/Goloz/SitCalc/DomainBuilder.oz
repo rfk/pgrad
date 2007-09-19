@@ -129,6 +129,7 @@ define
               causesFalse: {TermActFml.new}
               conflicts: {MList.new}
               initially: {MList.new}
+              constraints: {MList.new}
              )
 
   %
@@ -166,6 +167,10 @@ define
 
     initially: proc {$ Fml}
                  {MList.cons Data.initially Fml}
+               end
+
+    constraint: proc {$ Fml}
+                 {MList.cons Data.constraints Fml}
                end
 
     adfDef: proc {$ Fluent Action Func}
@@ -226,6 +231,10 @@ define
 
       initially: proc {$ Fmls}
                    Fmls = {MList.toList Data.initially}
+                 end
+
+      constraints: proc {$ Fmls}
+                   Fmls = {MList.toList Data.constraints}
                  end
 
       adfluent: proc {$ Fluent Defn}
