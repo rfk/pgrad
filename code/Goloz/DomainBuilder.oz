@@ -41,7 +41,7 @@ define
       inst: proc {$ TD Label Term}
               Args = {Dictionary.get TD Label}
             in
-              Term = {List.toTuple Label {List.MakeList {List.length Args}}}
+              Term = {List.toTuple Label {List.makeList {List.length Args}}}
             end
   )
 
@@ -86,7 +86,7 @@ define
                  else Func
                    Label2 = {Record.label Act}
                    Args2 = {Record.toList Act} in
-                   Func = {Dict.condGet ActMap Label2 nil}
+                   Func = {Dictionary.condGet ActMap Label2 nil}
                    if Func == nil then Fml = false
                    else Fml = {Func Args1 Args2} end
                  end
@@ -97,7 +97,7 @@ define
   proc {ApplyExQuants Vars FmlAcc Fml}
     case Vars of V|Vs then
       {ApplyExQuants Vs exists(V FmlAcc) Fml}
-    else Fml = FmlAcc
+    else Fml = FmlAcc end
   end
   
   %

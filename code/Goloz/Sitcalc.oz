@@ -178,7 +178,7 @@ define
 
     outcomesActs: proc {$ E Actions Outcomes}
                     case Actions of A|As then OutA in
-                      OutA = {Ex.outcomesAgts E A {Agents}}
+                      OutA = {Ex.outcomesAgts E A {DB.query.agents}}
                       Outcomes = for append:A ExA in OutA do
                                    {A {Ex.outcomesActs ExA As}}
                                  end
