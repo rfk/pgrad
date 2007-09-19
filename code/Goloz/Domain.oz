@@ -69,6 +69,16 @@ define
             neg(obj_is_type(Obj appliance)))
   end}
 
+  {D.adfDef canObs acquire fun {$ _ _} true end}
+  {D.adfDef canObs release fun {$ _ _} true end}
+  {D.adfDef canObs transfer fun {$ _ _} true end}
+  {D.adfDef canObs place_in fun {$ _ _} true end}
+
+  {D.adfDef canSense acquire fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
+  {D.adfDef canSense release fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
+  {D.adfDef canSense transfer fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
+  {D.adfDef canSense place_in fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
+
   {D.causesTrue has_object acquire fun {$ [Af Of] [Aa Oa]}
       and(eq(Af Aa) eq(Of Oa))
   end}
@@ -100,6 +110,8 @@ define
        {LP.member acquire_object(A2 Obj) Act}
        (A1 \= A2)=true
   end}
+
+  %{D.outcome acquire success fun {$ _} true end}
 
   {D.initially all(obj nexists(agt has_object(agt obj)))}
   {D.initially nexists(obj used(obj))}

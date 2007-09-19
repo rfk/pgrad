@@ -223,7 +223,7 @@ define
                   end
 
     %
-    %  Enumerate outcome executions for the given (single) action and Agent.
+    %  Enumerate outcome executions for the given (single) action and agent.
     %
     outcomesAA: proc {$ E Act Agt Outcomes}
                   CanObs = {Ex.holdsW E canObs(Agt Act)}
