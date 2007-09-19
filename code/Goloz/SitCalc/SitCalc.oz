@@ -35,6 +35,7 @@ functor
 import
 
   LP
+  VarMap at '../FOF/VarMap.ozf'
 
   Module
 
@@ -72,7 +73,7 @@ define
   %  We'll pass all domain-dependant queries to DB.query
   %
   DB = _
-  {Module.link ['DomainBuilder.ozf' 'Domain.ozf'] [DB _]}
+  {Module.link ['SitCalc/DomainBuilder.ozf' 'Domain.ozf'] [DB _]}
 
 
   %
@@ -96,8 +97,8 @@ define
 
 
   proc {NewAgentMap M}
-    names = {DB.query.agents} in
-    M = {Record.adjoinList agtmap {List.map names fun {$ E} E#_ end}}
+    Names = {DB.query.agents} in
+    M = {Record.adjoinList agtmap {List.map Names fun {$ E} E#_ end}}
   end
 
   proc {ActionOutcomes Act Outcomes}
@@ -239,9 +240,16 @@ define
     %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
     %  be false.
     %
+    % Since this is used during program search, we want to find
+    % a binding of the free variables in F that make it hold.
+    %
     holds: proc {$ F E B}
-             %TODO: Sitcalc.ex.holds
-             B = true
+             Fml VM Bind
+           in
+             Fml = {FOF.parseRecord F VM}
+             {FOF.tautology_e Fml Bind}
+             if Bind == nil then B = false
+             else {VarMap.bind VM Bind} B = true end
            end
 
     %
@@ -359,6 +367,7 @@ define
   proc {Test_ex}
     E1 E2 E3 E4 E5 E6 E7
   in
+    {DB.def.agent thomas}
     E1 = {Ex.append now step(test: p(a b))}
     E1.1.obs = nil
     E1.1.action = nil

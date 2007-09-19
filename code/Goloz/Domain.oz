@@ -9,7 +9,7 @@ functor
 
 import
 
-  DomainBuilder
+  DomainBuilder at 'SitCalc/DomainBuilder.ozf'
   LP
 
 define

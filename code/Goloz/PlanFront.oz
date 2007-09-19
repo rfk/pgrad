@@ -17,7 +17,7 @@ functor
 import
 
   LP
-  Sitcalc
+  Sitcalc at 'SitCalc/SitCalc.ozf'
 
 export
 

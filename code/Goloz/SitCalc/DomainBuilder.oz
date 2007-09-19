@@ -13,8 +13,8 @@ functor
 import
 
   LP
-  MSet at 'Mutable/Set.ozf'
-  MList at 'Mutable/List.ozf'
+  MSet at '../Mutable/Set.ozf'
+  MList at '../Mutable/List.ozf'
 
 export
 
@@ -44,6 +44,7 @@ define
               Term = {List.toTuple Label {List.makeList {List.length Args}}}
             end
   )
+
 
   %
   %  Manages a collection of term/action formulae.  These are functions
@@ -103,7 +104,7 @@ define
   %
   %  Private record holding the domain data
   %
-  Data = data(agents: {MSet.init}
+  Data = data(agents: {MSet.new}
               superTypes: {MList.new} 
               objects: {Dictionary.new}
               actions: {TermDef.new}

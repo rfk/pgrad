@@ -13,13 +13,14 @@ import
   ListDict at 'Memo/ListDict.ozf'
   Memo at 'Memo/Memo.ozf'
 
+  VarMap at 'FOF/VarMap.ozf'
   TermSet at 'FOF/TermSet.ozf'
   QuantSet at 'FOF/QuantSet.ozf'
   EQSet at 'FOF/EQSet.ozf'
   BDD at 'FOF/BDD.ozf'
   FOF at 'FOF/FOF.ozf'
 
-  Sitcalc
+  Sitcalc at 'SitCalc/SitCalc.ozf'
 
 define
 
@@ -48,6 +49,10 @@ define
 
   {Print "\n==  Testing Memo\n"}
   {Memo.test}
+  {Print passed}
+
+  {Print "\n==  Testing VarMap\n"}
+  {VarMap.test}
   {Print passed}
 
   {Print "\n==  Testing TermSet\n"}

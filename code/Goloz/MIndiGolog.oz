@@ -16,7 +16,7 @@ import
 
   LP
   Program
-  Sitcalc
+  Sitcalc at 'SitCalc/SitCalc.ozf'
   PlanFront
 
 export
@@ -25,6 +25,8 @@ export
   Step
   Final
   JointPlan
+
+  Test
 
 define
 
@@ -44,13 +46,13 @@ define
           Dp = nil
           Ep = {Sitcalc.ex.append E step(test:Cond)}
     []  seq(D1 D2) then
-          dis D1p in {Trans D1 E D1p Ep}
+          choice D1p in {Trans D1 E D1p Ep}
               Dp = seq(D1p D2)
           []  {Final D1 E}
               {Trans D2 E Dp Ep}
           end
     []  either(D1 D2) then
-          dis {Trans D1 E Dp Ep}
+          choice {Trans D1 E Dp Ep}
           []  {Trans D2 E Dp Ep}
           end
     []  pick(V D1) then
@@ -64,7 +66,7 @@ define
             Dp = seq(D2 star(D1))
           end
     []  ifte(Cond D1 D2) then Ep2 in
-          dis
+          choice
               {Sitcalc.ex.holds Cond E true}
               {Trans D1 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 Cond Ep}
@@ -80,14 +82,14 @@ define
             Dp = seq(D2 wloop(Cond D1))
           end
     []  conc(D1 D2) then
-          dis D1p E1p in
+          choice D1p E1p in
               {Trans D1 E D1p E1p}
               Dp = conc(D1p D2)
-              Ep = {Sitcalc.ex.addthred 1 E1p}
+              Ep = {Sitcalc.ex.addthred E1p 1}
           []  D2p E2p in
               {Trans D2 E D2p E2p}
               Dp = conc(D1 D2p)
-              Ep = {Sitcalc.ex.addthred 2 E2p}
+              Ep = {Sitcalc.ex.addthred E2p 2}
           end
     []  pconc(D1 D2) then Res in
           % Use LP.ifNot to avoid re-computation on D1
@@ -114,7 +116,7 @@ define
     else local Act in 
           Act = D
           Dp = nil
-          Ep = {Sitcalc.ex.append step(action:Act) E}
+          Ep = {Sitcalc.ex.append E step(action:Act)}
          end
     end
   end
@@ -123,19 +125,20 @@ define
    case D of
        nil then skip
    []  seq(D1 D2) then {Final D1 E} {Final D2 E}
-   []  either(D1 D2) then dis {Final D1 E} [] {Final D2 E} end
+   []  either(D1 D2) then choice {Final D1 E} [] {Final D2 E} end
    []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               dis  {Sitcalc.ex.holds Cond E true} {Final D1 E}
+               choice  {Sitcalc.ex.holds Cond E true} {Final D1 E}
                []   {Sitcalc.ex.holds neg(Cond) E true} {Final D2 E}
                end
-   []  wloop(Cond D1) then dis {Sitcalc.ex.holds neg(Cond) E true} 
+   []  wloop(Cond D1) then choice {Sitcalc.ex.holds neg(Cond) E true} 
                            [] {Final D1 E} end
    []  conc(D1 D2) then {Final D1 E} {Final D2 E}
    []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
    []  cstar(_) then skip
    []  pcall(D1) then local Body in {Program.procDef D1 Body} {Final Body E} end
+   else fail
    end
   end
 
@@ -227,6 +230,10 @@ define
       end
       {AssignBranchesToList Bs D Open1 Closed1 OpenT ClosedT}
     else OpenT=Open ClosedT=Closed end
+  end
+
+  proc {Test}
+    skip
   end
 
 end

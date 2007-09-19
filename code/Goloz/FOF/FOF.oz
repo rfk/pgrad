@@ -48,10 +48,12 @@ import
   TermSet
   QuantSet
   EQSet
+  VarMap
 
   Search
   Space
   Property
+  System
 
 export
 
@@ -159,42 +161,48 @@ define
   %
   Lang = _
 
+
   %
   %  For easier writing and manipulation of formulae, this gives us
   %  the ability to construct the shannon graph for a record term.
   %  It also takes care of the variable indexing automatically (so
   %  one uses terms like all(x p(x)) with explicit variable names.
   %
+  %  If the record contains free variables, these will be replaced with
+  %  v_e(Nm) terms.  VM is returned as a VarMap giving the correspondance
+  %  between variables and their names.
+  %
 
-  proc {ParseRecord Rec F}
-    {ParseRecordB Rec {Binding.init} F}
+  proc {ParseRecord Rec VM F}
+    VM = {VarMap.new}
+    {ParseRecordB Rec {Binding.init} VM F}
   end
 
-  proc {ParseRecordB Rec B F}
+  proc {ParseRecordB Rec B VM F}
     case Rec of true then F = 1
     []   false then F = 0
     []   and(...) then case {Record.toList Rec} of nil then F = 1
-                        [] H|Ts then HF = {ParseRecordB H B}
-                                     M = proc {$ Q G} {ParseRecordB Q B G} end
-                                     TFs = {List.map Ts M}
-                                    in
-                                     F = {List.foldL TFs Conj HF}
+                        [] H|Ts then HF = {ParseRecordB H B VM}
+                                   M = proc {$ Q G} {ParseRecordB Q B VM G} end
+                                   TFs = {List.map Ts M}
+                                  in
+                                   F = {List.foldL TFs Conj HF}
                         end
     []   'or'(...) then case {Record.toList Rec} of nil then F = 0
-                        [] H|Ts then HF = {ParseRecordB H B}
-                                     M = proc {$ Q G} {ParseRecordB Q B G} end
-                                     TFs = {List.map Ts M}
-                                    in
-                                     F = {List.foldL TFs Disj HF}
+                        [] H|Ts then HF = {ParseRecordB H B VM}
+                                   M = proc {$ Q G} {ParseRecordB Q B VM G} end
+                                   TFs = {List.map Ts M}
+                                  in
+                                   F = {List.foldL TFs Disj HF}
                         end
-    []   neg(R) then F = {Neg {ParseRecordB R B}}
-    []   impl(R1 R2) then F = {Impl {ParseRecordB R1 B} {ParseRecordB R2 B}}
-    []   equiv(R1 R2) then F = {Equiv {ParseRecordB R1 B} {ParseRecordB R2 B}}
-    []   all(Nm R) then F = {All {ParseRecordB R {Binding.push B Nm}}}
-    []   exists(Nm R) then F={Exists {ParseRecordB R {Binding.push B Nm}}}
-    []   nall(Nm R) then F = {Exists {ParseRecordB neg(R) {Binding.push B Nm}}}
-    []   nexists(Nm R) then F={All {ParseRecordB neg(R) {Binding.push B Nm}}}
-    else F = {Atom {Binding.unbind B Rec}}
+    []   neg(R) then F = {Neg {ParseRecordB R B VM}}
+    []   impl(R1 R2) then F={Impl {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
+    []   equiv(R1 R2) then F={Equiv {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
+    []   all(Nm R) then F = {All {ParseRecordB R {Binding.push B Nm} VM}}
+    []   exists(Nm R) then F={Exists {ParseRecordB R {Binding.push B Nm} VM}}
+    []   nall(Nm R) then F = {Exists {ParseRecordB neg(R) {Binding.push B Nm} VM}}
+    []   nexists(Nm R) then F={All {ParseRecordB neg(R) {Binding.push B Nm} VM}}
+    else F = {Atom {Binding.unbind B {VarMap.map VM Rec}}}
     end
   end
 
@@ -294,7 +302,7 @@ define
     elseif {Not {Record.is TIn}} then TOut=TIn
     else
       case TIn of v_e(Nm) then OldB NewB in
-        {Binding.condExchange Binding Nm nil OldB NewB}
+        {Dictionary.condExchange Binding Nm nil OldB NewB}
         if {IsFree OldB} orelse OldB \= nil then
             TOut = OldB  NewB = OldB
         else
@@ -349,26 +357,26 @@ define
 
   proc {Theory_init_taut_a SData PData}
     {Theory_init SData PData}
-    SData.fvMode = e
+    SData.fvMode = a
     PData.polarity = 0
   end
 
   proc {Theory_init_taut_e SData PData}
     {Theory_init SData PData}
-    SData.fvMode = a
+    SData.fvMode = e
     PData.polarity = 0
   end
 
   proc {Theory_init_false_a SData PData}
     {Theory_init SData PData}
-    SData.fvMode = e
-    PData.polarity = 0
+    SData.fvMode = a
+    PData.polarity = 1
   end
 
   proc {Theory_init_false_e SData PData}
     {Theory_init SData PData}
-    SData.fvMode = a
-    PData.polarity = 0
+    SData.fvMode = e
+    PData.polarity = 1
   end
 
   %
@@ -489,7 +497,7 @@ define
   proc {Theory_eq_consistent SData PData B}
     EVars Check S
   in
-    if SData.fvMode == a then
+    if SData.fvMode == e then
       EVars = {List.append PData.eVars
                            {List.map {Dictionary.items SData.fvBind} StripVE}}
     else
@@ -513,7 +521,8 @@ define
             % First, apply the current bindings to bound vars.
             Pb = {Binding.bind PDIn.b P}
             % Then, bind e-vars according to operating mode.
-            Pe = {BindVE Pb SDIn.fvBind SDIn.fvMode}
+            if {Dictionary.is SDIn.fvBind} then skip else raise SDIn.fvBind end end
+            Pe = {BindVE Pb SDIn.fvMode SDIn.fvBind}
             % Strip v_e terms down to their representative variable
             % when sending them off for type constraints.
             {Lang.wff {StripVE Pe}}
@@ -569,7 +578,7 @@ define
   end
 
 
-  %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   proc {Explore F Init SDOut}
     Theory = th(init: Init
@@ -629,6 +638,32 @@ define
 
 
   proc {Test}
+    {Test_vars}
+    {Test_prover}
+  end
+
+  proc {Test_vars}
+    B1 = {Dictionary.new}
+    B2 = {Dictionary.new}
+    VM = {VarMap.new}
+    V1 V2
+    T1 T2 T3 T4
+  in
+    {BindVE p(a b) a B1 p(a b)}
+    {BindVE p(a b) e B1 p(a b)}
+    {BindVE p(a v_e(test)) a B1 p(a v_e(test T1))}
+    {IsFree T1 true}
+    {BindVE p(a v_e(test)) e B1 p(a v_e(test T1))}
+    {IsFree T1 true}
+    {BindVE p(a v_e(test)) e B2 p(a T2)}
+    {IsFree T2 true}
+    {BindVE {VarMap.map VM p(a V1)} a B2 p(a v_e(_ T3))}
+    {IsFree T3 true}
+    {BindVE {VarMap.map VM p(a V2)} e B2 p(a T4)}
+    {IsFree T4 true}
+  end
+
+  proc {Test_prover}
     Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
           impl(and(impl(a b) impl(b c)) impl(d c))
           impl(all(x p(x)) p(a))
@@ -637,17 +672,27 @@ define
           impl(exists(x p(x)) all(x p(x)))
           all(x all(y impl(eq(x y) eq(y x))))
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
-          all(a all(b all(c impl(eq(a b) eq(c b)))))]
-    Bs = [true false true false true false true true false]
+          all(a all(b all(c impl(eq(a b) eq(c b)))))
+          impl(p(a) p(_))]
+    Be = [true false true false true false true true false true]
+    Ba = [true false true false true false true true false false]
   in
-    {List.length Fs} = {List.length Bs}
+    {List.length Fs} = {List.length Be}
+    {List.length Fs} = {List.length Ba}
     Lang = lang(wff: proc {$ _} skip end
                 assign: proc {$ _} skip end)
-    for F in Fs B in Bs do local T P in
-      P = {ParseRecord F}
+    for F in Fs B in Be do local T P VM BM in
+      P = {ParseRecord F VM}
+      BM = {Tautology_e P}
+      T = (BM \= nil)
+      {IsDet T true}
+      if B == T then skip else raise F end end
+    end end
+    for F in Fs B in Ba do local T P VM BM in
+      P = {ParseRecord F VM}
       T = {Tautology_a P}
       {IsDet T true}
-      B = T
+      if B == T then skip else raise F end end
     end end
   end
 

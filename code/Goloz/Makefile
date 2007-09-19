@@ -1,11 +1,12 @@
 
 
-FUNCTORS = LP.ozf Time.ozf Sitcalc.ozf Domain.ozf Agent.ozf MIndiGolog.ozf \
-           PlanFront.ozf Set.ozf DomainBuilder.ozf\
+FUNCTORS = LP.ozf Domain.ozf Agent.ozf MIndiGolog.ozf Set.ozf PlanFront.ozf\
+           Program.ozf\
+           SitCalc/Time.ozf SitCalc/DomainBuilder.ozf SitCalc/SitCalc.ozf\
            Mutable/Set.ozf Mutable/Record.ozf Mutable/List.ozf \
            Memo/Memo.ozf Memo/ListDict.ozf Memo/OpenMap.ozf \
            FOF/BDD.ozf FOF/FOF.ozf FOF/TermSet.ozf FOF/QuantSet.ozf \
-           FOF/EQSet.ozf FOF/Binding.ozf
+           FOF/EQSet.ozf FOF/Binding.ozf FOF/VarMap.ozf
 
 %.ozf: %.oz
 	ozc -c $< -o $@
@@ -20,8 +21,8 @@ test: RunTests.exe $(FUNCTORS)
 	./RunTests.exe
 
 clean:
-	rm -rf *.ozf *.exe FOF/*.ozf Memo/*.ozf Mutable/*.ozf goloz
+	rm -rf *.ozf *.exe FOF/*.ozf Memo/*.ozf Mutable/*.ozf SitCalc/*.ozf goloz
 
 todos:
-	grep 'TODO' *.* FOF/*.* Memo/*.* Mutable/*/*
+	grep 'TODO' *.* FOF/*.* Memo/*.* Mutable/*.* SitCalc/*.*
 

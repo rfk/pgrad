@@ -31,12 +31,12 @@ define
 
   proc {Append L Items}
     OldL in
-    {Cell.exchange L OldL {List.append OldL Items}}
+    {Cell.exchange L OldL thread {List.append OldL Items} end}
   end
 
   proc {Prepend L Items}
     OldL in
-    {Cell.exchange L OldL {List.append Items OldL}}
+    {Cell.exchange L OldL thread {List.append Items OldL} end}
   end
 
   proc {Length L I}
