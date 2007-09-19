@@ -19,7 +19,9 @@ define
 
   local JP Dp Ep Q in
     proc {Q A}
-      {MIndiGolog.plan pick(obj seq(seq(acquire(thomas board(2)) acquire(thomas knife(1))) test(has_object(thomas obj)))) now A}
+      Dp#Ep = A V in
+      %{MIndiGolog.trans pick(v test(obj_is_type(v board))) now Dp Ep}
+      {MIndiGolog.plan pcall(chopInto(thomas lettuce(1) bowl(1))) now Ep}
     end
     %{Explorer.object script(Q)}
     {Browser.browse {Search.base.all Q}}

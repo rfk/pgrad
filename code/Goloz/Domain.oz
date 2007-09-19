@@ -22,6 +22,7 @@ define
 
   {D.object knife 2}
   {D.object bowl 3}
+  {D.object board 3}
   {D.object oven 1}
   {D.object flour 5}
   {D.object sugar 6}
@@ -99,5 +100,9 @@ define
        {LP.member acquire_object(A2 Obj) Act}
        (A1 \= A2)=true
   end}
+
+  {D.initially all(obj nexists(agt has_object(agt obj)))}
+  {D.initially nexists(obj used(obj))}
+  {D.initially all(obj nexists(c contents(obj c)))}
 
 end

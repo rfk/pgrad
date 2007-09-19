@@ -5,6 +5,7 @@ import
 
   Open
   Application
+  Property
 
   LP
   Set
@@ -23,6 +24,11 @@ import
   Sitcalc at 'SitCalc/SitCalc.ozf'
 
 define
+
+  {Property.put 'print.width' 1000}
+  {Property.put 'print.depth' 1000}
+  {Property.put 'errors.width' 1000}
+  {Property.put 'errors.depth' 1000}
 
   StdOut = {New Open.file init(name: stdout flags: [write])}
   proc {Print S}

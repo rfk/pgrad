@@ -23,6 +23,7 @@ export
 
   Trans
   Step
+  Steps
   Final
   Plan
   JointPlan
@@ -163,6 +164,14 @@ define
       {Step Dp Ep Dr Er}
     else
       Dr=Dp Er=Ep
+    end
+  end
+
+  proc {Steps N D E Dr Er}
+    if N == 0 then Dr = D Er = E
+    else Dp Ep in
+      {Step D E Dp Ep}
+      {Steps N-1 Dp Ep Dr Er}
     end
   end
 

@@ -24,7 +24,7 @@ define
                                   ))))
     [] chopInto(Agt Obj Cont) then
          Body = seq(pcall(ensureHas(Agt Obj))
-                    pick(board seq( test(and(obj_is_type(myBoard board)
+                    pick(myBoard seq( test(and(obj_is_type(myBoard board)
                                              nexists(c contents(myBoard c))))
                                seq( pcall(ensureHas(Agt myBoard))
                                seq( place_in(Agt Obj myBoard)

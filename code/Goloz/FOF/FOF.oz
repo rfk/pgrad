@@ -215,7 +215,11 @@ define
 
   proc {ToRecord Fml Rec}
     ITE = {BDD.deref Fml} in
-    case ITE of ite(K T F) then Rec = ite(K {ToRecord T} {ToRecord F})
+    case ITE of ite(K T F) then KR in
+      case K of p(X) then KR = X
+      [] q(X) then KR = q({ToRecord X})
+      else KR = K end
+      Rec = ite(KR {ToRecord T} {ToRecord F})
     [] 1 then Rec = true
     else Rec = false
     end
@@ -358,7 +362,8 @@ define
                 qs: {QuantSet.init}
                 eqs: {EQSet.init}
                 eVars: nil
-                polarity: _)
+                polarity: _
+                axioms: _)
   end
 
   %
@@ -579,7 +584,7 @@ define
       if Qf == nil then Qt Bt St in
          St = {QuantSet.instA PDIn.qs Qt Bt}
          if Qt == nil then
-           % Cant extend path and cant close it, can only fail
+           % Cant extend path and cant close it.  Can only fail.
            fail
          else NewVar in
            % Extended by a positively quantified subgraph, only
@@ -709,9 +714,10 @@ define
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
           all(a all(b all(c impl(eq(a b) eq(c b)))))
           impl(p(a) p(_))
-          ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)]
-    Be = [true false true false true false true true false true true]
-    Ba = [true false true false true false true true false false false]
+          ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)
+          impl(all(obj nexists(c contents(obj c))) nexists(c contents(board(1) c)))]
+    Be = [true false true false true false true true false true true true]
+    Ba = [true false true false true false true true false false false true]
   in
     {List.length Fs} = {List.length Be}
     {List.length Fs} = {List.length Ba}

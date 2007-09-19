@@ -16,6 +16,8 @@ import
   MSet at '../Mutable/Set.ozf'
   MList at '../Mutable/List.ozf'
 
+  Search
+
 export
 
   Def
@@ -38,6 +40,17 @@ define
               in
                 {Dictionary.put TD Lbl Args}
               end
+
+      contains: proc {$ TD Term B}
+                  Lbl = {Record.label Term}
+                  Args = {Record.toList Term}
+                  Res = {Dictionary.condGet TD Lbl nil}
+                in
+                  if Res == nil then B = false
+                  else
+                    B = ({List.length Res} == {List.length Args})
+                  end
+                end
 
       inst: proc {$ TD Label Term}
               Args = {Dictionary.get TD Label}
@@ -115,6 +128,7 @@ define
               causesTrue: {TermActFml.new}
               causesFalse: {TermActFml.new}
               conflicts: {MList.new}
+              initially: {MList.new}
              )
 
   %
@@ -150,6 +164,10 @@ define
                  {MList.cons Data.conflicts Proc}
                end
 
+    initially: proc {$ Fml}
+                 {MList.cons Data.initially Fml}
+               end
+
     adfDef: proc {$ Fluent Action Func}
               {TermActFml.insert Data.adfDefs Fluent Action Func}
             end
@@ -164,6 +182,26 @@ define
 
   )
 
+
+  proc {GetSubTypes Super Subs}
+    Subs = {Search.base.all proc {$ T} {IsSubType Super T} end}
+  end
+  proc {IsSubType Super Sub}
+    dis Super = Sub
+    []  {IsSubTypeP Super Sub}
+    []  Sub2 in {IsSubTypeP Super Sub2} {IsSubType Sub2 Sub}
+    end
+  end
+  proc {IsSubTypeP Super Sub}
+    {IsSubTypePRec {MList.toList Data.superTypes} Super Sub}
+  end
+  proc {IsSubTypePRec Lst Super Sub}
+    case Lst of Sp#Sb|T then
+      dis Super=Sp Sub=Sb
+      []  {IsSubTypePRec T Super Sub}
+      end
+    else fail end
+  end
 
   %
   %  Procedures for querying the domain data
@@ -185,6 +223,43 @@ define
       causesFalse: proc {$ Fluent Action Fml}
                      {TermActFml.query Data.causesFalse Fluent Action Fml}
                    end
+
+      initially: proc {$ Fmls}
+                   Fmls = {MList.toList Data.initially}
+                 end
+
+      adfluent: proc {$ Fluent Defn}
+                  if {TermDef.contains Data.adfluents Fluent} == false then
+                    Defn = nil
+                  else
+                    Lbl = {Record.label Fluent}
+                    ArgsT = {Record.toList Fluent}
+                    Act Args in
+                    {List.takeDrop ArgsT {List.length ArgsT}-1 Args [Act]}
+                    {TermActFml.query Data.adfDefs {List.toTuple Lbl Args} Act Defn}
+                  end
+                end
+
+      objs_of_type: proc {$ Type Objs}
+                      Objs = for collect:C SType in {GetSubTypes Type} do
+                               Nm = {Dictionary.condGet Data.objects SType nil}
+                             in
+                               if Nm \= nil then
+                                 for X in 1..Nm do
+                                   {C SType(X)}
+                                 end
+                               end
+                             end
+                    end
+
+      builtin: proc {$ Fluent Defn}
+                 case Fluent of obj_is_type(Obj Type) then Disjs in
+                   Disjs = for collect:C ObjT in {Query.objs_of_type Type} do
+                             {C eq(Obj ObjT)}
+                           end
+                   Defn = {List.toTuple 'or' Disjs}
+                 else Defn = nil end
+               end
 
   )
 

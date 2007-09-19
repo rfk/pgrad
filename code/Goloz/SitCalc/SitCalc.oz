@@ -42,6 +42,7 @@ import
 export
 
   Actor
+  Uniformize
   Regress
 
   Ex
@@ -97,6 +98,22 @@ define
     U = {FOF.parseRecord 'or'(EpsP and(P neg(EpsN))) _}
   end
   Regress = {FOF.transformation 'sitcalc.regress' Regress_atom}
+
+  %
+  %  Uniformize the given formula
+  %
+  proc {Uniformize_atom P U}
+    Defn
+  in
+    Defn = {DB.query.adfluent P}
+    if Defn \= nil then U = {FOF.parseRecord Defn _}
+    else Defn in
+       Defn = {DB.query.builtin P}
+       if Defn \= nil then U = {FOF.parseRecord Defn _}
+       else U = {FOF.parseRecord P _} end
+    end
+  end
+  Uniformize = {FOF.transformation 'sitcalc.uniformize' Uniformize_atom}
 
 
   proc {NewAgentMap M}
@@ -259,8 +276,9 @@ define
              else B = false end
            end
 
-    holdsFOF: proc {$ Fml E Bind}
+    holdsFOF: proc {$ FmlIn E Bind}
                 Bind2 
+                Fml = {Uniformize FmlIn}
               in
                 case E of ex(Step E2) then
                   {FOF.tautology_e Fml Bind2}
@@ -275,7 +293,8 @@ define
                   end
                 else
                   %TODO: sitcalc.holdsNow
-                  {FOF.tautology_e Fml Bind}
+                  Axioms = {FOF.parseRecord {List.toTuple and {DB.query.initially}} _} in
+                  {FOF.tautology_e {FOF.impl Axioms Fml} Bind}
                 end
               end
 
