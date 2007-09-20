@@ -12,7 +12,7 @@ functor
 
 import
 
-  LP
+  LP at '../LP.ozf'
   MSet at '../Mutable/Set.ozf'
   MList at '../Mutable/List.ozf'
 
@@ -44,12 +44,10 @@ define
       contains: proc {$ TD Term B}
                   Lbl = {Record.label Term}
                   Args = {Record.toList Term}
-                  Res = {Dictionary.condGet TD Lbl nil}
+                  Res = {Dictionary.condGet TD Lbl unit}
                 in
-                  if Res == nil then B = false
-                  else
-                    B = ({List.length Res} == {List.length Args})
-                  end
+                  if Res == unit then B = false
+                  else B = true end
                 end
 
       inst: proc {$ TD Label Term}
@@ -127,6 +125,7 @@ define
               adfDefs: {TermActFml.new}
               causesTrue: {TermActFml.new}
               causesFalse: {TermActFml.new}
+              outcomes: {Dictionary.new}
               conflicts: {MList.new}
               initially: {MList.new}
               constraints: {MList.new}
@@ -185,6 +184,20 @@ define
                    {TermActFml.insert Data.causesFalse Fluent Action Func}
                  end
 
+    outcome: proc {$ Action Outcome Func}
+               OldV NewV Lst Def
+             in
+               {Dictionary.condExchange Data.outcomes Action nil OldV NewV}
+               if OldV == nil then Lst = {MList.new} Def = unit
+               else Lst#Def = OldV end
+               if Func == default then
+                   NewV = Lst#Outcome
+               else
+                   NewV = Lst#Def
+                   {MList.cons Lst Outcome#Func}
+               end
+             end
+
   )
 
 
@@ -238,13 +251,14 @@ define
                  end
 
       adfluent: proc {$ Fluent Defn}
+                  Lbl = {Record.label Fluent}
+                  ArgsT = {Record.toList Fluent}
+                  Act Args
+                in
+                  {List.takeDrop ArgsT {List.length ArgsT}-1 Args [Act]}
                   if {TermDef.contains Data.adfluents Fluent} == false then
                     Defn = nil
                   else
-                    Lbl = {Record.label Fluent}
-                    ArgsT = {Record.toList Fluent}
-                    Act Args in
-                    {List.takeDrop ArgsT {List.length ArgsT}-1 Args [Act]}
                     {TermActFml.query Data.adfDefs {List.toTuple Lbl Args} Act Defn}
                   end
                 end
@@ -269,6 +283,27 @@ define
                    Defn = {List.toTuple 'or' Disjs}
                  else Defn = nil end
                end
+
+      outcomes: proc {$ Action Outcomes}
+                  Lbl = {Record.label Action}
+                  Args = {Record.toList Action}
+                  OutDefs = {Dictionary.condGet Data.outcomes Lbl nil#unit}
+                  Lst OutT Conds
+                in
+                  if OutDefs.1 == nil then Lst = nil
+                  else Lst = {MList.toList OutDefs.1} end
+                  if Lst == nil andthen OutDefs.2 == unit then
+                    Outcomes = nil
+                  else
+                    OutT = for collect:C O#F in Lst do
+                             {C O#{F Args}}
+                           end
+                    Conds = for collect:C _#F in Lst do
+                             {C neg({F Args})}
+                            end
+                    Outcomes = (OutDefs.2#{List.toTuple and true|Conds})|OutT
+                  end
+                end
 
   )
 

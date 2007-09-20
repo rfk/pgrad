@@ -34,16 +34,20 @@ functor
 
 import
 
-  LP
+  LP at '../LP.ozf'
   VarMap at '../FOF/VarMap.ozf'
 
   Module
+  System
 
 export
 
   Actor
   Uniformize
   Regress
+  fof: FOF
+
+  ActionOutcomes
 
   Ex
   Jplan
@@ -122,8 +126,7 @@ define
   end
 
   proc {ActionOutcomes Act Outcomes}
-    %TODO: Sitcalc.actionOutcomes
-    Outcomes = nil
+    Outcomes = {DB.query.outcomes Act}
   end 
   
   %
@@ -139,7 +142,8 @@ define
     %
     append: proc {$ EIn Step EOut}
               Test = {Value.condSelect Step test true}
-              Act = {Value.condSelect Step action nil}
+              ActT = {Value.condSelect Step action nil}
+              Act = if {List.is ActT} then ActT else [ActT] end
               Thred = {Value.condSelect Step thred nil}
               Obs = {Value.condSelect Step obs nil}
             in
@@ -218,7 +222,7 @@ define
                                    {A {Ex.outcomesAgts ExA Act As}}
                                  end
                     else
-                      Outcomes = nil
+                      Outcomes = [E]
                     end
                   end
 
@@ -226,24 +230,24 @@ define
     %  Enumerate outcome executions for the given (single) action and agent.
     %
     outcomesAA: proc {$ E Act Agt Outcomes}
-                  CanObs = {Ex.holdsW E canObs(Agt Act)}
+                  CanObs = {Ex.holdsW canObs(Agt Act) E}
                 in
                   if CanObs == no then
                     Outcomes = [E]
                   else
                     Acc = {LP.listAcc Outcomes}
-                    CanSense = {Ex.holdsW E canSense(Agt Act)} 
+                    CanSense = {Ex.holdsW canSense(Agt Act) E} 
                    in
                     if CanObs == unknown then
                       {Acc E}
                     end
                     if CanSense \= yes then
-                      {Acc {Ex.addobs E o(Agt: Act)}}
+                      {Acc {Ex.addobs E o(Agt: [Act])}}
                     end
                     if CanSense \= no then
                       for Res#Cond in {ActionOutcomes Act} do
                         if {Ex.holds E neg(Cond)} then skip
-                        else {Acc {Ex.addobs E o(Agt: Act#Res)}} end
+                        else {Acc {Ex.addobs E o(Agt: [Act#Res])}} end
                       end
                     end
                     {Acc nil}
@@ -423,7 +427,7 @@ define
     E1.1.action = nil
     E1.1.thred = nil
     E2 = {Ex.append E1 step(action: drop(a))}
-    E2.1.action = drop(a)
+    E2.1.action = [drop(a)]
     E2.2 = E1
     E3 = {Ex.addtest E2 q(b a)}
     E3.1.test = and(q(b a) true)

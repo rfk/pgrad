@@ -45,6 +45,7 @@ define
   {D.action release(agent object)}
   {D.action place_in(agent object container)}
   {D.action transfer(agent container container)}
+  {D.action check_for(agent ingredient)}
 
   {D.fluent has_object(agent object)}
   {D.fluent used(object)}
@@ -68,16 +69,19 @@ define
         and(has_object(Agt Obj) has_object(Agt Dst)
             neg(obj_is_type(Obj appliance)))
   end}
+  {D.adfDef poss check_for fun {$ _ _} true end}
 
   {D.adfDef canObs acquire fun {$ _ _} true end}
   {D.adfDef canObs release fun {$ _ _} true end}
   {D.adfDef canObs transfer fun {$ _ _} true end}
   {D.adfDef canObs place_in fun {$ _ _} true end}
+  {D.adfDef canObs check_for fun {$ _ _} true end}
 
   {D.adfDef canSense acquire fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense release fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense transfer fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense place_in fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
+  {D.adfDef canSense check_for fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
 
   {D.causesTrue has_object acquire fun {$ [Af Of] [Aa Oa]}
       and(eq(Af Aa) eq(Of Oa))
@@ -111,7 +115,10 @@ define
        (A1 \= A2)=true
   end}
 
-  %{D.outcome acquire success fun {$ _} true end}
+  {D.outcome check_for yes fun {$ [_ Ingr]}
+      exists(i and(obj_is_type(i Ingr) neg(used(i))))
+  end}
+  {D.outcome check_for no default}
 
   {D.initially all(obj nexists(agt has_object(agt obj)))}
   {D.initially nexists(obj used(obj))}

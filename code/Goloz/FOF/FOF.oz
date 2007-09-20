@@ -634,7 +634,7 @@ define
     SDOut
   in
     SDOut = {Searcher next($)}
-    if SDOut == nil then Binding = nil
+    if SDOut == nil then fail
     else
      choice
         Binding = {Dictionary.toRecord b SDOut.1.fvBind}
@@ -679,6 +679,7 @@ define
   proc {Test}
     {Test_vars}
     {Test_prover}
+    {Test_prover_search}
   end
 
   proc {Test_vars}
@@ -710,14 +711,16 @@ define
           impl(all(x p(x)) q(b))
           impl(p(a) exists(x p(x)))
           impl(exists(x p(x)) all(x p(x)))
+          eq(a a)
+          eq(a b)
           all(x all(y impl(eq(x y) eq(y x))))
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
           all(a all(b all(c impl(eq(a b) eq(c b)))))
           impl(p(a) p(_))
           ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)
           impl(all(obj nexists(c contents(obj c))) nexists(c contents(board(1) c)))]
-    Be = [true false true false true false true true false true true true]
-    Ba = [true false true false true false true true false false false true]
+    Be = [true false true false true false true false true true false true true true]
+    Ba = [true false true false true false true false true true false false false true]
   in
     {List.length Fs} = {List.length Be}
     {List.length Fs} = {List.length Ba}
@@ -725,7 +728,7 @@ define
                 assign: proc {$ _} skip end)
     for F in Fs B in Be do local T P VM BM in
       P = {ParseRecord F VM}
-      BM = {Search.base.one proc {$ R} {Tautology_e P R} end}.1
+      BM = {Search.base.one proc {$ R} {Tautology_e P R} end}
       T = (BM \= nil)
       {IsDet T true}
       if B == T then skip else raise F end end
@@ -735,6 +738,27 @@ define
       T = {Tautology_a P}
       {IsDet T true}
       if B == T then skip else raise F end end
+    end end
+  end
+
+  proc {Test_prover_search}
+    V1
+    Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
+          impl(and(impl(a b) impl(b c)) impl(d c))
+          impl(exists(x p(x)) all(x p(x)))
+          eq(a a)
+          eq(a b)
+          all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
+          all(a all(b all(c impl(eq(a b) eq(c b)))))
+          impl(p(a) p(_))
+          ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)]
+    NSols = [1 0 0 1 0 1 0 1 1]
+  in
+    {List.length Fs} = {List.length NSols}
+    for F in Fs N in NSols do local T P BM in
+      P = {ParseRecord F _}
+      BM = {Search.base.one proc {$ R} {Tautology_e P R} end}
+      if {List.length BM} \= N then raise F#BM end end
     end end
   end
 
