@@ -27,6 +27,13 @@ export
 
 define
 
+
+  %
+  % Assert that a predicate has at least one solution.
+  % This procedure searches for a single solution to a predicate,
+  % and 
+  %
+
   % 
   % Standard negation-as-failure on a procedure
   %
@@ -39,7 +46,7 @@ define
 
   %
   % Execute Proc2 if Proc1 has no solutions.
-  % This is useful to avoid unnecesary re-computiation of Proc1, as would
+  % This is useful to avoid unnecesary re-computation of Proc1, as would
   % be done by the following (equivalent) prolog:
   %
   %   ifnot(P1,P2,Res) :-  P1(Res) ; not(P1(_)), P2(Res)

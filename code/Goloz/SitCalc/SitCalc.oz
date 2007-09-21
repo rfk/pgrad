@@ -245,9 +245,18 @@ define
                       {Acc {Ex.addobs E o(Agt: [Act])}}
                     end
                     if CanSense \= no then
-                      for Res#Cond in {ActionOutcomes Act} do
-                        if {Ex.holds E neg(Cond)} then skip
-                        else {Acc {Ex.addobs E o(Agt: [Act#Res])}} end
+                      AOuts = {ActionOutcomes Act} in
+                      if AOuts == nil then
+                        {Acc {Ex.addobs E o(Agt: [Act])}}
+                      else 
+                        for Res#Cond in {ActionOutcomes Act} do
+                          _={LP.ifNot proc {$ R}
+                                         {Ex.holds E neg(Cond)}
+                                      end
+                                      proc {$ R}
+                                         {Acc {Ex.addobs E o(Agt: [Act#Res])}}
+                                      end}
+                        end
                       end
                     end
                     {Acc nil}
@@ -264,32 +273,24 @@ define
     %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
     %  be false.
     %
-    %  Since this is used during program search, we want to find
-    %  a binding of the free variables in F that make it hold.
-    %  In an attempt to save on regression steps for long histories,
-    %  we check whether it's a tautology falsehood before regressing.
+    %  Designed to be used during program search, so it's an assertion
+    %  rather than a function, and will bind variables in F to ensure that
+    %  it holds.
     %
-    holds: proc {$ F E B}
+    holds: proc {$ F E}
              Fml VM Bind
            in
              Fml = {FOF.parseRecord F VM}
              Bind = {Ex.holdsFOF Fml E}
-             if Bind \= nil then
-               {VarMap.bind VM Bind}
-               B = true
-             else B = false end
+             {VarMap.bind VM Bind}
            end
 
     holdsFOF: proc {$ FmlIn E Bind}
-                Bind2 
                 Fml = {Uniformize FmlIn}
               in
                 case E of ex(Step E2) then
-                  {FOF.tautology_e Fml Bind2}
-                  if Bind2 \= nil then
-                    Bind = Bind2
-                  elseif {FOF.falsehood_a Fml} then
-                    Bind = nil
+                  if {FOF.falsehood_a Fml} then
+                    fail
                   else FmlR in
                     %TODO: include observations in regression for holdsFOF
                     FmlR = {Regress Fml Step.action}
@@ -309,18 +310,14 @@ define
     %  Unlike Ex.holds, this procedure returns one of 'yes', 'no' or 
     %  'unkown'.
     %
-    %  TODO: how should Ex.holdsW handle free variables in F?
+    %  TODO: we can do this by exploring models & counter-models simultaneously
     %
     holdsW: proc{$ F E Res}
-              if {Ex.holds F E} then
-                Res = yes
-              else
-                if {Ex.holds neg(F) E} then
-                  Res = no
-                else
-                  Res = unkown
-                end
-              end
+              Res = {LP.ifNot proc {$ R} {Ex.holds F E} R=yes end
+                proc {$ R}
+                  R = {LP.ifNot proc {$ R} {Ex.holds neg(F) E} R=no end
+                                proc {$ R} R = unknown end}
+                end}
             end
 
     %

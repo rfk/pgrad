@@ -24,10 +24,10 @@ define
       %{MIndiGolog.step pcall(chopInto(thomas lettuce(1) bowl(1))) now Dp Ep}
       %{MIndiGolog.step check_for(thomas lettuce) now Dp Ep}
       %{System.printInfo "\n\n  == here == \n\n"}
-      {SitCalc.ex.outcomes ex(step(action:[acquire(thomas lettuce(1))] obs:nil) now) A}
+      {SitCalc.ex.outcomes ex(step(action:[check_for(thomas lettuce)] obs:nil) now) A}
       %A = Ep
     end
-    {Browser.browse {Search.base.one Q}}
+    {Browser.browse {Search.base.all Q}}
   end
 
 end

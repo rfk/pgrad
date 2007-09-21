@@ -44,14 +44,14 @@ define
     case D of 
         nil then fail
     []  test(Cond) then
-          {Sitcalc.ex.holds Cond E true}
+          {Sitcalc.ex.holds Cond E}
           Dp = nil
           Ep = {Sitcalc.ex.append E step(test:Cond)}
     []  seq(D1 D2) then
-          choice D1p in {Trans D1 E D1p Ep}
-              Dp = seq(D1p D2)
-          []  {Final D1 E}
+          choice {Final D1 E}
               {Trans D2 E Dp Ep}
+          []  D1p in Dp = seq(D1p D2)
+              {Trans D1 E D1p Ep}
           end
     []  either(D1 D2) then
           choice {Trans D1 E Dp Ep}
@@ -69,16 +69,16 @@ define
           end
     []  ifte(Cond D1 D2) then Ep2 in
           choice
-              {Sitcalc.ex.holds Cond E true}
+              {Sitcalc.ex.holds Cond E}
               {Trans D1 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 Cond Ep}
-          []  {Sitcalc.ex.holds neg(Cond) E true}
+          []  {Sitcalc.ex.holds neg(Cond) E}
               {Trans D2 E Dp Ep2}
               {Sitcalc.ex.addtest Ep2 neg(Cond) Ep}
           end
     []  wloop(Cond D1) then Ep2 in
           local D2 in
-            {Sitcalc.ex.holds Cond E true}
+            {Sitcalc.ex.holds Cond E}
             {Trans D1 E D2 Ep2}
             {Sitcalc.ex.addtest Ep2 Cond Ep}
             Dp = seq(D2 wloop(Cond D1))
@@ -131,10 +131,10 @@ define
    []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               choice  {Sitcalc.ex.holds Cond E true} {Final D1 E}
-               []   {Sitcalc.ex.holds neg(Cond) E true} {Final D2 E}
+               choice  {Sitcalc.ex.holds Cond E} {Final D1 E}
+               []   {Sitcalc.ex.holds neg(Cond) E} {Final D2 E}
                end
-   []  wloop(Cond D1) then choice {Sitcalc.ex.holds neg(Cond) E true} 
+   []  wloop(Cond D1) then choice {Sitcalc.ex.holds neg(Cond) E} 
                            [] {Final D1 E} end
    []  conc(D1 D2) then {Final D1 E} {Final D2 E}
    []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
