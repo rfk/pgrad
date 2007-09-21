@@ -22,8 +22,8 @@ test: RunTests.exe $(FUNCTORS)
 	./RunTests.exe
 
 clean:
-	rm -rf *.ozf *.exe FOF/*.ozf Memo/*.ozf Mutable/*.ozf SitCalc/*.ozf goloz
+	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz
 
 todos:
-	grep 'TODO' *.* FOF/*.* Memo/*.* Mutable/*.* SitCalc/*.*
+	grep 'TODO' *.* FOF/*.* Utils/*.* SitCalc/*.*
 

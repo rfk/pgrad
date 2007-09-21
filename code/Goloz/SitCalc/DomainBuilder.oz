@@ -12,9 +12,8 @@ functor
 
 import
 
-  LP at '../LP.ozf'
-  MSet at '../Mutable/Set.ozf'
-  MList at '../Mutable/List.ozf'
+  MSet at '../Utils/MSet.ozf'
+  MList at '../Utils/MList.ozf'
 
   Search
 
@@ -43,7 +42,6 @@ define
 
       contains: proc {$ TD Term B}
                   Lbl = {Record.label Term}
-                  Args = {Record.toList Term}
                   Res = {Dictionary.condGet TD Lbl unit}
                 in
                   if Res == unit then B = false

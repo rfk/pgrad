@@ -14,11 +14,10 @@ functor
 
 import
 
-  LP
-  Program
-  Sitcalc at 'SitCalc/SitCalc.ozf'
+  LP at '../Utils/LP.ozf'
+  Program at '../Program.ozf'
+  Sitcalc at 'SitCalc.ozf'
   PlanFront
-  System
 
 export
 

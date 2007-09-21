@@ -9,7 +9,7 @@ functor
 
 import
 
-  Set at '../Set.ozf'
+  Set
 
 export
 

@@ -48,7 +48,7 @@ functor
 
 import
 
-  Memo at '../Memo/Memo.ozf'
+  Memo at '../Utils/Memo.ozf'
 
 export
 

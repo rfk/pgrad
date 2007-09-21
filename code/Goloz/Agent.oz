@@ -6,14 +6,12 @@
 %  to the agent and executed in its own context, rather than thinking
 %  they're at the shipping agent.
 %
-%  TODO: better explanation of why this is important
-%
 
 functor
 
 export
 
-  name: Name
+  Name
 
 define
 

@@ -41,8 +41,8 @@ functor
 
 import
 
-  LP at '../LP.ozf'
-  Memo at '../Memo/Memo.ozf'
+  LP at '../Utils/LP.ozf'
+  Memo at '../Utils/Memo.ozf'
   BDD
   Binding
   TermSet
@@ -53,7 +53,6 @@ import
   Search
   Space
   Property
-  System
 
 export
 
@@ -493,7 +492,7 @@ define
   %  into the list of path constraints.
   %
   proc {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
-    case Diffs of D1#D2|Ds then EQOut PDOut1 V1 V2 in
+    case Diffs of D1#D2|Ds then EQOut PDOut1 in
       if {IsEVar D1} then VE1 VE2 in
         D1 = v_e(_ VE1)
         if {IsEVar D2} then D2 = v_e(_ VE2)
@@ -686,8 +685,7 @@ define
     B1 = {Dictionary.new}
     B2 = {Dictionary.new}
     VM = {VarMap.new}
-    V1 V2
-    T1 T2 T3 T4
+    T1 T2 T3 T4 
   in
     {BindVE p(a b) a B1 p(a b)}
     {BindVE p(a b) e B1 p(a b)}
@@ -697,14 +695,13 @@ define
     {IsFree T1 true}
     {BindVE p(a v_e(test)) e B2 p(a T2)}
     {IsFree T2 true}
-    {BindVE {VarMap.map VM p(a V1)} a B2 p(a v_e(_ T3))}
+    {BindVE {VarMap.map VM p(a _)} a B2 p(a v_e(_ T3))}
     {IsFree T3 true}
-    {BindVE {VarMap.map VM p(a V2)} e B2 p(a T4)}
+    {BindVE {VarMap.map VM p(a _)} e B2 p(a T4)}
     {IsFree T4 true}
   end
 
   proc {Test_prover}
-    V1
     Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
           impl(and(impl(a b) impl(b c)) impl(d c))
           impl(all(x p(x)) p(a))
@@ -717,7 +714,7 @@ define
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
           all(a all(b all(c impl(eq(a b) eq(c b)))))
           impl(p(a) p(_))
-          ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)
+          ite(eq(thomas thomas) ite(eq(_ knife(1)) true false) false)
           impl(all(obj nexists(c contents(obj c))) nexists(c contents(board(1) c)))]
     Be = [true false true false true false true false true true false true true true]
     Ba = [true false true false true false true false true true false false false true]
@@ -726,15 +723,15 @@ define
     {List.length Fs} = {List.length Ba}
     Lang = lang(wff: proc {$ _} skip end
                 assign: proc {$ _} skip end)
-    for F in Fs B in Be do local T P VM BM in
-      P = {ParseRecord F VM}
+    for F in Fs B in Be do local T P BM in
+      P = {ParseRecord F _}
       BM = {Search.base.one proc {$ R} {Tautology_e P R} end}
       T = (BM \= nil)
       {IsDet T true}
       if B == T then skip else raise F end end
     end end
-    for F in Fs B in Ba do local T P VM BM in
-      P = {ParseRecord F VM}
+    for F in Fs B in Ba do local T P in
+      P = {ParseRecord F _}
       T = {Tautology_a P}
       {IsDet T true}
       if B == T then skip else raise F end end
@@ -742,7 +739,6 @@ define
   end
 
   proc {Test_prover_search}
-    V1
     Fs = [impl(and(impl(a b) impl(b c)) impl(a c))
           impl(and(impl(a b) impl(b c)) impl(d c))
           impl(exists(x p(x)) all(x p(x)))
@@ -751,11 +747,11 @@ define
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
           all(a all(b all(c impl(eq(a b) eq(c b)))))
           impl(p(a) p(_))
-          ite(eq(thomas thomas) ite(eq(V1 knife(1)) true false) false)]
+          ite(eq(thomas thomas) ite(eq(_ knife(1)) true false) false)]
     NSols = [1 0 0 1 0 1 0 1 1]
   in
     {List.length Fs} = {List.length NSols}
-    for F in Fs N in NSols do local T P BM in
+    for F in Fs N in NSols do local P BM in
       P = {ParseRecord F _}
       BM = {Search.base.one proc {$ R} {Tautology_e P R} end}
       if {List.length BM} \= N then raise F#BM end end

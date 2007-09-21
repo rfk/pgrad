@@ -39,7 +39,6 @@ import
   MSet at '../Mutable/Set.ozf'
 
   Module
-  System
 
 export
 

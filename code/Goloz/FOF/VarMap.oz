@@ -14,7 +14,7 @@ functor
 import
 
   System
-  MList at '../Mutable/List.ozf'
+  MList at '../Utils/MList.ozf'
 
 export
 

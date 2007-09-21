@@ -11,7 +11,7 @@ functor
 
 import
 
-  LP at '../LP.ozf'
+  LP at '../Utils/LP.ozf'
 
 export
 

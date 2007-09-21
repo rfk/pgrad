@@ -36,10 +36,9 @@ import
 
   LP at '../LP.ozf'
   VarMap at '../FOF/VarMap.ozf'
-  MSet at '../Mutable/Set.ozf'
+  MSet at '../Utils/MSet.ozf'
 
   Module
-  System
 
 export
 

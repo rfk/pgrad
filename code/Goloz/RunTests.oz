@@ -7,12 +7,12 @@ import
   Application
   Property
 
-  LP
-  Set
+  LP at 'Utils/LP.ozf'
+  Set at 'Utils/Set.ozf'
 
-  OpenMap at 'Memo/OpenMap.ozf'
-  ListDict at 'Memo/ListDict.ozf'
-  Memo at 'Memo/Memo.ozf'
+  OpenMap at 'Utils/OpenMap.ozf'
+  ListDict at 'Utils/ListDict.ozf'
+  Memo at 'Utils/Memo.ozf'
 
   VarMap at 'FOF/VarMap.ozf'
   TermSet at 'FOF/TermSet.ozf'
