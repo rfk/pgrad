@@ -1,12 +1,13 @@
 
 
-FUNCTORS = LP.ozf Domain.ozf Agent.ozf MIndiGolog.ozf Set.ozf PlanFront.ozf\
-           Program.ozf\
-           SitCalc/Time.ozf SitCalc/DomainBuilder.ozf SitCalc/SitCalc.ozf\
-           Mutable/Set.ozf Mutable/Record.ozf Mutable/List.ozf \
-           Memo/Memo.ozf Memo/ListDict.ozf Memo/OpenMap.ozf \
+FUNCTORS = Agent.ozf Domain.ozf \
+           Utils/ListDict.ozf Utils/LP.ozf Utils/Memo.ozf Utils/MList.ozf \
+           Utils/MSet.ozf Utils/Set.ozf Utils/OpenMap.ozf \
            FOF/BDD.ozf FOF/FOF.ozf FOF/TermSet.ozf FOF/QuantSet.ozf \
-           FOF/EQSet.ozf FOF/Binding.ozf FOF/VarMap.ozf
+           FOF/EQSet.ozf FOF/Binding.ozf FOF/VarMap.ozf \
+           SitCalc/SitCalc.ozf SitCalc/DomainBuilder.ozf SitCalc/Execution.ozf\
+           SitCalc/MIndiGolog.ozf SitCalc/JointPlan.ozf SitCalc/PlanFront.ozf\
+           SitCalc/Time.ozf
 
 %.ozf: %.oz
 	ozc -c $< -o $@
