@@ -75,7 +75,7 @@ define
   {D.adfDef canObs release fun {$ _ _} true end}
   {D.adfDef canObs transfer fun {$ _ _} true end}
   {D.adfDef canObs place_in fun {$ _ _} true end}
-  {D.adfDef canObs check_for fun {$ _ _} true end}
+  {D.adfDef canObs check_for fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
 
   {D.adfDef canSense acquire fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense release fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}

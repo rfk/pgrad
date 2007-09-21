@@ -23,6 +23,7 @@ export
 
   Init
   Closed
+  Finish
   Select
   Matching
   Remove
@@ -46,6 +47,13 @@ define
   %
   proc {Closed PF B}
     B = (PF.open == nil)
+  end
+
+  proc {Finish PF}
+    for _#_#J in PF.closed do
+      {Sitcalc.jplan.finish J}
+    end
+    skip
   end
 
   %

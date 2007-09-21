@@ -18,6 +18,7 @@ import
   Program
   Sitcalc at 'SitCalc/SitCalc.ozf'
   PlanFront
+  System
 
 export
 
@@ -186,8 +187,13 @@ define
   %  Search for a join plan executing program D in the current situation.
   %  To do so, construct a closed PlanFront starting from now#D#JP
   %
-  proc {JointPlan D JP}
-    {ClosePlanFront {PlanFront.init now#D#JP} _}
+  proc {JointPlan D JP} PFOut ExOut in
+    JP = {Sitcalc.jplan.init}
+    {ClosePlanFront {PlanFront.init now#D#JP} PFOut}
+    ExOut = for collect:C E#_#_ in PFOut.closed do
+              {C E}
+            end
+    {Sitcalc.jplan.fromExs ExOut JP}
   end
 
   %
@@ -195,6 +201,7 @@ define
   %
   proc {ClosePlanFront PFIn PFOut}
     if {PlanFront.closed PFIn} then
+      {PlanFront.finish PFIn}
       PFOut = PFIn
     else
       PF2 = {ExpandPlanFront PFIn} in
@@ -230,7 +237,7 @@ define
     case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Branches in
       {Step D E Dp Ep}
       Ep.1.action = Action
-      Branches = {Sitcalc.jplan.extend J E}
+      Branches = {Sitcalc.jplan.extend J Ep}
       {AssignBranchesToList Branches Dp OutOpen OutClosed OutOT OutCT}
       {ExpandExecutions InsT Step OutOT OutCT}
     else OutOpen=nil OutClosed=nil end

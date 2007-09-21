@@ -36,6 +36,7 @@ import
 
   LP at '../LP.ozf'
   VarMap at '../FOF/VarMap.ozf'
+  MSet at '../Mutable/Set.ozf'
 
   Module
   System
@@ -43,6 +44,7 @@ import
 export
 
   Actor
+  Actors
   Uniformize
   Regress
   fof: FOF
@@ -89,6 +91,15 @@ define
   %
   proc {Actor Actn Agt}
     Agt = Actn.1
+  end
+
+  proc {Actors Actns Agts}
+    AgtsM = {MSet.new}
+  in
+    for Actn in Actns do
+      {MSet.insert AgtsM {Actor Actn}}
+    end
+    Agts = {MSet.toList AgtsM}
   end
 
   %
@@ -367,45 +378,120 @@ define
           end
 
     finish: proc {$ JP}
-              for CP in {Record.toList JP} do
-                CP = nil
-              end
+              skip
+              %for CP in {Record.toList JP} do
+              %  CP = nil
+              %end
             end
 
     extend: proc {$ JP E Branches}
               Outcomes = {Ex.outcomes E}
+              JPStep = JP %{Jplan.addstep JP E}
             in
-              if {List.length Outcomes} == 1 then
-                JP2 = {Jplan.addstep JP E} in
-                Branches = [E#JP2]
-              else
-                {Jplan.extendRec JP Outcomes Branches}
-              end
+              {Jplan.extendRec JPStep Outcomes Branches}
             end
 
-    extendRec: proc {$ JP Outcomes Branches}
-                 case Outcomes of E|Es then JPt JPf B2 in
-                   {Jplan.addobs JP E JPt JPf}
+    extendRec: proc {$ JPBase Outcomes Branches}
+                 case Outcomes of E|Es then B2 JPt={NewAgentMap} in
+                   %for Agt in {Record.arity JPBase} do
+                   %  if E.1.obs.Agt == nil then
+                   %  else
+                   %    {Jplan.ensureObs JPBase.Agt E.1.obs.Agt JPt.Agt}
+                   %  end
+                   %end
                    Branches = E#JPt|B2
-                   {Jplan.extendRec JPf Es B2}
+                   {Jplan.extendRec JPBase Es B2}
                  else
-                   {Jplan.finish JP}
+                   %for Agt in {Record.arity JPBase} do
+                   %  {Jplan.finishObs JPBase.Agt}
+                   %end
                    Branches = nil
                  end
                end
 
+    ensureObs: proc {$ JPBase Obs JPt}
+                 if {IsFree JPBase} then
+                   JPBase = obs(Obs JPt _)
+                 else JPt2 JPf Obs2 in
+                   JPBase = obs(Obs2 JPt2 JPf)
+                   if Obs2 == Obs then JPt = JPt2
+                   else {Jplan.ensureObs JPf Obs JPt} end
+                 end
+               end
+
+    finishObs: proc {$ JPBase}
+                 if {IsFree JPBase} then JPBase = nil
+                 else JPf in JPBase = obs(_ _ JPf) {Jplan.finishObs JPf} end
+               end
+
     addstep: proc {$ JP E JPOut}
-               JPOut = {Record.clone JP}
-               %TODO: Sitcalc.jplan.addstep on per-agent basis
-               for Agt in {Record.arity JP} do
-                 JP.Agt = seq(E.1.action JPOut.Agt)
+               JPOut = {NewAgentMap}
+               for Agt in {Record.arity JP} do MyActs in
+                 MyActs = for collect:C Act in E.1.action do
+                            if {Actor Act} == Agt then
+                              {C Act}
+                            end
+                          end
+                 if MyActs == nil then JPOut.Agt = JP.Agt
+                 else JP.Agt = seq(E.1.action JPOut.Agt) end
                end
              end
 
-    addobs: proc {$ JP E JPt JPf}
-              %TODO: Sitcalc.jplan.addobs
-              skip
+    fromExs: proc {$ Exs JP}
+               case Exs of E|Es then
+                 {Jplan.fromEx E JP _}
+                 {Jplan.fromExs Es JP}
+               else 
+                 for Agt in {Record.arity JP} do
+                   {Jplan.closeoff JP.Agt}
+                 end
+               end
+             end
+
+    %
+    %  Build a joint plan from an execution.  JPBase is the entire
+    %  joint plan being built, and JPHead is the head of the plan at
+    %  the given execution.  It will always map each agent to either
+    %  a free variable (they've just performed an action) or an obs()
+    %  term (they make an observation at this point).
+    %
+    fromEx: proc {$ E JPBase JPHead}
+              JPHead = {NewAgentMap}
+              case E of ex(Step E2) then
+                JPTail = {Jplan.fromEx E2 JPBase}
+                JPStep = {NewAgentMap} in
+                for Agt in {Record.arity JPTail} do MyActs MyObs in
+                  MyActs = for collect:C Actn in Step.action do
+                             if {Actor Actn} == Agt then {C Actn} end
+                           end
+                  % TODO: should we include the entire joint action?
+                  % Seems like they should need to know it for coordination
+                  if MyActs \= nil then
+                    JPTail.Agt = seq(MyActs JPStep.Agt)
+                  else
+                    JPTail.Agt = JPStep.Agt
+                  end
+                  MyObs = {Value.condSelect Step.obs Agt nil}
+                  if MyObs \= nil then
+                    {Jplan.ensureObs JPStep.Agt MyObs JPHead.Agt}
+                  else
+                    JPHead.Agt = JPStep.Agt
+                  end
+                end
+              else JPHead = JPBase end
             end
+
+    closeoff: proc {$ JP}
+                if {IsFree JP} then
+                  JP = nil
+                else
+                  case JP of seq(_ JP2) then {Jplan.closeoff JP2}
+                  []   obs(_ JP1 JP2) then
+                           {Jplan.closeoff JP1}
+                           {Jplan.closeoff JP2}
+                  end
+                end
+              end
 
   )
 

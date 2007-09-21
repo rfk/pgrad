@@ -21,13 +21,10 @@ define
   local JP Dp Ep Q in
     proc {Q A}
       Dp Ep V in
-      %{MIndiGolog.step pcall(chopInto(thomas lettuce(1) bowl(1))) now Dp Ep}
-      %{MIndiGolog.step check_for(thomas lettuce) now Dp Ep}
-      %{System.printInfo "\n\n  == here == \n\n"}
-      {SitCalc.ex.outcomes ex(step(action:[check_for(thomas lettuce)] obs:nil) now) A}
-      %A = Ep
+      %{MIndiGolog.steps 2 seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) now Dp Ep}
+      {MIndiGolog.jointPlan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) A}
     end
-    {Browser.browse {Search.base.all Q}}
+    {Browser.browse {Search.base.one Q}}
   end
 
 end
