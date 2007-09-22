@@ -73,9 +73,8 @@ define
   %  choicepoints for each.
   %
   proc {Yield Searcher Res}
-    Soln
+    Soln = {Searcher next($)}
   in
-    {Searcher next(Soln)}
     case Soln of stopped then fail
     []  nil then fail
     []  [Res1] then choice Res = Res1

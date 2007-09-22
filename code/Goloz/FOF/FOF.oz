@@ -62,6 +62,15 @@ export
 
   Transformation
 
+  Atom
+  Neg
+  Conj
+  Disj
+  Impl
+  Equiv
+  All
+  Exists
+
   Prove
   Disprove
 
@@ -844,13 +853,14 @@ define
           all(a all(b all(c impl(and(eq(a b) eq(b c)) eq(c a)))))
           all(a all(b all(c impl(eq(a b) eq(c b)))))
           impl(p(a) p(_))
-          ite(eq(thomas thomas) ite(eq(_ knife(1)) true false) false)]
-    NSols = [1 0 0 1 0 1 0 1 1]
+          ite(eq(thomas thomas) ite(eq(_ knife(1)) true false) false)
+          impl(and(p(a) p(b)) p(_)) ]
+    NSols = [1 0 0 1 0 1 0 1 1 2]
   in
     {List.length Fs} = {List.length NSols}
     for F in Fs N in NSols do local P BM in
       P = {ParseRecord F _}
-      BM = {Search.base.one proc {$ R} {Prove P R} end}
+      BM = {Search.base.all proc {$ R} {Prove P R} end}
       if {List.length BM} \= N then raise sols(F BM) end end
     end end
   end

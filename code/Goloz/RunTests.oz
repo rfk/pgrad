@@ -21,6 +21,7 @@ import
   BDD at 'FOF/BDD.ozf'
   FOF at 'FOF/FOF.ozf'
 
+  Execution at 'SitCalc/Execution.ozf'
   Sitcalc at 'SitCalc/SitCalc.ozf'
 
 define
@@ -79,6 +80,10 @@ define
 
   {Print "\n==  Testing FOF\n"}
   {FOF.test}
+  {Print passed}
+
+  {Print "\n==  Testing Execution\n"}
+  {Execution.test}
   {Print passed}
 
   {Print "\n==  Testing Sitcalc\n"}
