@@ -20,6 +20,7 @@ export
 
   Actor
   Actors
+  Agents
   Uniformize
   Regress
   fof: FOF
@@ -74,6 +75,10 @@ define
       {MSet.insert AgtsM {Actor Actn}}
     end
     Agts = {MSet.toList AgtsM}
+  end
+
+  proc {Agents Agts}
+    {DB.query.agents Agts}
   end
 
   %

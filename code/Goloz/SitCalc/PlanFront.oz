@@ -5,39 +5,34 @@
 %  program executions and handling various queries regarding them.  This
 %  functor provides a stateless data structure for doing so.
 %
-%  The PlanFront contains tuples E#D#J where E is an execution, D is the
-%  program remaining to be executed and J is a yet-to-be constructed joint
-%  plan for the execution of D starting at E.  Each entry in the front
-%  can be either open (needs further execution) or closed (may terminate
-%  in its current state).
+%  The PlanFront contains tuples E#D where E is an execution and D is
+%  some additional (opaque) data about it.  Each entry in the front may
+%  be either open (needs further execution) or closed (may terminate in
+%  its current state).
 % 
 
 functor
 
 import
 
-  LP at '../Utils/LP.ozf'
-  Sitcalc at 'SitCalc.ozf'
+  Execution
 
 export
 
   Init
   Closed
-  Finish
   Select
-  Matching
-  Remove
-  AddOpen
-  AddClosed
+  PopMatching
+  Push
 
 define
 
   %
-  %  Initialize a PlanFront containing a single E#D#J entry
+  %  Initialize a PlanFront containing a single E#D entry
   %
-  proc {Init E#D#J PF}
+  proc {Init E#D PF}
     PF = pf(
-            open: [E#D#J]
+            open: [E#D]
             closed: nil
            )
   end
@@ -49,81 +44,59 @@ define
     B = (PF.open == nil)
   end
 
-  proc {Finish PF}
-    for _#_#J in PF.closed do
-      {Sitcalc.jplan.finish J}
-    end
-    skip
+  %
+  %  Select an open E#D entry.  Since all executions eventually need
+  %  to be closed, we don't need to backtrack here - just return the
+  %  first open execution.
+  %
+  proc {Select PF E#D}
+    E#D = PF.open.1
   end
 
   %
-  %  Select an open E#D#J entry.  This procedure creates choicepoints
-  %  for backtracking over the selection.
+  %  Get a list of all E#D entries that are indistinguishable from the
+  %  given execution by at least one of the agents in Agts.  Removes
+  %  the entries from the plan front - they will be expanded and pushed
+  %  back into the front by the calling code.
   %
-  proc {Select PF E#D#J}
-    {LP.member E#D#J PF.open}
-  end
-
-  %
-  %  Get a list of all E#D#J entries that are indistinguishable from the
-  %  given execution by at least one of the agents in Agts.
-  %
-  proc {Matching PF Ex Agts Matches}
-    MatchesO MatchesC
+  proc {PopMatching PFIn Ex Agts Matches PFOut}
+    MatchesO MatchesC LeftO LeftC
   in
-    MatchesO = for collect:C E#D#J in PF.open do
-                 for break:B Agt in Agts do O1 O2 in
-                   O1 = {Sitcalc.ex.observations Ex Agt}
-                   O2 = {Sitcalc.ex.observations E Agt}
-                   if O1 == O2 then
-                     {C E#D#J} {B}
-                   end
-                 end
-               end
-    MatchesC = for collect:C E#D#J in PF.closed do
-                 for break:B Agt in Agts do O1 O2 in
-                   O1 = {Sitcalc.ex.observations Ex Agt}
-                   O2 = {Sitcalc.ex.observations E Agt}
-                   if O1 == O2 then
-                     {C E#D#J} {B}
-                   end
-                 end
-               end
+    LeftO = {PopMatchingRec Ex Agts PFIn.open MatchesO}
+    LeftC = {PopMatchingRec Ex Agts PFIn.closed MatchesC}
     Matches = {List.append MatchesO MatchesC}
+    PFOut = {Record.adjoinList PFIn [open#LeftO closed#LeftC]}
   end 
 
-
-  %
-  %  Remove the given E#D#J entries from the PlanFront
-  %
-  proc {Remove PF Pairs PFOut}
-    case Pairs of H|Ps then O2 C2 PF2 in
-      O2 = {List.subtract PF.open H}
-      C2 = {List.subtract PF.closed H}
-      PF2 = {Record.adjoinList PF [open#O2 closed#C2]}
-      {Remove PF2 Ps PFOut}
-    else PFOut = PF end
+  proc {PopMatchingRec Ex Agts Lst Matches Left}
+    case Lst of E#D|Es then DoesMatch in
+      DoesMatch = for return:R default:false Agt in Agts do O1 O2 in
+                    O1 = {Execution.observations Ex Agt}
+                    O2 = {Execution.observations Ex Agt}
+                    if O1 == O2 then
+                      {R true}
+                    end
+                  end
+      if DoesMatch then Matches2 in
+        Matches = E#D|Matches2
+        {PopMatchingRec Ex Agts Es Matches2 Left}
+      else Left2 in
+        Left = E#D|Left2
+        {PopMatchingRec Ex Agts Es Matches Left2}
+      end
+    else Left=nil Matches=nil end
   end
 
-  %
-  %  Add the given E#D#J entries to the open list
-  %
-  proc {AddOpen PF Pairs PFOut}
-    case Pairs of H|Ps then PF2 in
-      PF2 = {Record.adjoinAt PF open H|PF.open}
-      {AddOpen PF2 Ps PFOut}
-    else PFOut = PF end
-  end
 
   %
-  %  Add the given E#D#J entries to the closed list
+  %  Push the given lists of entries onto the front.
   %
-  proc {AddClosed PF Pairs PFOut}
-    case Pairs of H|Ps then PF2 in
-      PF2 = {Record.adjoinAt PF closed H|PF.closed}
-      {AddClosed PF2 Ps PFOut}
-    else PFOut = PF end
+  proc {Push PFIn Open Closed PFOut}
+    NewOpen NewClosed
+  in
+    NewOpen = {List.append PFIn.open Open}
+    NewClosed = {List.append PFIn.closed Closed}
+    PFOut = {Record.adjoinList PFIn [open#NewOpen closed#NewClosed]}
   end
 
 end
-

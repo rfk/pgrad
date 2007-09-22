@@ -121,7 +121,7 @@ define
   {D.outcome check_for no default}
 
   {D.initially all(obj nexists(agt has_object(agt obj)))}
-  {D.initially nexists(obj used(obj))}
+  %{D.initially nexists(obj used(obj))}
   {D.initially all(obj nexists(c contents(obj c)))}
 
   % TODO: this constraint hangs the prover

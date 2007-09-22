@@ -27,8 +27,7 @@ functor
 
 import
 
-  LP at '../LP.ozf'
-  MSet at '../Utils/MSet.ozf'
+  LP at '../Utils/LP.ozf'
   SitCalc
 
   Search
@@ -161,7 +160,7 @@ define
           if AOuts == nil then
             {Acc {Addobs E o(Agt: [Act])}}
           else 
-            for Res#Cond in {SitCalc.actionOutcomes Act} do
+            for Res#Cond in AOuts do
               _={LP.ifNot proc {$ R}
                              {Holds E neg(Cond)}
                           end
@@ -225,11 +224,12 @@ define
       Res = {HoldsW_FOF E Fml}
     end
 
-    proc {HoldsW_FOF E F Res}
+    proc {HoldsW_FOF E FIn Res}
+      F = {SitCalc.uniformize FIn}
       Res2
     in
       case E of ex(Step E2) then
-        Res2 = {SitCalc.fof.tautOrCond {SitCalc.fof.impl SitCalc.axioms F}}
+        Res2 = {SitCalc.fof.tautOrCont {SitCalc.fof.impl SitCalc.axioms F}}
         if Res2 == taut then Res = yes
         elseif Res2 == cont then Res = no
         else FmlR in
@@ -239,7 +239,7 @@ define
         end
       else
         Axioms = {SitCalc.fof.conj SitCalc.initially SitCalc.axioms} in
-        Res2 = {SitCalc.fof.tautOrCond {SitCalc.fof.impl Axioms F}}
+        Res2 = {SitCalc.fof.tautOrCont {SitCalc.fof.impl Axioms F}}
         if Res2 == taut then Res = yes
         elseif Res2 == cont then Res = no
         else Res = unknown end
@@ -310,6 +310,10 @@ define
 
     {Search.base.one proc {$ R} {Holds E7 true} R=unit end} = [_]
     {Search.base.one proc {$ R} {Holds E4 false} R=unit end} = nil
+
+    {HoldsW E7 true yes}
+    {HoldsW E7 false no}
+    {HoldsW E7 p(a) unknown}
   end
   
 end

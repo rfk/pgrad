@@ -16,8 +16,12 @@ import
 
   LP at '../Utils/LP.ozf'
   Program at '../Program.ozf'
-  Sitcalc at 'SitCalc.ozf'
+  SitCalc
+  Execution
+  JointPlan
   PlanFront
+
+  System
 
 export
 
@@ -25,8 +29,7 @@ export
   Step
   Steps
   Final
-  Plan
-  JointPlan
+  MakeJointPlan
 
   Test
 
@@ -44,9 +47,9 @@ define
     case D of 
         nil then fail
     []  test(Cond) then
-          {Sitcalc.ex.holds Cond E}
+          {Execution.holds E Cond}
           Dp = nil
-          Ep = {Sitcalc.ex.append E step(test:Cond)}
+          Ep = {Execution.append E step(test:Cond)}
     []  seq(D1 D2) then
           choice {Final D1 E}
               {Trans D2 E Dp Ep}
@@ -69,29 +72,29 @@ define
           end
     []  ifte(Cond D1 D2) then Ep2 in
           choice
-              {Sitcalc.ex.holds Cond E}
+              {Execution.holds E Cond}
               {Trans D1 E Dp Ep2}
-              {Sitcalc.ex.addtest Ep2 Cond Ep}
-          []  {Sitcalc.ex.holds neg(Cond) E}
+              {Execution.addtest Ep2 Cond Ep}
+          []  {Execution.holds E neg(Cond)}
               {Trans D2 E Dp Ep2}
-              {Sitcalc.ex.addtest Ep2 neg(Cond) Ep}
+              {Execution.addtest Ep2 neg(Cond) Ep}
           end
     []  wloop(Cond D1) then Ep2 in
           local D2 in
-            {Sitcalc.ex.holds Cond E}
+            {Execution.holds E Cond}
             {Trans D1 E D2 Ep2}
-            {Sitcalc.ex.addtest Ep2 Cond Ep}
+            {Execution.addtest Ep2 Cond Ep}
             Dp = seq(D2 wloop(Cond D1))
           end
     []  conc(D1 D2) then
           choice D1p E1p in
               {Trans D1 E D1p E1p}
               Dp = conc(D1p D2)
-              Ep = {Sitcalc.ex.addthred E1p 1}
+              Ep = {Execution.addthred E1p 1}
           []  D2p E2p in
               {Trans D2 E D2p E2p}
               Dp = conc(D1 D2p)
-              Ep = {Sitcalc.ex.addthred E2p 2}
+              Ep = {Execution.addthred E2p 2}
           end
     []  pconc(D1 D2) then Res in
           % Use LP.ifNot to avoid re-computation on D1
@@ -118,7 +121,8 @@ define
     else local Act in 
           Act = D
           Dp = nil
-          Ep = {Sitcalc.ex.append E step(action:Act)}
+          % TODO: proper MIndiGolog semantics for individual actions
+          Ep = {Execution.append E step(action:Act)}
          end
     end
   end
@@ -131,10 +135,10 @@ define
    []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               choice  {Sitcalc.ex.holds Cond E} {Final D1 E}
-               []   {Sitcalc.ex.holds neg(Cond) E} {Final D2 E}
+               choice  {Execution.holds E Cond} {Final D1 E}
+               []   {Execution.holds E neg(Cond)} {Final D2 E}
                end
-   []  wloop(Cond D1) then choice {Sitcalc.ex.holds neg(Cond) E} 
+   []  wloop(Cond D1) then choice {Execution.holds E neg(Cond)} 
                            [] {Final D1 E} end
    []  conc(D1 D2) then {Final D1 E} {Final D2 E}
    []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
@@ -160,7 +164,7 @@ define
     Ep Dp
   in
     {Trans D E Dp Ep}
-    if {Sitcalc.ex.actions Ep}=={Sitcalc.ex.actions E} then
+    if {Execution.actions Ep}=={Execution.actions E} then
       {Step Dp Ep Dr Er}
     else
       Dr=Dp Er=Ep
@@ -175,24 +179,16 @@ define
     end
   end
 
-  proc {Plan D EIn EOut}
-    choice
-       {Final D EIn} EIn = EOut
-    [] Dr Er in {Trans D EIn Dr Er} {Plan Dr Er EOut}
-    end
-  end
-
   %
   %  Search for a join plan executing program D in the current situation.
-  %  To do so, construct a closed PlanFront starting from now#D#JP
+  %  To do so, construct a closed PlanFront starting from now#D
   %
-  proc {JointPlan D JP} PFOut ExOut in
-    JP = {Sitcalc.jplan.init}
-    {ClosePlanFront {PlanFront.init now#D#JP} PFOut}
-    ExOut = for collect:C E#_#_ in PFOut.closed do
+  proc {MakeJointPlan D JP} PFOut ExOut in
+    {ClosePlanFront {PlanFront.init now#D} PFOut}
+    ExOut = for collect:C E#_ in PFOut.closed do
               {C E}
             end
-    {Sitcalc.jplan.fromExs ExOut JP}
+    {JointPlan.fromExs ExOut JP}
   end
 
   %
@@ -200,7 +196,6 @@ define
   %
   proc {ClosePlanFront PFIn PFOut}
     if {PlanFront.closed PFIn} then
-      {PlanFront.finish PFIn}
       PFOut = PFIn
     else
       PF2 = {ExpandPlanFront PFIn} in
@@ -216,39 +211,37 @@ define
   %  new info.
   %
   proc {ExpandPlanFront PFIn PFOut}
-    E#D#_ = {PlanFront.select PFIn}
-    Ep Matching NewOpen NewClosed PF2 PF3
+    E#D = {PlanFront.select PFIn}
+    Ep Matching NewOpen NewClosed PF2
   in
     {Step D E _ Ep}
-    Matching = {PlanFront.matching PFIn E {Sitcalc.actors Ep.1.action}}
+    PF2 = {PlanFront.popMatching PFIn E {SitCalc.actors Ep.1.action} Matching}
     {ExpandExecutions Matching Ep.1.action NewOpen NewClosed}
-    PF2 = {PlanFront.remove PFIn Matching}
-    PF3 = {PlanFront.addOpen PF2 NewOpen}
-    PFOut = {PlanFront.addClosed PF3 NewClosed}
+    PFOut = {PlanFront.push PF2 NewOpen NewClosed}
   end
 
   %
-  %  For every E#D#J entry in the input list, check that it has a
+  %  For every E#D entry in the input list, check that it has a
   %  step compatible with the given action and add all possible executions
   %  using that step to the appropriate output list.
   %
   proc {ExpandExecutions Ins Action OutOpen OutClosed}
-    case Ins of E#D#J|InsT then OutOT OutCT Dp Ep Branches in
+    case Ins of E#D|InsT then OutOT OutCT Dp Ep Branches in
       {Step D E Dp Ep}
       Ep.1.action = Action
-      Branches = {Sitcalc.jplan.extend J Ep}
+      Branches = {Execution.outcomes Ep}
       {AssignBranchesToList Branches Dp OutOpen OutClosed OutOT OutCT}
-      {ExpandExecutions InsT Step OutOT OutCT}
+      {ExpandExecutions InsT Action OutOT OutCT}
     else OutOpen=nil OutClosed=nil end
   end
 
   proc {AssignBranchesToList Branches D Open Closed OpenT ClosedT}
-    case Branches of E#J|Bs then Open1 Closed1 in
+    case Branches of E|Bs then Open1 Closed1 in
       if {IsFinal D E} then
         Open = Open1
-        Closed = (E#D#J)|Closed1
+        Closed = (E#D)|Closed1
       else
-        Open = (E#D#J)|Open1
+        Open = (E#D)|Open1
         Closed = Closed1
       end
       {AssignBranchesToList Bs D Open1 Closed1 OpenT ClosedT}

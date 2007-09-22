@@ -16,7 +16,7 @@ define
   {Property.put 'errors.depth' 1000}
 
   proc {Q JP}
-      {MIndiGolog.jointPlan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JP}
+      {MIndiGolog.makeJointPlan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JP}
   end
   {Browser.browse {Search.base.one Q}}
 
