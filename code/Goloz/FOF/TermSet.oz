@@ -1,7 +1,7 @@
 %
-%  TermSet.oz:  implements a collection of terms
+%  TermSet.oz:  implements a collection of predicates
 %
-%  Terms are very easily represented as Oz records.
+%  Predicates are very easily represented as Oz records.
 %  We do a little bit of clever(ish) indexing to make searching for a unifying
 %  match more efficient - basically hashing on the label and width of the
 %  record.
@@ -9,8 +9,8 @@
 %  Since we intend to use this when searching paths in a BDD, we cant use
 %  a dictionary and must use an in/out state threading approach.
 %
-%  The main procedures exported are Put which puts a new term into the
-%  set, and Unify.  Unify attempts to unify a given term with a term
+%  The main procedures exported are Put which puts a new pred into the
+%  set, and Unify.  Unify attempts to unify a given pred with a pred
 %  from the set.  It creates a choicepoint for each such unification
 %  that it finds possible, as well as one option where no unification
 %  is done.  To determine whether unification was performed or not,
@@ -76,12 +76,11 @@ define
     case TList of T|Ts then
         % When skiping a potentially unifying term, post a constraint
         % to ensure that it never unifies with that term.
-        % This should help eliminate redundant branches in any search.
-        dis Term = T Res=true
-        []  not Term = T end {Unify_rec Term Ts Res}
+        % This helps eliminate redundant branches in any search.
+        choice Term=T Res=true
+        []  not Term=T end {Unify_rec Term Ts Res}
         end
-    else Res = false
-    end
+    else Res = false end
   end
 
 

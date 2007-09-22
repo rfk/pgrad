@@ -6,6 +6,7 @@
 %  with {bind}, terms of the form v_b(N) are replaced by the appropriate
 %  entry from the stack.  Conversely, {unbind} will replace names from
 %  the stack with the appropriate variable term.
+%
 
 functor
 

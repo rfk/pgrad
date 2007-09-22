@@ -35,7 +35,6 @@ functor
 import
 
   LP at '../Utils/LP.ozf'
-  VarMap at '../FOF/VarMap.ozf'
   MSet at '../Utils/MSet.ozf'
 
   Module
@@ -288,11 +287,11 @@ define
     %  it holds.
     %
     holds: proc {$ F E}
-             Fml VM Bind
+             Fml Binder Binding
            in
-             Fml = {FOF.parseRecord F VM}
-             Bind = {Ex.holdsFOF Fml E}
-             {VarMap.bind VM Bind}
+             Fml = {FOF.parseRecord F Binder}
+             Binding = {Ex.holdsFOF Fml E}
+             {Binder Binding}
            end
 
     holdsFOF: proc {$ FmlIn E Bind}

@@ -15,6 +15,7 @@ export
 
   Neg
   IfNot
+  Yield
   Member
   Union
   ListAcc
@@ -61,22 +62,24 @@ define
     {Searcher next(Soln)}
     case Soln of stopped then fail
     []  nil then {Proc2 Res}
-% TODO: this was working but now its not - some problem with locking apparently
-%    []  [Res1] then choice Res = Res1
-%                    [] {YieldAll Searcher Res}
-%                    end
-    else {Proc1 Res}
+    []  [Res1] then choice Res = Res1
+                    [] {Yield Searcher Res}
+                    end
     end
   end
 
-  proc {YieldAll Searcher Res}
+  %
+  %  Yield the solutions found by the given Search.object, making
+  %  choicepoints for each.
+  %
+  proc {Yield Searcher Res}
     Soln
   in
     {Searcher next(Soln)}
     case Soln of stopped then fail
     []  nil then fail
-    []  [Res1] then dis Res = Res1
-                    [] {YieldAll Searcher Res}
+    []  [Res1] then choice Res = Res1
+                    [] {Yield Searcher Res}
                     end
     end
   end
@@ -86,7 +89,7 @@ define
   % to be enumerated.
   % 
   proc {Member Elem List}
-    dis  List = Elem|_
+    choice  List = Elem|_
     []      NewL in List=_|NewL {Member Elem NewL}
     end
   end

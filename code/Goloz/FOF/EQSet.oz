@@ -1,6 +1,15 @@
 %
 %  EQSet.oz:  implements a set of equalities and inequalities.
 %
+%  In the presence of existentially-quantified variables, it's not always
+%  possible to handle equality via unification straight away, as it may
+%  select the wrong binding for such variables.  Instead, we store the
+%  equalities and inequalities asserted along the path.  At any stage
+%  we can test whether they are consistent by posting the unifications
+%  to a child space.
+%
+%  The functions AddT and AddF add disjunctions of equalities/inequalities.
+%
 
 functor
 
@@ -53,7 +62,7 @@ define
   %  see what happens.  If it fails, they're inconsistent.
   %
   proc {Consistent EQ B}
-    P = proc{$ _} {Assert EQ} end
+    P = proc{$ R} {Assert EQ} R=unit end
     S = {Space.new P}
   in
     case {Space.askVerbose S} of failed then B=false
@@ -100,4 +109,3 @@ define
   end
 
 end
-

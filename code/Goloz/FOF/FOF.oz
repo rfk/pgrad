@@ -52,37 +52,26 @@ import
 
   Search
   Space
-  Property
 
 export
 
-  ParseRecord
-  Transform
-  Transformation
   Lang
 
-  Atom
-  Natom
-  Neg
-  Conj
-  Disj
-  Impl
-  Equiv
-  All
-  Exists
-
-  Tautology_e
-  Tautology_a
-  Falsehood_e
-  Falsehood_a
+  ParseRecord
   ToRecord
+
+  Transformation
+
+  Prove
+  Disprove
+
+  Tautology
+  Contradiction
+  TautOrCont
 
   Test
 
 define
-
-  {Property.put 'print.width' 10000}
-  {Property.put 'print.depth' 10000}
 
   %
   % FOF are represented by first-order shannon graphs, a BDD-like
@@ -106,25 +95,36 @@ define
   %              constrain the values taken by the variable.  This setup
   %              avoid accidentally binding V during the search.
   %
-  % If you use the {ParseRecord} procedure to construct your formulae, you
-  % need only worry about free variables, bound variables will be created
-  % automatically.
-  %
   % We use terms of the form v_e(skv(N)) for skolem variables internally.
   % Dont name your free variables like this unless you want to break things.
   %
+  % When {ParseRecord} is used to turn a record into a FOF, named bound
+  % variables are turned into v_b terms automatically, and free Oz variables
+  % are translated into v_e() terms with a fresh name.
+  %
 
   %
-  %  First, we have the basic rules for building a shannon graph for
+  %  We can apply some additional simplifications at construction time,
+  %  so we override BDD.bdd with our own version.
+  %
+
+  proc {F_bdd K T F B}
+    if {Theory_trivially_true K} then
+      B = T
+    elseif {Theory_trivially_false K} then
+      B = F
+    else
+      B = {BDD.bdd K T F}
+    end
+  end
+
+  %
+  %  These are the basic rules for building a shannon graph for
   %  the various logical operators.
   %
 
   proc {Atom A F}
-    F = {BDD.bdd p(A) 1 0}
-  end
-
-  fun {Natom A}
-    {BDD.bdd p(A) 0 1}
+    F = {F_bdd p(A) 1 0}
   end
 
   fun {Neg F}
@@ -152,11 +152,11 @@ define
   end
 
   fun {All F}
-    {BDD.bdd q(F) 1 0}
+    {F_bdd q(F) 1 0}
   end
 
   fun {Exists F}
-    {BDD.bdd q({Neg F}) 0 1}
+    {F_bdd q({Neg F}) 0 1}
   end
 
   %
@@ -173,13 +173,16 @@ define
   %  one uses terms like all(x p(x)) with explicit variable names.
   %
   %  If the record contains free variables, these will be replaced with
-  %  v_e(Nm) terms.  VM is returned as a VarMap giving the correspondance
-  %  between variables and their names.
+  %  v_e(Nm) terms.  Binder will be bound to a procedure that takes a
+  %  e-var binding and applies it to the free variables.
   %
 
-  proc {ParseRecord Rec VM F}
-    VM = {VarMap.new}
+  proc {ParseRecord Rec Binder F}
+    VM = {VarMap.new} in
     {ParseRecordB Rec {Binding.init} VM F}
+    proc {Binder B}
+      {VarMap.bind VM B}
+    end
   end
 
   proc {ParseRecordB Rec B VM F}
@@ -201,11 +204,14 @@ define
                         end
     []   neg(R) then F = {Neg {ParseRecordB R B VM}}
     []   impl(R1 R2) then F={Impl {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
-    []   equiv(R1 R2) then F={Equiv {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
-    []   ite(C R1 R2) then F={Ite {ParseRecordB C B VM} {ParseRecordB R1 B VM} {ParseRecordB R2 B VM}}
+    []   equiv(R1 R2) then F={Equiv {ParseRecordB R1 B VM}
+                                    {ParseRecordB R2 B VM}}
+    []   ite(C R1 R2) then F={Ite {ParseRecordB C B VM}
+                                  {ParseRecordB R1 B VM}
+                                  {ParseRecordB R2 B VM}}
     []   all(Nm R) then F = {All {ParseRecordB R {Binding.push B Nm} VM}}
     []   exists(Nm R) then F={Exists {ParseRecordB R {Binding.push B Nm} VM}}
-    []   nall(Nm R) then F = {Exists {ParseRecordB neg(R) {Binding.push B Nm} VM}}
+    []   nall(Nm R) then F={Exists {ParseRecordB neg(R) {Binding.push B Nm} VM}}
     []   nexists(Nm R) then F={All {ParseRecordB neg(R) {Binding.push B Nm} VM}}
     else F = {Atom {Binding.unbind B {VarMap.map VM Rec}}}
     end
@@ -225,35 +231,9 @@ define
   end
 
   %
-  %  Utility procedure for transforming a FOF via an atom mapping function,
-  %  i.e. a function that maps Atoms -> FOFs and can be pushed inside all
-  %  logical operators.
-  %
-  %  ProcP:  procedure to transform a single atom
-  %  ProcR:  recursive call to transform an entire FOF
-  %  Args:   additional arguments to the transformation
-  %
-  proc {Transform ProcP ProcR Args Fin Fout}
-    ITE = {BDD.deref Fin}
-  in
-    case ITE of ite(K T F) then 
-        TF = {ProcR T Args}
-        FF = {ProcR F Args}
-       in
-        case K of p(P) then KF in
-          KF = {ProcP P Args}
-          Fout = {BDD.replaceLeaves KF TF FF}
-        [] q(Q) then QF in
-          QF = q({ProcR Q Args})
-          Fout = {BDD.bdd QF TF FF}
-        end
-    else Fout = ITE
-    end
-  end
-
-  %
   %  Produce a function that will transform a FOF by calling
-  %  the given procedure Proc on each kernel.
+  %  the given procedure Proc on each kernel.  Proc can be either
+  %  a two-arg or a three-arg predicate.
   %
   proc {Transformation FName Proc Trans}
    M_Trans R_Trans R_Proc
@@ -288,6 +268,34 @@ define
     else fail
     end
   end
+
+  %
+  %  Utility procedure for transforming a FOF via an atom mapping function,
+  %  i.e. a function that maps Atoms -> FOFs and can be pushed inside all
+  %  logical operators.
+  %
+  %  ProcP:  procedure to transform a single atom
+  %  ProcR:  recursive call to transform an entire FOF
+  %  Args:   additional arguments to the transformation
+  %
+  proc {Transform ProcP ProcR Args Fin Fout}
+    ITE = {BDD.deref Fin}
+  in
+    case ITE of ite(K T F) then 
+        TF = {ProcR T Args}
+        FF = {ProcR F Args}
+       in
+        case K of p(P) then KF in
+          KF = {ProcP P Args}
+          Fout = {BDD.replaceLeaves KF TF FF}
+        [] q(Q) then QF in
+          QF = q({ProcR Q Args})
+          Fout = {F_bdd QF TF FF}
+        end
+    else Fout = ITE
+    end
+  end
+
 
   %
   %  Strip free variable terms v_e(Nm V) from a record, leaving in
@@ -336,23 +344,36 @@ define
   end
 
   %
-  %  Procedures that explore shannon graphs to do various kinds of
-  %  reasoning, from straightforward simplification to full-blown
-  %  theorem proving.
-  %
-  %  The theorem-proving procedures 'tautology' and 'falsehood' come
-  %  in two flavours.  The first, suffixed with _e, tries to find some
-  %  binding of the free variables in the formulae for which it is
-  %  true/false.  This binding is returned in the penultimate argument.
-  %  The versions suffixed with _a attempt to prove the result treating
-  %  the free variables as constants, and so do not return any bindings.
-  %  Of course, if there are no free variables then the two forms are
-  %  equivalent.
+  %  Procedures that form part of the BDD-exploring "Theory" object
+  %  for theorem proving.
   %
 
+  %
+  %  Partially initialize the state and path data.  Several fields
+  %  are left free for customization for specific purposes.
+  %  State data fields are:
+  %     - fvBind:  bindings for free v_e() variables
+  %     - fvMode:  treat free vars existentially ('e') or universally ('a')
+  %     - skvNum:  number of skolem variables introduces so far
+  %     - aVars:   list of universally quantified variables introduced
+  %     - open_0:  whether an unclosable 0-path was found
+  %     - open_1:  whether an unclosable 1-path was found
+  %  Path data fields are:
+  %     - b:         current binding stack for bound variables
+  %     - pT:        predicates encoutered positively on the path     
+  %     - pF:        predicates encoutered negatively on the path     
+  %     - qs:        quantified subformulae along the path
+  %     - eqs:       equalities encountered along the path
+  %     - eVars:     v_e() terms mentioned along the path
+  %     - polarity:  polarity of the current path
+  %     - close_0:   whether to try to close zero-paths
+  %     - close_1:   whether to try to close one-paths
+  %
   proc {Theory_init SData PData}
     SData = state(fvBind: {Dictionary.new}
                   fvMode: _
+                  open_0: _
+                  open_1: _
                   skvNum: 0
                   aVars: nil)
     PData = path(b: {Binding.init}
@@ -362,41 +383,18 @@ define
                 eqs: {EQSet.init}
                 eVars: nil
                 polarity: _
-                axioms: _)
+                close_0: _
+                close_1: _)
   end
 
   %
   %  Called when exploration is complete.  Finds a consitent set of
   %  bindings for all a-quantified variables, to make sure we haven't
-  %  stuffed up.
+  %  stuffed up.  Return the final state data as output.
   %
   proc {Theory_done SData Outcome Res}
     {Lang.assign SData.aVars}
     Res = SData
-  end
-
-  proc {Theory_init_taut_a SData PData}
-    {Theory_init SData PData}
-    SData.fvMode = a
-    PData.polarity = 0
-  end
-
-  proc {Theory_init_taut_e SData PData}
-    {Theory_init SData PData}
-    SData.fvMode = e
-    PData.polarity = 0
-  end
-
-  proc {Theory_init_false_a SData PData}
-    {Theory_init SData PData}
-    SData.fvMode = a
-    PData.polarity = 1
-  end
-
-  proc {Theory_init_false_e SData PData}
-    {Theory_init SData PData}
-    SData.fvMode = e
-    PData.polarity = 1
   end
 
   %
@@ -457,7 +455,7 @@ define
     if E == 1 then
         {Theory_eq_closeT Diffs SDIn#SDOut PDIn#PDOut Res}
     else EQOut in
-        dis T1=T2 SDIn=SDOut PDIn=PDOut Res=closed
+        choice T1=T2 SDIn=SDOut PDIn=PDOut Res=closed
         [] not Diffs = nil end
            EQOut = {EQSet.addF PDIn.eqs {List.map Diffs StripVE}}
            if {EQSet.consistent EQOut} then
@@ -507,7 +505,7 @@ define
           PDOut1 = {Record.adjoinAt PDIn eqs EQOut}
           {Theory_eq_closeT Ds SDIn#SDOut PDOut1#PDOut Res}
         else
-          dis not D1=D2 end SDIn=SDOut PDIn=PDOut Res=closed
+          choice not D1=D2 end SDIn=SDOut PDIn=PDOut Res=closed
           []  D1=D2  {Theory_eq_closeT Ds SDIn#SDOut PDIn#PDOut Res}
           end
         end
@@ -570,110 +568,209 @@ define
   %  Attempt to end the current path at the given leaf.
   %
   proc {Theory_endPath L SDIn#SDOut PDIn#PDOut Res}
-    if PDIn.polarity \= L then
-      % Don't bother closing nodes of opposite polarity, they're irrelevant
+    Polarity
+  in
+    % The first leaf node encountered determines the polarity of the path
+    if {IsFree PDIn.polarity} then 
+      Polarity = L
+    else
+      Polarity = PDIn.polarity
+    end
+    %
+    % If we already have an open path of this polarity, don't bother.
+    %
+    if Polarity == 0 andthen {Not {IsFree SDIn.open_0}} then
       SDIn=SDOut PDIn=PDOut Res=ok
+    elseif Polarity == 1 andthen {Not {IsFree SDIn.open_1}} then
+      SDIn=SDOut PDIn=PDOut Res=ok
+    %
+    % If we're not interested in closing this path, don't bother
+    %
+    elseif L == 0 andthen ({Not PDIn.close_0}) then 
+      SDIn=SDOut PDIn=PDOut Res=ok
+    elseif L == 1 andthen {Not PDIn.close_1} then
+      SDIn=SDOut PDIn=PDOut Res=ok
+    %
+    % The path may already be closed due to eq-inconsistency, check this
+    %
     elseif {Not {Theory_eq_consistent SDIn PDIn}} then
-      % e-inconsistent paths can be immediately closed
       SDIn=SDOut SDIn=PDOut Res=closed
+    %
+    % Try to extend the path in order to close it.
+    % Try e-quantified formulae first since they get used up.
+    % If none are available, use an a-quantified formula.
+    % Otherwise, the path cannot be closed!
+    %
     else Qf Bf Sf in
-      % Otherwise, we can extend the paths by quantified subgraphs.
-      % Apply e-quants before a-quants since they get used up.
       Sf = {QuantSet.popE PDIn.qs Qf Bf}
       if Qf == nil then Qt Bt St in
          St = {QuantSet.instA PDIn.qs Qt Bt}
          if Qt == nil then
-           % Cant extend path and cant close it.  Can only fail.
-           fail
+           % The path cannot be closed, mark this in the state data
+           if Polarity == 0 then SDIn.open_0 = true
+           else SDIn.open_1 = true end
+           % If there are both open 1-paths and open 0-paths, then
+           % exploration cannot achieve anything more so just fail.
+           % Otherwise, keep trying to close the other kind.
+           if {Not {IsFree SDIn.open_1}} andthen {Not {IsFree SDIn.open_0}} then
+             fail
+           else
+             SDOut=SDIn PDOut=PDIn Res=ok
+           end
          else NewVar in
-           % Extended by a positively quantified subgraph, only
-           % 1-paths need to be considered.
+           % Extended by a positively quantified subgraph.
+           % Only 1-paths need to be considered.
            Bt = NewVar|_
            SDOut = {Record.adjoinAt SDIn aVars NewVar|SDIn.aVars}
-           PDOut = {Record.adjoinList PDIn [qs#St b#Bt polarity#1]}
+           PDOut = {Record.adjoinList PDIn [qs#St b#Bt polarity#Polarity
+                                            close_0#false close_1#true]}
            Res = extend(Qt)
          end
       else
          % Generate a new unique name for the introduced variable
          Bf = v_e(skv(SDIn.skvNum) _)|_
          SDOut = {Record.adjoinAt SDIn skvNum (SDIn.skvNum+1)}
-         % Extended by a negatively quantified subgraph, only
-         % 0-paths need to be considered.
-         PDOut = {Record.adjoinList PDIn [qs#Sf b#Bf polarity#0
-                                          eVars#(Bf.1.2|PDIn.eVars)]}
+         % Extended by a negatively quantified subgraph.
+         % Only 0-paths need to be considered.
+         PDOut = {Record.adjoinList PDIn [qs#Sf b#Bf close_1#false
+                                       polarity#Polarity
+                                       close_0#true eVars#(Bf.1.2|PDIn.eVars)]}
          Res = extend(Qf)
       end
     end
   end
 
+  proc {Theory_trivially_true K B}
+    case K of p(eq(T1 T2)) then
+      B = {LP.termEq T1 T2}
+    else B = false end
+  end
 
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  proc {Theory_trivially_false K B}
+    case K of p(eq(T1 T2)) then
+      B = {Not {LP.termEq T1 T2}} andthen ({Record.label T1}\=v_e)
+          andthen ({Record.label T1}\=v_b) andthen ({Record.label T2}\= v_e)
+          andthen ({Record.label T2}\=v_e)
+    else B = false end
+  end
 
+
+  %
+  %  Produce a Search.object that explores the given FOF.
+  %  {Init} is an initialization function for the theory.
+  %
   proc {Explore F Init Searcher}
-    Theory = th(init: Init
+    Theory = th(init: proc {$ SD PD} {Theory_init SD PD} {Init SD PD} end
                 addNode: Theory_addNode
                 endPath: Theory_endPath
                 done: Theory_done)
+    Explorer = proc {$ R} {BDD.explore F Theory R} end
   in
-    Searcher = {New Search.object script(proc {$ R} {BDD.explore F Theory R} end)}
+    Searcher = {New Search.object script(Explorer)}
   end
 
-  %
-  %  Determine whether some binding of the free variables make F tautology.
-  %  Returns either nil (not a tautology) or a record mapping variable
-  %  names to values.
-  %
-  proc {Tautology_e F Binding}
-    Searcher = {Explore F Theory_init_taut_e}
-  in
-    {YieldNextBinding Searcher Binding}
-  end
 
-  proc {YieldNextBinding Searcher Binding}
+  %
+  %  Find some binding of the free variables in F that makes it 
+  %  a tautology.  Leaves choicepoints for each possible binding.
+  %  Returns a record representing the binding that was discovered.
+  %
+  proc {Prove F Binding}
+    Searcher = {Explore F proc {$ SD PD}
+                  SD.fvMode = e
+                  SD.open_1 = true
+                  PD.close_0 = true
+                  PD.close_1 = false
+                end}
     SDOut
   in
-    SDOut = {Searcher next($)}
-    if SDOut == nil then fail
-    else
-     choice
-        Binding = {Dictionary.toRecord b SDOut.1.fvBind}
-     [] {YieldNextBinding Searcher Binding}
-     end
-    end
+    SDOut = {LP.yield Searcher}
+    Binding = {Dictionary.toRecord b SDOut.fvBind}
+  end
+
+  %
+  %  Find some binding of the free variables in F that makes it
+  %  a contradiction.  Leaves choicepoints for each possible binding.
+  %  Returns a record representing the binding that was discovered.
+  %
+  proc {Disprove F Binding}
+    Searcher = {Explore F proc {$ SD PD}
+                  SD.fvMode = e
+                  SD.open_0 = true
+                  PD.close_0 = false
+                  PD.close_1 = true
+                end}
+    SDOut
+  in
+    SDOut = {LP.yield Searcher}
+    Binding = {Dictionary.toRecord b SDOut.fvBind}
   end
 
   %
   %  Determine whether F is a tautology for all possible bindings of
-  %  the free variables.  Returns a Bool.
+  %  the free variables.  Returns a Boolean result (since we're dealing
+  %  with a decidable theory, we can always do this).
   %
-  proc {Tautology_a F Res}
-    Searcher = {Explore F Theory_init_taut_a}
-    SDOut = {Searcher next($)}
+  proc {Tautology F B}
+    Searcher = {Explore F proc {$ SD PD}
+                  SD.fvMode = a
+                  SD.open_1 = true
+                  PD.close_0 = true
+                  PD.close_1 = false
+                end}
+    Res = {Searcher next($)}
   in
-    if SDOut == nil then Res = false
-    else Res = true end
+    if Res == nil then B = false
+    else B = true end
   end
 
   %
-  %  Like Tautology_e, but checking falsehood.
+  %  Determine whether F is a contradiction for all possible bindings of
+  %  the free variables.  Returns a Boolean result (since we're dealing
+  %  with a decidable theory, we can always do this).
   %
-  proc {Falsehood_e F Binding}
-    Searcher = {Explore F Theory_init_false_e}
+  proc {Contradiction F B}
+    Searcher = {Explore F proc {$ SD PD}
+                  SD.fvMode = a
+                  SD.open_0 = true
+                  PD.close_0 = false
+                  PD.close_1 = true
+                end}
+    Res = {Searcher next($)}
   in
-    {YieldNextBinding Searcher Binding}
+    if Res == nil then B = false
+    else B = true end
   end
 
   %
-  %  Like Tautology_a, but checking falsehood.
+  %  Determine whether, for all possible bindings of free variables,
+  %  F is a tautology or a contradition.  Returns one of 'taut', 'cont'
+  %  or 'neither'.  It's equivalent to the following definition, but
+  %  avoids searching the BDD twice:
   %
-  proc {Falsehood_a F Res}
-    Searcher = {Explore F Theory_init_false_a}
-    SDOut = {Searcher next($)}
+  %    proc {TautOrCont F R}
+  %      if {Tautology F} then R = taut
+  %      elseif {Contradiction F} then R = cont
+  %      else R = neither end
+  %    end
+  %
+  proc {TautOrCont F R}
+    Searcher = {Explore F proc {$ SD PD}
+                  SD.fvMode = a
+                  PD.close_0 = true
+                  PD.close_1 = true
+                end}
+    Res = {Searcher next($)}
   in
-    if SDOut == nil then Res = false
-    else Res = true end
+    if Res == nil then R = neither
+    else [SDOut] = Res in
+      if {Not {IsFree SDOut.open_1}} then R = taut
+      else R = cont end
+    end
   end
 
+
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   proc {Test}
     {Test_vars}
@@ -725,16 +822,16 @@ define
                 assign: proc {$ _} skip end)
     for F in Fs B in Be do local T P BM in
       P = {ParseRecord F _}
-      BM = {Search.base.one proc {$ R} {Tautology_e P R} end}
+      BM = {Search.base.one proc {$ R} {Prove P R} end}
       T = (BM \= nil)
       {IsDet T true}
-      if B == T then skip else raise F end end
+      if B == T then skip else raise prv(F) end end
     end end
     for F in Fs B in Ba do local T P in
       P = {ParseRecord F _}
-      T = {Tautology_a P}
+      T = {Tautology P}
       {IsDet T true}
-      if B == T then skip else raise F end end
+      if B == T then skip else raise taut(F) end end
     end end
   end
 
@@ -753,10 +850,9 @@ define
     {List.length Fs} = {List.length NSols}
     for F in Fs N in NSols do local P BM in
       P = {ParseRecord F _}
-      BM = {Search.base.one proc {$ R} {Tautology_e P R} end}
-      if {List.length BM} \= N then raise F#BM end end
+      BM = {Search.base.one proc {$ R} {Prove P R} end}
+      if {List.length BM} \= N then raise sols(F BM) end end
     end end
   end
 
 end
-

@@ -4,8 +4,11 @@
 %  This data structure holds the quantified subformulae encountered
 %  along a path, both universally quantified (traversed via positive edge)
 %  and existentially quantified (traversed via negative edge).
+%
 %  Each subformula is stored along with the current variable binding stack
-%  at the time it is encountered.
+%  at the time it is encountered.  When a path is extended by a subformula,
+%  this binding needs to become the active binding.
+%
 %  Functions are:
 %
 %    PushA:  Add a universally-quantified formula + binding
@@ -61,10 +64,8 @@ define
         QSOut = {Record.adjoinAt QSIn e QHs}
         % We're relying on the receiving code to give the variable a new name
         B = v_e(Nm V)|BOld
-        % To maintain soundness, none of the free variables on this path
-        % can be allowed to unify with this new variable (since they 
-        % universally quantify over it
-        % TODO: confirm these semantics
+        % To maintain soundness, none of the free variables that quantify
+        % over this formula can be allowed to unify with V.
         for Vf in BOld do
           if {IsFree Vf} then
               not Vf = v_e(Nm V) end
@@ -75,6 +76,9 @@ define
     end
   end
 
+  %
+  %  Make a fresh instance of a universally quantified subformula.
+  %
   proc {InstA QSIn Q B QSOut}
     {InstA_acc QSIn Q B nil QSOut}
   end
@@ -88,8 +92,6 @@ define
     else
       % Ensure that the previous instantiation has been bound to something.
       % If not, add it to the NoGood list and try again.
-      % TODO: what if it has been bound to another variable? How can
-      %       we detect this? Does it matter for soundness?
       if IT \= nil then
         if {IsFree IT.1} then
           Found = false
@@ -101,6 +103,7 @@ define
          B = VNew|BT
          QSOut = {GiveA QST (QT#BT#(VNew|IT))|NoGood}
          % Assert that a binding is never repeated.
+         % This would be redundant for the proof search.
          for VOld in IT do
            not VOld = VNew end
          end

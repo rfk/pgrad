@@ -5,8 +5,16 @@
 %  to provide stand-ins for variables in places where they cant be used.
 %
 %  Implementation is as a mutable list of Var#Name pairs.  Names are
-%  simply generated with {NewName} in top-level service (to ensure
+%  simply generated with {NewName} in a top-level service (to ensure
 %  global uniqueness).
+%
+%  {Map} takes a record and replaces free variables with terms v_e(Nm) where
+%  Nm is the name in the map.  Variables encountered for the first time
+%  get a fresh name.  {Unmap} reverses this, replacing v_e(Nm) terms with
+%  the corresponding free variables.
+%
+%  {Bind} takes a record mapping names to values, and binds the corresponding
+%  free variables to those values.
 %
 
 functor
@@ -15,6 +23,7 @@ import
 
   System
   MList at '../Utils/MList.ozf'
+  Service at '../Utils/Service.ozf'
 
 export
 
@@ -26,16 +35,9 @@ export
   
 define
 
-  local IPort IStream in
-    IPort = {Port.new IStream}
-    thread
-      for _#Out in IStream do
-        Out=v_e({NewName})
-      end
-    end
-    proc {MakeName Nm}
-      Nm = !!{Port.sendRecv IPort unit}
-    end
+  S_MakeName = {Service.new proc {$ _ Out} Out={NewName} end}
+  proc {MakeName Nm}
+    {S_MakeName nil Nm}
   end
 
   proc {New VM}
@@ -43,13 +45,15 @@ define
   end
 
   proc {Map VM Term Out}
+    % TODO: VarMap.map is not thread-safe
     if {IsFree Term} then Nm in
       Nm = for return:R default:nil V2#N2 in {MList.toList VM} do
              if {System.eq Term V2} then {R N2} end
            end
-      if Nm == nil then
-        Out = {MakeName}
-        {MList.cons VM Term#Out}
+      if Nm == nil then NmNew in
+        NmNew = {MakeName}
+        {MList.cons VM Term#NmNew}
+        Out = v_e(NmNew)
       else Out = Nm end
     elseif {Not {Record.is Term}} then Out = Term
     else
@@ -58,22 +62,26 @@ define
   end
 
   proc {Unmap VM Term Out}
-    if {IsName Term} then Var in
-      Var = for return:R default:nil V2#N2 in {MList.toList VM} do
-             if Term == N2 then {R V2} end
-            end
-      if {IsFree Var} then Out = Var
+    case Term of v_e(Nm) then
+      if {IsName Nm} then Var in
+        Var = for return:R default:nil V2#N2 in {MList.toList VM} do
+                if Term == N2 then {R V2} end
+              end
+        if {IsFree Var} then Out = Var
+        else Out = Term end
       else Out = Term end
-    elseif {Not {Record.is Term}} then Out = Term
     else
-      Out = {Record.map Term proc {$ I O} {Unmap VM I O} end}
+      if {Not {Record.is Term}} then
+        Out = Term
+      else
+        Out = {Record.map Term proc {$ I O} {Unmap VM I O} end}
+      end
     end
   end
 
   proc {Bind VM Binding}
-    for V#N in {MList.toList VM} do Name in
-      N = v_e(Name)
-      V = {Value.condSelect Binding Name V}
+    for V#N in {MList.toList VM} do
+      V = {Value.condSelect Binding N V}
     end
   end
 

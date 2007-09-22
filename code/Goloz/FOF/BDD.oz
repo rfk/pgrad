@@ -49,6 +49,7 @@ functor
 import
 
   Memo at '../Utils/Memo.ozf'
+  Service at '../Utils/Service.ozf'
 
 export
 
@@ -64,11 +65,13 @@ define
   %
   %  BDDs are represented as follows:
   %
-  %   * 0 is a BDD represnting falsehood
+  %   * 0 is a BDD representing falsehood
   %   * 1 is a BDD representing truthity
   %   * ite(Kernel TEde FEdge) is a BDD, where:
-  %       - Kernel is a record term for a particular theory
+  %       - Kernel is a ground record term for a particular theory
   %       - TEdge and FEdge are BDD identifiers
+  %
+  %  Since memoization is used, the kernels must be fully ground terms.
   %
   %  Each BDD is identified by an integer which is treated
   %  as a pointer.  The BDD_Map dictionary derefs the pointers
@@ -76,7 +79,7 @@ define
   %
   %  BDD_Count maintains the next free pointer value.
   %
-  BDD_Count = {NewCell 2}
+  BDD_Count = {Cell.new 2}
   BDD_Map = {Dictionary.new}
   {Dictionary.put BDD_Map 0 0}
   {Dictionary.put BDD_Map 1 1}
@@ -98,23 +101,16 @@ define
     if TEdge == FEdge then
       B = TEdge
     else
-      {Exchange BDD_Count BTmp thread BTmp+1 end}
+      % Don't bind the output until it is in the dictionary, to avoid races
+      {Cell.exchange BDD_Count BTmp thread BTmp+1 end}
       {Dictionary.put BDD_Map BTmp ite(Kernel TEdge FEdge)}
-      % don't bind B until it is in the dictionary, to avoid races
       B = BTmp
     end
   end
 
-  local IPort IStream in
-    IPort = {Port.new IStream}
-    thread
-      for Args#Res in IStream do
-        thread {I_BDD Args Res} end
-      end
-    end
-    proc {BDD K T F Res}
-      Res = !!{Port.sendRecv IPort [K T F]}
-    end
+  S_BDD = {Service.new I_BDD}
+  proc {BDD K T F Res}
+    Res = {S_BDD [K T F]}
   end
 
   %
@@ -171,8 +167,6 @@ define
   proc {Explore_Leaf Leaf Theory SDIn#SDOut PDIn Res}
     Out SDOut1 PDOut
   in
-    % If asked to extend, continue exploring down that path.
-    % Otherwise, halt with the reported outcome.
     {Theory.endPath Leaf SDIn#SDOut1 PDIn#PDOut Out}
     case Out of extend(B) then {Explore_path B Theory SDOut1#SDOut PDOut Res} 
     else Res = Out SDOut=SDOut1

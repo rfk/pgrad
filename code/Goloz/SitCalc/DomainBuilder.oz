@@ -203,7 +203,7 @@ define
     Subs = {Search.base.all proc {$ T} {IsSubType Super T} end}
   end
   proc {IsSubType Super Sub}
-    dis Super = Sub
+    choice Super = Sub
     []  {IsSubTypeP Super Sub}
     []  Sub2 in {IsSubTypeP Super Sub2} {IsSubType Sub2 Sub}
     end
@@ -213,7 +213,7 @@ define
   end
   proc {IsSubTypePRec Lst Super Sub}
     case Lst of Sp#Sb|T then
-      dis Super=Sp Sub=Sb
+      choice Super=Sp Sub=Sb
       []  {IsSubTypePRec T Super Sub}
       end
     else fail end
