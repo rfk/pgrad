@@ -25,6 +25,8 @@ export
   Addtest
   Addthred
   Addobs
+  Getobs
+  Merge
   CanBeConc
 
 define
@@ -68,6 +70,10 @@ define
                               {Value.condSelect SIn.obs Agt nil}}
       end
       SOut = {Record.adjoinAt SIn obs O2}
+    end
+
+    proc {Getobs S Agt Obs}
+      Obs = {Value.condSelect S.obs Agt nil}
     end
 
     %

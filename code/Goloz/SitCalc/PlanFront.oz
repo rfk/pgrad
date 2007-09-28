@@ -22,8 +22,7 @@ export
   Init
   Closed
   Select
-  PopMatching
-  Push
+  Expand
 
 define
 
@@ -54,49 +53,37 @@ define
   end
 
   %
-  %  Get a list of all E#D entries that are indistinguishable from the
-  %  given execution by at least one of the agents in Agts.  Removes
-  %  the entries from the plan front - they will be expanded and pushed
-  %  back into the front by the calling code.
+  %  Expand the plan front by processing each entry.
+  %  Then expansion function F is applied to each entry in the front.
+  %  It returns a list of (Entry#Type) pairs where Type is either
+  %  'open' or 'closed'.  The new front is then the concatentation of
+  %  all these expansions.
   %
-  proc {PopMatching PFIn Ex Agts Matches PFOut}
-    MatchesO MatchesC LeftO LeftC
+  proc {Expand PFIn F PFOut}
+    NewOpen NewClosed NOTail1 NOTail2 NCTail1 NCTail2
   in
-    LeftO = {PopMatchingRec Ex Agts PFIn.open MatchesO}
-    LeftC = {PopMatchingRec Ex Agts PFIn.closed MatchesC}
-    Matches = {List.append MatchesO MatchesC}
-    PFOut = {Record.adjoinList PFIn [open#LeftO closed#LeftC]}
-  end 
-
-  proc {PopMatchingRec Ex Agts Lst Matches Left}
-    case Lst of E#D|Es then DoesMatch in
-      DoesMatch = for return:R default:false Agt in Agts do O1 O2 in
-                    O1 = {Execution.observations Ex Agt}
-                    O2 = {Execution.observations Ex Agt}
-                    if O1 == O2 then
-                      {R true}
-                    end
-                  end
-      if DoesMatch then Matches2 in
-        Matches = E#D|Matches2
-        {PopMatchingRec Ex Agts Es Matches2 Left}
-      else Left2 in
-        Left = E#D|Left2
-        {PopMatchingRec Ex Agts Es Matches Left2}
-      end
-    else Left=nil Matches=nil end
+    {Expand_rec PFIn.open F NewOpen NewClosed NOTail1 NCTail1}
+    {Expand_rec PFIn.closed F NOTail1 NCTail1 NOTail2 NCTail2}
+    NOTail2 = nil NCTail2 = nil
+    PFOut = pf(open: NewOpen closed: NewClosed)
   end
 
+  proc {Expand_rec Exs F Open Closed OTail CTail}
+    case Exs of E|Es then
+      {Expand_collect {F E} Open Closed OTail CTail}
+    else OTail=Open CTail=Closed end
+  end
 
-  %
-  %  Push the given lists of entries onto the front.
-  %
-  proc {Push PFIn Open Closed PFOut}
-    NewOpen NewClosed
-  in
-    NewOpen = {List.append PFIn.open Open}
-    NewClosed = {List.append PFIn.closed Closed}
-    PFOut = {Record.adjoinList PFIn [open#NewOpen closed#NewClosed]}
+  proc {Expand_collect Exs Open Closed OTail CTail}
+    case Exs of E#T|Es then
+      if T == open then O2 in
+        Open = E|O2
+        {Expand_collect Es O2 Closed OTail CTail}
+      else C2 in
+        Closed = E|C2
+        {Expand_collect Es Open C2 OTail CTail}
+      end
+    else OTail=Open CTail=Closed end
   end
 
 end

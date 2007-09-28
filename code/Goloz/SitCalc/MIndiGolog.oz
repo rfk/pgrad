@@ -17,6 +17,8 @@ import
   LP at '../Utils/LP.ozf'
   Program at '../Program.ozf'
   SitCalc
+  Exec
+  ExView
   Execution
   Step
   JointPlan
@@ -46,7 +48,7 @@ define
     case D of 
         nil then fail
     []  test(Cond) then
-          {Execution.holds E Cond}
+          {Exec.holds E Cond}
           Dp = nil
           Sp = {Step.init step(test:Cond)}
     []  seq(D1 D2) then
@@ -71,16 +73,16 @@ define
           end
     []  ifte(Cond D1 D2) then Sp2 in
           choice
-              {Execution.holds E Cond}
+              {Exec.holds E Cond}
               {Trans D1 E Dp Sp2}
               {Step.addtest Sp2 Cond Sp}
-          []  {Execution.holds E neg(Cond)}
+          []  {Exec.holds E neg(Cond)}
               {Trans D2 E Dp Sp2}
               {Step.addtest Sp2 neg(Cond) Sp}
           end
     []  wloop(Cond D1) then Sp2 in
           local D2 in
-            {Execution.holds E Cond}
+            {Exec.holds E Cond}
             {Trans D1 E D2 Sp2}
             {Step.addtest Sp2 Cond Sp}
             Dp = seq(D2 wloop(Cond D1))
@@ -134,10 +136,10 @@ define
    []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 E} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               choice  {Execution.holds E Cond} {Final D1 E}
-               []   {Execution.holds E neg(Cond)} {Final D2 E}
+               choice  {Exec.holds E Cond} {Final D1 E}
+               []   {Exec.holds E neg(Cond)} {Final D2 E}
                end
-   []  wloop(Cond D1) then choice {Execution.holds E neg(Cond)} 
+   []  wloop(Cond D1) then choice {Exec.holds E neg(Cond)} 
                            [] {Final D1 E} end
    []  conc(D1 D2) then {Final D1 E} {Final D2 E}
    []  pconc(D1 D2) then {Final D1 E} {Final D2 E}
@@ -152,15 +154,13 @@ define
     catch _ then B = false end
   end
 
-  proc {Trans1 D E Dp Sp}
-  end
 
   %
   %  Search for a join plan executing program D in the current situation.
   %  To do so, construct a closed PlanFront starting from now#D
   %
   proc {MakeJointPlan D JP} PFOut ExOut in
-    {ClosePlanFront {PlanFront.init now#D} PFOut}
+    {ClosePlanFront {PlanFront.init {Exec.init}#D} PFOut}
     ExOut = for collect:C E#_ in PFOut.closed do
               {C E}
             end
@@ -187,41 +187,71 @@ define
   %  new info.
   %
   proc {ExpandPlanFront PFIn PFOut}
-    E#D = {PlanFront.select PFIn}
-    Sp Matching NewOpen NewClosed PF2
+    Es#Ds = {PlanFront.select PFIn}
+    Dp Sp Ep ExFunc
   in
-    {Trans1 D E _ Sp}
-    PF2 = {PlanFront.popMatching PFIn E {SitCalc.actors Sp.action} Matching}
-    {ExpandExecutions Matching Sp.action NewOpen NewClosed}
-    PFOut = {PlanFront.push PF2 NewOpen NewClosed}
+    {Trans Ds Es Dp Sp}
+    Ep = {Exec.insert Es Sp}
+    % If no action was performed, then no other executions need
+    % rolling forward and the expansion function is very simple.
+    % Otherwise, we need to make all executions consistent with the step.
+    if Sp.action == nil then
+      ExFunc = proc {$ E#D Outs}
+                 T EOut DOut
+               in
+                 if E == Es then DOut=Dp EOut=Ep
+                 else DOut=D EOut=E end
+                 if {IsFinal DOut EOut} then T = closed
+                 else T = open end
+                 Outs = [(E#D)#T]
+               end
+    else
+      ExFunc = proc {$ E#D Outs}
+                 Out2
+               in
+                 Out2 = for return:R default:unit
+                        Agt in {SitCalc.actors Sp.action} do
+                          if {Not {ExView.consistent Agt Ep E}} then RVal in
+                            RVal = for collect:C
+                                   E2#D2 in {ExpandWithStep E#D Ep Sp} do
+                                     if {IsFinal D2 E2} then {C (E2#D2)#closed}
+                                     else {C (E2#D2)#open} end
+                                   end
+                            {R RVal}
+                          end
+                        end
+                 if Out2 == unit then
+                   Outs = [(E#D)#(if {IsFinal D E} then closed else open end)]
+                 else Outs = Out2 end
+               end
+    end
+    PFOut = {PlanFront.expand PFIn ExFunc}
   end
 
   %
-  %  For every E#D entry in the input list, check that it has a
-  %  step compatible with the given action and add all possible executions
-  %  using that step to the appropriate output list.
+  %  Expand the given execution by a step compatible with the given step.
+  %  The involves finding an action-bearing transition of E#D where the
+  %  action matches S.action, inserting it onto E, ensuring that the
+  %  result is consistent with Ep, and then determining all outcomes of
+  %  that execution. Simple, huh? :-)
   %
-  proc {ExpandExecutions Ins Action OutOpen OutClosed}
-    case Ins of E#D|InsT then OutOT OutCT Dp Sp Branches in
-      {Trans1 D E Dp Ep Sp}
-      Sp.action = Action
-      Branches = {Execution.outcomes Ep}
-      {AssignBranchesToList Branches Dp OutOpen OutClosed OutOT OutCT}
-      {ExpandExecutions InsT Action OutOT OutCT}
-    else OutOpen=nil OutClosed=nil end
-  end
-
-  proc {AssignBranchesToList Branches D Open Closed OpenT ClosedT}
-    case Branches of E|Bs then Open1 Closed1 in
-      if {IsFinal D E} then
-        Open = Open1
-        Closed = (E#D)|Closed1
-      else
-        Open = (E#D)|Open1
-        Closed = Closed1
+  proc {ExpandWithStep E#D Ep Sp Exs}
+    Dr Sr Er
+  in
+    {Trans D E Dr Sr}
+    Er = {Exec.insert E Sr}
+    if Sr.action == nil then
+      Exs = {ExpandWithStep Er#Dr Ep Sp}
+    else
+      Sr.action = Sp.action
+      for Agt in {SitCalc.actors Sp.action} do
+        {ExView.consistent Agt Ep Er}
       end
-      {AssignBranchesToList Bs D Open1 Closed1 OpenT ClosedT}
-    else OpenT=Open ClosedT=Closed end
+      Exs = for collect:C Er2 in {Exec.outcomes Er} do
+              if {IsFinal Dr Er2} then {C (Er2#Dr)#closed}
+              else {C (Er2#Dr)#open} end
+            end
+    end
   end
 
   proc {Test}
