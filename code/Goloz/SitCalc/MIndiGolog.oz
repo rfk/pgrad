@@ -6,7 +6,7 @@
 %  situation terms, they operate over executions to keep some additional
 %  bookkeeping information.
 %
-%  It also exports the procedure JointPlan, a logic program searching
+%  It also exports the procedure MakeJointPlan, a logic program searching
 %  for a joint plan to execute a given program.
 %
 
@@ -19,9 +19,7 @@ import
   SitCalc
   Exec
   ExView
-  Execution
   Step
-  JointPlan
   PlanFront
 
   System
@@ -161,10 +159,9 @@ define
   %
   proc {MakeJointPlan D JP} PFOut ExOut in
     {ClosePlanFront {PlanFront.init {Exec.init}#D} PFOut}
-    ExOut = for collect:C E#_ in PFOut.closed do
+    JP = for collect:C E#_ in PFOut.closed do
               {C E}
             end
-    {JointPlan.fromExs ExOut JP}
   end
 
   %
