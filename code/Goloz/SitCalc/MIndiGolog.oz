@@ -18,6 +18,7 @@ import
   Program at '../Program.ozf'
   SitCalc
   Execution
+  Step
   JointPlan
   PlanFront
 
@@ -26,8 +27,6 @@ import
 export
 
   Trans
-  Step
-  Steps
   Final
   MakeJointPlan
 
@@ -36,93 +35,93 @@ export
 define
 
   %
-  %  Trans(D,E,Dp,Ep)
+  %  Trans(D,E,Dp,Sp)
   %
   %  Transition function for executing a single step of a program.
   %  This predicate is true when the program D, given that the current
-  %  run of execution is E, can make a single step to produce the new
-  %  execution Ep, with program Dp remaining to be executed.
+  %  run of execution is E, can make a single step of execution Sp
+  %  leaving program Dp remaining to be executed.
   %
-  proc {Trans D E Dp Ep}
+  proc {Trans D E Dp Sp}
     case D of 
         nil then fail
     []  test(Cond) then
           {Execution.holds E Cond}
           Dp = nil
-          Ep = {Execution.append E step(test:Cond)}
+          Sp = {Step.init step(test:Cond)}
     []  seq(D1 D2) then
           choice {Final D1 E}
-              {Trans D2 E Dp Ep}
+              {Trans D2 E Dp Sp}
           []  D1p in Dp = seq(D1p D2)
-              {Trans D1 E D1p Ep}
+              {Trans D1 E D1p Sp}
           end
     []  either(D1 D2) then
-          choice {Trans D1 E Dp Ep}
-          []  {Trans D2 E Dp Ep}
+          choice {Trans D1 E Dp Sp}
+          []  {Trans D2 E Dp Sp}
           end
     []  pick(V D1) then
           local D2 in
             {LP.subInTerm V _ D1 D2}
-            {Trans D2 E Dp Ep}
+            {Trans D2 E Dp Sp}
           end
     []  star(D1) then
           local D2 in 
-            {Trans D E D2 Ep}
+            {Trans D E D2 Sp}
             Dp = seq(D2 star(D1))
           end
-    []  ifte(Cond D1 D2) then Ep2 in
+    []  ifte(Cond D1 D2) then Sp2 in
           choice
               {Execution.holds E Cond}
-              {Trans D1 E Dp Ep2}
-              {Execution.addtest Ep2 Cond Ep}
+              {Trans D1 E Dp Sp2}
+              {Step.addtest Sp2 Cond Sp}
           []  {Execution.holds E neg(Cond)}
-              {Trans D2 E Dp Ep2}
-              {Execution.addtest Ep2 neg(Cond) Ep}
+              {Trans D2 E Dp Sp2}
+              {Step.addtest Sp2 neg(Cond) Sp}
           end
-    []  wloop(Cond D1) then Ep2 in
+    []  wloop(Cond D1) then Sp2 in
           local D2 in
             {Execution.holds E Cond}
-            {Trans D1 E D2 Ep2}
-            {Execution.addtest Ep2 Cond Ep}
+            {Trans D1 E D2 Sp2}
+            {Step.addtest Sp2 Cond Sp}
             Dp = seq(D2 wloop(Cond D1))
           end
     []  conc(D1 D2) then
-          choice D1p E1p in
-              {Trans D1 E D1p E1p}
+          choice D1p S1p in
+              {Trans D1 E D1p S1p}
               Dp = conc(D1p D2)
-              Ep = {Execution.addthred E1p 1}
-          []  D2p E2p in
-              {Trans D2 E D2p E2p}
+              Sp = {Step.addthred S1p 1}
+          []  D2p S2p in
+              {Trans D2 E D2p S2p}
               Dp = conc(D1 D2p)
-              Ep = {Execution.addthred E2p 2}
+              Sp = {Step.addthred S2p 2}
           end
     []  pconc(D1 D2) then Res in
           % Use LP.ifNot to avoid re-computation on D1
-          {LP.ifNot proc {$ Res1} D1p E1p in
-                      {Trans D1 E D1p E1p}
-                      Res1 = pconc(D1p D2)#E1p
+          {LP.ifNot proc {$ Res1} D1p S1p in
+                      {Trans D1 E D1p S1p}
+                      Res1 = pconc(D1p D2)#S1p
                     end
-                    proc {$ Res2} D2p E2p in
-                      {Trans D2 E D2p E2p}
-                      Res2 = pconc(D1 D2p)#E2p
+                    proc {$ Res2} D2p S2p in
+                      {Trans D2 E D2p S2p}
+                      Res2 = pconc(D1 D2p)#S2p
                     end
                     Res}
-          Dp#Ep = Res
+          Dp#Sp = Res
     []  cstar(D1) then
           local D2 in
-            {Trans D1 E D2 Ep}
+            {Trans D1 E D2 Sp}
             Dp = conc(D2 cstar(D1))
           end
     []  pcall(D1) then
           local Body in
             {Program.procDef D1 Body}
-            {Trans Body E Dp Ep}
+            {Trans Body E Dp Sp}
           end
     else local Act in 
           Act = D
           Dp = nil
           % TODO: proper MIndiGolog semantics for individual actions
-          Ep = {Execution.append E step(action:Act)}
+          Sp = {Step.init E step(action:Act)}
          end
     end
   end
@@ -153,30 +152,7 @@ define
     catch _ then B = false end
   end
 
-
-  %
-  %  Determine a single step of execution of program D in execution E.
-  %  This differs from {Trans} in that {Trans} may make a transition
-  %  without performing an action, while {Step} will guarantee that an
-  %  action is performed.
-  %
-  proc {Step D E Dr Er}
-    Ep Dp
-  in
-    {Trans D E Dp Ep}
-    if {Execution.actions Ep}=={Execution.actions E} then
-      {Step Dp Ep Dr Er}
-    else
-      Dr=Dp Er=Ep
-    end
-  end
-
-  proc {Steps N D E Dr Er}
-    if N == 0 then Dr = D Er = E
-    else Dp Ep in
-      {Step D E Dp Ep}
-      {Steps N-1 Dp Ep Dr Er}
-    end
+  proc {Trans1 D E Dp Sp}
   end
 
   %
@@ -212,11 +188,11 @@ define
   %
   proc {ExpandPlanFront PFIn PFOut}
     E#D = {PlanFront.select PFIn}
-    Ep Matching NewOpen NewClosed PF2
+    Sp Matching NewOpen NewClosed PF2
   in
-    {Step D E _ Ep}
-    PF2 = {PlanFront.popMatching PFIn E {SitCalc.actors Ep.1.action} Matching}
-    {ExpandExecutions Matching Ep.1.action NewOpen NewClosed}
+    {Trans1 D E _ Sp}
+    PF2 = {PlanFront.popMatching PFIn E {SitCalc.actors Sp.action} Matching}
+    {ExpandExecutions Matching Sp.action NewOpen NewClosed}
     PFOut = {PlanFront.push PF2 NewOpen NewClosed}
   end
 
@@ -226,9 +202,9 @@ define
   %  using that step to the appropriate output list.
   %
   proc {ExpandExecutions Ins Action OutOpen OutClosed}
-    case Ins of E#D|InsT then OutOT OutCT Dp Ep Branches in
-      {Step D E Dp Ep}
-      Ep.1.action = Action
+    case Ins of E#D|InsT then OutOT OutCT Dp Sp Branches in
+      {Trans1 D E Dp Ep Sp}
+      Sp.action = Action
       Branches = {Execution.outcomes Ep}
       {AssignBranchesToList Branches Dp OutOpen OutClosed OutOT OutCT}
       {ExpandExecutions InsT Action OutOT OutCT}

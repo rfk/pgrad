@@ -89,7 +89,7 @@ define
     %
     %  Add some observations to the latest step of the execution.
     %  O is expected to be a map from agents to the observations they
-    %  have made.
+    %  made.
     %
     proc {Addobs EIn O EOut}
       case EIn of ex(Step E2) then Step2 O2 in
@@ -270,7 +270,7 @@ define
 
     %
     %  Lazily produces the list of observations made by the given agent
-    %  during the given observation, most recent observation first.
+    %  during the given execution, most recent observation first.
     %
     fun lazy {Observations E Agt}
       case E of ex(S E2) then
