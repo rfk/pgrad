@@ -2,7 +2,7 @@ functor
 
 import
 
-  MIndiGolog at 'SitCalc/MIndiGolog.ozf'
+  Planner at 'SitCalc/Planner.ozf'
 
   Browser
   Search
@@ -16,7 +16,7 @@ define
   {Property.put 'errors.depth' 1000}
 
   proc {Q JP}
-      {MIndiGolog.makeJointPlan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JP}
+      {Planner.jointPlan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JP}
   end
   {Browser.browse {Search.base.one Q}}
 

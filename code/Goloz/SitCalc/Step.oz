@@ -2,9 +2,9 @@
 %  Step.oz:  procedures for handling steps of execution
 %
 %  A step tracks additional metadata about what actions were performed
-%  and why.  It pairs a (concurrent) action with the following info:
-%      - test:  additional conditions that held befor the action
-%      - thred: indicates the thred of execution the action was performed
+%  and why.  It pairs an action with the following info:
+%      - test:  additional conditions that held before the action
+%      - thred: indicates the thread of execution the action was performed
 %               in service of
 %      - obs:   indicates the observations made by each agent as a result
 %               of performing the action.
@@ -26,8 +26,7 @@ export
   Addthred
   Addobs
   Getobs
-  Merge
-  CanBeConc
+  Independent
 
 define
 
@@ -77,14 +76,12 @@ define
     end
 
     %
-    %  Determine whether Step1 can be 'pushed back' to be concurrent
-    %  with Step2.
+    %  Determine whether the given steps are independent - that is, they
+    %  can be performed in either order, or even concurrently, and the
+    %  state of the world will be the same.
     %
-    proc {CanBeConc Step1 Step2 B}
-      if {List.isPrefix Step1.thred Step2.thred} then B = false
-      elseif {List.isPrefix Step2.thred Step2.thred} then B = false
-      % TODO: check that the actions are independent
-      else B = true end
+    proc {Independent S1 S2 B}
+      B = false
     end
 
 end

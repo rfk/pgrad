@@ -1,7 +1,12 @@
 %
 %  Execution.oz
 %
-%  Implements an execution, a partial order of steps.
+%  Implements an execution, a prime event structure where each event is
+%  a step of execution of the program, and that satisfies some additional
+%  constraints.
+%
+%  Each event in the execution is uniquely identified by an integer,
+%  which is its order of insertion into the execution.
 %
 
 
@@ -17,7 +22,18 @@ export
 
   Init
   Insert
-  Outcomes
+  Finish
+
+  Enablers
+  Alternatives
+  Preceeds
+  Conflicting
+  Distinguishable
+  Branches
+  ToSituation
+
+  getAction
+  getObs
 
   Holds
   HoldsFOF
@@ -31,127 +47,103 @@ define
   %
   proc {Init Ex}
     Ex = ex(count: 0
-           past: nil
-           future: nil
-           after: nil)
+            enablers: e()
+            alternatives: a() 
+            distinguishable: d()
+           )
   end
 
   %
-  %  Insert a new step into the execution.
+  %  List the events that enable the given event N.
   %
-  proc {Insert ExIn Step ExOut}
-    COut FOut AOut IsAfter
-  in
-    ExOut = ex(count:COut past:ExIn.past future:FOut after:AOut)
-    COut = ExIn.count + 1
-    FOut = (COut#E)|ExOut.future
-    IsAfter = {MList.new}
-    for (C2#S2) in ExIn.future do
-          if {EventIsFree ExIn C2 {MList.toList IsAfter}} then
-            if {OrderedAfter Step S2} then 
-              {MList.cons Ordered C2}
-            end
+  proc {Enablers Ex N Ns}
+    Ns = Ex.enablers.N
+  end
+
+  %
+  %  List the events that could occur instead of the given event N.
+  %
+  proc {Alternatives Ex N Ns}
+    Ns = Ex.alternatives.N
+  end
+
+  %
+  %  Determine whether event N1 is required to happen before event N2.
+  %
+  proc {Preceeds Ex N1 N2 B}
+    if {List.member N1 Ex.enablers.N2} then
+      B = true
+    else
+      B = for return:R default:false Ne in Ex.enablers.N2 do
+            if {Preceeds Ex N1 Ne} then {R true} end
           end
     end
-    AOut = {Record.adjoinAt ExIn.after COut {MList.toList IsAfter}}
-  end
-
-  proc {OrderedAfter E1 E2 B}
-    CanNo = {Step.canBeConc E1 E2}
-    CanYes = for return:R default:true Agt in E1.action do
-               if {Step.getobs E2 Agt} == nil then
-                 {R false}
-               end
-             end
-  in
-    if CanYes then
-      if CanNo then
-        choice B=true [] B=false end
-      else
-        B = true
-      end
-    elseif CanNo then
-      B = false
-    else fail end
-  end
-
-  proc {EventIsFree Ex C Cs B}
-    case Cs of C2|C2s then
-      if {List.member C Ex.after.C2} then B=false
-      else
-        B = {EventIsFree C {List.append C2s Ex.after.C2}}
-      end
-    else B = true end
   end
 
   %
-  %  Step the execution forward one event.  This generates
-  %  a list of executions, each of which are one possible
-  %  evolution of the input execution.
+  %  Determine whether events N1 and N2 are in conflict, i.e. they
+  %  cannot appear together in a run.
   %
-  proc {NextSteps ExIn ExOuts}
-    FreeSteps={List.filter {Record.toListInd ExIn.after} fun{$ S}(S.2==nil)end}
-  in
-    {NextSteps_rec ExIn FreeSteps ExOuts}
-  end
-
-  proc {NextSteps_rec ExIn Steps ExOuts}
-    case Steps of S|Ss then ExOuts2 in
-      ExOuts = {DoStep ExIn S}|ExOuts2
-      {NextSteps_rec ExIn Ss ExOuts2}
-    else ExOuts = nil end
-  end
-
-  %
-  %  Move the execution forward by the given step (an ID#Step pair)
-  %
-  proc {DoStep ExIn S ExOut}
-    OPast OFuture OAfter1 OAfter
-  in
-    ExOut = ex(count: ExIn.count past:OPast future:OFuture after:OAfter)
-    OAfter1 = {Record.subtract ExIn.after S.1}
-    OAfter = {Record.map OAfter1 fun {$ L} {List.subtract L S.1} end}
-    OFuture = {List.subtract ExIn.future S}
-    OPast = S|ExIn.past
-  end
-
-  %
-  %  Generate the set of possible outcomes of the last step inserted
-  %  into E, returning a list of executions, one for each outcome.
-  %  This basically involves enumerating the possible observations for
-  %  each agent and each action.
-  %
-  proc {Outcomes E Es}
-    case E.future of (C#S)|_ then
-      {OutcomesActs E S.action Es}
-    else Es = [E] end
-  end
-
-  proc {OutcomesActs E Actions Outcomes}
-      case Actions of A|As then OutA in
-        OutA = {OutcomesAgts E A {SitCalc.agents}}
-        Outcomes = for append:A ExA in OutA do
-                     {A {OutcomesActs ExA As}}
-                   end
-      else
-        Outcomes = [E]
-      end
-  end
-
-  proc {OutcomesAgts E Act Agents Outcomes}
-    case Agents of Agt|As then OutA in
-      OutA = {OutcomesAA E Act Agt}
-      Outcomes = for append:A ExA in OutA do
-                   {A {OutcomesAgts ExA Act As}}
-                 end
+  proc {Conflicting Ex N1 N2 B}
+    if {List.member N2 Ex.alternatives.N1} then
+      B = true
     else
-      Outcomes = [E]
+      B = for return:R default:false Na in Ex.alternatives.N1 do
+            if {Preceeds Ex Na N2} then {R true} end
+          end
     end
   end
 
   %
-  %  Enumerate outcome executions for the given (single) action and agent.
+  %  Determine whether events N1 and N2 are distinguishable from
+  %  the perspective of agent A.  This is true if and only if
+  %  every run up to N1 produces a different observation history
+  %  for A than every run up to N2.
   %
+  proc {Distinguishable Ex A N1 N2 B}
+    B = Ex.distinguishable.N1.N2.A
+  end
+
+  %
+  %  Return the canonical situation term representing the given
+  %  branch of the execution.
+  %
+  proc {ToSituation Ex Br S}
+    % TODO: Exec.toSituation
+    S = s0
+  end
+
+  %
+  %  Insert a new step into the execution.  Returns a list
+  %  of event IDs representing the possible outcomes of performing
+  %  that step.  These events are {Alternatives} to each other.
+  %
+  proc {Insert ExIn Step ExOut Outcomes}
+    ExOut = ExIn
+    Outcomes = nil
+  end
+
+  %
+  %  Determine whether step S can be ensured to happen after event N.
+  %  
+  proc {Orderable Ex N S B}
+    B = false
+  end
+
+  proc {Enables Ex N1 N2 B}
+    if {Orderable Ex N1 N2} then
+      if {Ordered Ex N1 N2} then 
+        B = true
+      else
+        choice B=true [] B=false end
+      end
+    elseif {Ordered Ex N1 N2} then
+      fail
+    else
+      B = false
+    end
+  end
+
   proc {OutcomesAA E Act Agt Outcomes}
     CanObs = {HoldsW E canObs(Agt Act)}
   in
@@ -184,12 +176,6 @@ define
       end
       {Acc nil}
     end
-  end
-
-  proc {Addobs ExIn Obs ExOut}
-    S2 = {Step.addobs ExIn.future.1.2 Obs}
-  in
-    ExOut = {Record.adjoinAt ExIn future S2|ExIn.future.2}
   end
 
   %
