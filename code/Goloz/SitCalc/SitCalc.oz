@@ -12,7 +12,6 @@ functor
 import
 
   MSet at '../Utils/MSet.ozf'
-  Execution
 
   Module
 
@@ -23,11 +22,12 @@ export
   Agents
   Uniformize
   Regress
-  fof: FOF
   ActionOutcomes
+  Outcomes
   NewAgentMap
-  Axioms
-  Initially
+
+  Holds
+  HoldsW
 
   Test
 
@@ -68,6 +68,9 @@ define
     Agt = Actn.1
   end
 
+  %
+  %  Get the actors involved in a given complex action
+  %
   proc {Actors Actns Agts}
     AgtsM = {MSet.new}
   in
@@ -110,6 +113,9 @@ define
   Uniformize = {FOF.transformation 'sitcalc.uniformize' Uniformize_atom}
 
 
+  %
+  %  Create a record mapping each agent name to a fresh variable.
+  %
   proc {NewAgentMap M}
     Names = {DB.query.agents} in
     M = {Record.adjoinList agtmap {List.map Names fun {$ E} E#_ end}}
@@ -119,134 +125,123 @@ define
     Outcomes = {DB.query.outcomes Act}
   end 
 
+  proc {Outcomes R S Outs}
+   skip
+  end
+
+  proc {OutcomesA R S Agt Outs}
+    CanObs = {HoldsW R canObs(Agt S.action)}
+  in
+    if CanObs == no then
+      Outs = [S]
+    else
+      Acc = {LP.listAcc Outs}
+      CanSense = {HoldsW R canSense(Agt Act)}
+     in
+      if CanObs == unknown then
+        {Acc E}
+      end
+      if CanSense \= yes then
+        {Acc {Step.addobs S o(Agt: [Act])}}
+      end
+      if CanSense \= no then
+        AOuts = {ActionOutcomes Act} in
+        if AOuts == nil then
+          {Acc {Step.addobs S o(Agt: [Act])}}
+        else
+         for Res#Cond in AOuts do
+            _={LP.ifNot proc {$ _}
+                           {Holds R neg(Cond)}
+                        end
+                        proc {$ _}
+                           {Acc {Step.addobs S o(Agt: [Act#Res])}}
+                        end}
+          end
+        end
+      end
+      {Acc nil}
+    end
+  end
+
+
+  end
+
   Axioms = {FOF.parseRecord {List.toTuple and {DB.query.constraints}} _}
   Initially = {FOF.parseRecord {List.toTuple and {DB.query.initially}} _}
+
+  %
+  %  Determine whether F is known to hold after the run of execution R.
+  %  The definition of 'known' can be any knowledge operator for
+  %  which we have an implementation, and which is equivalent across
+  %  agents (e.g: dknows, sknows, cknows)
+  %
+  %  Note that since this is based on knowledge, there's no excluded
+  %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
+  %  be false.
+  %
+  %  Designed to be used during program search, so it's an assertion
+  %  rather than a function, and will bind variables in F to ensure that
+  %  it holds.
+  %
+  proc {Holds R F}
+    Fml Binder Binding
+  in
+    Fml = {FOF.parseRecord F Binder}
+    Binding = {HoldsFOF R Fml}
+    {Binder Binding}
+  end
+
+  proc {HoldsFOF R FmlIn Bind}
+    Fml = {Uniformize FmlIn}
+  in
+    case R of ex(Step R2) then
+     if {FOF.contradiction {FOF.impl Axioms Fml}} then
+       fail
+     else FmlR in
+       %TODO: include observations in regression for holdsFOF
+       FmlR = {Regress Fml Step.action}
+       {HoldsFOF R2 FmlR Bind}
+     end
+    else
+      Axioms = {FOF.conj Axioms Initially} in
+      {FOF.prove {FOF.impl Axioms Fml} Bind}
+    end
+  end
+
+  %
+  %  Determine if it is known whether F holds after the run of execution R.
+  %  Unlike {Holds}, this procedure returns one of 'yes', 'no' or
+  %  'unknown' and will not bind free variables.
+  %
+  proc {HoldsW R F Res}
+    Fml = {FOF.parseRecord F _}
+  in
+    Res = {HoldsW_FOF R Fml}
+  end
+
+  proc {HoldsW_FOF R FIn Res}
+    F = {Uniformize FIn}
+    Res2
+  in
+    case R of ex(Step R2) then
+      Res2 = {FOF.tautOrCont {FOF.impl Axioms F}}
+      if Res2 == taut then Res = yes
+      elseif Res2 == cont then Res = no
+      else FmlR in
+        %TODO: include observations in regression for HoldsW_FOF
+        FmlR = {Regress F Step.action}
+        {HoldsW_FOF R2 FmlR Res}
+      end
+    else
+      Axioms = {FOF.conj Initially Axioms} in
+      Res2 = {FOF.tautOrCont {FOF.impl Axioms F}}
+      if Res2 == taut then Res = yes
+      elseif Res2 == cont then Res = no
+      else Res = unknown end
+    end
+  end
+
     
-  Jplan = jplan(
-
-    init: proc {$ JP}
-            JP = {NewAgentMap}
-          end
-
-    finish: proc {$ JP}
-              skip
-              %for CP in {Record.toList JP} do
-              %  CP = nil
-              %end
-            end
-
-    extend: proc {$ JP E Branches}
-              Outcomes = {Execution.outcomes E}
-              JPStep = JP %{Jplan.addstep JP E}
-            in
-              {Jplan.extendRec JPStep Outcomes Branches}
-            end
-
-    extendRec: proc {$ JPBase Outcomes Branches}
-                 case Outcomes of E|Es then B2 JPt={NewAgentMap} in
-                   %for Agt in {Record.arity JPBase} do
-                   %  if E.1.obs.Agt == nil then
-                   %  else
-                   %    {Jplan.ensureObs JPBase.Agt E.1.obs.Agt JPt.Agt}
-                   %  end
-                   %end
-                   Branches = E#JPt|B2
-                   {Jplan.extendRec JPBase Es B2}
-                 else
-                   %for Agt in {Record.arity JPBase} do
-                   %  {Jplan.finishObs JPBase.Agt}
-                   %end
-                   Branches = nil
-                 end
-               end
-
-    ensureObs: proc {$ JPBase Obs JPt}
-                 if {IsFree JPBase} then
-                   JPBase = obs(Obs JPt _)
-                 else JPt2 JPf Obs2 in
-                   JPBase = obs(Obs2 JPt2 JPf)
-                   if Obs2 == Obs then JPt = JPt2
-                   else {Jplan.ensureObs JPf Obs JPt} end
-                 end
-               end
-
-    finishObs: proc {$ JPBase}
-                 if {IsFree JPBase} then JPBase = nil
-                 else JPf in JPBase = obs(_ _ JPf) {Jplan.finishObs JPf} end
-               end
-
-    addstep: proc {$ JP E JPOut}
-               JPOut = {NewAgentMap}
-               for Agt in {Record.arity JP} do MyActs in
-                 MyActs = for collect:C Act in E.1.action do
-                            if {Actor Act} == Agt then
-                              {C Act}
-                            end
-                          end
-                 if MyActs == nil then JPOut.Agt = JP.Agt
-                 else JP.Agt = seq(E.1.action JPOut.Agt) end
-               end
-             end
-
-    fromExs: proc {$ Exs JP}
-               case Exs of E|Es then
-                 {Jplan.fromEx E JP _}
-                 {Jplan.fromExs Es JP}
-               else 
-                 for Agt in {Record.arity JP} do
-                   {Jplan.closeoff JP.Agt}
-                 end
-               end
-             end
-
-    %
-    %  Build a joint plan from an execution.  JPBase is the entire
-    %  joint plan being built, and JPHead is the head of the plan at
-    %  the given execution.  It will always map each agent to either
-    %  a free variable (they've just performed an action) or an obs()
-    %  term (they make an observation at this point).
-    %
-    fromEx: proc {$ E JPBase JPHead}
-              JPHead = {NewAgentMap}
-              case E of ex(Step E2) then
-                JPTail = {Jplan.fromEx E2 JPBase}
-                JPStep = {NewAgentMap} in
-                for Agt in {Record.arity JPTail} do MyActs MyObs in
-                  MyActs = for collect:C Actn in Step.action do
-                             if {Actor Actn} == Agt then {C Actn} end
-                           end
-                  % TODO: should we include the entire joint action?
-                  % Seems like they should need to know it for coordination
-                  if MyActs \= nil then
-                    JPTail.Agt = seq(MyActs JPStep.Agt)
-                  else
-                    JPTail.Agt = JPStep.Agt
-                  end
-                  MyObs = {Value.condSelect Step.obs Agt nil}
-                  if MyObs \= nil then
-                    {Jplan.ensureObs JPStep.Agt MyObs JPHead.Agt}
-                  else
-                    JPHead.Agt = JPStep.Agt
-                  end
-                end
-              else JPHead = JPBase end
-            end
-
-    closeoff: proc {$ JP}
-                if {IsFree JP} then
-                  JP = nil
-                else
-                  case JP of seq(_ JP2) then {Jplan.closeoff JP2}
-                  []   obs(_ JP1 JP2) then
-                           {Jplan.closeoff JP1}
-                           {Jplan.closeoff JP2}
-                  end
-                end
-              end
-
-  )
-
-
   proc {Test}
     skip
   end

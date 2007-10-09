@@ -14,11 +14,11 @@ Import concepts:
         - any explicit preconditions that held before the step
         - the thread of execution to which it belongs
         - the observations made by each agent as a result of the step
-  * a 'run' is a sequence of Action#Observation pairs, giving the actions
-    that were performed and the corresponding observations made by each
-    agent.  The most recently performed action is listed first.
-  * a 'joint plan' is a prime event structure over Action#Observation
-    pairs that specifies the actions to be performed.
+  * a 'run' is a sequence of steps that have been performed, most recent
+    step first.  It is thus simlar to a situation but also includes the
+    observations made by each agent.
+  * a 'joint plan' is a prime event structure over steps that specifies
+    the actions to be performed, depending on the observations made.
 
 Record labels used to build program terms:
 

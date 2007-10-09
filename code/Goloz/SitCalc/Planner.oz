@@ -1,83 +1,137 @@
 %
-%  Planner.oz:  planning stuff for MIndiGolog
+%  Planner.oz:  construct a JointPlan for a given program.
+%
+%  The planning process proceeds by maintaining a list of open branches,
+%  selecting and extending a branch repeatedly until they are all closed.
+%
+%  A branch is a tuple D#R#N where D is the program remaining to be executed,
+%  R is the run of execution so far, and N is the most recently added event
+%  in the joint execution.
 %
 
 functor 
 
 import
 
-  LP at '../Utils/LP.ozf'
   SitCalc
-  Exec
+  MIndiGolog
   Step
+  JointPlan
 
 export
 
-  JointPlan
+  Plan
 
 define
 
   %
-  %  Search for a join plan executing program D in the current situation.
-  %  To do so, construct a closed PlanFront starting from now#D
+  %  Search for a joint plan executing program D in the current situation.
+  %  To do so, we start with a single branch containing the entire program,
+  %  an empty run and a most-recent-event of zero.
   %
-  proc {JointPlan D E}
-    {MakeJointPlan {Exec.init} [D#{Map.init}#0] E}
+  proc {Plan D JP}
+    {MakePlan {JointPlan.init} [D#now#0] JP}
   end
 
   %
-  %  Construct a joint execution, one step at a time, one branch at a time.
-  %  EIn is the execution constructed so far.
-  %  Branches is a list of D#M#B tuples, where B is the branch identifier,
-  %  D is the program remaining to be executed, and M is branch-specific
-  %  metadata about events.
+  %  Construct a joint plan, one step at a time, one branch at a time.
+  %  JPIn is the joint plan constructed so far.
+  %  Branches is a list of D#R#N tuples that are still to be processed.
   %
-  proc {MakeJointExec EIn Branches EOut}
-    case Branches of (D1#M1#B1)|Bs then
-      (D#M#B)|NewBs = {ConsumeExistingEvents EIn D1#M1#B1} in
-      choice  {Final D {Exec.toSituation EIn B}} then E2 in
-           E2 = {Exec.finish EIn B}
-           {MakeJointExec E2 {List.append NewBs Bs} EOut}
-      [] D2 E2 M2 S Outcomes in
-           {Trans D {Exec.toSituation EIn B} D2 S}
-           Outcomes = for collect:C B2 in {Exec.insert EIn S E2} do
-                       {C D2#{Map.set M B2.1 S}#B2}
+  proc {MakePlan JPIn Branches JPOut}
+    case Branches of (D1#R1#N1)|Bs then
+      (D#R#N)|NewBs = {ConsumeExistingEvents JPIn D1#M1#N1} in
+      choice JP2 in {Final D R}
+           JP2 = {JointPlan.finish JPIn B}
+           {MakePlan JP2 {List.append NewBs Bs} JPOut}
+      [] D2 JP2 R2 S OutEs OutBs in
+           {Trans D R D2 S}
+           OutEs = {JointPlan.insert JPIn S {MkPreceedsF S R} JP2}
+           OutBs = for collect:C N2 in OutEs do
+                       {C D2#ex({JointPlan.get JP2 N2} R)#N2}
                       end
-           {MakeJointExec E2 {List.append Outcomes {List.append NewBs Bs}} EOut}
+           {MakePlan JP2 {List.append OutBs {List.append NewBs Bs}} JPOut}
       end
-    else EOut = EIn end
+    else JPOut = JPIn end
   end
 
   %
-  %  Transition the program D (that remains on branch B) to account for
-  %  any events on its branch that were inserted after B.  This ensures
-  %  that its execution is compatible with those of existing branches.
-  %  Returns a list of D#M#B tuples.
+  %  Create a function that will determine ordering when inserting
+  %  into a joint plan.  This is basically a closure around  the function
+  %  {Preceeds} to include the current run of execution.
   %
-  proc {ConsumeExistingEvents E D#M#B Branches}
-    B2s = {Exec.nextEvents B}
+  proc {MkPreceedsF S R F}
+    F = fun {$ S1} {Preceeds S1 S R} end
+  end
+
+  proc {Preceeds S1 S2 R B}
+    CanYes = {Orderable S1 S2 R}
+    CanNo = {Ordered S1 S2 R}
   in
-    if B2s == nil then
-      Branches = [D#M#B]
+    if {Orderable S1 S2 R} then
+      if {Ordered S1 S2 R} then
+        B = true
+      else
+        choice B = true [] B = false end
+      end
     else
-      Branches=for collect:C B2 in B2s do D2 S in
-                 {Trans D {Exec.toSituation E B2} D2 S}
-                 S.action = {Exec.getAction B2.1}
-                 {Ex.assert E S
-                 {C D2#}
+      if {Ordered S1 S2 R} then
+        fail
+      else
+        B = false
+      end
+    end
+  end
+
+  proc {Orderable S1 S2 R B}
+    B = true
+  end
+
+  proc {Ordered S1 S2 R B}
+    B = false
+  end
+
+  %
+  %  Transition the program D so that any events inserted after N are
+  %  accounted for.  This ensures that its execution is compatible with
+  %  those of existing branches.  Since this may in itself created
+  %  additional branch points if steps with multiple alternatives have
+  %  been added, the result is a list of branches.
+  %
+  proc {ConsumeExistingEvents JP D#R#N Branches}
+    N2s = {JointPlan.nextEvents JP N}
+  in
+    if N2s == nil then
+      Branches=[D#R#N]
+    else
+      Branches=for collect:C N2 in N2s do Dp Rp S in
+                 {Trans1 D R Dp Rp S}
+                 {JointPlan.getEvent JP N2 S}
+                 {JointPlan.assert JP N2 S {MkPreceedsF S Rp}}
+                 {C D2#ex(S Rp)#N2}
                end
     end
   end
 
-  proc {Trans1 D E Dp Steps}
+  %
+  %  Find a non-empty transition step of the program D in run R.
+  %  Empty steps (e.g. for test() conditions) cannot show up in the
+  %  joint plan, but they do appear in individual runs and can
+  %  affect the ordering among other steps.  This procedure collects
+  %  any empty transitions in the local run until it finds a step
+  %  bearing an action, which it returns along with the update run.
+  %
+  proc {Trans1 D R Dp Rp S}
     Dr Sr
   in
-    {Trans D E Dr Sr}
-    if Sr.action == nil then skip
-    else skip
+    {Trans D R Dr Sr}
+    if Sr.action == nil then
+      {Trans1 Dr ex(Sr R) Dp Rp S}
+    else
+      Dp=Dr Rp=R S=Sr
     end
   end
-  
+
   proc {Test}
     skip
   end
