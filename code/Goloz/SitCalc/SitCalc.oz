@@ -31,8 +31,6 @@ export
   Holds
   HoldsW
 
-  Test
-
 define
 
   %
@@ -253,11 +251,6 @@ define
       elseif Res2 == cont then Res = no
       else Res = unknown end
     end
-  end
-
-    
-  proc {Test}
-    skip
   end
 
 end

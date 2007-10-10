@@ -21,9 +21,6 @@ import
   BDD at 'FOF/BDD.ozf'
   FOF at 'FOF/FOF.ozf'
 
-  Execution at 'SitCalc/Execution.ozf'
-  Sitcalc at 'SitCalc/SitCalc.ozf'
-
 define
 
   {Property.put 'print.width' 1000}
@@ -82,14 +79,6 @@ define
   {FOF.test}
   {Print passed}
 
-  {Print "\n==  Testing Execution\n"}
-  {Execution.test}
-  {Print passed}
-
-  {Print "\n==  Testing Sitcalc\n"}
-  {Sitcalc.test}
-  {Print passed}
-  
   {Print "\n\n===  Done  ===\n\n"}
   {Application.exit 0}
 
