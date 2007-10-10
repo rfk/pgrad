@@ -106,9 +106,43 @@ define
   %  step as its only argument.  It must return true if that step
   %  is required to preceed the new step, false otherwise.
   %
-  proc {Insert JPIn Step Preceeds JPOut Outcomes}
+  proc {Insert JPIn S Preceeds JPOut Outcomes}
     JPIn = JPOut
     Outcomes = nil
+  end
+
+  %
+  %  Assert that the given step exists with seqnum N in the execution.
+  %  This is an analogue to {Insert} but instead of adding a new step,
+  %  it verifies an existing step.
+  %
+  proc {Assert JP N S Preceeds}
+    skip
+  end
+
+  %
+  %  Insert special 'finish' action in the run ending at N.
+  %
+  proc {Finish JPIn N JPOut}
+    skip
+  end
+
+  %
+  %  Unify the fields of S with the event recorded at sequence number N.
+  %  We do this on a field-by-fields basis so that S can have additional
+  %  fields that the JointPlan doesn't know about.
+  %
+  proc {GetEvent JP N S}
+    skip
+  end
+
+  %
+  %  Determine the next-oldest events in the execution that do not
+  %  conflict with event N.  This is always a list: it is nil if all
+  %  more recent events conflict with N, or a list of alternatives otherwise.
+  %
+  proc {NextEvents JP N Ns}
+    skip
   end
 
 end

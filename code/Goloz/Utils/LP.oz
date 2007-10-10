@@ -36,10 +36,9 @@ define
   %
 
   % 
-  % Standard negation-as-failure on a procedure
-  %
-  % TODO: need to ensure that the procedure has no free variables,
-  %       or the search will hang waiting for them to be bound.
+  % Standard negation-as-failure on a procedure.
+  % Note that the procedure must not wait on free variables, or
+  % the search will suspend waiting for them to be bound.
   %
   proc {Neg P}
     {Search.base.one proc {$ L} {P} L=unit end $} = nil

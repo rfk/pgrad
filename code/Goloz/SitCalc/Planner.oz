@@ -40,15 +40,16 @@ define
   %
   proc {MakePlan JPIn Branches JPOut}
     case Branches of (D1#R1#N1)|Bs then
-      (D#R#N)|NewBs = {ConsumeExistingEvents JPIn D1#M1#N1} in
-      choice JP2 in {Final D R}
-           JP2 = {JointPlan.finish JPIn B}
+      (D#R#N)|NewBs = {HandleExistingEvents JPIn D1#M1#N1} in
+      choice JP2 in
+           {Final D R}
+           JP2 = {JointPlan.finish JPIn N}
            {MakePlan JP2 {List.append NewBs Bs} JPOut}
-      [] D2 JP2 R2 S OutEs OutBs in
-           {Trans D R D2 S}
+      [] Dp Rp S OutEs OutBs in
+           {Trans1 D R Dp Rp S}
            OutEs = {JointPlan.insert JPIn S {MkPreceedsF S R} JP2}
            OutBs = for collect:C N2 in OutEs do
-                       {C D2#ex({JointPlan.get JP2 N2} R)#N2}
+                       {C Dp#ex({JointPlan.getEvent JP2 N2} Rp)#N2}
                       end
            {MakePlan JP2 {List.append OutBs {List.append NewBs Bs}} JPOut}
       end
@@ -58,82 +59,61 @@ define
   %
   %  Create a function that will determine ordering when inserting
   %  into a joint plan.  This is basically a closure around  the function
-  %  {Preceeds} to include the current run of execution.
+  %  {Preceeds} to include the current step and run of execution.
   %
-  proc {MkPreceedsF S R F}
-    F = fun {$ S1} {Preceeds S1 S R} end
+  fun {MkPreceedsF S R}
+    fun {$ S1} {Preceeds S1 S R} end
   end
 
+  %
+  %  Determine whether step S1 must preceed step S2 in the joint plan.
+  %  This must be true if {Ordered S1 S2 R}, and can be true only if
+  %  {Orderable S1 S2}.  If they are orderable but not neessarily ordered,
+  %  this procedure can return either true or false, so a choicepoint is 
+  %  created.
+  %
   proc {Preceeds S1 S2 R B}
-    CanYes = {Orderable S1 S2 R}
-    CanNo = {Ordered S1 S2 R}
-  in
-    if {Orderable S1 S2 R} then
-      if {Ordered S1 S2 R} then
-        B = true
-      else
-        choice B = true [] B = false end
-      end
+    if {Orderable S1 S2} then
+      if {Ordered S1 S2 R} then B=true
+      else choice B=true [] B=false end end
     else
-      if {Ordered S1 S2 R} then
-        fail
-      else
-        B = false
-      end
+      if {Ordered S1 S2 R} then fail
+      else B=false end
     end
   end
 
-  proc {Orderable S1 S2 R B}
+  proc {Orderable S1 S2 B}
+    % TODO: Planner.orderable
     B = true
   end
 
   proc {Ordered S1 S2 R B}
+    % TODO: Planner.ordered
     B = false
   end
 
   %
   %  Transition the program D so that any events inserted after N are
   %  accounted for.  This ensures that its execution is compatible with
-  %  those of existing branches.  Since this may in itself created
+  %  those of existing branches.  Since this may in itself create
   %  additional branch points if steps with multiple alternatives have
   %  been added, the result is a list of branches.
   %
-  proc {ConsumeExistingEvents JP D#R#N Branches}
+  proc {HandleExistingEvents JP D#R#N Branches}
     N2s = {JointPlan.nextEvents JP N}
   in
     if N2s == nil then
       Branches=[D#R#N]
     else
-      Branches=for collect:C N2 in N2s do Dp Rp S in
+      Branches=for append:A N2 in N2s do Dp Rp S in
                  {Trans1 D R Dp Rp S}
                  {JointPlan.getEvent JP N2 S}
                  {JointPlan.assert JP N2 S {MkPreceedsF S Rp}}
-                 {C D2#ex(S Rp)#N2}
+                 {A {HandleExistingEvents JP D2#ex(S Rp)#N2}}
                end
+      
     end
-  end
-
-  %
-  %  Find a non-empty transition step of the program D in run R.
-  %  Empty steps (e.g. for test() conditions) cannot show up in the
-  %  joint plan, but they do appear in individual runs and can
-  %  affect the ordering among other steps.  This procedure collects
-  %  any empty transitions in the local run until it finds a step
-  %  bearing an action, which it returns along with the update run.
-  %
-  proc {Trans1 D R Dp Rp S}
-    Dr Sr
-  in
-    {Trans D R Dr Sr}
-    if Sr.action == nil then
-      {Trans1 Dr ex(Sr R) Dp Rp S}
-    else
-      Dp=Dr Rp=R S=Sr
-    end
-  end
-
-  proc {Test}
-    skip
   end
 
 end
+

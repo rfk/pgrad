@@ -19,15 +19,14 @@ import
 export
 
   Trans
+  Trans1
   Final
 
 define
 
   %
-  %  Trans(D,R,Dp,Sp)
-  %
   %  Transition function for executing a single step of a program.
-  %  This predicate is true when the program D, given that the current
+  %  This predicate succeeds when the program D, given that the current
   %  run of execution is R, can make a single step of execution Sp
   %  leaving program Dp remaining to be executed.
   %
@@ -86,6 +85,7 @@ define
           end
     []  pconc(D1 D2) then Res in
           % Use LP.ifNot to avoid re-computation on D1
+          % TODO: ensure that D1 contains no free variables
           {LP.ifNot proc {$ Res1} D1p S1p in
                       {Trans D1 R D1p S1p}
                       Res1 = pconc(D1p D2)#S1p
@@ -115,6 +115,11 @@ define
     end
   end
 
+  %
+  %  Termination function for executing a program.
+  %  This predicate succeeds when the program D can legally terminate
+  %  when the current run of execution is R.
+  %
   proc {Final D R}
    case D of
        nil then skip
@@ -135,5 +140,26 @@ define
    else fail
    end
   end
+
+
+  %
+  %  Find a non-empty transition step of the program D in run R.
+  %  Empty steps (e.g. for test() conditions) cannot show up in a
+  %  joint plan, but they do appear in individual runs and can
+  %  affect the ordering among other steps.  This procedure collects
+  %  any empty transitions in the local run until it finds a step
+  %  bearing an action, which it returns along with the updated run.
+  %
+  proc {Trans1 D R Dp Rp S}
+    Dr Sr
+  in
+    {Trans D R Dr Sr}
+    if Sr.action == nil then
+      {Trans1 Dr ex(Sr R) Dp Rp S}
+    else
+      Dp=Dr Rp=R S=Sr
+    end
+  end
+
 
 end

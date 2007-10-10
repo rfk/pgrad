@@ -12,6 +12,8 @@ functor
 import
 
   MSet at '../Utils/MSet.ozf'
+  LP at '../Utils/LP.ozf'
+  Step
 
   Module
 
@@ -125,45 +127,57 @@ define
     Outcomes = {DB.query.outcomes Act}
   end 
 
+  %
+  %  Return a list of steps, one for each possible outcome of the
+  %  step S.  This involves enumerating the different possible combinations
+  %  of observations made by each agent.
+  %
   proc {Outcomes R S Outs}
-   skip
+    Outs = {OutcomesAgts R [S] {Record.arity S.obs}}
   end
 
-  proc {OutcomesA R S Agt Outs}
+  proc {OutcomesAgts R Steps Agts Outs}
+    case Agts of Agt|As then NewSteps in
+      NewSteps = for append:Acc S in Steps do
+                {Acc {OutcomesAgt R S Agt}}
+              end
+      {OutcomesAgt R NewSteps As Outs}
+    else Outs = Steps end
+  end
+
+  proc {OutcomesAgt R S Agt Outs}
+     % TODO: SitCalc.OutcomesAgt: take into account existing obs on the step
     CanObs = {HoldsW R canObs(Agt S.action)}
   in
     if CanObs == no then
       Outs = [S]
     else
       Acc = {LP.listAcc Outs}
-      CanSense = {HoldsW R canSense(Agt Act)}
+      CanSense = {HoldsW R canSense(Agt S.action)}
      in
       if CanObs == unknown then
-        {Acc E}
+        {Acc S}
       end
       if CanSense \= yes then
-        {Acc {Step.addobs S o(Agt: [Act])}}
+        {Acc {Step.setobs S Agt S.action}}
       end
       if CanSense \= no then
-        AOuts = {ActionOutcomes Act} in
+        AOuts = {ActionOutcomes S.action} in
         if AOuts == nil then
-          {Acc {Step.addobs S o(Agt: [Act])}}
+          {Acc {Step.setobs S Agt S.action}}
         else
          for Res#Cond in AOuts do
             _={LP.ifNot proc {$ _}
                            {Holds R neg(Cond)}
                         end
                         proc {$ _}
-                           {Acc {Step.addobs S o(Agt: [Act#Res])}}
+                           {Acc {Step.setobs S Agt S.action#Res}}
                         end}
           end
         end
       end
       {Acc nil}
     end
-  end
-
-
   end
 
   Axioms = {FOF.parseRecord {List.toTuple and {DB.query.constraints}} _}
