@@ -39,19 +39,23 @@ define
   %
   proc {MakePlan JPIn Branches JPOut}
     case Branches of (D1#R1#N1)|Bs then
-      (D#R#N)|NewBs = {HandleExistingEvents JPIn D1#R1#N1} in
-      choice JP2 in
+      if {BranchIsImpossible R1} then
+        {MakePlan JPIn Bs JPOut}
+      else
+        (D#R#N)|NewBs = {HandleExistingEvents JPIn D1#R1#N1} in
+        choice JP2 in
            {MIndiGolog.final D R}
            JP2 = {JointPlan.finish JPIn N}
            {MakePlan JP2 {List.append NewBs Bs} JPOut}
-      [] Dp Rp S JP2 OutSs OutNs OutBs in
+        [] Dp Rp S JP2 OutSs OutNs OutBs in
            {MIndiGolog.trans1 D R Dp Rp S}
-           OutSs = {SitCalc.outcomes Rp S}
-           OutNs = {JointPlan.insert JPIn OutSs {MkPreceedsF S R} JP2}
+           OutSs = {SitCalc.outcomes S}
+           OutNs = {JointPlan.insert JPIn OutSs {MkPreceedsF S Rp} JP2}
            OutBs = for collect:C N2 in OutNs S2 in OutSs do
                          {C Dp#ex(S2 Rp)#N2}
                       end
            {MakePlan JP2 {List.append OutBs {List.append NewBs Bs}} JPOut}
+        end
       end
     else JPOut = JPIn end
   end
@@ -105,12 +109,11 @@ define
     if N2s == nil then
       Branches=[D#R#N]
     else
-      Branches=for append:A N2 in N2s do Dp Rp S in
+      Branches=for append:Acc N2 in N2s do Dp Rp S in
                  {MIndiGolog.trans1 D R Dp Rp S}
                  {JointPlan.assert JP N2 S {MkPreceedsF S Rp}}
-                 {A {HandleExistingEvents JP Dp#ex(S Rp)#N2}}
+                 {Acc {HandleExistingEvents JP Dp#ex(S Rp)#N2}}
                end
-      
     end
   end
 

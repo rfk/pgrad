@@ -39,9 +39,10 @@ define
   %
   proc {Init JP}
     JP = jp(count: 0
-            enablers: e()
-            alternatives: a() 
-            distinguishable: d()
+            events: unit(0: start)
+            enablers: unit()
+            alternatives: unit() 
+            distinguishable: unit()
            )
   end
 
@@ -101,16 +102,65 @@ define
   %  of event IDs representing each step, in order. The steps will be
   %  added as mutually exclusive alternatives to each other.
   %  {Preceeds} is a function that will be called with an existing
-  %  step as its only argument.  It must return true if that step
+  %  step seqn as its only argument.  It must return true if that step
   %  is required to preceed the new steps, false otherwise.
   %
-  proc {Insert JPIn Ss Preceeds JPOut Outcomes}
-    NewN
+  proc {Insert JPIn NewSs Preceeds JPOut Outcomes}
+    Ens NewNs JP2 JP3
   in
-    NewN = JPIn.count + 1
-    JPOut = {Record.adjoinList JPIn [
-                count#NewN
+    {FindEnablers JPIn JPIn.count Preceeds nil Ens}
+    {AddNewEvents JPIn NewSs Ens JP2 NewNs}
+    {SetAsAlternatives JP2 NewNs nil JP3}
+    {AddIndistinguishableEvents JP3 NewNs JPOut}
+  end
+
+  proc {FindEnablers JP N PFunc ESoFar Ens}
+    if N < 0 then Ens = SoFar
+    else Conflicts in
+      Conflicts = for return:R default:true E in ESoFar do
+                    if {Conflicting JP N E} then {R false} end
+                  end
+      if {Neg Conflicts} then Preceeds in
+        Preceeds = for return:R default:false E in ESoFar do
+                      if {Preceeds JP N E} then {R true} end
+                   end
+        if Preceeds then
+          {FindEnablers JP N-1 PFunc ESoFar Ens}
+        else
+          if {PFunc N} then
+            {FindEnablers JP N-1 PFunc N|ESoFar Ens}
+          else
+            {FindEnablers JP N-1 PFunc ESoFar Ens}
+          end
+        end
+      else
+        {FindEnablers JP N-1 PFunc ESoFar Ens}
+      end
+    end
+  end
+
+  proc {AddNewEvents JPIn NewSs Ens JPOut NewNs}
+    case NewSs of S|Ss then JP2 NTail in
+      NewNs = (JPIn.count+1)|NTail
+      JP2 = {Record.adjoinList JPIn [
+               count#NewNs.1
+               events#{Record.adjoinAt JPIn.events NewC S}
+               enablers#{Record.adjoinAt JPIn.enablers NewC Ens}
             ]}
+      {AddNewEvents JP2 Ss Ens JPOut NTail}
+    else JPOut=JPIn NewNs=nil end
+  end
+
+  proc {SetAsAlternatives JPIn Ns Ds JPOut}
+    case Ns of N|NT then JP2 in
+      JP2 = {Record.adjoinAt JPIn alternatives
+                {Record.adjoinAt JPIn.alternatives N {List.append Ds NT}}}
+      {SetAsAlternatives JP2 NT N|Ds JPOut}
+    else JPIn = JPOut end
+  end
+
+  proc {AddIndistinguishableEvents JPIn NewNs JPOut}
+    skip
   end
 
   %
