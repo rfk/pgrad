@@ -14,6 +14,7 @@ functor
 import
 
   MIndiGolog
+  SitCalc
   JointPlan
 
 export
@@ -43,11 +44,12 @@ define
            {MIndiGolog.final D R}
            JP2 = {JointPlan.finish JPIn N}
            {MakePlan JP2 {List.append NewBs Bs} JPOut}
-      [] Dp Rp S JP2 OutEs OutBs in
+      [] Dp Rp S JP2 OutSs OutNs OutBs in
            {MIndiGolog.trans1 D R Dp Rp S}
-           OutEs = {JointPlan.insert JPIn S {MkPreceedsF S R} JP2}
-           OutBs = for collect:C N2 in OutEs do
-                       {C Dp#ex({JointPlan.getEvent JP2 N2} Rp)#N2}
+           OutSs = {SitCalc.outcomes Rp S}
+           OutNs = {JointPlan.insert JPIn OutSs {MkPreceedsF S R} JP2}
+           OutBs = for collect:C N2 in OutNs S2 in OutSs do
+                         {C Dp#ex(S2 Rp)#N2}
                       end
            {MakePlan JP2 {List.append OutBs {List.append NewBs Bs}} JPOut}
       end
@@ -105,7 +107,6 @@ define
     else
       Branches=for append:A N2 in N2s do Dp Rp S in
                  {MIndiGolog.trans1 D R Dp Rp S}
-                 {JointPlan.getEvent JP N2 S}
                  {JointPlan.assert JP N2 S {MkPreceedsF S Rp}}
                  {A {HandleExistingEvents JP Dp#ex(S Rp)#N2}}
                end

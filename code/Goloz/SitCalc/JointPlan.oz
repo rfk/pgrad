@@ -6,7 +6,10 @@
 %  in a reactive manner by the agents.
 %
 %  Each event in the execution is uniquely identified by an integer,
-%  which is its order of insertion into the plan.
+%  which is its order of insertion into the plan.  A run is identified
+%  by a sorted list of integers, with largest integer first.  It is the
+%  unique run containing all events in the list.  These lists are what
+%  is reported to the outside world in various event query functions.
 %
 
 
@@ -28,7 +31,6 @@ export
   Distinguishable
 
   NextEvents
-  GetEvent
 
 define
 
@@ -95,21 +97,25 @@ define
   end
 
   %
-  %  Insert a new step into the joint plan.  Returns a list
-  %  of event IDs representing the possible outcomes of performing
-  %  that step.  These events are {Alternatives} to each other.
+  %  Insert a new set of steps into the joint plan.  Returns a list
+  %  of event IDs representing each step, in order. The steps will be
+  %  added as mutually exclusive alternatives to each other.
   %  {Preceeds} is a function that will be called with an existing
   %  step as its only argument.  It must return true if that step
-  %  is required to preceed the new step, false otherwise.
+  %  is required to preceed the new steps, false otherwise.
   %
-  proc {Insert JPIn S Preceeds JPOut Outcomes}
-    JPIn = JPOut
-    Outcomes = nil
+  proc {Insert JPIn Ss Preceeds JPOut Outcomes}
+    NewN
+  in
+    NewN = JPIn.count + 1
+    JPOut = {Record.adjoinList JPIn [
+                count#NewN
+            ]}
   end
 
   %
   %  Assert that the given step exists with seqnum N in the execution.
-  %  This is an analogue to {Insert} but instead of adding a new step,
+  %  This is an analogue to {Insert} but instead of adding  new steps,
   %  it verifies an existing step.
   %
   proc {Assert JP N S Preceeds}
@@ -120,15 +126,6 @@ define
   %  Insert special 'finish' action in the run ending at N.
   %
   proc {Finish JPIn N JPOut}
-    skip
-  end
-
-  %
-  %  Unify the fields of S with the event recorded at sequence number N.
-  %  We do this on a field-by-fields basis so that S can have additional
-  %  fields that the JointPlan doesn't know about.
-  %
-  proc {GetEvent JP N S}
     skip
   end
 
