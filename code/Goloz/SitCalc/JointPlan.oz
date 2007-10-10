@@ -14,10 +14,6 @@ functor
 
 import
 
-  LP at '../Utils/LP.ozf'
-  MList at '../Utils/MList.ozf'
-  SitCalc
-
 export
 
   Init

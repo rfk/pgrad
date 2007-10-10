@@ -14,10 +14,7 @@ functor
 
 import
 
-  LP at '../Utils/LP.ozf'
   SitCalc
-
-  Search
 
 export
 
