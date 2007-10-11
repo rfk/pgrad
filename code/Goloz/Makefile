@@ -5,7 +5,7 @@ FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
            Utils/MSet.ozf Utils/Set.ozf Utils/OpenMap.ozf Utils/Service.ozf\
            FOF/BDD.ozf FOF/FOF.ozf FOF/TermSet.ozf FOF/QuantSet.ozf \
            FOF/EQSet.ozf FOF/Binding.ozf FOF/VarMap.ozf \
-           SitCalc/SitCalc.ozf SitCalc/DomainBuilder.ozf SitCalc/JointPlan.ozf\
+           SitCalc/SitCalc.ozf SitCalc/DomainBuilder.ozf SitCalc/JointExec.ozf\
            SitCalc/MIndiGolog.ozf SitCalc/Step.ozf SitCalc/Time.ozf\
            SitCalc/Planner.ozf
 

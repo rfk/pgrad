@@ -1,5 +1,5 @@
 %
-%  Planner.oz:  construct a JointPlan for a given program.
+%  Planner.oz:  construct a JointExec for a given program.
 %
 %  The planning process proceeds by maintaining a list of open branches,
 %  selecting and extending a branch repeatedly until they are all closed.
@@ -14,8 +14,7 @@ functor
 import
 
   MIndiGolog
-  SitCalc
-  JointPlan
+  JointExec
 
 export
 
@@ -24,40 +23,35 @@ export
 define
 
   %
-  %  Search for a joint plan executing program D in the current situation.
+  %  Search for a joint execution of program D in the current situation.
   %  To do so, we start with a single branch containing the entire program,
   %  an empty run and a most-recent-event of zero.
   %
-  proc {Plan D JP}
-    {MakePlan {JointPlan.init} [D#now#0] JP}
+  proc {Plan D J}
+    {MakePlan {JointExec.init} [D#now#0] J}
   end
 
   %
-  %  Construct a joint plan, one step at a time, one branch at a time.
-  %  JPIn is the joint plan constructed so far.
+  %  Construct a joint execution, one step at a time, one branch at a time.
+  %  JIn is the joint plan constructed so far.
   %  Branches is a list of D#R#N tuples that are still to be processed.
   %
-  proc {MakePlan JPIn Branches JPOut}
+  proc {MakePlan JIn Branches JOut}
     case Branches of (D1#R1#N1)|Bs then
-      if {BranchIsImpossible R1} then
-        {MakePlan JPIn Bs JPOut}
-      else
-        (D#R#N)|NewBs = {HandleExistingEvents JPIn D1#R1#N1} in
-        choice JP2 in
+      (D#R#N)|NewBs = {HandleExistingEvents JIn D1#R1#N1} in
+      choice J2 in
            {MIndiGolog.final D R}
-           JP2 = {JointPlan.finish JPIn N}
-           {MakePlan JP2 {List.append NewBs Bs} JPOut}
-        [] Dp Rp S JP2 OutSs OutNs OutBs in
+           J2 = {JointExec.finish JIn N}
+           {MakePlan J2 {List.append NewBs Bs} JOut}
+      [] Dp Rp S J2 OutSs OutNs OutBs in
            {MIndiGolog.trans1 D R Dp Rp S}
-           OutSs = {SitCalc.outcomes S}
-           OutNs = {JointPlan.insert JPIn OutSs {MkPreceedsF S Rp} JP2}
-           OutBs = for collect:C N2 in OutNs S2 in OutSs do
-                         {C Dp#ex(S2 Rp)#N2}
+           OutNs = {JointExec.insert JIn S {MkPreceedsF S Rp} J2}
+           OutBs = for collect:C N2 in OutNs do
+                         {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                       end
-           {MakePlan JP2 {List.append OutBs {List.append NewBs Bs}} JPOut}
-        end
+           {MakePlan J2 {List.append OutBs {List.append NewBs Bs}} JOut}
       end
-    else JPOut = JPIn end
+    else JOut = JIn end
   end
 
   %
@@ -103,16 +97,17 @@ define
   %  additional branch points if steps with multiple alternatives have
   %  been added, the result is a list of branches.
   %
-  proc {HandleExistingEvents JP D#R#N Branches}
-    N2s = {JointPlan.nextEvents JP N}
+  proc {HandleExistingEvents J D#R#N Branches}
+    N2 = {JointExec.nextEvent J N}
   in
-    if N2s == nil then
+    if N2 == nil then
       Branches=[D#R#N]
-    else
-      Branches=for append:Acc N2 in N2s do Dp Rp S in
-                 {MIndiGolog.trans1 D R Dp Rp S}
-                 {JointPlan.assert JP N2 S {MkPreceedsF S Rp}}
-                 {Acc {HandleExistingEvents JP Dp#ex(S Rp)#N2}}
+    else OutNs in
+      {MIndiGolog.trans1 D R Dp Rp S}
+      OutNs = {JointExec.assert J N2 S {MkPreceedsF S Rp}}
+      Branches=for append:Acc OutN in OutNs do
+                 S2 = {JointExec.getobs J OutN S} in
+                 {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#N2}}
                end
     end
   end

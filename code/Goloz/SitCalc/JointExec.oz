@@ -1,15 +1,12 @@
 %
-%  JointPlan.oz
+%  JointExec.oz
 %
-%  Implements a joint plan of execution, a prime event structure over the
-%  (action-bearing) steps of execution of the program that can be performed
+%  Implements a joint execution, a prime event structure over the
+%  (action-bearing) steps of execution of a program that can be performed
 %  in a reactive manner by the agents.
 %
 %  Each event in the execution is uniquely identified by an integer,
-%  which is its order of insertion into the plan.  A run is identified
-%  by a sorted list of integers, with largest integer first.  It is the
-%  unique run containing all events in the list.  These lists are what
-%  is reported to the outside world in various event query functions.
+%  which is its order of insertion into the plan.
 %
 
 
@@ -115,12 +112,12 @@ define
   end
 
   proc {FindEnablers JP N PFunc ESoFar Ens}
-    if N < 0 then Ens = SoFar
+    if N < 0 then Ens = ESoFar
     else Conflicts in
       Conflicts = for return:R default:true E in ESoFar do
                     if {Conflicting JP N E} then {R false} end
                   end
-      if {Neg Conflicts} then Preceeds in
+      if {Not Conflicts} then Preceeds in
         Preceeds = for return:R default:false E in ESoFar do
                       if {Preceeds JP N E} then {R true} end
                    end
@@ -140,8 +137,9 @@ define
   end
 
   proc {AddNewEvents JPIn NewSs Ens JPOut NewNs}
-    case NewSs of S|Ss then JP2 NTail in
-      NewNs = (JPIn.count+1)|NTail
+    case NewSs of S|Ss then JP2 NTail NewC in
+      NewC = JPIn.count+1
+      NewNs = NewC|NTail
       JP2 = {Record.adjoinList JPIn [
                count#NewNs.1
                events#{Record.adjoinAt JPIn.events NewC S}
