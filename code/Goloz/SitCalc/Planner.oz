@@ -33,7 +33,7 @@ define
 
   %
   %  Construct a joint execution, one step at a time, one branch at a time.
-  %  JIn is the joint plan constructed so far.
+  %  JIn is the joint exec constructed so far.
   %  Branches is a list of D#R#N tuples that are still to be processed.
   %
   proc {MakePlan JIn Branches JOut}
@@ -45,7 +45,7 @@ define
            {MakePlan J2 {List.append NewBs Bs} JOut}
       [] Dp Rp S J2 OutSs OutNs OutBs in
            {MIndiGolog.trans1 D R Dp Rp S}
-           OutNs = {JointExec.insert JIn S {MkPreceedsF S Rp} J2}
+           OutNs = {JointExec.insert JIn N S {MkPreceedsF S Rp} J2}
            OutBs = for collect:C N2 in OutNs do
                          {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                       end
@@ -56,37 +56,31 @@ define
 
   %
   %  Create a function that will determine ordering when inserting
-  %  into a joint plan.  This is basically a closure around  the function
-  %  {Preceeds} to include the current step and run of execution.
+  %  into a joint exec.  This is basically a closure around the function
+  %  {Preceeds} to transform the event into a proper step record based
+  %  on the current run.
   %
-  fun {MkPreceedsF S R}
-    fun {$ S1} {Preceeds S1 S R} end
-  end
-
-  %
-  %  Determine whether step S1 must preceed step S2 in the joint plan.
-  %  This must be true if {Ordered S1 S2 R}, and can be true only if
-  %  {Orderable S1 S2}.  If they are orderable but not neessarily ordered,
-  %  this procedure can return either true or false, so a choicepoint is 
-  %  created.
-  %
-  proc {Preceeds S1 S2 R B}
-    if {Orderable S1 S2} then
-      if {Ordered S1 S2 R} then B=true
-      else choice B=true [] B=false end end
-    else
-      if {Ordered S1 S2 R} then fail
-      else B=false end
+  proc {MkPreceedsF S R F}
+    proc {$ F N B}
+      S2 = {GetStepFromRun N R}
+    in
+      if S2 == nil then B = false
+      else B = {Preceeds S2 S} end
     end
   end
 
-  proc {Orderable S1 S2 B}
-    % TODO: Planner.orderable
-    B = true
+  proc {GetStepFromRun N R S}
+    case R of ex(S2 R2) then
+      if S2.seqn == N then S = S2
+      else S = {GetStepFromRun N R2} end
+    else S = nil end
   end
 
-  proc {Ordered S1 S2 R B}
-    % TODO: Planner.ordered
+  %
+  %  Determine whether step S1 must preceed step S2 in the joint exec.
+  %
+  proc {Preceeds S1 S2 B}
+    % TODO: Planner.Preceeds
     B = false
   end
 
@@ -94,7 +88,7 @@ define
   %  Transition the program D so that any events inserted after N are
   %  accounted for.  This ensures that its execution is compatible with
   %  those of existing branches.  Since this may in itself create
-  %  additional branch points if steps with multiple alternatives have
+  %  additional branch points if steps with multiple outcomes have
   %  been added, the result is a list of branches.
   %
   proc {HandleExistingEvents J D#R#N Branches}

@@ -1,12 +1,31 @@
 %
 %  JointExec.oz
 %
-%  Implements a joint execution, a prime event structure over the
-%  (action-bearing) steps of execution of a program that can be performed
-%  in a reactive manner by the agents.
+%  Implements a joint execution, a prime event structure over actions
+%  and their outcomes that can be performed in a reactive manner by 
+%  a team of agents.
 %
 %  Each event in the execution is uniquely identified by an integer,
-%  which is its order of insertion into the plan.
+%  which is its order of insertion.  Events are separated into two types:
+%      * action events, representing actions performed by the agents
+%      * outcome events, representing observations made by the agents
+%        as a result of an action being performed
+%
+%  Only action events can be added to the execution explicitly - outcome
+%  events are automatically added for every action.
+%
+%  There are two special events labels 'start' and 'finish'. 'start'
+%  is the label for event zero, a special outcome event triggerig the
+%  start of execution. 'finish' is the label of pseudo action events
+%  inserted to indicate that execution has terminated.
+%
+%  A branch of execution (selecting one outcome from each action) is
+%  uniquely identified using a sorted list of outcome events Ns, highest id 
+%  first.  It must satisfy the following:
+%
+%    all N < Ns.1:  N in NS  xor
+%                   (exists N' in Ns: Conflicts(N N')  v  Preceeds(N N'))
+%  
 %
 
 
@@ -14,176 +33,174 @@ functor
 
 import
 
+  IntMap at '../Utils/IntMap.ozf'
+  SitCalc
+
 export
 
   Init
   Insert
   Assert
   Finish
-
-  Enablers
-  Alternatives
-  Preceeds
-  Conflicting
-  Distinguishable
-
-  NextEvents
+  NextEvent
+  Getobs
 
 define
 
   %
-  %  Initialize a new (empty) joint plan.
+  %  Initialize a new (empty) joint execution.
+  %  It will contain the single event 0, with label 'start'.
+  %  'future' is a map from event ids to theri details, indicating
+  %  events that are yet to happen.  'past' is a list of events
+  %  that have already occurred, most recently occurred event at head.
   %
-  proc {Init JP}
-    JP = jp(count: 0
-            events: unit(0: start)
-            enablers: unit()
-            alternatives: unit() 
-            distinguishable: unit()
-           )
+  proc {Init J}
+    J = je(
+            future: {IntMap.append {IntMap.init} out(start)}
+            past: nil
+          )
   end
 
   %
-  %  List the events that enable the given event N.
+  %  Insert a new action into the execution.  S should be a record with
+  %  with feature 'action' containing the action to be added.  Preceeds
+  %  should be a function taking as single argument an event ID, and returning
+  %  true if that event must preceed the new event. Ns is the branch considered
+  %  before the new action, and is used to determine the events that might
+  %  preceed S.
   %
-  proc {Enablers JP N Ns}
-    Ns = JP.enablers.N
-  end
-
+  %  The set of all possible outcomes of the action and automatically added,
+  %  and returned in Outcomes.
   %
-  %  List the events that could occur instead of the given event N.
-  %
-  proc {Alternatives JP N Ns}
-    Ns = JP.alternatives.N
-  end
-
-  %
-  %  Determine whether event N1 is required to happen before event N2.
-  %
-  proc {Preceeds JP N1 N2 B}
-    if {List.member N1 JP.enablers.N2} then
-      B = true
-    else
-      B = for return:R default:false Ne in JP.enablers.N2 do
-            if {Preceeds JP N1 Ne} then {R true} end
-          end
-    end
-  end
-
-  %
-  %  Determine whether events N1 and N2 are in conflict, i.e. they
-  %  cannot appear together in a run.
-  %
-  proc {Conflicting JP N1 N2 B}
-    if {List.member N2 JP.alternatives.N1} then
-      B = true
-    else
-      B = for return:R default:false Na in JP.alternatives.N1 do
-            if {Preceeds JP Na N2} then {R true} end
-          end
-    end
-  end
-
-  %
-  %  Determine whether events N1 and N2 are distinguishable from
-  %  the perspective of agent A.  This is true if and only if
-  %  every run up to N1 produces a different observation history
-  %  for A than every run up to N2.
-  %
-  proc {Distinguishable JP A N1 N2 B}
-    B = JP.distinguishable.N1.N2.A
-  end
-
-  %
-  %  Insert a new set of steps into the joint plan.  Returns a list
-  %  of event IDs representing each step, in order. The steps will be
-  %  added as mutually exclusive alternatives to each other.
-  %  {Preceeds} is a function that will be called with an existing
-  %  step seqn as its only argument.  It must return true if that step
-  %  is required to preceed the new steps, false otherwise.
-  %
-  proc {Insert JPIn NewSs Preceeds JPOut Outcomes}
-    Ens NewNs JP2 JP3
+  proc {Insert JIn Ns S Preceeds JOut Outcomes}
+    Ens = {FindEnablingEvents JIn Ns Preceeds}
+    Outs = {SitCalc.outcomes {BranchToRun J Ns} S}
+    AId|OIds = {IntMap.newLabels JIn.future S|Outs}
+    F0 F1 F2 F3
   in
-    {FindEnablers JPIn JPIn.count Preceeds nil Ens}
-    {AddNewEvents JPIn NewSs Ens JP2 NewNs}
-    {SetAsAlternatives JP2 NewNs nil JP3}
-    {AddIndistinguishableEvents JP3 NewNs JPOut}
+    F0 = JIn.future
+    F1 = {IntMap.append F0 act(action: S.action enablers: Ens outcomes: OIds)}
+    F2 = {InsertOutcomes AId F1 Outs OIds}
+    F3 = {FixActionInvariants F2 AId}
+    JOut = {Record.adjoinAt JIn future F2}
+    Outcomes = for collect:C I in OIds do
+                 {C {BranchPush JOut I Ns}}
+               end
   end
 
-  proc {FindEnablers JP N PFunc ESoFar Ens}
-    if N < 0 then Ens = ESoFar
-    else Conflicts in
-      Conflicts = for return:R default:true E in ESoFar do
-                    if {Conflicting JP N E} then {R false} end
-                  end
-      if {Not Conflicts} then Preceeds in
-        Preceeds = for return:R default:false E in ESoFar do
-                      if {Preceeds JP N E} then {R true} end
-                   end
-        if Preceeds then
-          {FindEnablers JP N-1 PFunc ESoFar Ens}
-        else
-          if {PFunc N} then
-            {FindEnablers JP N-1 PFunc N|ESoFar Ens}
-          else
-            {FindEnablers JP N-1 PFunc ESoFar Ens}
-          end
-        end
-      else
-        {FindEnablers JP N-1 PFunc ESoFar Ens}
-      end
+  proc {FindEnablingEvents J Ns Preceeds}
+    % TODO: JointExec.findEnablingEvents
+    skip
+  end
+
+  fun lazy {BranchToRun J Ns}
+    if Ns == [0] then
+      now
+    else H T in
+      {BranchPop J Ns H T}
+      ex({OutToStep J H} {BranchToRun J T})
     end
   end
 
-  proc {AddNewEvents JPIn NewSs Ens JPOut NewNs}
-    case NewSs of S|Ss then JP2 NTail NewC in
-      NewC = JPIn.count+1
-      NewNs = NewC|NTail
-      JP2 = {Record.adjoinList JPIn [
-               count#NewNs.1
-               events#{Record.adjoinAt JPIn.events NewC S}
-               enablers#{Record.adjoinAt JPIn.enablers NewC Ens}
-            ]}
-      {AddNewEvents JP2 Ss Ens JPOut NTail}
-    else JPOut=JPIn NewNs=nil end
+  proc {BranchPop J NsIn N NsOut}
+    % TODO: JointExec.branchPop
+    N = NsIn.1
+    NsOut = NsIn
   end
 
-  proc {SetAsAlternatives JPIn Ns Ds JPOut}
-    case Ns of N|NT then JP2 in
-      JP2 = {Record.adjoinAt JPIn alternatives
-                {Record.adjoinAt JPIn.alternatives N {List.append Ds NT}}}
-      {SetAsAlternatives JP2 NT N|Ds JPOut}
-    else JPIn = JPOut end
+  proc {BranchPush J NsIn N NsOut}
+    % TODO: JointExec.branchPop
+    N = NsIn.1
+    NsOut = NsIn
   end
 
-  proc {AddIndistinguishableEvents JPIn NewNs JPOut}
+  proc {OutToStep J O S}
+    OData = {IntMap.get J.future O}
+    AData = {IntMap.get J.future OData.act}
+  in
+    S = step(action:AData.action obs:OData.obs)
+  end
+
+  proc {InsertOutcomes AId FIn Outs Ids FOut}
+    case Outs of O|Os then F2 in
+      Ids = I|Is
+      F2 = {IntMap.append FIn out(obs: O.obs act: AId)}
+      {InsertOutcomes AId F2 Os Is FOut}
+    else FOut = FIn end
+  end
+
+  proc {FixActionInvariants FIn AId FOut}
+    % TODO: JointExec.fixActionInvariants
     skip
   end
 
   %
-  %  Assert that the given step exists with seqnum N in the execution.
-  %  This is an analogue to {Insert} but instead of adding  new steps,
-  %  it verifies an existing step.
+  %  Assert that the given action is in the execution at event N.
+  %  This is an analogue to {Insert} but instead of adding new actions,
+  %  it verifies existing ones.
   %
-  proc {Assert JP N S Preceeds}
-    skip
+  proc {Assert J Ns S Preceeds Outcomes}
+    Data = {IntMap.get J.future Ns.1}
+    Ens Outs
+  in
+    Data.action = S.action
+    Ens = {FindEnablingEvents J {BranchPop Ns _} Preceeds}
+    Data.enablers = Ens
+    Outs = {SitCalc.outcomes {BranchToRun J Ns}.2 S}
+    Data.outcomes = Outs
+    Outcomes = for collect:C I in Outs do
+                 {C {BranchPush J I Ns}}
+               end
   end
 
   %
   %  Insert special 'finish' action in the run ending at N.
   %
-  proc {Finish JPIn N JPOut}
-    skip
+  proc {Finish JIn N JOut}
+    % TODO: JointExec.finish ... do we even want to do it this way?
+    JOut = JIn
   end
 
   %
-  %  Determine the next-oldest events in the execution that do not
-  %  conflict with event N.  This is always a list: it is nil if all
-  %  more recent events conflict with N, or a list of alternatives otherwise.
+  %  Determine the next-oldest action event in the execution that
+  %  could extend the run Ns. This will be nil if there is no such
+  %  action, or an event identifier otherwise.
   %
-  proc {NextEvents JP N Ns}
+  fun {NextEvent J Ns}
+    {IntMap.nextMatching J.future N.1 fun {$ I} {Not {ConflictsB J I Ns}}}
+  end
+
+  %
+  %  Extract the observation data from last event in Ns into the record term
+  %  S.  The result is a record identical to S except that 'obs' is
+  %  the observations in the outcome event, and 'seqn' is the event
+  %  number.
+  %
+  proc {Getobs J Ns SIn SOut}
+    Data = {IntMap.get J.future Ns.1}
+  in
+    SOut = {Record.adjoinList SIn [obs#Data.obs seqn#Ns.1]}
+  end
+
+
+  proc {Preceeds J I1 I2 B}
+    % TODO: JointExec.preceeds
     skip
+  end
+
+  proc {Conflicts J I1 I2 B}
+    % TODO: JointExec.conflicts
+    skip
+  end
+
+  proc {ConflictsB J I Ns B}
+    case Ns of N|NT then
+      if {Conflicts J I N} then
+        B = true
+      else
+        B = {ConflictsB J I NT}
+      end
+    else B = false end
   end
 
 end

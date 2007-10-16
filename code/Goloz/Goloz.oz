@@ -15,8 +15,8 @@ define
   {Property.put 'errors.width' 1000}
   {Property.put 'errors.depth' 1000}
 
-  proc {Q JP}
-      {Planner.plan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JP}
+  proc {Q JE}
+      {Planner.plan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JE}
   end
   {Browser.browse {Search.base.one Q}}
 

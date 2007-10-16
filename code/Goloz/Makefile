@@ -3,6 +3,7 @@
 FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
            Utils/ListDict.ozf Utils/LP.ozf Utils/Memo.ozf Utils/MList.ozf \
            Utils/MSet.ozf Utils/Set.ozf Utils/OpenMap.ozf Utils/Service.ozf\
+           Utils/IntMap.ozf \
            FOF/BDD.ozf FOF/FOF.ozf FOF/TermSet.ozf FOF/QuantSet.ozf \
            FOF/EQSet.ozf FOF/Binding.ozf FOF/VarMap.ozf \
            SitCalc/SitCalc.ozf SitCalc/DomainBuilder.ozf SitCalc/JointExec.ozf\
