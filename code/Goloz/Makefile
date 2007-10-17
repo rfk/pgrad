@@ -16,11 +16,20 @@ FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
 %.exe: %.oz
 	ozc -x $< -o $@
 
+%.png: %.dot
+	dot -o $@ -Tpng $<
+
 goloz: Goloz.oz $(FUNCTORS)
 	ozc -x $< -o goloz 
 
+plan.dot: goloz
+	./goloz
+
 test: RunTests.exe $(FUNCTORS)
 	./RunTests.exe
+
+run: plan.png
+	gthumb plan.png &
 
 clean:
 	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz

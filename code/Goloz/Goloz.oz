@@ -3,10 +3,13 @@ functor
 import
 
   Planner at 'SitCalc/Planner.ozf'
+  JointExec at 'SitCalc/JointExec.ozf'
 
   Browser
   Search
   Property
+  Open
+  Application
 
 define
 
@@ -18,6 +21,8 @@ define
   proc {Q JE}
       {Planner.plan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JE}
   end
-  {Browser.browse {Search.base.one Q}}
+  {JointExec.writeDotFile {Search.base.one Q}.1 
+               {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
+  {Application.exit 0}
 
 end

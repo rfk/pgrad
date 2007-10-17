@@ -16,6 +16,7 @@ import
   Step
 
   Module
+  System
 
 export
 
@@ -139,7 +140,7 @@ define
       NewSteps = for append:Acc S in Steps do
                 {Acc {OutcomesAgt R S Agt}}
               end
-      {OutcomesAgt R NewSteps As Outs}
+      {OutcomesAgts R NewSteps As Outs}
     else Outs = Steps end
   end
 
@@ -148,13 +149,13 @@ define
     CanObs = {HoldsW R canObs(Agt S.action)}
   in
     if CanObs == no then
-      Outs = [S]
+      Outs = [{Step.setobs S Agt nil}]
     else
       Acc = {LP.listAcc Outs}
       CanSense = {HoldsW R canSense(Agt S.action)}
      in
       if CanObs == unknown then
-        {Acc S}
+        {Acc {Step.setobs S Agt nil}}
       end
       if CanSense \= yes then
         {Acc {Step.setobs S Agt S.action}}
@@ -215,8 +216,8 @@ define
        {HoldsFOF R2 FmlR Bind}
      end
     else
-      Axioms = {FOF.conj Axioms Initially} in
-      {FOF.prove {FOF.impl Axioms Fml} Bind}
+      Axs = {FOF.conj Axioms Initially} in
+      {FOF.prove {FOF.impl Axs Fml} Bind}
     end
   end
 
@@ -233,22 +234,19 @@ define
 
   proc {HoldsW_FOF R FIn Res}
     F = {Uniformize FIn}
-    Res2
   in
     case R of ex(Step R2) then
-      Res2 = {FOF.tautOrCont {FOF.impl Axioms F}}
-      if Res2 == taut then Res = yes
-      elseif Res2 == cont then Res = no
+      if {FOF.tautology {FOF.impl Axioms F}} then Res = yes
+      elseif {FOF.contradiction {FOF.conj Axioms F}} then Res = no
       else FmlR in
         %TODO: include observations in regression for HoldsW_FOF
         FmlR = {Regress F Step.action}
         {HoldsW_FOF R2 FmlR Res}
       end
     else
-      Axioms = {FOF.conj Initially Axioms} in
-      Res2 = {FOF.tautOrCont {FOF.impl Axioms F}}
-      if Res2 == taut then Res = yes
-      elseif Res2 == cont then Res = no
+      Axs = {FOF.conj Initially Axioms} in
+      if {FOF.tautology {FOF.impl Axs F}} then Res = yes
+      elseif {FOF.contradiction {FOF.conj Axs F}} then Res = no
       else Res = unknown end
     end
   end

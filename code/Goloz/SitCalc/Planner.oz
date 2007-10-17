@@ -16,6 +16,8 @@ import
   MIndiGolog
   JointExec
 
+  System
+
 export
 
   Plan
@@ -28,7 +30,7 @@ define
   %  an empty run and a most-recent-event of zero.
   %
   proc {Plan D J}
-    {MakePlan {JointExec.init} [D#now#0] J}
+    {MakePlan {JointExec.init} [D#now#[0]] J}
   end
 
   %
@@ -37,13 +39,17 @@ define
   %  Branches is a list of D#R#N tuples that are still to be processed.
   %
   proc {MakePlan JIn Branches JOut}
-    case Branches of (D1#R1#N1)|Bs then
-      (D#R#N)|NewBs = {HandleExistingEvents JIn D1#R1#N1} in
+    {System.printInfo "{MakePlan}\n"}
+    {System.print {List.length Branches}}
+    {System.printInfo " branches to go\n"}
+    case Branches of (D1#R1#N1)|Bs then D R N NewBs in
+      (D#R#N)|NewBs = {HandleExistingEvents JIn D1#R1#N1}
+      {System.printInfo "handled\n"}
       choice J2 in
            {MIndiGolog.final D R}
            J2 = {JointExec.finish JIn N}
            {MakePlan J2 {List.append NewBs Bs} JOut}
-      [] Dp Rp S J2 OutSs OutNs OutBs in
+      [] Dp Rp S J2 OutNs OutBs in
            {MIndiGolog.trans1 D R Dp Rp S}
            OutNs = {JointExec.insert JIn N S {MkPreceedsF S Rp} J2}
            OutBs = for collect:C N2 in OutNs do
@@ -61,7 +67,7 @@ define
   %  on the current run.
   %
   proc {MkPreceedsF S R F}
-    proc {$ F N B}
+    proc {F N B}
       S2 = {GetStepFromRun N R}
     in
       if S2 == nil then B = false
@@ -94,11 +100,18 @@ define
   proc {HandleExistingEvents J D#R#N Branches}
     N2 = {JointExec.nextEvent J N}
   in
+    {System.printInfo "HandleExistingEvents\n"}
     if N2 == nil then
+      {System.printInfo "- clear\n"}
       Branches=[D#R#N]
-    else OutNs in
+    else OutNs Dp Rp S in
+      {System.printInfo "- adding\n"}
+      {System.print N#N2}
+      {System.printInfo "\n"}
+      {System.print J}
+      {System.printInfo "\n"}
       {MIndiGolog.trans1 D R Dp Rp S}
-      OutNs = {JointExec.assert J N2 S {MkPreceedsF S Rp}}
+      OutNs = {JointExec.assert J N N2 S {MkPreceedsF S Rp}}
       Branches=for append:Acc OutN in OutNs do
                  S2 = {JointExec.getobs J OutN S} in
                  {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#N2}}

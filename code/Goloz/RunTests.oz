@@ -13,6 +13,7 @@ import
   OpenMap at 'Utils/OpenMap.ozf'
   ListDict at 'Utils/ListDict.ozf'
   Memo at 'Utils/Memo.ozf'
+  IntMap at 'Utils/IntMap.ozf'
 
   VarMap at 'FOF/VarMap.ozf'
   TermSet at 'FOF/TermSet.ozf'
@@ -45,6 +46,10 @@ define
 
   {Print "\n==  Testing OpenMap\n"}
   {OpenMap.test}
+  {Print passed}
+
+  {Print "\n==  Testing IntMap\n"}
+  {IntMap.test}
   {Print passed}
 
   {Print "\n==  Testing ListDict\n"}

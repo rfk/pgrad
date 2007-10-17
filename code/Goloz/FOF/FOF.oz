@@ -785,6 +785,7 @@ define
     {Test_vars}
     {Test_prover}
     {Test_prover_search}
+    {Test_prover_TorC}
   end
 
   proc {Test_vars}
@@ -863,6 +864,25 @@ define
       BM = {Search.base.all proc {$ R} {Prove P R} end}
       if {List.length BM} \= N then raise sols(F BM) end end
     end end
+  end
+
+  proc {Test_prover_TorC}
+    Tauts = [true   impl(a a)]
+    Conts = [false  and(a neg(a))]
+    Neiths = [impl(a b)  a  and(b c)]
+  in
+    for F in Tauts do R in
+      R = {TautOrCont {ParseRecord F _}}
+      if R \= taut then raise R(F) end end
+    end
+    for F in Conts do R in
+      R = {TautOrCont {ParseRecord F _}}
+      if R \= cont then raise R(F) end end
+    end
+    for F in Neiths do R in
+      R = {TautOrCont {ParseRecord F _}}
+      if R \= neither then raise R(F) end end
+    end
   end
 
 end

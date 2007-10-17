@@ -10,15 +10,22 @@
 
 functor
 
+import
+
+  System
+
 export
 
   Init
   Get
   Put
   Append
-  NewLabels
+  NextAvailLabels
   NextMatching
+  AllMatching
+  ForEach
   
+  Test
 
 define
 
@@ -35,17 +42,15 @@ define
   end
 
   proc {Append MIn V MOut}
-    NewI = MIn.next + 1
-  in
-    MOut = {Put {Record.adjoinAt MIn next NewI} NewI V}
+    MOut = {Put {Record.adjoinAt MIn next MIn.next+1} MIn.next V}
   end
 
-  proc {NewLabels M Items Labels}
-    {NewLabels M.next Items Labels}
+  proc {NextAvailLabels M Items Labels}
+    {NextAvailLabelsRec M.next Items Labels}
   end
-  proc {NewLabels L Items Labels}
+  proc {NextAvailLabelsRec L Items Labels}
     case Items of _|Is then
-      Labels = L|{NewLabels L+1 Is}
+      Labels = L|{NextAvailLabelsRec L+1 Is}
     else Labels = nil end
   end
 
@@ -55,14 +60,60 @@ define
     if INext >= M.next then
       IOut = nil
     elseif {Value.hasFeature M.entries INext} then
-      if {Pred M.entries.INext} then
+      if {Pred INext} then
         IOut = INext
       else
-        {NextMathing M INext Pred IOut}
+        {NextMatching M INext Pred IOut}
       end
     else
-      {NextMathing M INext Pred IOut}
+      {NextMatching M INext Pred IOut}
     end
+  end
+
+  fun {AllMatching M Pred}
+    {AllMatchingRec M 0 Pred}
+  end
+
+  fun lazy {AllMatchingRec M I Pred}
+    if I > M.next then nil
+    else
+      if {Value.hasFeature M.entries I} then
+        if {Pred M.entries.I} then
+          I|{AllMatchingRec M I+1 Pred}
+        else
+          {AllMatchingRec M I+1 Pred}
+        end
+      else
+        {AllMatchingRec M I+1 Pred}
+      end
+    end
+  end
+
+  proc {ForEach M Proc}
+    {ForEachRec M 0 Proc}
+  end
+
+  proc {ForEachRec M I Proc}
+    if I > M.next then skip
+    else
+      if {Value.hasFeature M.entries I} then
+        {Proc I}
+      end
+      {ForEachRec M I+1 Proc}
+    end
+  end
+
+  proc {Test}
+    M1 M2
+  in
+    M1 = {Init}
+    M1.next = 0
+    M1.entries = unit
+    M2 = {Append {Append M1 test1} test2}
+    M2.next = 2
+    {Get M2 0} = test1
+    {Get M2 1} = test2
+    {NextMatching M2 0 fun {$ _} true end} = 1
   end
 
 end
