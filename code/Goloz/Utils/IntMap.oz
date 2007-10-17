@@ -78,7 +78,7 @@ define
     if I > M.next then nil
     else
       if {Value.hasFeature M.entries I} then
-        if {Pred M.entries.I} then
+        if {Pred I} then
           I|{AllMatchingRec M I+1 Pred}
         else
           {AllMatchingRec M I+1 Pred}

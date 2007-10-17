@@ -16,7 +16,7 @@
 %
 %  There are two special events labels 'start' and 'finish'. 'start'
 %  is the label for event zero, a special outcome event triggering the
-%  start of execution. 'finish' is the label of pseudo action events
+%  start of execution. 'finish' is the label of special action events
 %  inserted to indicate that execution should terminate.
 %
 %  A branch of execution is a partial run of execution that selects one
@@ -55,25 +55,24 @@ define
   %
   %  Initialize a new (empty) joint execution.
   %  It will contain the single event 0, with label 'start'.
-  %  'future' is a map from event ids to theri details, indicating
+  %  'future' is a map from event ids to their details, indicating
   %  events that are yet to happen.  'past' is a list of events
   %  that have already occurred, most recently occurred event at head.
   %
   proc {Init J}
-    StartEvent = out(obs: {SitCalc.newAgentMap} act: 0 enablers: nil outcomes:nil action:start)
+    StartEvent = out(obs: {SitCalc.newAgentMap} act: 0
+                 enablers: nil outcomes:nil action:start)
   in
     for Agt in {Record.arity StartEvent.obs} do
       StartEvent.obs.Agt = start
     end
-    J = je(
-            future: {IntMap.append {IntMap.init} StartEvent}
-            past: nil
-          )
+    J = je(future: {IntMap.append {IntMap.init} StartEvent}
+           past: nil)
   end
 
   %
   %  Insert a new action into the execution.  S should be a record with
-  %  feature 'action' containing the action to be added.  Preceeds should
+  %  feature 'action' containing the action to be added.  MustPrec should
   %  be a function taking as single argument an event ID, and returning true
   %  if that event must preceed the new event. Ns is the branch considered
   %  before the new action, and is used to determine the events that might
@@ -82,18 +81,21 @@ define
   %  The set of all possible outcomes of the action are automatically added,
   %  and returned in Outcomes.
   %
-  proc {Insert JIn Ns S Preceeds JOut Outcomes}
-    Ens = {FindEnablingEvents JIn S.action Ns Preceeds}
+  proc {Insert JIn Ns S MustPrec JOut Outcomes}
+    Ens = {FindEnablingEvents JIn S.action Ns MustPrec}
+  in
+    {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
+  end
+
+  proc {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
     Outs = {SitCalc.outcomes {BranchToRun JIn Ns} S}
     AId|OIds = {IntMap.nextAvailLabels JIn.future S|Outs}
-    F0 F1 F2 F3
+    F0 F1 F2
   in
-    {System.printInfo "Insert\n"}
     F0 = JIn.future
     F1 = {IntMap.append F0 act(action: S.action enablers: Ens outcomes: OIds)}
     F2 = {InsertOutcomes AId F1 Outs OIds}
-    F3 = {FixActionInvariants F2 AId}
-    JOut = {Record.adjoinAt JIn future F3}
+    JOut = {FixActionInvariants {Record.adjoinAt JIn future F2} AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -111,37 +113,41 @@ define
   end
 
   %
-  %  Find the events that enable a new action event, by querying {Preceeds}.
+  %  Find the events that enable a new action event, by querying {MustPrec}.
   %  Ns is the branch after which the new event is being inserted, i.e.
   %  we assume that any events greater than Ns.1 conflict with the newly
   %  added event.
   %
-  proc {FindEnablingEvents J Act Ns Preceeds Ens}
-    EnsT = {FindEnablingEventsRec J Act Ns Preceeds}
+  %  We special-case the handling of event zero so that it doesn't appear
+  %  to the outside world via {MustPrec}
+  %
+  proc {FindEnablingEvents J Act Ns MustPrec Ens}
+    EnsT = {FindEnablingEventsRec J Act Ns MustPrec}
   in
     if EnsT == nil then Ens = [0] else Ens = EnsT end
   end
-  proc {FindEnablingEventsRec J Act Ns Preceeds Ens}
+
+  proc {FindEnablingEventsRec J Act Ns MustPrec Ens}
     case Ns of N|Nt then
       if N == 0 then
         Ens = nil
       elseif {Orderable J N Act} then
-        if {Preceeds N} then
+        if {MustPrec N} then
           % Orderable, and must preceed, so it's an enabler.
           % We can ignore the enablers of Ns.1 in further queries.
           Ens = N|_
-          {FindEnablingEventsRec J Act Nt Preceeds Ens.2}
+          {FindEnablingEventsRec J Act Nt MustPrec Ens.2}
         else
           % Orderable, but may not preceed, so we get a choice point
           choice Ens = N|_
-                 {FindEnablingEventsRec J Act Nt Preceeds Ens.2}
-          []     {FindEnablingEventsRec J Act {BranchPop J Ns _} Preceeds Ens}
+                 {FindEnablingEventsRec J Act Nt MustPrec Ens.2}
+          []     {FindEnablingEventsRec J Act {BranchPop J Ns _} MustPrec Ens}
           end
         end
       else
-        % Not orderable, so {Preceeds} must return false
-        {Preceeds N} = false
-        {FindEnablingEventsRec J Act {BranchPop J Ns _} Preceeds Ens}
+        % Not orderable, so {MustPrec} must return false
+        {MustPrec N} = false
+        {FindEnablingEventsRec J Act {BranchPop J Ns _} MustPrec Ens}
       end
     else Ens = nil end
   end
@@ -216,9 +222,10 @@ define
   end
 
   %
-  %  Construct a 'step' object representing the outcome event O.
+  %  Construct a step object representing the outcome event O.
   %  This will contain only the 'action' and 'obs' features, since that's
-  %  all a joint execution knows about.
+  %  all a joint execution knows about.  This is also the only information
+  %  needed to reason about what holds in a run.
   %
   proc {OutToStep J O S}
     OData = {IntMap.get J.future O}
@@ -228,13 +235,90 @@ define
   end
 
   %
-  %  Check and correct and broken action invariants introduced by
-  %  the addition of a new action event AId.  This operates directly
-  %  on J.future rather than J.
+  %  Utility procedurs for extracting different types of event.
+  %    GetActions: get all ordinary action events (not finish actions)
+  %    GetFinishes: get all finish events
   %
-  proc {FixActionInvariants FIn AId FOut}
-    % TODO: JointExec.fixActionInvariants
-    FOut = FIn
+  proc {GetActions JIn Acts}
+    Acts = {IntMap.allMatching JIn.future fun {$ I}
+             D = {IntMap.get JIn.future I} in
+             {Record.label D} == act andthen D.action \= finish
+         end}
+           end}
+  end
+
+  proc {GetFinishes: JIn Fs}
+    Fs = {IntMap.allMatching JIn.future fun {$ I}
+             D = {IntMap.get JIn.future I} in
+             {Record.label D} == act andthen D.action == finish
+         end}
+  end
+
+  %
+  %  Check and correct any broken action invariants introduced by
+  %  the addition of a new action event AId.
+  %
+  %  For now, this doesn't actually use the value of AId.  Figuring
+  %  out how to use it to save time is an interesting topic for
+  %  future research...
+  %
+  proc {FixActionInvariants JIn AId JOut}
+    {FixInvariantActs JIn {GetActs JIn} JOut}
+  end
+
+  %
+  %  Fix invariants for each action in the list Acts.
+  %
+  proc {FixInvariantActs JIn Acts JOut}
+    case Acts of A|As then
+      D = {IntMap.get JIn.future A} in
+      if D.action == finish then {FixInvariantActs JIn As JOut}
+      else
+       Matches = {IndistinguishableSets JIn {SitCalc.actor D.action} D.enablers}
+      in
+       {FixInvariantMatches JIn As D Matches JOut}
+      end
+    else JIn = JOut end
+  end
+
+  %
+  %  Ensure that for each entry Matches, there is an event corresponding
+  %  to the action event A.
+  %
+  proc {FixInvariantMatches JIn Acts Act Matches JOut}
+    case Matches of M|Ms then MAct in
+      MAct = {IntMap.nextMatching JIn.future 0 fun {$ I} 
+                        Data = {IntMap.get JIn.future I} in
+                        if {Record.label Data} == act then
+                          Data.enablers == M andthen Data.action == Act
+                        else false end 
+                     end}
+      if MAct == nil then
+        if {CannotInsertAfter JIn M} then fail
+        else J2 in
+          {InsertWithEnablers JIn M Act M J2 _}
+          {FixInvariantMatches J2 Acts Act Ms JOut}
+        end
+      else
+        {FixInvariantMatches JIn Acts Act Ms JOut}
+      end
+    else {FixInvariantActs JIn Acts JOut} end
+  end
+
+  proc {IndistinguishableSets J Agt Ens Matches}
+    % TODO: JointExec.indistinguishableSets
+    Matches = nil
+  end
+
+  % TODO: JointExec.cannotInsertAfter is currently too restrictive
+  proc {CannotInsertAfter J Ns B}
+    Fs = {GetFinishes J}
+  in
+    B = for return:R default:false N in Ns do
+          for F in Fs do
+            if {Preceeds N F} then {R true} end
+          end
+        end
   end
 
   %

@@ -28,7 +28,7 @@ plan.dot: goloz
 test: RunTests.exe $(FUNCTORS)
 	./RunTests.exe
 
-run: plan.png
+plan: plan.png
 	gthumb plan.png &
 
 clean:
