@@ -117,28 +117,33 @@ define
   %  added event.
   %
   proc {FindEnablingEvents J Act Ns Preceeds Ens}
+    EnsT = {FindEnablingEventsRec J Act Ns Preceeds}
+  in
+    if EnsT == nil then Ens = [0] else Ens = EnsT end
+  end
+  proc {FindEnablingEventsRec J Act Ns Preceeds Ens}
     case Ns of N|Nt then
       if N == 0 then
-        Ens = [0]
+        Ens = nil
       elseif {Orderable J N Act} then
         if {Preceeds N} then
           % Orderable, and must preceed, so it's an enabler.
           % We can ignore the enablers of Ns.1 in further queries.
           Ens = N|_
-          {FindEnablingEvents J Act Nt Preceeds Ens.2}
+          {FindEnablingEventsRec J Act Nt Preceeds Ens.2}
         else
           % Orderable, but may not preceed, so we get a choice point
           choice Ens = N|_
-                 {FindEnablingEvents J Act Nt Preceeds Ens.2}
-          []     {FindEnablingEvents J Act {BranchPop J Ns _} Preceeds Ens}
+                 {FindEnablingEventsRec J Act Nt Preceeds Ens.2}
+          []     {FindEnablingEventsRec J Act {BranchPop J Ns _} Preceeds Ens}
           end
         end
       else
         % Not orderable, so {Preceeds} must return false
         {Preceeds N} = false
-        {FindEnablingEvents J Act {BranchPop J Ns _} Preceeds Ens}
+        {FindEnablingEventsRec J Act {BranchPop J Ns _} Preceeds Ens}
       end
-    else Ens = [0] end
+    else Ens = nil end
   end
 
   %
