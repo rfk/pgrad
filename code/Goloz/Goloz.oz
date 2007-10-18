@@ -23,6 +23,8 @@ define
   end
   {JointExec.writeDotFile {Search.base.one Q}.1 
                {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
+  {JointExec.writeDotFileAgt {Search.base.one Q}.1 thomas
+               {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
   {Application.exit 0}
 
 end

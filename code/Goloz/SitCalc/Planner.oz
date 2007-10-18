@@ -5,8 +5,8 @@
 %  selecting and extending a branch repeatedly until they are all closed.
 %
 %  A branch is a tuple D#R#N where D is the program remaining to be executed,
-%  R is the run of execution so far, and N is the most recently added event
-%  in the joint execution.
+%  R is the run of execution so far, and N is the corresponding branch in
+%  the joint execution.
 %
 
 functor 
@@ -19,7 +19,6 @@ import
 
   System
   Search
-  Explorer
 
 export
 
@@ -31,7 +30,7 @@ define
   %
   %  Search for a joint execution of program D in the current situation.
   %  To do so, we start with a single branch containing the entire program,
-  %  an empty run and empty branch.
+  %  an empty run and empty JointExec branch.
   %
   proc {Plan D J}
     {MakePlan {JointExec.init} [D#now#nil] J}
@@ -43,12 +42,11 @@ define
   %  Branches is a list of D#R#N tuples that are still to be processed.
   %
   proc {MakePlan JIn Branches JOut}
-    {System.printInfo "{MakePlan}\n"}
+    {System.showInfo "{MakePlan}"}
     {System.print {List.length Branches}}
     {System.printInfo " branches to go\n"}
     case Branches of (D1#R1#N1)|Bs then D R N NewBs in
       (D#R#N)|NewBs = {HandleExistingEvents JIn D1#R1#N1}
-      {System.printInfo "handled\n"}
       choice J2 in
            {System.showInfo "trying to finish..."}
            {MIndiGolog.final D R}
@@ -59,7 +57,7 @@ define
            {System.showInfo "trying to trans1..."}
            {MIndiGolog.trans1 D R Dp Rp S}
            {System.showInfo "...found"}
-           OutNs = {JointExec.insert JIn N S {MkPreceedsF S Rp} J2}
+           OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
            {System.showInfo "...inserted"}
            OutBs = for collect:C N2 in OutNs do
                          {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
@@ -73,18 +71,22 @@ define
   %
   %  Create a function that will determine ordering when inserting
   %  into a joint exec.  This is basically a closure around the function
-  %  {Preceeds} to transform the event into a proper step record based
+  %  {MustPrec} to transform the event into a proper step record based
   %  on the current run.
   %
-  proc {MkPreceedsF S R F}
+  proc {MkPrecFunc S R F}
     proc {F N B}
       S2 = {GetStepFromRun N R}
     in
       if S2 == nil then B = false
-      else B = {Preceeds S2 S} end
+      else B = {MustPrec S2 S} end
     end
   end
 
+  %
+  %  Convert an JointExec event id into a step object from the given
+  %  run.  If a corresponding step cannot be found, returns nil.
+  %
   proc {GetStepFromRun N R S}
     case R of ex(S2 R2) then
       if S2.seqn == N then S = S2
@@ -99,7 +101,7 @@ define
   %     - S1.thred is a prefix of S2.thred, or vice-versa
   %     - S2.action doesn't falsify S1.test (TODO)
   %
-  proc {Preceeds S1 S2 B}
+  proc {MustPrec S1 S2 B}
     if {Not {SitCalc.independentActs S1.action S2.action}} then B = true
     elseif {List.isPrefix S1.thred S2.thred} then B = true
     elseif {List.isPrefix S2.thred S1.thred} then B = true
@@ -114,26 +116,20 @@ define
   %  been added, the result is a list of branches.
   %
   proc {HandleExistingEvents J D#R#N Branches}
-    N2 = {JointExec.nextEvent J N}
+    Ne = {JointExec.nextEvent J N}
   in
-    {System.printInfo "HandleExistingEvents\n"}
-    if N2 == nil then
-      {System.printInfo "- clear\n"}
+    if Ne == nil then
       Branches=[D#R#N]
     else OutNs Dp Rp S in
-      {System.printInfo "- adding\n"}
-      {System.print N#N2}
-      {System.printInfo "\n"}
-      {System.print J}
-      {System.printInfo "\n"}
       {MIndiGolog.trans1 D R Dp Rp S}
-      OutNs = {JointExec.assert J N N2 S {MkPreceedsF S Rp}}
+      OutNs = {JointExec.assert J N Ne S {MkPrecFunc S Rp}}
       Branches=for append:Acc OutN in OutNs do
                  S2 = {JointExec.getobs J OutN S} in
-                 {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#N2}}
+                 {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#OutN}}
                end
     end
   end
+
 
   proc {Test}
     Plans = [acquire(thomas lettuce(1))

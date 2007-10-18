@@ -26,6 +26,7 @@ export
   TermDiff
   TermDiffP
   UnDup
+  Touch
 
   Test
 
@@ -234,6 +235,9 @@ define
     end
   end
 
+  %
+  %  Remove duplicate entries from a list
+  %
   proc {UnDup LIn LOut}
     {UnDupRec LIn nil LOut}
   end
@@ -242,6 +246,18 @@ define
       if {List.member L SoFar} then {UnDupRec Ls SoFar LOut}
       else {UnDupRec Ls L|SoFar LOut} end
     else LOut = SoFar end
+  end
+
+  %
+  %  Force evaluation of lazy data structures by touching each feature.
+  %
+  proc {Touch R}
+    if {Record.is R} then
+      _ = {Record.label R}
+      for F in {Record.arity R} do
+        {Touch R.F}
+      end
+    end
   end
 
 

@@ -26,7 +26,6 @@
 %  of execution has completed execution, and no more actions should be
 %  added to it.
 %
-%
 
 
 functor
@@ -71,7 +70,7 @@ define
   %  preceed S.
   %
   %  The set of all possible outcomes of the action are automatically added,
-  %  and returned in Outcomes.
+  %  with the corresponding expanded branches in Outcomes.
   %
   proc {Insert JIn Ns S MustPrec JOut Outcomes}
     Ens = {FindEnablingEvents JIn S.action Ns MustPrec}
@@ -114,7 +113,6 @@ define
       if {Orderable J N Act} then
         if {MustPrec N} then
           % Orderable, and must preceed, so it's an enabler.
-          % We can ignore the enablers of Ns.1 in further queries.
           Ens = N|_
           {FindEnablingEvents J Act Nt MustPrec Ens.2}
         else
@@ -171,6 +169,10 @@ define
     NsOut = {BranchPopAddEns J AData.enablers NsIn.2}
   end
 
+  %
+  %  Utility function to add the necessary enablers of an event
+  %  into a branch it has been popped from.
+  %
   proc {BranchPopAddEns J Ens NsIn NsOut}
     case Ens of E|Es then Covered in
       Covered = for return:R default:false N in NsIn do
@@ -198,9 +200,7 @@ define
   %
   proc {BranchPush J N NsIn NsOut}
     Keepers = for collect:C N2 in NsIn do
-                if {Not {Preceeds J N2 N}} then
-                  {C N2}
-                end
+                if {Not {Preceeds J N2 N}} then {C N2} end
               end
   in
     NsOut = {InsertInOrder N Keepers}
@@ -219,6 +219,30 @@ define
                     end
           if {Not Covered} then {R false} end
         end
+  end
+
+  %
+  %  Reduce a set of enabling branches to the minimal set possible.
+  %  Any entries in Ens that are larger than another entry are
+  %  removed.
+  %
+  proc {MinimizeEnablerSet J Ens MinEns}
+    {MinimizeEnablerSetRec J Ens nil MinEns}
+  end
+
+  proc {MinimizeEnablerSetRec J Ens Acc MinEns}
+    case Ens of E|Es then Covered in
+      Covered = for return:R default:false A in Acc do
+                  if {BranchIsSmaller J A E} then {R true} end
+                end
+      if Covered then {MinimizeEnablerSetRec J Es Acc MinEns}
+      else Keepers in
+        Keepers = for collect:C A in Acc do
+                    if {Not {BranchIsSmaller J E A}} then {C A} end
+                  end
+        {MinimizeEnablerSetRec J Es E|Keepers MinEns}
+      end
+    else MinEns = Acc end
   end
   
   %
@@ -266,15 +290,10 @@ define
     {FixInvariantActs JIn {GetActions JIn} JOut}
   end
 
-  proc {WalkList L}
-    case L of _|Ls then {WalkList Ls} else skip end
-  end
-
   %
   %  Fix invariants for each action in the list Acts.
   %
   proc {FixInvariantActs JIn Acts JOut}
-    {WalkList Acts}
     case Acts of A|As then
       D = {IntMap.get JIn A} Matches in
       Matches = {IndistinguishableSets JIn {SitCalc.actor D.action} D.enablers}
@@ -307,16 +326,6 @@ define
         {FixInvariantMatches JIn Acts Act Ms JOut}
       end
     else {FixInvariantActs JIn Acts JOut} end
-  end
-
-  %
-  %  Given a set of outcome events Ns, determine all other sets of
-  %  outcome events that would be indistinguishable from the perspective
-  %  of agent Agt.  For the moment, brute force it used.
-  %
-  proc {IndistinguishableSets J Agt Ns Matches}
-    AllBranches = {FindIndistinguishableBranches J Agt J#Ns [nil#J]} in
-    Matches = {List.subtract {MinimizeBranchSet J AllBranches} Ns}
   end
 
   %
@@ -511,7 +520,6 @@ define
     if Ns == nil then Hs = nil
     else
       Active = {ActiveEventsAgt J Agt} in
-      {WalkList Active}
       Hs = for collect:C E in Active do
              Data = {IntMap.get J E} in
              case Data of act(...) then
@@ -528,19 +536,25 @@ define
     end
   end
 
-  proc {GetAllHistories J Agt Ns Hs}
-    Hs = for collect:C (H#J2#Ns2) in {GenerateHistories J Agt Ns} do Hs2 in
-      if Ns2 == nil then {C [H]}
-      else
-        Hs2 = {GetAllHistories J2 Agt Ns2}
-        for H2 in Hs2 do
-          {C H|H2}
-        end
-      end
-    end
+
+  %
+  %  Given a set of outcome events Ns, determine all other sets of
+  %  outcome events that would be indistinguishable from the perspective
+  %  of agent Agt.  For the moment, brute force it used.
+  %
+  proc {IndistinguishableSets J Agt Ns Matches}
+    AllBranches = {FindIndistinguishableBranches J Agt J#Ns [nil#J]} in
+    Matches = {List.subtract {MinimizeEnablerSet J AllBranches} Ns}
   end
 
-
+  %
+  %  From the perspective of agent Agt, find all branches that have
+  %  a run in common with the given branch Ns.  JOrig maintains the
+  %  original execution, used for manipulating branches.  J is
+  %  rolled forward as each event is fired on the branch.  SoFar is
+  %  an accumulator of N#J pairs representing branches that match the
+  %  run so far.
+  %
   proc {FindIndistinguishableBranches JOrig Agt J#Ns SoFar IBs}
     if Ns == nil then 
       IBs = for collect:C B#_ in SoFar do {C B} end
@@ -564,25 +578,6 @@ define
         {Acc Res}
       end
     end
-  end
-
-  proc {MinimizeBranchSet J Branches MinBs}
-    {MinimizeBranchSetRec J Branches nil MinBs}
-  end
-
-  proc {MinimizeBranchSetRec J Branches Acc MinBs}
-    case Branches of B|Bs then Covered in
-      Covered = for return:R default:false A in Acc do
-                  if {BranchIsSmaller J A B} then {R true} end
-                end
-      if Covered then {MinimizeBranchSetRec J Bs Acc MinBs}
-      else Keepers in
-        Keepers = for collect:C A in Acc do
-                    if {Not {BranchIsSmaller J B A}} then {C A} end
-                  end
-        {MinimizeBranchSetRec J Bs B|Keepers MinBs}
-      end
-    else MinBs = Acc end
   end
 
 
@@ -651,6 +646,10 @@ define
     end
   end
 
+  %
+  %  Utility function to update the outcome events of a just-performed
+  %  action event.
+  %
   proc {PerformEventOuts JIn Outs JOut}
     case Outs of O|Os then
       Data = {IntMap.get JIn O}
@@ -659,6 +658,9 @@ define
     else JOut = JIn end
   end
 
+  %
+  %  Remove all event from the execuction that conflict with E.
+  %
   fun {DropConflictingEvents JIn E}
     ToDrop = {IntMap.allMatching JIn fun {$ I}
                 {Conflicts JIn I E}
@@ -708,9 +710,43 @@ define
     Lbl = {List.toTuple '#' Lbls}
   end
 
+  proc {OutcomeLabelAgt Agt OData Lbl}
+    Lbl = {Value.toVirtualString OData.obs.Agt ~1 ~1}
+  end
+
+
   proc {WriteDotFileAgt J Agt File}
     % TODO: JointExec.writeDotFileAgt
-    skip
+    {File write(vs: "digraph G {\n")}
+    {IntMap.forEach J
+       proc {$ N Data}
+          Data = {IntMap.get J N}
+       in
+         case Data of act(...) then
+           if Data.action == finish
+           orelse {SitCalc.actor Data.action} == Agt then
+               {File write(vs: "n"#N#" [shape=ellipse,label=\""#{Value.toVirtualString Data.action ~1 ~1}#"\"];\n")}
+               for E in Data.enablers do
+                 {File write(vs: "n"#E#" -> n"#N#";\n")}
+               end
+               for O in Data.outcomes do
+                 {File write(vs: "n"#N#" -> n"#O#";\n")}
+               end
+           end
+         else
+           if Data.obs.Agt \= nil then
+               {File write(vs: "n"#N#" [shape=box,label=\""#{OutcomeLabelAgt Agt Data}#"\"];\n")}
+               case {PreceedersAgt J Agt N} of P|_ then
+                 PData = {IntMap.get J P} in
+                 if {Record.label PData} == out then
+                   {File write(vs: "n"#P#" -> n"#N#";\n")}
+                 end
+               else skip end
+           end
+         end
+       end
+    } = _
+    {File write(vs: "}\n")}
   end
 
   %%%%%%%%%%
@@ -741,8 +777,8 @@ define
     {InsertWithEnablers J4 nil s(action: acquire(thomas carrot(1))) [8] J5 _}
     {IntMap.get J5 11}.action = acquire(thomas carrot(1))
     {InsertWithEnablers J5 nil s(action: acquire(richard carrot(2))) [1 10] J6 _}
+    {WriteDotFileAgt J6 thomas {New Open.file init(name: 'test.dot' flags:[write create truncate])}}
     {IntMap.get J6 15}.action = acquire(richard carrot(2))
-    {WriteDotFile J6 {New Open.file init(name: 'test.dot' flags:[write create truncate])}}    
   end
 
 end
