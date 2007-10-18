@@ -16,12 +16,17 @@ import
   SitCalc
   Step
 
+  System
+  Search
+
 export
 
   Trans
   Trans1
   Final
   IsFinal
+
+  Test
 
 define
 
@@ -170,5 +175,20 @@ define
     end
   end
 
+
+  proc {Test}
+    {List.length {Search.base.all proc {$ Q}
+       {Trans acquire(thomas lettuce(1)) now nil Q}
+    end}} = 1
+    {Search.base.one proc {$ Q}
+       {Trans1 acquire(thomas lettuce(1)) now nil now Q}
+    end}.1.action = acquire(thomas lettuce(1))
+    {Search.base.one proc {$ Q}
+       {Trans1 seq(nil acquire(thomas lettuce(1))) now nil now Q}
+    end}.1.action = acquire(thomas lettuce(1))
+    {Search.base.one proc {$ Q}
+       {Trans1 seq(nil acquire(thomas lettuce(1))) ex(step(action: acquire(richard lettuce(1))) now) nil now Q}
+    end} = nil
+  end
 
 end

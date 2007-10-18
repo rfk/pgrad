@@ -15,9 +15,11 @@ import
 
   MIndiGolog
   JointExec
+  SitCalc
 
   System
   Search
+  Explorer
 
 export
 
@@ -48,16 +50,21 @@ define
       (D#R#N)|NewBs = {HandleExistingEvents JIn D1#R1#N1}
       {System.printInfo "handled\n"}
       choice J2 in
+           {System.showInfo "trying to finish..."}
            {MIndiGolog.final D R}
            J2 = {JointExec.finish JIn N}
-           {System.printInfo "branch closed\n"}
+           {System.printInfo "branch closed!\n"}
            {MakePlan J2 {List.append NewBs Bs} JOut}
       [] Dp Rp S J2 OutNs OutBs in
+           {System.showInfo "trying to trans1..."}
            {MIndiGolog.trans1 D R Dp Rp S}
+           {System.showInfo "...found"}
            OutNs = {JointExec.insert JIn N S {MkPreceedsF S Rp} J2}
+           {System.showInfo "...inserted"}
            OutBs = for collect:C N2 in OutNs do
                          {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                       end
+           {System.showInfo "...ok, transition made!"}
            {MakePlan J2 {List.append OutBs {List.append NewBs Bs}} JOut}
       end
     else JOut = JIn end
@@ -87,10 +94,16 @@ define
 
   %
   %  Determine whether step S1 must preceed step S2 in the joint exec.
+  %  This is true if:
+  %     - their actions are not independent
+  %     - S1.thred is a prefix of S2.thred, or vice-versa
+  %     - S2.action doesn't falsify S1.test (TODO)
   %
   proc {Preceeds S1 S2 B}
-    % TODO: Planner.Preceeds
-    B = false
+    if {Not {SitCalc.independentActs S1.action S2.action}} then B = true
+    elseif {List.isPrefix S1.thred S2.thred} then B = true
+    elseif {List.isPrefix S2.thred S1.thred} then B = true
+    else B = false end
   end
 
   %
@@ -125,12 +138,17 @@ define
   proc {Test}
     Plans = [acquire(thomas lettuce(1))
              seq(acquire(thomas lettuce(1)) acquire(richard lettuce(1)))
+             seq(check_for(thomas lettuce) acquire(richard lettuce(1)))
+             seq(check_for(thomas lettuce) acquire(thomas lettuce(1)))
             ]
-    Sols = [true false]
+    Sols = [true false false true]
   in
     for P in Plans S in Sols do Sol in
       Sol = {Search.base.one proc {$ Q} {Plan P Q} end}
       if S \= (Sol \= nil) then raise plan(P Sol\=nil) end end
+      {System.showInfo " "}
+      {System.showInfo " "}
+      {System.showInfo " "}
     end
   end
 

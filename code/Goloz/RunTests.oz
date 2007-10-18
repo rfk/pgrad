@@ -23,6 +23,7 @@ import
   FOF at 'FOF/FOF.ozf'
 
   SitCalc at 'SitCalc/SitCalc.ozf'
+  MIndiGolog at 'SitCalc/MIndiGolog.ozf'
   JointExec at 'SitCalc/JointExec.ozf'
   Planner at 'SitCalc/Planner.ozf'
 
@@ -90,6 +91,10 @@ define
 
   {Print "\n==  Testing SitCalc\n"}
   {SitCalc.test}
+  {Print passed}
+
+  {Print "\n==  Testing MIndiGolog\n"}
+  {MIndiGolog.test}
   {Print passed}
 
   {Print "\n==  Testing JointExec\n"}

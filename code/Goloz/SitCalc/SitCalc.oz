@@ -16,6 +16,7 @@ import
   Step
 
   Module
+  Search
   System
 
 export
@@ -28,6 +29,7 @@ export
   ActionOutcomes
   Outcomes
   NewAgentMap
+  IndependentActs
 
   Holds
   HoldsW
@@ -48,7 +50,9 @@ define
            skip
          end
     assign: proc {$ Vs}
-           % TODO: assign values to free variables
+           %for V in Vs do
+           %  {DB.query.assign V}
+           %end
            skip
          end
   )
@@ -81,6 +85,10 @@ define
       {MSet.insert AgtsM {Actor Actn}}
     end
     Agts = {MSet.toList AgtsM}
+  end
+
+  proc {IndependentActs A1 A2 B}
+    B = ({Record.label A1} \= {Record.label A2})
   end
 
   proc {Agents Agts}
@@ -254,14 +262,21 @@ define
 
 
   proc {Test}
+    F1 F2 
+  in
     {HoldsW now exists(obj obj_is_type(obj lettuce))} = yes
-    {System.show yep}
     {HoldsW now obj_is_type(lettuce(1) lettuce)} = yes
-    {System.show yep}
     {HoldsW now used(lettuce(1))} = no
-    {System.show yep}
-    {HoldsW now exists(obj and(obj_is_type(obj lettuce) used(obj)))} = no
-    {System.show yep}
+    {HoldsW now used(tomato(1))} = unknown
+    F1 = {FOF.parseRecord and(all(o nexists(a p(a o))) p(agt obj)) _}
+    F2 = {FOF.conj Initially {FOF.parseRecord has_object(thomas lettuce(1)) _}}
+    {FOF.contradiction F1 true}
+    {FOF.contradiction F2 true}
+    {HoldsW now has_object(thomas lettuce(1))} = no
+    {HoldsW now exists(a has_object(a lettuce(1)))} = no
+    {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
+
+    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(lettuce(1)))} Q=unit end}} = 1
   end
 
 end

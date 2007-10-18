@@ -14,6 +14,7 @@ import
 
   MSet at '../Utils/MSet.ozf'
   MList at '../Utils/MList.ozf'
+  LP at '../Utils/LP.ozf'
 
   Search
 
@@ -222,6 +223,20 @@ define
   %  Procedures for querying the domain data
   %
   Query = q(
+
+      assign:  proc {$ V}
+                 choice {LP.member V Data.agents}
+                 [] Y = for return:R default:false
+                        T in {Dictionary.keys Data.objects} do
+                          choice
+                            M = {Dictionary.get Data.objects T}
+                            Ns = for collect:C I in 1..M do {C I} end N in
+                            {LP.member N Ns}  V = T(N)  {R true}
+                          [] skip end
+                        end in
+                    if Y then skip else fail end
+                 end
+               end
 
       agent:  proc {$ A}
                 {MSet.member Data.agents A}

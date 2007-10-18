@@ -10,12 +10,14 @@ import
 
   Search
   Space
+  System
 
 export
 
   Neg
   IfNot
   Yield
+  YieldUniq
   Member
   Union
   ListAcc
@@ -80,6 +82,30 @@ define
     []  [Res1] then choice Res = Res1
                     [] {Yield Searcher Res}
                     end
+    end
+  end
+
+  %
+  %  Yield unique solutions found by the given Search.object, making
+  %  choicepoints for each.
+  %
+  proc {YieldUniq Searcher F Res}
+    {YieldUniqRec Searcher F nil Res}
+  end
+
+  proc {YieldUniqRec Searcher F Found Res}
+    Soln = {Searcher next($)}
+  in
+    case Soln of stopped then fail
+    []  nil then fail
+    []  [ResT] then Res1={F ResT} in
+            if {List.member Res1 Found} then
+              {YieldUniqRec Searcher F Found Res}
+            else
+              choice Res = Res1
+              [] {YieldUniqRec Searcher F Res1|Found Res}
+              end
+            end
     end
   end
 

@@ -691,10 +691,10 @@ define
                   PD.close_0 = true
                   PD.close_1 = false
                 end}
-    SDOut
   in
-    SDOut = {LP.yield Searcher}
-    Binding = {Dictionary.toRecord b SDOut.fvBind}
+    Binding = {LP.yieldUniq Searcher fun {$ SDOut} 
+      {Dictionary.toRecord b SDOut.fvBind}
+    end}
   end
 
   %
@@ -822,12 +822,16 @@ define
           all(a all(b all(c impl(eq(a b) eq(c b)))))
           impl(p(a) p(_))
           ite(eq(thomas thomas) ite(eq(_ knife(1)) true false) false)
-          impl(all(obj nexists(c contents(obj c))) nexists(c contents(board(1) c)))]
-    Be = [true false true false true false true false true true false true true true]
-    Ba = [true false true false true false true false true true false false false true]
+          impl(all(obj nexists(c contents(obj c))) nexists(c contents(board(1) c)))
+          impl(all(o nexists(a p(a o))) p(agt obj))
+          and(all(o nexists(a p(a o))) p(agt obj))]
+    Be = [true false true false true false true false true true false true true true false false]
+    Bt = [true false true false true false true false true true false false false true false false]
+    Bc = [false false false false false false false true false false true false false false false true]
   in
     {List.length Fs} = {List.length Be}
-    {List.length Fs} = {List.length Ba}
+    {List.length Fs} = {List.length Bt}
+    {List.length Fs} = {List.length Bc}
     Lang = lang(wff: proc {$ _} skip end
                 assign: proc {$ _} skip end)
     for F in Fs B in Be do local T P BM in
@@ -837,11 +841,17 @@ define
       {IsDet T true}
       if B == T then skip else raise prv(F) end end
     end end
-    for F in Fs B in Ba do local T P in
+    for F in Fs B in Bt do local T P in
       P = {ParseRecord F _}
       T = {Tautology P}
       {IsDet T true}
       if B == T then skip else raise taut(F) end end
+    end end
+    for F in Fs B in Bc do local T P in
+      P = {ParseRecord F _}
+      T = {Contradiction P}
+      {IsDet T true}
+      if B == T then skip else raise cont(F) end end
     end end
   end
 
