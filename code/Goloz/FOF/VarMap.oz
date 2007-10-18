@@ -45,7 +45,6 @@ define
   end
 
   proc {Map VM Term Out}
-    % TODO: VarMap.map is not thread-safe
     if {IsFree Term} then Nm in
       Nm = for return:R default:nil V2#N2 in {MList.toList VM} do
              if {System.eq Term V2} then {R N2} end

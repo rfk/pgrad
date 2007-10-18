@@ -50,6 +50,7 @@ export
   Getobs
 
   WriteDotFile
+  WriteDotFileAgt
   Test
 
 define
@@ -83,16 +84,12 @@ define
     AId|OIds = {IntMap.nextAvailLabels JIn S|Outs}
     J1 J2
   in
-    {System.printInfo "Inserting...\n"}
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    {System.printInfo "Fixing...\n"}
     JOut = {FixActionInvariants J2 AId}
-    {System.printInfo "Fixed!\n"}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
-    {System.printInfo "Done!\n"}
   end
 
   %
@@ -281,8 +278,6 @@ define
     case Acts of A|As then
       D = {IntMap.get JIn A} Matches in
       Matches = {IndistinguishableSets JIn {SitCalc.actor D.action} D.enablers}
-      {System.print matches_for(A Matches)}
-      {System.printInfo "\n"}
       {FixInvariantMatches JIn As D Matches JOut}
     else JIn = JOut end
   end
@@ -293,8 +288,6 @@ define
   %
   proc {FixInvariantMatches JIn Acts Act Matches JOut}
     case Matches of M|Ms then MAct in
-      {System.print find_matching(Act M)}
-      {System.printInfo "\n"}
       MAct = {IntMap.nextMatching JIn 0 fun {$ I} 
                         Data = {IntMap.get JIn I} in
                         if {Record.label Data} == act then
@@ -304,10 +297,6 @@ define
       if MAct == nil then
         if {CannotInsertAfter JIn M} then fail
         else J2 in
-          {System.print insert(M Act M)}
-          {System.printInfo "\n"}
-          {System.print curent(JIn)}
-          {System.printInfo "\n"}
           {InsertWithEnablers JIn M Act M J2 _}
           % For the moment this is unnecessary, since {InsertWithEnablers}
           % will run {FixActionInvariants} all over again
@@ -326,11 +315,7 @@ define
   %  of agent Agt.  For the moment, brute force it used.
   %
   proc {IndistinguishableSets J Agt Ns Matches}
-    {System.print hists_for(Ns Agt {GetAllHistories J Agt Ns})}
-    {System.printInfo "\n"}
     AllBranches = {FindIndistinguishableBranches J Agt J#Ns [nil#J]} in
-    {System.print branches_for(Ns Agt AllBranches)}
-    {System.printInfo "\n"}
     Matches = {List.subtract {MinimizeBranchSet J AllBranches} Ns}
   end
 
@@ -723,9 +708,18 @@ define
     Lbl = {List.toTuple '#' Lbls}
   end
 
+  proc {WriteDotFileAgt J Agt File}
+    % TODO: JointExec.writeDotFileAgt
+    skip
+  end
+
+  %%%%%%%%%%
+  %%
+  %%  test procedure
+  %%
 
   proc {Test}
-    J1 J2 J3 J4 J5
+    J1 J2 J3 J4 J5 J6 J7 J8
     E1 E2 E3 E4 E5
   in
     {InsertWithEnablers {Init} nil s(action: acquire(thomas lettuce(1))) nil J1 _}
@@ -745,9 +739,10 @@ define
     E3 = E1
     {InsertWithEnablers J3 nil s(action: acquire(richard egg(1))) [3] J4 _}
     {InsertWithEnablers J4 nil s(action: acquire(thomas carrot(1))) [8] J5 _}
-    {System.print J5}
-    {System.printInfo "\n"}
-    {WriteDotFile J5 {New Open.file init(name: 'test.dot' flags:[write create truncate])}}    
+    {IntMap.get J5 11}.action = acquire(thomas carrot(1))
+    {InsertWithEnablers J5 nil s(action: acquire(richard carrot(2))) [1 10] J6 _}
+    {IntMap.get J6 15}.action = acquire(richard carrot(2))
+    {WriteDotFile J6 {New Open.file init(name: 'test.dot' flags:[write create truncate])}}    
   end
 
 end

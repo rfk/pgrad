@@ -21,7 +21,6 @@ export
 
   Def
   Query
-  Data %TODO: don't export Data from this module
 
 define
 
@@ -84,7 +83,7 @@ define
                ActMap = {Dictionary.condGet TP Label1 nil}
                if ActMap == nil then Fml = false
                else
-                 % TODO: should this test whether it's a var term e.g. v_e()
+                 % TODO: should this test whether it's a var term? e.g. v_e()
                  if {IsFree Act} then Fmls in
                    % Enumerate each possible action and disjoin the results
                    Fmls = for collect:C ActNM in {Dictionary.keys ActMap} do

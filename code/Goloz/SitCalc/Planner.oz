@@ -17,10 +17,12 @@ import
   JointExec
 
   System
+  Search
 
 export
 
   Plan
+  Test
 
 define
 
@@ -117,6 +119,18 @@ define
                  S2 = {JointExec.getobs J OutN S} in
                  {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#N2}}
                end
+    end
+  end
+
+  proc {Test}
+    Plans = [acquire(thomas lettuce(1))
+             seq(acquire(thomas lettuce(1)) acquire(richard lettuce(1)))
+            ]
+    Sols = [true false]
+  in
+    for P in Plans S in Sols do Sol in
+      Sol = {Search.base.one proc {$ Q} {Plan P Q} end}
+      if S \= (Sol \= nil) then raise plan(P Sol\=nil) end end
     end
   end
 

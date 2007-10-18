@@ -21,6 +21,7 @@ export
   Trans
   Trans1
   Final
+  IsFinal
 
 define
 
@@ -107,9 +108,9 @@ define
             {Trans Body R Dp Sp}
           end
     else local Act in 
-          % TODO: proper MIndiGolog semantics for individual actions
           Act = D
           Dp = nil
+          {SitCalc.holds R poss(Act)}
           Sp = {Step.init step(action:Act)}
          end
     end
@@ -141,6 +142,14 @@ define
    end
   end
 
+  %
+  %  Utility function for testing whether a program is final.
+  %  Basically just catches the exception and returns false.
+  %
+  proc {IsFinal D R B}
+    try {Final D R} B = true
+    catch failure then B = false end
+  end
 
   %
   %  Find a non-empty transition step of the program D in run R.

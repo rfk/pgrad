@@ -32,6 +32,8 @@ export
   Holds
   HoldsW
 
+  Test 
+
 define
 
   %
@@ -168,12 +170,9 @@ define
           {Acc {Step.setobs S Agt S.action}}
         else
          for Res#Cond in AOuts do
-            _={LP.ifNot proc {$ _}
-                           {Holds R neg(Cond)}
-                        end
-                        proc {$ _}
-                           {Acc {Step.setobs S Agt S.action#Res}}
-                        end}
+            if {HoldsW R neg(Cond)} \= no then
+               {Acc {Step.setobs S Agt S.action#Res}}
+            end
           end
         end
       end
@@ -181,8 +180,8 @@ define
     end
   end
 
-  Axioms = {FOF.parseRecord {List.toTuple and {DB.query.constraints}} _}
-  Initially = {FOF.parseRecord {List.toTuple and {DB.query.initially}} _}
+  Axioms = {Uniformize {FOF.parseRecord {List.toTuple and {DB.query.constraints}} _}}
+  Initially = {Uniformize {FOF.parseRecord {List.toTuple and {DB.query.initially}} _}}
 
   %
   %  Determine whether F is known to hold after the run of execution R.
@@ -251,6 +250,18 @@ define
       elseif {FOF.contradiction {FOF.conj Axs F}} then Res = no
       else Res = unknown end
     end
+  end
+
+
+  proc {Test}
+    {HoldsW now exists(obj obj_is_type(obj lettuce))} = yes
+    {System.show yep}
+    {HoldsW now obj_is_type(lettuce(1) lettuce)} = yes
+    {System.show yep}
+    {HoldsW now used(lettuce(1))} = no
+    {System.show yep}
+    {HoldsW now exists(obj and(obj_is_type(obj lettuce) used(obj)))} = no
+    {System.show yep}
   end
 
 end

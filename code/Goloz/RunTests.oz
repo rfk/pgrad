@@ -22,7 +22,9 @@ import
   BDD at 'FOF/BDD.ozf'
   FOF at 'FOF/FOF.ozf'
 
+  SitCalc at 'SitCalc/SitCalc.ozf'
   JointExec at 'SitCalc/JointExec.ozf'
+  Planner at 'SitCalc/Planner.ozf'
 
 define
 
@@ -86,8 +88,16 @@ define
   {FOF.test}
   {Print passed}
 
+  {Print "\n==  Testing SitCalc\n"}
+  {SitCalc.test}
+  {Print passed}
+
   {Print "\n==  Testing JointExec\n"}
   {JointExec.test}
+  {Print passed}
+
+  {Print "\n==  Testing Planner\n"}
+  {Planner.test}
   {Print passed}
 
   {Print "\n\n===  Done  ===\n\n"}
