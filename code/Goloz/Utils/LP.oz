@@ -23,6 +23,7 @@ export
   TermEq
   TermDiff
   TermDiffP
+  UnDup
 
   Test
 
@@ -205,6 +206,16 @@ define
         Diffs = [Term1#Term2]
       end
     end
+  end
+
+  proc {UnDup LIn LOut}
+    {UnDupRec LIn nil LOut}
+  end
+  proc {UnDupRec LIn SoFar LOut}
+    case LIn of L|Ls then
+      if {List.member L SoFar} then {UnDupRec Ls SoFar LOut}
+      else {UnDupRec Ls L|SoFar LOut} end
+    else LOut = SoFar end
   end
 
 

@@ -20,6 +20,9 @@ export
   Get
   Put
   Append
+  Drop
+  DropAll
+  HasLabels
   NextAvailLabels
   NextMatching
   AllMatching
@@ -39,6 +42,24 @@ define
 
   proc {Put MIn I V MOut}
     MOut = {Record.adjoinAt MIn entries {Record.adjoinAt MIn.entries I V}}
+  end
+
+  proc {Drop MIn I MOut}
+    MOut = {Record.adjoinAt MIn entries {Record.subtract MIn.entries I}}
+  end
+
+  proc {DropAll MIn Is MOut}
+    case Is of I|ITail then
+      {DropAll {Drop MIn I} ITail MOut}
+    else MOut = MIn end
+  end
+
+  proc {HasLabels M Lbls B}
+    case Lbls of L|Ls then
+      if {Value.hasFeature M.entries L} then
+        B = {HasLabels M Ls}
+      else B = false end
+    else B = true end
   end
 
   proc {Append MIn V MOut}
@@ -89,17 +110,20 @@ define
     end
   end
 
-  proc {ForEach M Proc}
-    {ForEachRec M 0 Proc}
+  proc {ForEach MIn Proc MOut}
+    {ForEachRec MIn 0 Proc MOut}
   end
 
-  proc {ForEachRec M I Proc}
-    if I > M.next then skip
+  proc {ForEachRec MIn I Proc MOut}
+    M2
+  in
+    if I > MIn.next then MOut = MIn
     else
-      if {Value.hasFeature M.entries I} then
-        {Proc I}
-      end
-      {ForEachRec M I+1 Proc}
+      if {Value.hasFeature MIn.entries I} then NewVal in
+        NewVal = {Proc I}
+        M2 = {Put MIn I NewVal}
+      else M2=MIn end
+      {ForEachRec M2 I+1 Proc MOut}
     end
   end
 

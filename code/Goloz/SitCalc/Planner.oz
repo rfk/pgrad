@@ -27,10 +27,10 @@ define
   %
   %  Search for a joint execution of program D in the current situation.
   %  To do so, we start with a single branch containing the entire program,
-  %  an empty run and a most-recent-event of zero.
+  %  an empty run and empty branch.
   %
   proc {Plan D J}
-    {MakePlan {JointExec.init} [D#now#[0]] J}
+    {MakePlan {JointExec.init} [D#now#nil] J}
   end
 
   %
@@ -48,6 +48,7 @@ define
       choice J2 in
            {MIndiGolog.final D R}
            J2 = {JointExec.finish JIn N}
+           {System.printInfo "branch closed\n"}
            {MakePlan J2 {List.append NewBs Bs} JOut}
       [] Dp Rp S J2 OutNs OutBs in
            {MIndiGolog.trans1 D R Dp Rp S}

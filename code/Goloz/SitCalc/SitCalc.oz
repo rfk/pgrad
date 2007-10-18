@@ -132,7 +132,9 @@ define
   %  of observations made by each agent.
   %
   proc {Outcomes R S Outs}
-    Outs = {OutcomesAgts R [S] {Record.arity S.obs}}
+    MyS = {Record.adjoinAt S obs {NewAgentMap}}
+  in
+    Outs = {OutcomesAgts R [MyS] {Record.arity MyS.obs}}
   end
 
   proc {OutcomesAgts R Steps Agts Outs}

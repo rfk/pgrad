@@ -22,6 +22,8 @@ import
   BDD at 'FOF/BDD.ozf'
   FOF at 'FOF/FOF.ozf'
 
+  JointExec at 'SitCalc/JointExec.ozf'
+
 define
 
   {Property.put 'print.width' 1000}
@@ -82,6 +84,10 @@ define
 
   {Print "\n==  Testing FOF\n"}
   {FOF.test}
+  {Print passed}
+
+  {Print "\n==  Testing JointExec\n"}
+  {JointExec.test}
   {Print passed}
 
   {Print "\n\n===  Done  ===\n\n"}
