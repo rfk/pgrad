@@ -63,7 +63,7 @@ define
   %
   DB = _
   Domain = _
-  {Module.link ['SitCalc/DomainBuilder.ozf' 'Domain.ozf'] [DB Domain]}
+  {Module.link ['/storage/uni/pgrad/code/Goloz/SitCalc/DomainBuilder.ozf' '/storage/uni/pgrad/code/Goloz/Domain.ozf'] [DB Domain]}
   % Ensure that Domain module is loaded
   {Wait Domain}
 
