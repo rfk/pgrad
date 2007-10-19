@@ -19,7 +19,7 @@ define
 
   functor SearchFunc
   import
-    Planner at 'SitCalc/Planner.ozf'
+    Planner at '/storage/uni/pgrad/code/Goloz/SitCalc/Planner.ozf'
   export
     Script
   define
@@ -28,7 +28,7 @@ define
     end
   end
 
-  Searcher = {New Search.parallel init(localhost:1 'rfk.id.au': 1#ssh)}
+  Searcher = {New Search.parallel init(mango:1#ssh grapefruit:1#ssh)}
   {Searcher trace(true)}
   {Browser.browse Plan}
   Plan = {Searcher one(SearchFunc $)}

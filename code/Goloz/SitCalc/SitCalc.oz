@@ -43,7 +43,7 @@ define
   %  We delegate determination of WFF to the Domain module.
   %
   FOF = _
-  {Module.link ['FOF/FOF.ozf'] [FOF]}
+  {Module.link ['/storage/uni/pgrad/code/Goloz/FOF/FOF.ozf'] [FOF]}
   FOF.lang = lang(
     wff: proc {$ P}
            % TODO: ensure well-formedness of predicates
