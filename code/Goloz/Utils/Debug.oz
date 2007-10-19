@@ -22,7 +22,7 @@ define
       if {VirtualString.is Msg} then
         {System.showInfo Msg}
       else
-        {System.show Msg
+        {System.show Msg}
       end
     end
   end
@@ -32,7 +32,7 @@ define
       if {VirtualString.is Msg} then
         {System.printInfo Msg}
       else
-        {System.print Msg
+        {System.print Msg}
       end
     end
   end

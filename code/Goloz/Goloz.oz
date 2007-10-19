@@ -2,7 +2,6 @@ functor
 
 import
 
-  Planner at 'SitCalc/Planner.ozf'
   JointExec at 'SitCalc/JointExec.ozf'
 
   Browser
@@ -18,13 +17,26 @@ define
   {Property.put 'errors.width' 1000}
   {Property.put 'errors.depth' 1000}
 
-  proc {Q JE}
+  functor SearchFunc
+  import
+    Planner at 'SitCalc/Planner.ozf'
+  export
+    Script
+  define
+    proc {Script JE}
       {Planner.plan seq(check_for(thomas lettuce) acquire(thomas lettuce(1))) JE}
+    end
   end
-  {JointExec.writeDotFile {Search.base.one Q}.1 
-               {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
-  {JointExec.writeDotFileAgt {Search.base.one Q}.1 thomas
-               {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
+
+  Searcher = {New Search.parallel init(localhost:1 'rfk.id.au': 1#ssh)}
+  {Searcher trace(true)}
+  {Browser.browse Plan}
+  Plan = {Searcher one(SearchFunc $)}
+
+  {JointExec.writeDotFile Plan
+       {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
+  {JointExec.writeDotFileAgt Plan thomas
+       {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
   {Application.exit 0}
 
 end
