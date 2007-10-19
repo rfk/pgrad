@@ -33,12 +33,6 @@ export
 define
 
 
-  %
-  % Assert that a predicate has at least one solution.
-  % This procedure searches for a single solution to a predicate,
-  % and 
-  %
-
   % 
   % Standard negation-as-failure on a procedure.
   % Note that the procedure must not wait on free variables, or

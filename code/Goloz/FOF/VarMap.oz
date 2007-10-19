@@ -31,6 +31,7 @@ export
   Map
   Unmap
   Bind
+  Ground
   Test
   
 define
@@ -81,6 +82,12 @@ define
   proc {Bind VM Binding}
     for V#N in {MList.toList VM} do
       V = {Value.condSelect Binding N V}
+    end
+  end
+
+  proc {Ground VM G}
+    for V#_ in {MList.toList VM} do
+      if {IsFree V} then {G V} end
     end
   end
 

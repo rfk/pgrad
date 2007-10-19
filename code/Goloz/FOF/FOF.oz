@@ -192,6 +192,7 @@ define
     {ParseRecordB Rec {Binding.init} VM F}
     proc {Binder B}
       {VarMap.bind VM B}
+      {VarMap.ground VM proc {$ V} {Lang.assign [V]} end}
     end
   end
 
@@ -401,9 +402,14 @@ define
   %  Called when exploration is complete.  Finds a consitent set of
   %  bindings for all a-quantified variables, to make sure we haven't
   %  stuffed up.  Return the final state data as output.
+  %  
+  %  We need to offer choices for assignments to the vars in fvBind,
+  %  but simply find any consistent assignment to aVars.  How can
+  %  this be achieved?
   %
   proc {Theory_done SData Outcome Res}
-    {Lang.assign {StripVE SData.aVars}}
+    {Lang.assign {StripVE {Dictionary.items SData.fvBind}}}
+    %{Lang.assign {StripVE SData.aVars}}
     Res = SData
   end
 

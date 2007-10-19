@@ -54,7 +54,6 @@ define
            for V in Vs do
              {DB.query.assign V}
            end
-           skip
          end
   )
 
@@ -209,6 +208,7 @@ define
   proc {Holds R F}
     Fml Binder Binding
   in
+    {FOF.lang.wff F}
     Fml = {FOF.parseRecord F Binder}
     Binding = {HoldsFOF R Fml}
     {Binder Binding}
@@ -239,6 +239,7 @@ define
   proc {HoldsW R F Res}
     Fml = {FOF.parseRecord F _}
   in
+    {FOF.lang.wff F}
     Res = {HoldsW_FOF R Fml}
   end
 
@@ -277,7 +278,11 @@ define
     {HoldsW now exists(a has_object(a lettuce(1)))} = no
     {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
 
-    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 1
+    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 3
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas _))} Q=unit end}} = 3
+    {List.length {Search.base.all proc {$ Q}
+      A in thread or A=thomas [] A=richard [] A=harriet end end
+      {Holds now poss(acquire(A _))} Q=unit end}} = 9
   end
 
 end
