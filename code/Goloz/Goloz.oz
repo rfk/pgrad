@@ -24,7 +24,8 @@ define
     Script
   define
     proc {Script JE}
-      {Planner.plan pcall(chopTypeInto(lettuce bowl(1))) JE}
+      %{Planner.plan pcall(chopTypeInto(lettuce bowl(1))) JE}
+      {Planner.plan pcall(ensureHas thomas lettuce(1)) JE}
     end
   end
 
