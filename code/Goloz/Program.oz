@@ -16,10 +16,10 @@ define
                     pick(agt seq(seq(
                          pcall(ensureHas(obj Cont))
                          mix(agt Cont))
-                         release_object(agt Cont))))
+                         release(agt Cont))))
     [] chopTypeInto(Type Cont) then
          Body = pick(agt pick(obj seq( test(obj_is_type(obj Type))
-                                  seq( acquire_object(agt obj)
+                                  seq( acquire(agt obj)
                                        pcall(chopInto(agt obj Cont))
                                   ))))
     [] chopInto(Agt Obj Cont) then
@@ -31,12 +31,12 @@ define
                                seq( chop(agt myBoard)
                                seq( pcall(ensureHas(Agt Cont))
                                seq( transfer(Agt myBoard Cont)
-                               seq( release_object(Agt myBoard)
-                                    release_object(Agt Cont)  
+                               seq( release(Agt myBoard)
+                                    release(Agt Cont)  
                                )))))))
                    ))
     [] ensureHas(Agt Obj) then
-         Body = ifte(has_object(Agt Obj) nil acquire_object(Agt Obj))
+         Body = ifte(has_object(Agt Obj) nil acquire(Agt Obj))
     end
   end
 

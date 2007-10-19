@@ -24,19 +24,19 @@ define
     Script
   define
     proc {Script JE}
-      %{Planner.plan pcall(chopTypeInto(lettuce bowl(1))) JE}
-      {Planner.plan pcall(ensureHas thomas lettuce(1)) JE}
+      {Planner.plan pcall(chopTypeInto(lettuce bowl(1))) JE}
+      %{Planner.plan pcall(ensureHas(thomas lettuce(1))) JE}
     end
   end
 
-  Searcher = {New Search.parallel init(grapefruit:1#ssh mango:1#ssh)}
+  Searcher = {New Search.parallel init(grapefruit:1#ssh)}
   {Searcher trace(true)}
   {Browser.browse Plan}
   Plan = {Searcher one(SearchFunc $)}
   if Plan \= nil then
-    {JointExec.writeDotFile Plan
+    {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
-    {JointExec.writeDotFileAgt Plan thomas
+    {JointExec.writeDotFileAgt Plan.1 thomas
        {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
   end
   %{Application.exit 0}

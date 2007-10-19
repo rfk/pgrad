@@ -115,7 +115,9 @@ define
     else local Act in 
           Act = D
           Dp = nil
+          {System.show act(Act)}
           {SitCalc.holds R poss(Act)}
+          {System.show poss(Act)}
           Sp = {Step.init step(action:Act)}
          end
     end
@@ -127,6 +129,7 @@ define
   %  when the current run of execution is R.
   %
   proc {Final D R}
+   {System.show final(D)}
    case D of
        nil then skip
    []  seq(D1 D2) then {Final D1 R} {Final D2 R}

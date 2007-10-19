@@ -17,6 +17,7 @@ import
   LP at '../Utils/LP.ozf'
 
   Search
+  System
 
 export
 
@@ -225,7 +226,7 @@ define
   Query = q(
 
       assign:  proc {$ V}
-                 choice {LP.member V Data.agents}
+                 choice {LP.member V {MSet.toList Data.agents}}
                  [] Y = for return:R default:false
                         T in {Dictionary.keys Data.objects} do
                           choice

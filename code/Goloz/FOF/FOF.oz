@@ -51,6 +51,7 @@ import
   VarMap
 
   Search
+  System
   Space
 
 export
@@ -402,7 +403,7 @@ define
   %  stuffed up.  Return the final state data as output.
   %
   proc {Theory_done SData Outcome Res}
-    {Lang.assign SData.aVars}
+    {Lang.assign {StripVE SData.aVars}}
     Res = SData
   end
 

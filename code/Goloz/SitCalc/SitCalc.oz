@@ -18,6 +18,7 @@ import
   Module
   Search
   System
+  Browser
 
 export
 
@@ -50,9 +51,9 @@ define
            skip
          end
     assign: proc {$ Vs}
-           %for V in Vs do
-           %  {DB.query.assign V}
-           %end
+           for V in Vs do
+             {DB.query.assign V}
+           end
            skip
          end
   )
@@ -268,7 +269,7 @@ define
     {HoldsW now obj_is_type(lettuce(1) lettuce)} = yes
     {HoldsW now used(lettuce(1))} = no
     {HoldsW now used(tomato(1))} = unknown
-    F1 = {FOF.parseRecord and(all(o nexists(a p(a o))) p(agt obj)) _}
+    F1 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) has_object(thomas lettuce(2))) _}
     F2 = {FOF.conj Initially {FOF.parseRecord has_object(thomas lettuce(1)) _}}
     {FOF.contradiction F1 true}
     {FOF.contradiction F2 true}
@@ -276,7 +277,7 @@ define
     {HoldsW now exists(a has_object(a lettuce(1)))} = no
     {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
 
-    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(lettuce(1)))} Q=unit end}} = 1
+    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 1
   end
 
 end
