@@ -325,8 +325,7 @@ define
           QF = q({ProcR Q Args})
           Fout = {F_bdd QF TF FF}
         end
-    else Fout = ITE
-    end
+    else Fout = ITE end
   end
 
 
@@ -813,6 +812,7 @@ define
 
   proc {Test}
     {Test_vars}
+    {Test_transform}
     {Test_prover}
     {Test_prover_search}
     {Test_prover_TorC}
@@ -923,6 +923,27 @@ define
       R = {TautOrCont {ParseRecord F _}}
       if R \= neither then raise R(F) end end
     end
+  end
+
+  proc {Test_transform}
+    Tr Tr_atom
+    F1 F2 F3 F4
+  in
+    proc {Tr_atom AIn AOut}
+      case AIn of p(A B) then AOut = {ParseRecord q(A B) _}
+      []  q(A B) then AOut = {ParseRecord r(A B) _}
+      []  r(A B) then AOut ={ParseRecord  p(A B) _}
+      else AOut = AIn end
+    end
+    Tr = {Transformation 'fof.testtr' Tr_atom}
+    F1 = {ParseRecord p(a b) _}
+    {ToRecord {Tr F1}} = ite(q(a b) true false)
+    F2 = {ParseRecord and(p(a b) q(b a)) _}
+    {ToRecord {Tr F2}} = ite(q(a b) ite(r(b a) true false) false)
+    F3 = {ParseRecord all(x p(x b)) _}
+    {ToRecord {Tr F3}} = ite(q(ite(q(v_b(0) b) true false)) true false)
+    F4 = {ParseRecord all(x exists(y and(r(x y) p(a b)))) _}
+    {ToRecord {Tr F4}} = ite(q(ite(q(ite(p(v_b(1) v_b(0)) ite(q(a b) false true) true)) false true)) true false)
   end
 
 end

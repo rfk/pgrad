@@ -113,10 +113,10 @@ define
     Defn
   in
     Defn = {DB.query.adfluent P}
-    if Defn \= nil then U = {FOF.parseRecord Defn _}
+    if Defn \= nil then U = {Uniformize {FOF.parseRecord Defn _}}
     else Defn in
        Defn = {DB.query.builtin P}
-       if Defn \= nil then U = {FOF.parseRecord Defn _}
+       if Defn \= nil then U = {Uniformize {FOF.parseRecord Defn _}}
        else U = {FOF.parseRecord P _} end
     end
   end
@@ -207,7 +207,6 @@ define
   proc {Holds R F}
     Fml Binder Binding
   in
-    {System.show holds(F)}
     {FOF.wff F}
     Fml = {FOF.parseRecord F Binder}
     Binding = {HoldsFOF R Fml}
@@ -226,6 +225,7 @@ define
        {HoldsFOF R2 FmlR Bind}
      end
     else
+      {System.show {FOF.toRecord Fml}}
       Axs = {FOF.conj Axioms Initially} in
       {FOF.prove {FOF.impl Axs Fml} Bind}
     end
@@ -281,9 +281,15 @@ define
     {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
 
     {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 3
-    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas _))} Q=unit end}} = 3
-    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 9
-      
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas Q))} end}} = 12
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 36
+
+    {HoldsW now has_object(harriet knife(1))} = no
+    {HoldsW ex(step(action: acquire(harriet knife(1))) now) has_object(harriet knife(1))} = yes
+    {HoldsW now poss(chop(harriet board(1)))} = no
+    {HoldsW ex(step(action: acquire(harriet knife(1))) now) poss(chop(harriet board(1)))} = no
+    {Holds ex(step(action:acquire(harriet board(1))) ex(step(action: acquire(harriet knife(1))) now)) poss(chop(harriet board(1)))}
+     
   end
 
 end

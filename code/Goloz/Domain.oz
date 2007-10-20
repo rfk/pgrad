@@ -47,6 +47,7 @@ define
   {D.action place_in(agent object container)}
   {D.action transfer(agent container container)}
   {D.action check_for(agent type)}
+  {D.action chop(agent container)}
 
   {D.fluent has_object(agent object)}
   {D.fluent used(object)}
@@ -57,7 +58,7 @@ define
   {D.adfluent canSense(agent)}
 
   {D.adfDef poss acquire fun {$ _ [_ Obj]}
-        and(all(a neg(has_object(a Obj))) neg(used(Obj)))
+        and(all(a neg(has_object(a Obj))) impl(obj_is_type(Obj ingredient) neg(used(Obj))))
   end}
   {D.adfDef poss release fun {$ _ [Agt Obj]}
         has_object(Agt Obj)
@@ -70,6 +71,10 @@ define
         and(has_object(Agt Obj) has_object(Agt Dst)
             neg(obj_is_type(Obj appliance)))
   end}
+  {D.adfDef poss chop fun {$ _ [Agt Dst]}
+        and(has_object(Agt Dst)
+            exists(k and(obj_is_type(k knife) has_object(Agt k))))
+  end}
   {D.adfDef poss check_for fun {$ _ _} true end}
 
   {D.adfDef canObs acquire fun {$ _ _} true end}
@@ -77,12 +82,14 @@ define
   {D.adfDef canObs transfer fun {$ _ _} true end}
   {D.adfDef canObs place_in fun {$ _ _} true end}
   {D.adfDef canObs check_for fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
+  {D.adfDef canObs chop fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
 
   {D.adfDef canSense acquire fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense release fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense transfer fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense place_in fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense check_for fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
+  {D.adfDef canSense chop fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
 
   {D.causesTrue has_object acquire fun {$ [Af Of] [Aa Oa]}
       and(eq(Af Aa) eq(Of Oa))

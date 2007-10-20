@@ -56,7 +56,8 @@ define
       [] Dp Rp S J2 OutNs OutBs in
            {System.showInfo "trying to trans1..."}
            {MIndiGolog.trans1 D R Dp Rp S}
-           {System.showInfo "...found"}
+           {System.printInfo "...found: "}
+           {System.show S.action}
            OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
            {System.showInfo "...inserted"}
            OutBs = for collect:C N2 in OutNs do
