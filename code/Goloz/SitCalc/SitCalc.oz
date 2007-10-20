@@ -46,9 +46,8 @@ define
   FOF = _
   {Module.link ['/storage/uni/pgrad/code/Goloz/FOF/FOF.ozf'] [FOF]}
   FOF.lang = lang(
-    wff: proc {$ P}
-           % TODO: ensure well-formedness of predicates
-           skip
+    wfp: proc {$ P}
+            {DB.query.wfp P}
          end
     assign: proc {$ Vs}
            for V in Vs do
@@ -208,7 +207,8 @@ define
   proc {Holds R F}
     Fml Binder Binding
   in
-    {FOF.lang.wff F}
+    {System.show holds(F)}
+    {FOF.wff F}
     Fml = {FOF.parseRecord F Binder}
     Binding = {HoldsFOF R Fml}
     {Binder Binding}
@@ -239,7 +239,7 @@ define
   proc {HoldsW R F Res}
     Fml = {FOF.parseRecord F _}
   in
-    {FOF.lang.wff F}
+    {FOF.wff F}
     Res = {HoldsW_FOF R Fml}
   end
 
@@ -264,7 +264,7 @@ define
 
 
   proc {Test}
-    F1 F2 
+    F1 F2 F3
   in
     {HoldsW now exists(obj obj_is_type(obj lettuce))} = yes
     {HoldsW now obj_is_type(lettuce(1) lettuce)} = yes
@@ -272,17 +272,18 @@ define
     {HoldsW now used(tomato(1))} = unknown
     F1 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) has_object(thomas lettuce(2))) _}
     F2 = {FOF.conj Initially {FOF.parseRecord has_object(thomas lettuce(1)) _}}
+    F3 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) exists(a has_object(a lettuce(1)))) _}
     {FOF.contradiction F1 true}
     {FOF.contradiction F2 true}
+    {FOF.contradiction F3 true}
     {HoldsW now has_object(thomas lettuce(1))} = no
     {HoldsW now exists(a has_object(a lettuce(1)))} = no
     {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
 
     {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 3
     {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas _))} Q=unit end}} = 3
-    {List.length {Search.base.all proc {$ Q}
-      A in thread or A=thomas [] A=richard [] A=harriet end end
-      {Holds now poss(acquire(A _))} Q=unit end}} = 9
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 9
+      
   end
 
 end

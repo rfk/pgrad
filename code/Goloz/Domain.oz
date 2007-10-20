@@ -39,13 +39,14 @@ define
   {D.superType ingredient egg}
   {D.superType ingredient tomato}
   {D.superType ingredient lettuce}
+  {D.superType ingredient carrot}
   {D.superType ingredient sugar}
 
   {D.action acquire(agent object)}
   {D.action release(agent object)}
   {D.action place_in(agent object container)}
   {D.action transfer(agent container container)}
-  {D.action check_for(agent ingredient)}
+  {D.action check_for(agent type)}
 
   {D.fluent has_object(agent object)}
   {D.fluent used(object)}

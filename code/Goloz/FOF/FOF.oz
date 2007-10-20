@@ -20,7 +20,7 @@
 %  modules should instantiate with a structure describing the particular
 %  language they are proving in.  It should have the following features:
 %
-%     FOF.lang.wff:  a procedure that takes a predicate in the language,
+%     FOF.lang.wfp:  a procedure that takes a predicate in the language,
 %                    and posts constraints ensuring that if is well formed.
 %                    For example, this might post constraints about the
 %                    domains of variables, inferring their type from their
@@ -60,6 +60,7 @@ export
 
   ParseRecord
   ToRecord
+  Wff
 
   Transformation
 
@@ -226,6 +227,27 @@ define
     []   nexists(Nm R) then F={All {ParseRecordB neg(R) {Binding.push B Nm} VM}}
     else F = {Atom {Binding.unbind B {VarMap.map VM Rec}}}
     end
+  end
+
+
+  proc {Wff Fml}
+    case Fml of true then skip
+    []   false then skip
+    []   and(...) then for F2 in {Record.toList Fml} do
+                           {Wff F2}
+                       end
+    []   'or'(...) then for F2 in {Record.toList Fml} do
+                           {Wff F2}
+                        end
+    []   neg(R) then {Wff R}
+    []   impl(R1 R2) then {Wff R1} {Wff R2}
+    []   equiv(R1 R2) then {Wff R1} {Wff R2}
+    []   ite(C R1 R2) then {Wff C} {Wff R1} {Wff R2}
+    []   all(Nm R) then {Wff {LP.subInTerm Nm _ R}}
+    []   exists(Nm R) then {Wff {LP.subInTerm Nm _ R}}
+    []   nall(Nm R) then {Wff {LP.subInTerm Nm _ R}}
+    []   nexists(Nm R) then {Wff {LP.subInTerm Nm _ R}}
+    else {Lang.wfp Fml} end
   end
 
 
@@ -568,10 +590,11 @@ define
             Pe = {BindVE Pb SDIn.fvMode SDIn.fvBind}
             % Strip v_e terms down to their representative variable
             % when sending them off for type constraints.
-            {Lang.wff {StripVE Pe}}
             case Pe of eq(T1 T2) then
               {Theory_addEq T1 T2 E SDIn#SDOut PDIn#PDOut Res}
             else
+              % TODO: forcing Lang.wfp on all preds gives incorrect results
+              %{Lang.wfp {StripVE Pe}}
               {Theory_addPred Pe E SDIn#SDOut PDIn#PDOut Res}
             end
     []  q(Q) then
@@ -839,7 +862,7 @@ define
     {List.length Fs} = {List.length Be}
     {List.length Fs} = {List.length Bt}
     {List.length Fs} = {List.length Bc}
-    Lang = lang(wff: proc {$ _} skip end
+    Lang = lang(wfp: proc {$ _} skip end
                 assign: proc {$ _} skip end)
     for F in Fs B in Be do local T P BM in
       P = {ParseRecord F _}

@@ -18,6 +18,8 @@ import
 
   Search
   System
+  Combinator
+  RecordC
 
 export
 
@@ -46,8 +48,31 @@ define
                   Res = {Dictionary.condGet TD Lbl unit}
                 in
                   if Res == unit then B = false
-                  else B = true end
+                  else
+                    Args = {Record.toList Term} in
+                    {List.length Args} = {List.length Res}
+                    B = true
+                  end
                 end
+
+      constrain: proc {$ TD Term}
+                   {ConstrainToList Term {TermDef.templates TD}}
+                 end
+
+      templates: proc {$ TD Terms}
+                   Terms = for collect:C Lbl#Args in {Dictionary.entries TD} do
+                     TermMaker in
+                     TermMaker = proc {$ Term}
+                     Term = Lbl(...)
+                     {RecordC.width Term {List.length Args}}
+                     for I#A in {List.mapInd Args fun {$ I A} I#A end} do
+                       Arg in
+                       Term^I = Arg
+                       {Constrain Arg A}
+                      end end
+                      {C TermMaker}
+                   end
+                 end
 
       inst: proc {$ TD Label Term}
               Args = {Dictionary.get TD Label}
@@ -156,7 +181,11 @@ define
             end
 
     adfluent: proc {$ ADFluent}
-                {TermDef.insert Data.adfluents ADFluent}
+                % Automatically insert action as last argument
+                Args = {List.append {Record.toList ADFluent} [action]}
+                ADF = {List.toTuple {Record.label ADFluent} Args}
+              in
+                {TermDef.insert Data.adfluents ADF}
               end
 
     conflicts: proc {$ Proc}
@@ -201,7 +230,13 @@ define
 
 
   proc {GetSubTypes Super Subs}
-    Subs = {Search.base.all proc {$ T} {IsSubType Super T} end}
+    if Super == object then
+      Subs = for collect:C T in {Dictionary.keys Data.objects} do
+               {C T}
+             end
+    else
+      Subs = {Search.base.all proc {$ T} {IsSubType Super T} end}
+    end
   end
   proc {IsSubType Super Sub}
     choice Super = Sub
@@ -219,6 +254,31 @@ define
       end
     else fail end
   end
+
+  proc {Constrain A R}
+    if R == agent then
+      {ConstrainToList A {MSet.toList Data.agents}}
+    elseif R == action then
+      {TermDef.constrain Data.actions A}
+    elseif R == type then
+      {ConstrainToList A object|{GetSubTypes object}}
+    else 
+      {ConstrainToList A {Query.objs_of_type R}}
+    end
+  end
+
+  proc {ConstrainToList V Lst}
+    Cons = {List.map Lst fun {$ I}
+             if {Procedure.is I} then
+               proc {$} V = {I} end
+             else
+               proc {$} V = I end
+             end
+           end}
+  in
+    thread {Combinator.'or' {List.toTuple '#' Cons}} end
+  end
+  
 
   %
   %  Procedures for querying the domain data
@@ -287,6 +347,16 @@ define
                                end
                              end
                     end
+
+      wfp: proc {$ P}
+             if {TermDef.contains Data.adfluents P} then
+               {TermDef.constrain Data.adfluents P}
+             elseif {TermDef.contains Data.fluents P} then
+               {TermDef.constrain Data.fluents P}
+             elseif {Query.builtin P} \= nil then
+               skip
+             else fail end
+           end
 
       builtin: proc {$ Fluent Defn}
                  case Fluent of obj_is_type(Obj Type) then Disjs in

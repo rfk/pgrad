@@ -32,7 +32,7 @@ plan: plan.png
 	gthumb plan.png &
 
 clean:
-	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz
+	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz *.dot *.png
 
 todos:
 	grep 'TODO' *.* FOF/*.* Utils/*.* SitCalc/*.*
