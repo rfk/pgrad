@@ -97,7 +97,7 @@ define
             if {List.member Res1 Found} then
               {YieldUniqRec Searcher F Found Res}
             else
-              choice Res = Res1 {System.show res(Res1)}
+              choice Res = Res1
               [] {YieldUniqRec Searcher F Res1|Found Res}
               end
             end

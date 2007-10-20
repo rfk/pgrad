@@ -29,7 +29,8 @@ define
     end
   end
 
-  Searcher = {New Search.parallel init(grapefruit:1#ssh)}
+  %Searcher = {New Search.parallel init(grapefruit:1#ssh mango:1#ssh)}
+  Searcher = {New Search.parallel init(grapefruit:1#ssh mango:1#ssh)}
   {Searcher trace(true)}
   {Browser.browse Plan}
   Plan = {Searcher one(SearchFunc $)}
