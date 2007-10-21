@@ -85,7 +85,7 @@ define
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = J2 %{FixActionInvariants J2 AId}
+    JOut = {FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
