@@ -721,6 +721,7 @@ define
                   PD.close_1 = false
                 end}
   in
+    if F == nil then skip else skip end
     Binding = {LP.yieldUniq Searcher fun {$ SDOut} 
       {Dictionary.toRecord b SDOut.fvBind}
     end}

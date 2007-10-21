@@ -48,6 +48,7 @@ define
   {D.action transfer(agent container container)}
   {D.action check_for(agent type)}
   {D.action chop(agent container)}
+  {D.action mix(agent container)}
 
   {D.fluent has_object(agent object)}
   {D.fluent used(object)}
@@ -64,8 +65,7 @@ define
         has_object(Agt Obj)
   end}
   {D.adfDef poss transfer fun {$ _ [Agt Src Dst]}
-        and(has_object(Agt Src) has_object(Agt Dst)
-            exists(c contents(Src c)))
+        and(has_object(Agt Src) has_object(Agt Dst))
   end}
   {D.adfDef poss place_in fun {$ _ [Agt Obj Dst]}
         and(has_object(Agt Obj) has_object(Agt Dst)
@@ -75,14 +75,18 @@ define
         and(has_object(Agt Dst)
             exists(k and(obj_is_type(k knife) has_object(Agt k))))
   end}
+  {D.adfDef poss mix fun {$ _ [Agt Dst]}
+        has_object(Agt Dst)
+  end}
   {D.adfDef poss check_for fun {$ _ _} true end}
 
   {D.adfDef canObs acquire fun {$ _ _} true end}
   {D.adfDef canObs release fun {$ _ _} true end}
-  {D.adfDef canObs transfer fun {$ _ _} true end}
-  {D.adfDef canObs place_in fun {$ _ _} true end}
+  {D.adfDef canObs transfer fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
+  {D.adfDef canObs place_in fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
   {D.adfDef canObs check_for fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
   {D.adfDef canObs chop fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
+  {D.adfDef canObs mix fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
 
   {D.adfDef canSense acquire fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense release fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
@@ -90,6 +94,7 @@ define
   {D.adfDef canSense place_in fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense check_for fun {$ [Agt] Agt2|_ } eq(Agt Agt2) end}
   {D.adfDef canSense chop fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
+  {D.adfDef canSense mix fun {$ [Agt] Agt2|_} eq(Agt Agt2) end}
 
   {D.causesTrue has_object acquire fun {$ [Af Of] [Aa Oa]}
       and(eq(Af Aa) eq(Of Oa))
@@ -129,7 +134,8 @@ define
   {D.outcome check_for no default}
 
   {D.initially all(obj nexists(agt has_object(agt obj)))}
-  {D.initially all(obj impl(obj_is_type(obj lettuce) neg(used(obj))))}
+  %{D.initially all(obj impl(neg(obj_is_type(obj tomato)) neg(used(obj))))}
+  {D.initially all(obj neg(used(obj)))}
   {D.initially all(obj nexists(c contents(obj c)))}
 
   % TODO: this constraint hangs the prover

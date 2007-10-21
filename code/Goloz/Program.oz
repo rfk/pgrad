@@ -14,7 +14,7 @@ define
                            pcall(chopTypeInto(tomato Cont)))
                            pcall(chopTypeInto(carrot Cont)))
                     pick(agt seq(seq(
-                         pcall(ensureHas(obj Cont))
+                         pcall(ensureHas(agt Cont))
                          mix(agt Cont))
                          release(agt Cont))))
     [] chopTypeInto(Type Cont) then
@@ -30,7 +30,7 @@ define
                                seq( pcall(ensureHas(Agt myBoard))
                                seq( pcall(ensureHas(Agt myKnife))
                                seq( place_in(Agt Obj myBoard)
-                               seq( chop(agt myBoard)
+                               seq( chop(Agt myBoard)
                                seq( pcall(ensureHas(Agt Cont))
                                seq( transfer(Agt myBoard Cont)
                                seq( release(Agt myBoard)

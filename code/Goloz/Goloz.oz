@@ -3,12 +3,14 @@ functor
 import
 
   JointExec at 'SitCalc/JointExec.ozf'
+  Planner at '/storage/uni/pgrad/code/Goloz/SitCalc/Planner.ozf'
 
   Browser
   Search
   Property
   Open
   Application
+  System
 
 define
 
@@ -24,15 +26,13 @@ define
     Script
   define
     proc {Script JE}
-      {Planner.plan pcall(chopTypeInto(lettuce bowl(1))) JE}
-      %{Planner.plan pcall(ensureHas(thomas lettuce(1))) JE}
+      {Planner.plan pcall(makeSalad(bowl(1))) JE}
     end
   end
 
-  %Searcher = {New Search.parallel init(grapefruit:1#ssh mango:1#ssh)}
+  {Browser.browse Plan}
   Searcher = {New Search.parallel init(grapefruit:1#ssh)}
   {Searcher trace(true)}
-  {Browser.browse Plan}
   Plan = {Searcher one(SearchFunc $)}
   if Plan \= nil then
     {JointExec.writeDotFile Plan.1
@@ -40,6 +40,6 @@ define
     {JointExec.writeDotFileAgt Plan.1 thomas
        {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
   end
-  %{Application.exit 0}
+  {Application.exit 0}
 
 end

@@ -35,6 +35,7 @@ export
   Holds
   HoldsW
 
+  ShowRun
   Test 
 
 define
@@ -87,7 +88,13 @@ define
   end
 
   proc {IndependentActs A1 A2 B}
-    B = ({Record.label A1} \= {Record.label A2})
+    if {Actor A1} == {Actor A2} then B = false
+    elseif ({Record.label A1} \= {Record.label A2}) then B = true
+    else Args1 = {Record.toList A1}  Args2 = {Record.toList A2} in
+      B = for return:R default:true Arg1 in Args1 Arg2 in Args2 do
+        if Arg1 == Arg2 then {R false} end
+      end
+    end
   end
 
   proc {Agents Agts}
@@ -225,7 +232,6 @@ define
        {HoldsFOF R2 FmlR Bind}
      end
     else
-      {System.show {FOF.toRecord Fml}}
       Axs = {FOF.conj Axioms Initially} in
       {FOF.prove {FOF.impl Axs Fml} Bind}
     end
@@ -269,7 +275,8 @@ define
     {HoldsW now exists(obj obj_is_type(obj lettuce))} = yes
     {HoldsW now obj_is_type(lettuce(1) lettuce)} = yes
     {HoldsW now used(lettuce(1))} = no
-    {HoldsW now used(tomato(1))} = unknown
+    {HoldsW now used(carrot(1))} = no
+    %{HoldsW now used(tomato(1))} = unknown
     F1 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) has_object(thomas lettuce(2))) _}
     F2 = {FOF.conj Initially {FOF.parseRecord has_object(thomas lettuce(1)) _}}
     F3 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) exists(a has_object(a lettuce(1)))) _}
@@ -280,16 +287,29 @@ define
     {HoldsW now exists(a has_object(a lettuce(1)))} = no
     {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
 
-    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 3
-    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas Q))} end}} = 12
-    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 36
+    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 29
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas Q))} end}} = 29
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 29*3
 
     {HoldsW now has_object(harriet knife(1))} = no
+    {HoldsW now poss(acquire(harriet knife(1)))} = yes
     {HoldsW ex(step(action: acquire(harriet knife(1))) now) has_object(harriet knife(1))} = yes
+
     {HoldsW now poss(chop(harriet board(1)))} = no
     {HoldsW ex(step(action: acquire(harriet knife(1))) now) poss(chop(harriet board(1)))} = no
-    {Holds ex(step(action:acquire(harriet board(1))) ex(step(action: acquire(harriet knife(1))) now)) poss(chop(harriet board(1)))}
-     
+    {HoldsW ex(step(action:acquire(harriet board(1))) ex(step(action: acquire(harriet knife(1))) now)) poss(chop(harriet board(1)))} = yes
+
+    {HoldsW now poss(acquire(harriet carrot(1)))} = yes
+    {HoldsW ex(step(action:acquire(thomas lettuce(1))) now) poss(acquire(harriet carrot(1)))} = yes
+    
+  end
+
+  proc {ShowRun R}
+    case R of ex(S R2) then
+      {ShowRun R2}
+      {System.printInfo " "}
+      {System.print S.action}
+    else skip end
   end
 
 end

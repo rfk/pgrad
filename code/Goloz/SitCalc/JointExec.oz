@@ -85,7 +85,7 @@ define
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = {FixActionInvariants J2 AId}
+    JOut = J2 %{FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -117,9 +117,9 @@ define
           {FindEnablingEvents J Act Nt MustPrec Ens.2}
         else
           % Orderable, but not required to preceed, so we get a choice point
-          choice Ens = N|_
+          choice {FindEnablingEvents J Act {BranchPop J Ns _} MustPrec Ens}
+          []     Ens = N|_
                  {FindEnablingEvents J Act Nt MustPrec Ens.2}
-          []     {FindEnablingEvents J Act {BranchPop J Ns _} MustPrec Ens}
           end
         end
       else
@@ -705,7 +705,9 @@ define
     Lbls
   in
     Lbls = for collect:C Agt in {Record.arity OData.obs} do
-             {C Agt#": "#{Value.toVirtualString OData.obs.Agt ~1 ~1}#"\\n"}
+             if OData.obs.Agt \= nil then
+               {C Agt#": "#{Value.toVirtualString OData.obs.Agt ~1 ~1}#"\\n"}
+             end
            end
     Lbl = {List.toTuple '#' Lbls}
   end

@@ -54,7 +54,7 @@ define
            {System.printInfo "branch closed!\n"}
            {MakePlan J2 {List.append NewBs Bs} JOut}
       [] Dp Rp S J2 OutNs OutBs in
-           {System.showInfo "trying to trans1..."}
+           {System.showInfo "trying to trans1"}
            {MIndiGolog.trans1 D R Dp Rp S}
            {System.printInfo "...found: "}
            {System.show S.action}
@@ -64,9 +64,11 @@ define
                          {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                       end
            {System.showInfo "...ok, transition made!"}
+           {SitCalc.showRun OutBs.1.2} {System.printInfo "\n"}
+           {System.show newBranches({List.append OutBs {List.append NewBs Bs}})}
            {MakePlan J2 {List.append OutBs {List.append NewBs Bs}} JOut}
       end
-    else JOut = JIn end
+    else {System.showInfo "all done!"} JOut = JIn end
   end
 
   %
@@ -143,9 +145,6 @@ define
     for P in Plans S in Sols do Sol in
       Sol = {Search.base.one proc {$ Q} {Plan P Q} end}
       if S \= (Sol \= nil) then raise plan(P Sol\=nil) end end
-      {System.showInfo " "}
-      {System.showInfo " "}
-      {System.showInfo " "}
     end
   end
 
