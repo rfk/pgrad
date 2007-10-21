@@ -282,12 +282,10 @@ define
   %  Check and correct any broken action invariants introduced by
   %  the addition of a new action event AId.
   %
-  %  For now, this doesn't actually use the value of AId.  Figuring
-  %  out how to use it to save time is an interesting topic for
-  %  future research...
-  %
   proc {FixActionInvariants JIn AId JOut}
-    {FixInvariantActs JIn {GetActions JIn} JOut}
+    As = {List.filter {GetActions JIn} fun {$ I} {Not {Preceeds JIn I AId}} end}
+  in
+    {FixInvariantActs JIn As JOut}
   end
 
   %
