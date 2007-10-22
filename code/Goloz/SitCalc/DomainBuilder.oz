@@ -376,7 +376,7 @@ define
                   if OutDefs.1 == nil then Lst = nil
                   else Lst = {MList.toList OutDefs.1} end
                   if Lst == nil andthen OutDefs.2 == unit then
-                    Outcomes = nil
+                    Outcomes = [ok#true]
                   else
                     OutT = for collect:C O#F in Lst do
                              {C O#{F Args}}

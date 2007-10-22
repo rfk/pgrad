@@ -166,7 +166,7 @@ define
   end
 
   proc {OutcomesAgt R S Agt Outs}
-     % TODO: SitCalc.OutcomesAgt: take into account existing obs on the step
+    % TODO: SitCalc.OutcomesAgt: take into account existing obs on the step
     CanObs = {HoldsW R canObs(Agt S.action)}
   in
     if CanObs == no then
@@ -187,7 +187,7 @@ define
           {Acc {Step.setobs S Agt S.action}}
         else
          for Res#Cond in AOuts do
-            if {HoldsW R neg(Cond)} \= no then
+            if {HoldsW R Cond} \= no then
                {Acc {Step.setobs S Agt S.action#Res}}
             end
           end
@@ -229,15 +229,33 @@ define
     case R of ex(Step R2) then
      if {FOF.contradiction {FOF.impl Axioms Fml}} then
        fail
-     else FmlR in
-       %TODO: include observations in regression for holdsFOF
-       FmlR = {Regress Fml Step.action}
-       {HoldsFOF R2 FmlR Bind}
+     else ObsFmls ObsFml FmlR in
+       if Step.action \= nil then
+         ObsFmls = for collect:C Agt in {Record.arity Step.obs} do
+           {C {ObsImplies Agt Step.action Step.obs.Agt}}
+         end
+         ObsFml = {Uniformize {FOF.parseRecord {List.toTuple and true|ObsFmls} _}}
+         FmlR = {Regress {FOF.impl ObsFml Fml} Step.action}
+         {HoldsFOF R2 FmlR Bind}
+       else
+         {HoldsFOF R2 Fml Bind}
+       end
      end
     else
       Axs = {FOF.conj Axioms Initially} in
       {FOF.prove {FOF.impl Axs Fml} Bind}
     end
+  end
+
+  proc {ObsImplies Agt Act Obs Fml}
+    case Obs of Act#Out then
+      Fml = for return:R default:false Res#Cond in {ActionOutcomes Act} do
+              if Out == Res then
+                {R and(canObs(Agt Act) canSense(Agt Act) Cond)}
+              end
+            end
+    [] nil then Fml = neg(canObs(Agt Act))
+    else Fml = and(canObs(Agt Act) neg(canSense(Agt Act))) end
   end
 
   %
@@ -258,10 +276,17 @@ define
     case R of ex(Step R2) then
       if {FOF.tautology {FOF.impl Axioms F}} then Res = yes
       elseif {FOF.contradiction {FOF.conj Axioms F}} then Res = no
-      else FmlR in
-        %TODO: include observations in regression for HoldsW_FOF
-        FmlR = {Regress F Step.action}
-        {HoldsW_FOF R2 FmlR Res}
+      else ObsFmls ObsFml FmlR in
+        if Step.action \= nil then
+          ObsFmls = for collect:C Agt in {Record.arity Step.obs} do
+            {C {ObsImplies Agt Step.action Step.obs.Agt}}
+          end
+          ObsFml = {Uniformize {FOF.parseRecord {List.toTuple and true|ObsFmls} _}}
+          FmlR = {Regress {FOF.impl ObsFml F} Step.action}
+          {HoldsW_FOF R2 FmlR Res}
+        else
+          {HoldsW_FOF R2 F Res}
+        end
       end
     else
       Axs = {FOF.conj Initially Axioms} in
@@ -296,14 +321,23 @@ define
 
     {HoldsW now has_object(harriet knife(1))} = no
     {HoldsW now poss(acquire(harriet knife(1)))} = yes
-    {HoldsW ex(step(action: acquire(harriet knife(1))) now) has_object(harriet knife(1))} = yes
+    {HoldsW ex(step(action: acquire(harriet knife(1)) obs:nil) now) has_object(harriet knife(1))} = yes
 
     {HoldsW now poss(chop(harriet board(1)))} = no
-    {HoldsW ex(step(action: acquire(harriet knife(1))) now) poss(chop(harriet board(1)))} = no
-    {HoldsW ex(step(action:acquire(harriet board(1))) ex(step(action: acquire(harriet knife(1))) now)) poss(chop(harriet board(1)))} = yes
+    {HoldsW ex(step(action: acquire(harriet knife(1)) obs:nil) now) poss(chop(harriet board(1)))} = no
+    {HoldsW ex(step(action:acquire(harriet board(1)) obs:nil) ex(step(action: acquire(harriet knife(1)) obs:nil) now)) poss(chop(harriet board(1)))} = yes
+
+    {HoldsW now true} = yes
+    {HoldsW now false} = no
+    {HoldsW now neg(true)} = no
+    {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) true} = yes
+    {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) false} = no
 
     {HoldsW now poss(acquire(harriet carrot(1)))} = yes
-    {HoldsW ex(step(action:acquire(thomas lettuce(1))) now) poss(acquire(harriet carrot(1)))} = yes
+    {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) poss(acquire(harriet carrot(1)))} = yes
+    {HoldsW now poss(acquire(harriet tomato(1)))} = unknown
+    {HoldsW ex(step(action:check_for(thomas tomato) obs:agtmap(thomas: check_for(thomas tomato)#no)) now) poss(acquire(harriet tomato(1)))} = unknown
+    {HoldsW ex(step(action:check_for(thomas tomato) obs:agtmap(thomas: check_for(thomas tomato)#yes)) now) poss(acquire(harriet tomato(1)))} = yes
     
   end
 

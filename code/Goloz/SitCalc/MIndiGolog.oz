@@ -204,7 +204,7 @@ define
        {Trans1 seq(nil acquire(thomas lettuce(1))) now nil now Q}
     end}.1.action = acquire(thomas lettuce(1))
     {Search.base.one proc {$ Q}
-       {Trans1 seq(nil acquire(thomas lettuce(1))) ex(step(action: acquire(richard lettuce(1))) now) nil now Q}
+       {Trans1 seq(nil acquire(thomas lettuce(1))) ex(step(action: acquire(richard lettuce(1)) obs:nil) now) nil now Q}
     end} = nil
   end
 

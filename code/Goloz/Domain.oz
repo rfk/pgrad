@@ -129,7 +129,7 @@ define
   end}
 
   {D.outcome check_for yes fun {$ [_ Ingr]}
-      exists(i and(obj_is_type(i Ingr) neg(used(i))))
+      all(i and(obj_is_type(i Ingr) neg(used(i))))
   end}
   {D.outcome check_for no default}
 
