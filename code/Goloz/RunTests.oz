@@ -98,8 +98,9 @@ define
   {Print passed}
 
   {Print "\n==  Testing JointExec\n"}
-  {JointExec.test}
-  {Print passed}
+%  {JointExec.test}
+%  {Print passed}
+  {Print disabled}
 
   {Print "\n==  Testing Planner\n"}
   {Planner.test}

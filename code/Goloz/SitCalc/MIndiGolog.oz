@@ -149,11 +149,11 @@ define
 
   %
   %  Utility function for testing whether a program is final.
-  %  Basically just catches the exception and returns false.
   %
   proc {IsFinal D R B}
-    try {Final D R} B = true
-    catch failure then B = false end
+    Soln = {Search.base.one proc {$ Q} {Final D R} Q=unit end}
+  in
+    B = (Soln \= nil)
   end
 
   %
@@ -164,17 +164,34 @@ define
   %  any empty transitions in the local run until it finds a step
   %  bearing an action, which it returns along with the updated run.
   %
+  %  To avoid generating loads of redundant solutions, this procedure
+  %  insists that chains of empty transitions be ordered according
+  %  to their thred IDs.  Since empty steps do not change the state of
+  %  the world or the ability to perform transitions in other threads,
+  %  different orderings of them are redundant.
+  %
   proc {Trans1 D R Dp Rp S}
     Dr Sr
   in
     {Trans D R Dr Sr}
     if Sr.action == nil then
+      if R \= now andthen R.1.action == nil then
+        {ThreadsOrdered R.1.thred Sr.thred}
+      end
       {Trans1 Dr ex(Sr R) Dp Rp S}
     else
       Dp=Dr Rp=R S=Sr
     end
   end
 
+  proc {ThreadsOrdered T1 T2}
+    for break:B I1 in T1 I2 in T2 do
+      if I1 \= I2 then
+        (I1 < I2) = true
+        {B}
+      end
+    end
+  end
 
   proc {Test}
     {List.length {Search.base.all proc {$ Q}

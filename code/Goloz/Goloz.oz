@@ -31,9 +31,10 @@ define
   end
 
   {Browser.browse Plan}
-  Searcher = {New Search.parallel init(grapefruit:1#ssh)}
-  {Searcher trace(true)}
-  Plan = {Searcher one(SearchFunc $)}
+%  Searcher = {New Search.parallel init(mango:1#ssh)}
+%  {Searcher trace(true)}
+%  Plan = {Searcher one(SearchFunc $)}
+  Plan = {Search.base.one proc {$ JE} {Planner.plan pcall(makeSalad(bowl(1))) JE} end}
   if Plan \= nil then
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}

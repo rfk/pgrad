@@ -18,6 +18,7 @@ export
   IfNot
   Yield
   YieldUniq
+  YieldOrdered
   Member
   Union
   ListAcc
@@ -82,7 +83,8 @@ define
 
   %
   %  Yield unique solutions found by the given Search.object, making
-  %  choicepoints for each.
+  %  choicepoints for each.  Results are passed through function F
+  %  before being returned, to canonicalize them.
   %
   proc {YieldUniq Searcher F Res}
     {YieldUniqRec Searcher F nil Res}
@@ -102,6 +104,32 @@ define
               end
             end
     end
+  end
+
+  %
+  %  Yield solutions from the given search object, ordered according
+  %  to the given function {Better Sol1 Sol2}.
+  %
+  proc {YieldOrdered Searcher Better Res}
+    {YieldOrderedRec Searcher Better 0 nil Res}
+  end
+
+  proc {YieldOrderedRec Searcher Better Count Sols Res}
+    Soln = {Searcher next($)}
+  in
+    {System.show yield_sofar(Count)}
+    case Soln of stopped then {Member Res Sols}
+    []  nil then {System.show yield_ord({List.length Sols})} {Member Res Sols}
+    []  [Res1] then Sols2 = {InsertInOrder Res1 Better Sols} in
+                    {YieldOrderedRec Searcher Better Count+1 Sols2 Res}
+    end
+  end
+
+  proc {InsertInOrder I Ord LIn LOut}
+    case LIn of H|T then
+      if {Ord I H} then LOut = I|LIn
+      else LOut = H|{InsertInOrder I Ord T} end
+    else LOut = [I] end
   end
 
   %

@@ -106,7 +106,7 @@ define
       and(eq(Af Aa) eq(Of Oa) obj_is_type(Of ingredient))
   end}
 
-  {D.causesTrue used acquire_object fun {$ [Of] [_ Oa]}
+  {D.causesTrue used acquire fun {$ [Of] [_ Oa]}
       eq(Of Oa)
   end}
 

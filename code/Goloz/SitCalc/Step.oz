@@ -34,7 +34,7 @@ define
       Test = {Value.condSelect Data test true}
       Act = {Value.condSelect Data action nil}
       Thred = {Value.condSelect Data thred nil}
-      Obs = {Value.condSelect Data obs {SitCalc.newAgentMap}}
+      Obs = {Value.condSelect Data obs nil}
       SeqN = {Value.condSelect Data seqn ~1}
     in
       Step = step(test:Test action:Act thred:Thred obs:Obs seqn:SeqN)

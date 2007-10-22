@@ -89,11 +89,14 @@ define
 
   proc {IndependentActs A1 A2 B}
     if {Actor A1} == {Actor A2} then B = false
-    elseif ({Record.label A1} \= {Record.label A2}) then B = true
-    else Args1 = {Record.toList A1}  Args2 = {Record.toList A2} in
-      B = for return:R default:true Arg1 in Args1 Arg2 in Args2 do
-        if Arg1 == Arg2 then {R false} end
-      end
+    elseif {Record.label A1} == check_for then
+        if {Record.label A2} \= acquire then B = true
+        else B = (A1.2 \= {Record.label A2.2}) end
+    else B = for return:R default:true Arg1 in {Record.toList A1} do
+               for Arg2 in {Record.toList A2} do
+                 if Arg2 == Arg1 then {R false} end
+               end
+             end
     end
   end
 

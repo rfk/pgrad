@@ -16,6 +16,7 @@ import
   MIndiGolog
   JointExec
   SitCalc
+  LP at '../Utils/LP.ozf'
 
   System
   Search
@@ -42,34 +43,93 @@ define
   %  Branches is a list of D#R#N tuples that are still to be processed.
   %
   proc {MakePlan JIn Branches JOut}
+    BClosed BRest
+  in
     {System.showInfo "{MakePlan}"}
     {System.print {List.length Branches}}
-    {System.printInfo " branches to go\n"}
-    case Branches of (D1#R1#N1)|Bs then D R N NewBs in
-      (D#R#N)|NewBs = {HandleExistingEvents JIn D1#R1#N1}
-      choice J2 in
-           {System.showInfo "trying to finish..."}
-           {MIndiGolog.final D R}
-           J2 = {JointExec.finish JIn N}
-           {System.printInfo "branch closed!\n"}
-           {MakePlan J2 {List.append NewBs Bs} JOut}
-      [] Dp Rp S J2 OutNs OutBs in
-           {System.showInfo "trying to trans1"}
-           {MIndiGolog.trans1 D R Dp Rp S}
-           {System.printInfo "...found: "}
-           {System.show S.action}
-           OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
-           {System.showInfo "...inserted"}
-           OutBs = for collect:C N2 in OutNs do
-                         {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
-                      end
-           {System.showInfo "...ok, transition made!"}
-           {SitCalc.showRun OutBs.1.2} {System.printInfo "\n"}
-           {System.show newBranches({List.append OutBs {List.append NewBs Bs}})}
-           {MakePlan J2 {List.append OutBs {List.append NewBs Bs}} JOut}
-      end
+    {System.printInfo " branches to process\n"}
+    {FindOpenBranch JIn Branches BClosed BRest}
+    {System.print {List.length BClosed}} {System.showInfo " closed"}
+    case BRest of (D#R#N)|Bs then Dp Rp S J2 OutNs OutBs in
+       {System.showInfo "trying to trans1"}
+       {FindTrans1 D R Dp Rp S}
+       {System.printInfo "...found: "}
+       {System.show S.action}
+       OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
+       {System.showInfo "...inserted"}
+       OutBs = for collect:C N2 in OutNs do
+                     {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
+                  end
+       {System.showInfo "...ok, transition made!"}
+       {SitCalc.showRun OutBs.1.2} {System.printInfo "\n"}
+       {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
     else {System.showInfo "all done!"} JOut = JIn end
   end
+
+  %
+  %  Find the first open branch in the given list.
+  %  Each branch is rolled forward to handle any existing events
+  %  before it is checked.  The list BClosed will be the closed
+  %  branches at the head of Branches, while BRest is the rest of the
+  %  list.  BRest.1 will be the first open branch.
+  %
+  proc {FindOpenBranch J Branches BClosed BRest}
+    case Branches of (D1#R1#N1)|Bs then D R N NewBs in
+        (D#R#N)|NewBs = {HandleExistingEvents J D1#R1#N1}
+        if {MIndiGolog.isFinal D R} then
+          BClosed = (D#R#N)|_
+          {FindOpenBranch J {List.append NewBs Bs} BClosed.2 BRest}
+        else
+          BClosed = nil BRest = (D#R#N)|{List.append NewBs Bs}
+        end
+    else BClosed = nil BRest = nil end
+  end
+
+
+  %
+  %  Find a step of execution for the given D#R.  This wraps
+  %  MIndiGolog.trans1 to return the potential solutions in order
+  %  of 'most promising' to 'least promising', according to how
+  %  much concurrency is present.
+  %
+  proc {FindTrans1 D R Dp Rp S}
+    Searcher SearchProc
+  in
+    proc {SearchProc Q} Dp Rp S in
+      {MIndiGolog.trans1 D R Dp Rp S}
+      Q = Dp#Rp#S
+    end
+    Searcher = {New Search.object script(SearchProc)}
+    Dp#Rp#S = {LP.yieldOrdered Searcher CompareTrans1}
+  end
+
+  %
+  %  Determine whether the first transition is better than the
+  %  second transition.  This is determined based on how many
+  %  actions the latest step can be performed concurrently with.
+  %
+  proc {CompareTrans1 _#Rp1#S1 _#Rp2#S2 B}
+    N1 = {NumConc Rp1 S1}
+    N2 = {NumConc Rp2 S2}
+  in
+    if N1 > N2 then B=true
+    elseif N1 < N2 then B=false
+    else B=({RunLength Rp1} =< {RunLength Rp2}) end
+  end
+
+  proc {NumConc R S N}
+    case R of ex(S2 R2) then
+      if S2.action == nil then N = {NumConc R2 S}
+      elseif {MustPrec S2 S} then N = 0
+      else N = 1 + {NumConc R2 S} end
+    else N = 0 end
+  end
+
+  proc {RunLength R N}
+    case R of ex(_ R2) then N = 1 + {RunLength R2}
+    else N = 0 end
+  end
+
 
   %
   %  Create a function that will determine ordering when inserting
@@ -146,6 +206,25 @@ define
       Sol = {Search.base.one proc {$ Q} {Plan P Q} end}
       if S \= (Sol \= nil) then raise plan(P Sol\=nil) end end
     end
+
+    local SP SQ in
+      proc {SP Q} D R S in
+       
+       {MIndiGolog.trans1 pcall(makeSalad(bowl(1))) now D R S} Q=D#R#S
+      end
+      proc {SQ Q} SO in
+        SO = {New Search.object script(SP)}
+        Q = {LP.yieldOrdered SO CompareTrans1}
+      end
+      for D#R#S in {Search.base.all SQ} do
+        {System.show D}
+        {System.show R}
+        {System.show S}
+        {System.showInfo "\n"}
+      end
+      fail
+    end
+
   end
 
 end
