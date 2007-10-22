@@ -52,6 +52,7 @@ define
     {System.print {List.length BClosed}} {System.showInfo " closed"}
     case BRest of (D#R#N)|Bs then Dp Rp S J2 OutNs OutBs in
        {System.showInfo "trying to trans1"}
+       if R \= now then {System.show R.1.obs} end
        {FindTrans1 D R Dp Rp S}
        {System.printInfo "...found: "}
        {System.show S.action}
@@ -61,7 +62,7 @@ define
                      {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                   end
        {System.showInfo "...ok, transition made!"}
-       {SitCalc.showRun OutBs.1.2} {System.printInfo "\n"}
+       {System.show outcomes({List.length OutBs})}
        {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
     else {System.showInfo "all done!"} JOut = JIn end
   end

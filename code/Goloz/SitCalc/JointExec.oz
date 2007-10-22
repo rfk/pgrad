@@ -80,6 +80,7 @@ define
 
   proc {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
     Outs = {SitCalc.outcomes {BranchToRun JIn Ns} S}
+    {System.show outs(Outs)}
     AId|OIds = {IntMap.nextAvailLabels JIn S|Outs}
     J1 J2
   in

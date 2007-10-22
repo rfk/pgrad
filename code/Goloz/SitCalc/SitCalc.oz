@@ -187,6 +187,7 @@ define
           {Acc {Step.setobs S Agt S.action}}
         else
          for Res#Cond in AOuts do
+            {System.show Cond}
             if {HoldsW R Cond} \= no then
                {Acc {Step.setobs S Agt S.action#Res}}
             end
@@ -336,6 +337,15 @@ define
     {HoldsW now poss(acquire(harriet carrot(1)))} = yes
     {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) poss(acquire(harriet carrot(1)))} = yes
     {HoldsW now poss(acquire(harriet tomato(1)))} = unknown
+    {HoldsW now used(tomato(1))} = unknown
+    {HoldsW now neg(used(tomato(1)))} = unknown
+    {HoldsW now exists(obj and(obj_is_type(obj tomato) neg(used(obj))))} = unknown
+    {HoldsW now exists(obj and(obj_is_type(obj tomato) used(obj)))} = no
+    {HoldsW now exists(obj and(obj_is_type(obj lettuce) used(obj)))} = no
+    {HoldsW now all(obj used(obj))} = no
+    fail
+    {HoldsW now all(obj neg(used(obj)))} = unknown
+    {HoldsW now all(obj impl(obj_is_type(obj tomato) neg(used(obj))))} = yes
     {HoldsW ex(step(action:check_for(thomas tomato) obs:agtmap(thomas: check_for(thomas tomato)#no)) now) poss(acquire(harriet tomato(1)))} = unknown
     {HoldsW ex(step(action:check_for(thomas tomato) obs:agtmap(thomas: check_for(thomas tomato)#yes)) now) poss(acquire(harriet tomato(1)))} = yes
     
