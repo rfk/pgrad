@@ -24,14 +24,14 @@ define
     Script
   define
     proc {Script JE}
-      {Planner.plan pcall(makeSalad(bowl(1))) JE}
+      {Planner.plan pcall(main) JE}
     end
   end
 
 %  Searcher = {New Search.parallel init(mango:1#ssh)}
 %  {Searcher trace(true)}
 %  Plan = {Searcher one(SearchFunc $)}
-  Plan = {Search.base.one proc {$ JE} {Planner.plan pcall(makeSalad(bowl(1))) JE} end}
+  Plan = {Search.base.one proc {$ JE} {Planner.plan pcall(main) JE} end}
   if Plan \= nil then
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}

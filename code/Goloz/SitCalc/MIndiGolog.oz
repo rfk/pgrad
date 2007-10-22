@@ -173,6 +173,7 @@ define
   proc {Trans1 D R Dp Rp S}
     Dr Sr
   in
+    {System.show R}
     {Trans D R Dr Sr}
     if Sr.action == nil then
       if R \= now andthen R.1.action == nil then

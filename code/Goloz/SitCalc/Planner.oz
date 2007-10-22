@@ -52,6 +52,7 @@ define
     {System.print {List.length BClosed}} {System.showInfo " closed"}
     case BRest of (D#R#N)|Bs then Dp Rp S J2 OutNs OutBs in
        {System.showInfo "trying to trans1"}
+       {System.show D}
        {FindTrans1 D R Dp Rp S}
        {System.printInfo "...found: "}
        {System.show S.action}

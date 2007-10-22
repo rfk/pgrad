@@ -85,7 +85,7 @@ define
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = {FixActionInvariants J2 AId}
+    JOut = J2 %{FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -294,6 +294,8 @@ define
   proc {FixActionInvariants JIn AId JOut}
     As = {List.filter {GetActions JIn} fun {$ I} {Not {Preceeds JIn I AId}} end}
   in
+    {System.showInfo "...fixing invariants for:"}
+    {System.show As}
     {FixInvariantActs JIn As JOut}
   end
 

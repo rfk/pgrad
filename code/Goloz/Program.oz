@@ -8,7 +8,10 @@ define
 
   proc {ProcDef Name Body}
     case Name of main then
-         Body = pcall(makeSalad(bowl(1)))
+         Body = seq( check_for(thomas tomato)
+                     ifte( exists(t and(obj_is_type(t tomato) neg(used(t))))
+                           pcall(makeSalad(bowl(1)))
+                           pcall(makeCake(bowl(1)))))
     [] makeSalad(Cont) then
          Body = seq(conc(conc(pcall(chopTypeInto(lettuce Cont))
                            pcall(chopTypeInto(tomato Cont)))
@@ -17,6 +20,23 @@ define
                          pcall(ensureHas(agt Cont))
                          mix(agt Cont))
                          release(agt Cont))))
+    [] makeCake(Cont) then
+         Body = seq(conc(conc(pcall(placeTypeInto(flour Cont))
+                           pcall(placeTypeInto(sugar Cont)))
+                           pcall(placeTypeInto(egg Cont)))
+                    pick(agt seq(seq(
+                         pcall(ensureHas(agt Cont))
+                         mix(agt Cont))
+                         release(agt Cont))))
+    [] placeTypeInto(Type Cont) then
+         Body = pick(agt pick(obj seq( test(obj_is_type(obj Type))
+                                  seq( acquire(agt obj)
+                                       pcall(placeInto(agt obj Cont))))))
+    [] placeInto(Agt Obj Cont) then
+        Body = seq( pcall(ensureHas(Agt Obj))
+               seq( pcall(ensureHas(Agt Cont))
+               seq( place_in(Agt Obj Cont)
+                    release(Agt Cont))))
     [] chopTypeInto(Type Cont) then
          Body = pick(agt pick(obj seq( test(obj_is_type(obj Type))
                                   seq( acquire(agt obj)
