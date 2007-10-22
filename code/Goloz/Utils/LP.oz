@@ -117,9 +117,8 @@ define
   proc {YieldOrderedRec Searcher Better Count Sols Res}
     Soln = {Searcher next($)}
   in
-    {System.show yield_sofar(Count)}
     case Soln of stopped then {Member Res Sols}
-    []  nil then {System.show yield_ord({List.length Sols})} {Member Res Sols}
+    []  nil then {Member Res Sols}
     []  [Res1] then Sols2 = {InsertInOrder Res1 Better Sols} in
                     {YieldOrderedRec Searcher Better Count+1 Sols2 Res}
     end

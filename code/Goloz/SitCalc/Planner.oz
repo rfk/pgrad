@@ -206,25 +206,6 @@ define
       Sol = {Search.base.one proc {$ Q} {Plan P Q} end}
       if S \= (Sol \= nil) then raise plan(P Sol\=nil) end end
     end
-
-    local SP SQ in
-      proc {SP Q} D R S in
-       
-       {MIndiGolog.trans1 pcall(makeSalad(bowl(1))) now D R S} Q=D#R#S
-      end
-      proc {SQ Q} SO in
-        SO = {New Search.object script(SP)}
-        Q = {LP.yieldOrdered SO CompareTrans1}
-      end
-      for D#R#S in {Search.base.all SQ} do
-        {System.show D}
-        {System.show R}
-        {System.show S}
-        {System.showInfo "\n"}
-      end
-      fail
-    end
-
   end
 
 end

@@ -73,7 +73,7 @@ define
   %  with the corresponding expanded branches in Outcomes.
   %
   proc {Insert JIn Ns S MustPrec JOut Outcomes}
-    Ens = {FindEnablingEvents JIn S.action Ns MustPrec}
+    Ens = {FilterEnablers JIn {FindEnablingEvents JIn S.action Ns MustPrec}}
   in
     {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
   end
@@ -85,7 +85,7 @@ define
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = J2 %{FixActionInvariants J2 AId}
+    JOut = {FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -128,6 +128,15 @@ define
         {FindEnablingEvents J Act {BranchPop J Ns _} MustPrec Ens}
       end
     else Ens = nil end
+  end
+
+  proc {FilterEnablers J NsIn NsOut}
+    NsOut = for collect:C N1 in NsIn do
+              if for return:R default:false N2 in NsIn do
+                   if {Preceeds J N1 N2} then {R true} end
+                 end
+              then skip else {C N1} end
+            end
   end
 
   %
@@ -677,6 +686,9 @@ define
   %  Write a Graphviz dot-file representing the joint execution.
   %  File can be any object supporting the 'write' method.
   %
+  %  We suppress outcome nodes that where they are the only outcome
+  %  for that action.
+  %
   proc {WriteDotFile J File}
     {File write(vs: "digraph G {\n")}
     {IntMap.forEach J
@@ -686,17 +698,33 @@ define
          case Data of act(...) then
            {File write(vs: "n"#N#" [shape=ellipse,label=\""#{Value.toVirtualString Data.action ~1 ~1}#"\"];\n")}
            for E in Data.enablers do
-             {File write(vs: "n"#E#" -> n"#N#";\n")}
+             if {SuppressOutput J E} then
+               {File write(vs: "n"#{IntMap.get J E}.act#" -> n"#N#";\n")}
+             else 
+               {File write(vs: "n"#E#" -> n"#N#";\n")}
+             end
            end
            for O in Data.outcomes do
-             {File write(vs: "n"#N#" -> n"#O#";\n")}
+             if {Not {SuppressOutput J O}} then
+               {File write(vs: "n"#N#" -> n"#O#";\n")}
+             end
            end
          else
-           {File write(vs: "n"#N#" [shape=box,label=\""#{OutcomeLabel Data}#"\"];\n")}
+           if {Not {SuppressOutput J N}} then
+             {File write(vs: "n"#N#" [shape=box,label=\""#{OutcomeLabel Data}#"\"];\n")}
+           end
          end
        end
     } = _
     {File write(vs: "}\n")}
+  end
+
+  proc {SuppressOutput J O B}
+    OData = {IntMap.get J O}
+  in
+    if {List.length {IntMap.get J OData.act}.outcomes} > 1 then
+      B = false
+    else B = true end
   end
 
   proc {OutcomeLabel OData Lbl}

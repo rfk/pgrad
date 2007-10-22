@@ -5,12 +5,10 @@ import
   JointExec at 'SitCalc/JointExec.ozf'
   Planner at '/storage/uni/pgrad/code/Goloz/SitCalc/Planner.ozf'
 
-  Browser
   Search
   Property
   Open
   Application
-  System
 
 define
 
@@ -30,7 +28,6 @@ define
     end
   end
 
-  {Browser.browse Plan}
 %  Searcher = {New Search.parallel init(mango:1#ssh)}
 %  {Searcher trace(true)}
 %  Plan = {Searcher one(SearchFunc $)}
