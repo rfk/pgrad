@@ -1,18 +1,26 @@
-#LyX 1.4.3 created this file. For more info see http://www.lyx.org/
-\lyxformat 245
+#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
 \begin_document
 \begin_header
 \textclass aamas2008
 \options letterpaper
 \language english
 \inputencoding auto
-\fontscheme default
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
 \graphics default
 \paperfontsize default
 \spacing single
 \papersize default
 \use_geometry false
 \use_amsmath 1
+\use_esint 0
 \cite_engine basic
 \use_bibtopic false
 \paperorientation portrait
@@ -26,6 +34,7 @@
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
+\author "" 
 \end_header
 
 \begin_body
@@ -35,12 +44,19 @@ Cooperative Execution of ConGolog Programs
 \end_layout
 
 \begin_layout Author
-Tracking Number: 12345
+Tracking Number: 290
 \end_layout
 
 \begin_layout Abstract
 We show how a team of agents can cooperate to plan and perform the execution
  of a shared ConGolog program in an asynchronous, partially observable domain.
+ Unlike existing ConGolog variants, the executions produced by our system
+ are partially ordered branching action sequences based on a prime event
+ structure.
+ The agents can automatically plan to operate independently where possible,
+ and synchronise when necessary, without changing the input program or the
+ semantics of ConGolog.
+ A preliminary implementation in Oz is demonstrated and discussed.
 \end_layout
 
 \begin_layout Abstract
@@ -84,7 +100,7 @@ status collapsed
 
 
 \backslash
-keywords{ConGolog, Multi-agent planning}
+keywords{ConGolog, Event Structure, Multi-agent planning}
 \end_layout
 
 \end_inset
@@ -97,13 +113,48 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-about (con)golog.
- limited to single agents, or single-agent-like multi-agent domains.
+The programming language ConGolog 
+\begin_inset LatexCommand cite
+key "giacomo00congolog"
+
+\end_inset
+
+, based on the situation calculus 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+, has proven an effective formalism for specifying the behavior of agents
+ in a dynamic world.
+ While mostly used for single-agent domains, it has also found use in a
+ variety of multi-agent settings [TODO: lots of references here].
+ 
+\end_layout
+
+\begin_layout Standard
+However, some representational limitations of the situation calculus make
+ it a less-than-satisfying solution for multi-agent domains.
+ The fundamental unit of reasoning, the situation, is defined as a history
+ of all the actions that have ocurred in the world.
+ Such a toal ordering over actions is far from ideal in a multi-agent setting
+ as it requires constant synchronisation between the agents and prohibits
+ concurrent execution.
+ Moreover, agents are generally assumed to be aware of all actions that
+ occur, as this is required for reasoning.
+ 
+\end_layout
+
+\begin_layout Standard
+This paper shows how these limitations can be overcome, by proposing a technique
+ for the coopertive execution of a shared ConGolog program by a team of
+ agents in an asynchronous, partially observable domain.
 \end_layout
 
 \begin_layout Standard
 about partial observabiliity 
-\begin_inset LatexCommand \cite{kelly07sc_know_obs}
+\begin_inset LatexCommand cite
+key "kelly07sc_know_obs"
 
 \end_inset
 
@@ -112,7 +163,8 @@ about partial observabiliity
 
 \begin_layout Standard
 about event structures 
-\begin_inset LatexCommand \cite{npw79event_structures}
+\begin_inset LatexCommand cite
+key "npw79event_structures"
 
 \end_inset
 
@@ -127,6 +179,106 @@ Background
 The Situation Calculus
 \end_layout
 
+\begin_layout Standard
+The situation calculus 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+ is a logic formalism for representing and reasoning about dynamic worlds.
+ We present a brief review below.
+\end_layout
+
+\begin_layout Standard
+The situation calculus is a many-sorted language of first-order logic augmented
+ with a second-order induction axiom, with the following sorts: 
+\noun on
+Agent
+\noun default
+ terms represent the agents operating in the world; 
+\emph on
+\noun on
+Action
+\emph default
+\noun default
+ terms are functions denoting instantaneous events that can cause the state
+ of the world to change, with the initiating agent indicated by their first
+ argument; 
+\noun on
+Situation
+\noun default
+ terms are histories of the actions that have occurred in the world, with
+ the initial situation represented by 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+ and successive situations built using the function 
+\begin_inset Formula $do\,:\, Action\times Situation\rightarrow Situation$
+\end_inset
+
+; 
+\noun on
+Result
+\noun default
+ terms represent sensing results returned by actions; 
+\noun on
+Object
+\noun default
+ terms represent any other object in the domain.
+ It also distinguishes 
+\emph on
+fluents
+\emph default
+ as predicates representing properties of the world that may change between
+ situations, and so take a situation term as their final argument.
+\end_layout
+
+\begin_layout Standard
+A 
+\emph on
+basic action theory
+\emph default
+ is a set 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+ of situation calculus sentences (with a specific syntactic form as specified
+ in 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+) that describes a particular dynamic world.
+ Queries about the behavior of the world are posed as logical entailment
+ queries relative to this theory.
+ There is a distinguished fluent 
+\begin_inset Formula $Poss(a,s)$
+\end_inset
+
+ that indicates when it is possible to perform an action in a given situation.
+ For example, it is only possible for an agent to release an object if they
+ actually have it:
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+We follow the convention that lower-case roman names indicate variables,
+ with free variables being implicitly universally quantified.
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Formula \[
+Poss(release(agt,obj),s)\equiv HasObject(agt,obj,s)\]
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 ConGolog
 \end_layout
@@ -137,10 +289,6 @@ Event Structures
 
 \begin_layout Section
 Semantics of Cooperative Execution
-\end_layout
-
-\begin_layout Standard
-
 \end_layout
 
 \begin_layout Section
@@ -156,7 +304,9 @@ Conclusions and Future Work
 \end_layout
 
 \begin_layout Standard
-\begin_inset LatexCommand \bibtex[abbrv]{/storage/uni/pgrad/library/references}
+\begin_inset LatexCommand bibtex
+options "abbrv"
+bibfiles "/storage/uni/pgrad/library/references"
 
 \end_inset
 
