@@ -47,7 +47,7 @@ define
   {D.action place_in(agent object container)}
   {D.action transfer(agent container container)}
   {D.action check_for(agent type)}
-  {D.action chop(agent container)}
+  {D.action chop(agent ingredient)}
   {D.action mix(agent container)}
 
   {D.fluent has_object(agent object)}
@@ -71,8 +71,8 @@ define
         and(has_object(Agt Obj) has_object(Agt Dst)
             neg(obj_is_type(Obj appliance)))
   end}
-  {D.adfDef poss chop fun {$ _ [Agt Dst]}
-        and(has_object(Agt Dst)
+  {D.adfDef poss chop fun {$ _ [Agt Obj]}
+        and(has_object(Agt Obj)
             exists(k and(obj_is_type(k knife) has_object(Agt k))))
   end}
   {D.adfDef poss mix fun {$ _ [Agt Dst]}

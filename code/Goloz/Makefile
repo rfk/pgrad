@@ -19,6 +19,9 @@ FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
 %.png: %.dot
 	dot -o $@ -Tpng $<
 
+%.tex: %.dot
+	dot2tex --preproc $< | dot2tex --figonly > $@
+
 goloz: Goloz.oz $(FUNCTORS)
 	ozc -x $< -o goloz 
 
@@ -32,7 +35,7 @@ plan: plan.png
 	gthumb plan.png &
 
 clean:
-	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz *.dot *.png
+	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz #*.dot *.png
 
 todos:
 	grep 'TODO' *.* FOF/*.* Utils/*.* SitCalc/*.*
