@@ -100,7 +100,7 @@ status collapsed
 
 
 \backslash
-terms{Algorithms}
+terms{Languages, Theory}
 \end_layout
 
 \end_inset
@@ -143,8 +143,8 @@ key "pirri99contributions_sitcalc"
 
 , has proven an effective formalism for specifying the behavior of agents
  in a dynamic world.
- While mostly used for single-agent domains, it has also found use in a
- variety of multi-agent settings 
+ While mostly used for single-agent domains, it has also found application
+ in a variety of multi-agent settings 
 \begin_inset LatexCommand cite
 key "Ferrein2005readylog,kelly06hlp_dps,lesperance05ecasl,shapiro98specifying_ma_systems"
 
@@ -169,26 +169,26 @@ situation
  the potential for concurrency.
  Moreover, the required synchronisation may not be possible if agents are
  unaware of the actions performed by others.
- Thus, multi-agent applications of the situation calculus and ConGolog invariabl
-y make the assumption that all actions performed are public, available to
- all agents for the purposes of reasoning and synchronisation.
+ Thus, multi-agent applications of ConGolog invariably make the assumption
+ that all actions performed are public, available to all agents for the
+ purposes of reasoning and synchronisation.
  This is clearly unrealistic in many domains.
 \end_layout
 
 \begin_layout Standard
-This paper shows how these limitations can be overcome, by proposing a technique
- for the cooperative execution of a shared ConGolog program by a team of
- agents in an asynchronous, partially observable domain.
- Key to our approach is moving away from the sitution as the outcome of
- the planning process.
+This paper shows how these limitations can be overcome, by developing a
+ technique for the cooperative execution of a shared ConGolog program by
+ a team of agents in an asynchronous, partially observable domain.
+ Key to our approach is moving away from situation terms as the outcome
+ of the execution planning process.
  Instead, we take inspiration from a formalism for modelling concurrency
- known as a 
+ known as 
 \emph on
 prime event
 \emph default
  
 \emph on
-structure
+structures
 \emph default
  
 \begin_inset LatexCommand cite
@@ -196,7 +196,7 @@ key "npw79event_structures"
 
 \end_inset
 
-, a partially-ordered branching sequence of events.
+, partially-ordered branching sequences of events.
 
 \emph on
  
@@ -212,8 +212,13 @@ joint execution
  as a particular kind of prime event structure that is rich enough to capture
  the concurrent execution of independent actions, including actions with
  sensing results, but restricted enough that it can be reduced to situation
- terms for the purposes of reasoning.Rather than assuming all actions are
- public, we leverage recent work by Kelly and Pearce 
+ terms for the purposes of reasoning.
+ 
+\end_layout
+
+\begin_layout Standard
+Rather than assuming all actions are public, we leverage recent work by
+ Kelly and Pearce 
 \begin_inset LatexCommand cite
 key "kelly07sc_know_obs"
 
@@ -221,6 +226,24 @@ key "kelly07sc_know_obs"
 
  to axiomatize the conditions under which an agent will be aware of the
  occurence of an action.
+ Joint executions are restricted such that whenever action 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+ is required to be performed before action 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+, the agent performing 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ is able to observe the occurence of 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -243,7 +266,7 @@ reference "sec:Background"
  gives the necessary background on the situation calculus, ConGolog and
  prime event structures; section 
 \begin_inset LatexCommand ref
-reference "sec:Planning-Joint-Execs"
+reference "sec:Joint-Execs"
 
 \end_inset
 
@@ -345,11 +368,11 @@ Situation
 \noun on
 Result
 \noun default
- terms represent the results returned by actions; 
+ terms represent the sensing results returned by actions; 
 \noun on
 Object
 \noun default
- terms represent any other object in the domain.
+ terms represent other objects in the domain.
  It also distinguishes 
 \emph on
 fluents
@@ -386,18 +409,18 @@ key "pirri99contributions_sitcalc"
 \begin_inset Formula $SR(a,s)=r$
 \end_inset
 
- determines what the outcome of an action will be, and we assume there is
- a finite set of possible outcomes for each action.
+ determines what the sensing result of an action will be, and we assume
+ there is a finite set of possible results for each action.
  Rather than assuming all actions are public, the fluent 
 \begin_inset Formula $CanObs(agt,a,s)$
 \end_inset
 
- indicates when can agent will be aware of the occurence of an action.
+ indicates when an agent will be aware of the occurence of an action.
  Similarly, 
 \begin_inset Formula $CanSense(agt,a,s)$
 \end_inset
 
- indicates when an agent will be aware of the outcome of an action.
+ indicates when an agent will be aware of the result of an action.
  These can be combined into a function 
 \begin_inset Formula $Obs(agt,a,s)=o$
 \end_inset
@@ -426,7 +449,8 @@ If
 \begin_inset Formula $nil$
 \end_inset
 
-, then the agent is completely unaware of the action having occurred.
+, then the agent is completely unaware of whether or not the action has
+ occurred.
  We define the 
 \emph on
 outcome
@@ -437,6 +461,39 @@ outcome
 
  to be a mapping from agents to the observations they made when that action
  was performed.
+\end_layout
+
+\begin_layout Standard
+To allow reasoning to be done effectively, queries posed to a situation
+ calculus action theory are handled using regression 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+ and must be of the form:
+\begin_inset Formula \[
+\mathcal{D}\models\phi(s)\]
+
+\end_inset
+
+Roughly, this reads formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds in situation 
+\begin_inset Formula $s$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, where 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is some logical combination of fluents.
 \end_layout
 
 \begin_layout Subsection
@@ -459,10 +516,10 @@ key "giacomo99indigolog,Ferrein2005readylog,kelly06hlp_dps"
 \end_inset
 
 ).
- To program an agent using ConGolog one specifies a situation calculus theory
- of action, and a program consisting of actions from the theory connected
- by programming constructs such as if-then-else, while loops, and nondeterminist
-ic choice.
+ To program an agent using ConGolog one specifies a situation calculus action
+ theory, and a program consisting of actions from the theory connected by
+ programming constructs such as if-then-else, while loops, and nondeterministic
+ choice.
  Table 
 \begin_inset LatexCommand ref
 reference "tbl:Golog-Operators"
@@ -915,49 +972,46 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 
 \begin_layout Standard
 ConGolog programs are executed in an offline manner - a complete situation
- term that is a legal execution of the program is planned up front, and
- then executed by the agent in a purely reactive manner.
- While the IndiGolog variant 
+ term constituting a legal execution of the program is determined, and then
+ executed by the agent in a purely reactive manner.
+ While a variant named IndiGolog 
 \begin_inset LatexCommand cite
 key "giacomo99indigolog"
 
 \end_inset
 
- allows planning the be interleaved with execution, we do not consider it
- here (but see section 
+ allows planning to be interleaved with execution, we do not consider such
+ online execution here (but see future work in section 
 \begin_inset LatexCommand ref
 reference "sec:Conclusion"
 
 \end_inset
 
- for some ideas).
+).
 \end_layout
 
 \begin_layout Standard
-When actions may have multiple results, the result of execution planning
- must be a branching structure rather than a straight sequence of actions.
- An example of this approach is 
+When actions can have multiple results, such as sensing actions, the output
+ of the execution planning process must be a branching structure rather
+ than a straight sequence of actions.
+ In 
 \begin_inset LatexCommand cite
 key "lakemeyer99golog_cats"
 
 \end_inset
 
-, where 
-\begin_inset Quotes eld
-\end_inset
-
+ 
+\emph on
 conditional action trees
-\begin_inset Quotes erd
-\end_inset
-
- are used to capture the necessary branching structures.
- We take this a step further by capturing not only branching but also independen
-ce between actions.
+\emph default
+ are used to capture the necessary branching structure.
+ However, these are still totally ordered sequences of actions, and so are
+ unsuitable for many multi-agent settings.
 \end_layout
 
 \begin_layout Standard
-When planning over sensing actions, it is not sufficient to use situation
- terms alone for reasoning, as they do not include sensing information.
+Conversely, planning over sensing actions cannot use situation terms alone
+ for reasoning, as they do not include the sensing information.
  We follow the approach of 
 \begin_inset LatexCommand cite
 key "giacomo99indigolog"
@@ -980,11 +1034,71 @@ history
 \end_inset
 
  gives the situation term corresponding to the history, and 
-\begin_inset Formula $\mathbf{outf}[\sigma]$
+\begin_inset Formula $\mathbf{sensed}[\sigma]$
 \end_inset
 
- is a formula of the situation calculus that captures the information given
- by the action outcomes [TODO more explanation here].
+ gives a formula of the situation calculus that captures the information
+ given by the action outcomes.
+ To determine whether a formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds after a given history, the situation calculus query 
+\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma]\models\phi(\mathbf{end}[\sigma])$
+\end_inset
+
+ is used; see 
+\begin_inset LatexCommand cite
+key "giacomo99indigolog"
+
+\end_inset
+
+ for the details.
+\end_layout
+
+\begin_layout Standard
+Since we are dealing with multi-agent domains, we must consider not only
+ the global history, but the local view of that history that is available
+ to each agent.
+ Agents can only be expected to act based on their local history of observations.
+ Given a history 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, it is straightforward to produce the 
+\emph on
+view 
+\emph default
+of that history that is available to a given agent - it is the sequence
+ of corresponding 
+\begin_inset Formula $(a,Obs(agt,a,s))$
+\end_inset
+
+ pairs, exlucding those where 
+\begin_inset Formula $Obs(agt,a,s)$
+\end_inset
+
+ is 
+\begin_inset Formula $nil$
+\end_inset
+
+.
+ We will denote this by 
+\begin_inset Formula $view(agt,\sigma)$
+\end_inset
+
+.
+ Note that this is equivalent to the function 
+\begin_inset Formula $ObsHist(agt,s)$
+\end_inset
+
+ defined in 
+\begin_inset LatexCommand cite
+key "kelly07sc_know_obs"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -997,35 +1111,54 @@ key "Ferrein2005readylog,kelly06hlp_dps"
 
 .
  The advantages of this approach include the use of nondeterministic operators
- to provide 'dont-care' nondeterminism to the actors for each task, and
- the order of conceptually independent subtasks, and the ability to reason
- about synchronisation over resources etc.
- 
-\end_layout
+ to provide 'dont-care' nondeterminism regarding which team-member carries
+ out which task, the use of the concurrency operator (
+\begin_inset Formula $||$
+\end_inset
 
-\begin_layout Standard
-As an example of the kinds of program we're interested in, we adopt the
- example from 
+) to easily compose subtasks, and the ability to plan for and resolve interactio
+ns between agents such as conflict over resources.
+ To demonstrate the approach, we adopt the example from 
 \begin_inset LatexCommand cite
 key "kelly06hlp_dps"
 
 \end_inset
 
  of a team of robotic chefs cooperating to prepare a simple salad.
- The control program might look something like figure 
+ Their shared control program is given in figure 
 \begin_inset LatexCommand ref
 reference "fig:makesalad-program"
 
 \end_inset
 
 .
+ It says, in essence: 
+\emph on
+somebody
+\emph default
+ chop a lettuce, 
+\emph on
+somebody
+\emph default
+ chop a tomato, and 
+\emph on
+somebody 
+\emph default
+chop a carrot into the bowl, then mix.
+ In section 
+\begin_inset LatexCommand ref
+reference "sec:Implementation"
+
+\end_inset
+
+ we will show the execution that our system produces for this program.
 \end_layout
 
 \begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \begin_inset Box Boxed
@@ -1042,12 +1175,19 @@ status open
 
 \begin_layout Standard
 \begin_inset Formula \begin{multline*}
-\mathbf{proc}\, MakeSalad(bowl):\\
+\mathbf{proc}\,\, MakeSalad(bowl):\\
 \left[\pi(agt,\, ChopTypeInto(Lettuce,bowl))||\right.\\
 \pi(agt,\, ChopTypeInfo(Tomato,bowl))\\
 \left.\pi(agt,\, ChopTypeInto(Carrot,bowl))\right];\\
 \pi(agt,acquire(agt,bowl)\,;\, mix(agt,bowl)\,;\\
-\, release(agt,dest))\,\mathbf{end}\end{multline*}
+\, release(agt,dest))\,\mathbf{end}\\
+\\\mathbf{proc}\,\, ChopTypeInto(type,bowl):\\
+\pi(obj,\, ObjIsType(obj,type)?\,;\, ChopInto(obj,bowl))\,\mathbf{end}\\
+\\\mathbf{proc}\,\, ChopInto(obj,bowl):\\
+\pi(agt,\,\pi(k,\, ObjIsType(k,knife)?\,;\\
+acquire(agt,obj)\,;\, acquire(agt,k)\,;\, chop(agt,obj)\,;\\
+acquire(agt,bowl)\,;\, placeIn(agt,bowl)\,;\\
+release(agt,k)\,;\,\left[nil\,|\, release(agt,bowl)\right]\mathbf{end}\end{multline*}
 
 \end_inset
 
@@ -1110,7 +1250,7 @@ prime event structures
 \begin_inset Formula $V$
 \end_inset
 
- is a set of events;
+ is a set of events; 
 \begin_inset Formula $\prec$
 \end_inset
 
@@ -1143,7 +1283,7 @@ conflict
 \begin_inset Formula $\gamma$
 \end_inset
 
- is a function associating a label to each event in 
+ is a function assigning a label to each event in 
 \begin_inset Formula $V$
 \end_inset
 
@@ -1160,7 +1300,8 @@ configuration
 \end_inset
 
  in which no pair of events conflict.
- Each configuation represents a partial run of execution of the system.
+ Each configuation represents a potential partial run of execution of the
+ system.
  As shown in 
 \begin_inset LatexCommand cite
 key "pratt91modeling_conc_with_geom"
@@ -1172,7 +1313,7 @@ cy, and can be compiled into automata for efficient execution.
 \end_layout
 
 \begin_layout Standard
-For convenience, we will define a prime event structure in terms of finite
+For convenience, we will define our prime event structures in terms of finite
  sets of direct enablers (
 \begin_inset Formula $ens(i)$
 \end_inset
@@ -1198,17 +1339,19 @@ For convenience, we will define a prime event structure in terms of finite
 \begin_inset Formula $\#$
 \end_inset
 
- is the smallest relation satisfying 
-\begin_inset Formula $\forall i,j\,[\exists i',j'\, i'\preceq i\wedge j'\preceq j\wedge j\in alts(i)]\rightarrow i\#j$
+ is the smallest relation satisfying:
+\begin_inset Formula \[
+\forall i,j\in V:[\exists i',j'\in V:i'\preceq i\wedge j'\preceq j\wedge j\in alts(i)]\rightarrow i\#j\]
+
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Section
-Planning Joint Executions
+Joint Executions
 \begin_inset LatexCommand label
-name "sec:Planning-Joint-Execs"
+name "sec:Joint-Execs"
 
 \end_inset
 
@@ -1220,37 +1363,111 @@ Independent Actions
 \end_layout
 
 \begin_layout Standard
-Reasoning in the situation calculus is always done relative to a situation
- term, and we do nothing to alter this.
- However, we need to capture the notion that some actions can be performed
- in either order without affecting what holds in the resulting situation.
- Formally, we identify independent actions 
-\begin_inset Formula $a_{1}$
+As discussed in section 
+\begin_inset LatexCommand ref
+reference "sec:Background"
+
 \end_inset
 
- and 
-\begin_inset Formula $a_{2}$
+, posing queries in the situation calculus requires a full situation term.
+ But if we are to provide agents with only a partial order on the actions
+ to be performed, we cannot know precisely what the situation term will
+ be.
+ We need to capture the notion that some actions can be performed in either
+ order without affecting what holds in the resulting situation.
+ Define 
+\emph on
+independent
+\emph default
+ actions, identified by 
+\begin_inset Formula $indep(a_{1},a_{2})$
 \end_inset
 
- as those satisfying:
-\begin_inset Formula \begin{multline*}
-Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2}s))\\
-Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))\\
-P_{f}(\overrightarrow{x},do(a_{1},do(a_{2},s)))\equiv P_{f}(\overrightarrow{x},do(a_{2},do(a_{1},s)))\\
-F_{f}(\overrightarrow{x},do(a_{1},do(a_{2},s)))=r\equiv F_{f}(\overrightarrow{x},do(a_{2},do(a_{1},s)))=r\end{multline*}
+, as those satisfying the following restrictions:
+\end_layout
 
+\begin_layout Itemize
+\begin_inset Formula $Poss(a_{1}s)\equiv Poss(a_{1},do(a_{2},s))$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $P(do(a_{1},do(a_{2},s)))\equiv P(do(a_{2},do(a_{1},s)))$
+\end_inset
+
+ for all predicate fluents 
+\begin_inset Formula $P(s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $F(do(a_{1},do(a_{2},s)))=r\equiv P(do(a_{2},do(a_{1},s)))=r$
+\end_inset
+
+ for all functional fluents 
+\begin_inset Formula $F(s)=r$
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-It should be possible for the agents to perform independent actions without
- syncrhonising.
+We will say two situations are 
+\emph on
+equivalent
+\emph default
+, denoted 
+\emph on
+
+\begin_inset Formula $equiv(s_{1},s_{2})$
+\end_inset
+
+,
+\emph default
+ if they are identical up to transposition of pairs of adjacent independent
+ actions.
+ It is straightforward (but tedious, and therefore omitted) to show that
+ if 
+\begin_inset Formula $equiv(s_{1},s_{2})$
+\end_inset
+
+, then 
+\begin_inset Formula $\mathcal{D}\models\phi(s_{1})$
+\end_inset
+
+ iff 
+\begin_inset Formula $\mathcal{D}\models\phi(s_{2})$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
-We define equivalent situations to be [TODO].
+This notion of equivalence can be extended to histories in the obvious manner,
+ with the analagous result that if 
+\begin_inset Formula $equiv(\sigma_{1},\sigma_{2})$
+\end_inset
+
+, then 
+\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{2}])$
+\end_inset
+
+ iff 
+\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma_{1}]\models\phi(\mathbf{end}[\sigma_{1}])$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
@@ -1259,15 +1476,15 @@ Joint Executions
 
 \begin_layout Standard
 To support distributed concurrent execution, we define a 
-\begin_inset Quotes eld
-\end_inset
-
+\emph on
 joint execution
-\begin_inset Quotes erd
+\emph default
+ as special kind of prime event structure 
+\begin_inset Formula $(A\cup O,ens,alts,\gamma,<)$
 \end_inset
 
- as special kind of prime event structure.
- It contains two types of event, 
+.
+ It contains two disjoint sets of events, 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1275,7 +1492,11 @@ action
 \begin_inset Quotes erd
 \end_inset
 
- events and corresponding 
+ events 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1283,61 +1504,37 @@ outcome
 \begin_inset Quotes erd
 \end_inset
 
- events.
- As well as the partial order 
-\begin_inset Formula $\prec$
-\end_inset
-
-, it has a 
-\emph on
-total 
-\emph default
-order 
-\begin_inset Formula $<$
-\end_inset
-
- on events, such that 
-\begin_inset Formula $\prec$
-\end_inset
-
- is consistent with 
-\begin_inset Formula $<$
+ events 
+\begin_inset Formula $O$
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-For each action event 
-\begin_inset Formula $a$
+ For each action event 
+\begin_inset Formula $a\in A$
 \end_inset
 
 , 
-\begin_inset Formula $\gamma(a)$
-\end_inset
-
- is the action performed, 
 \begin_inset Formula $ens(a)$
 \end_inset
 
- is a set of outcome events and 
+ is a set of outcome events, 
 \begin_inset Formula $alts(a)$
 \end_inset
 
- is empty.
+ is empty, and 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+ is the action performed.
  For each outcome event 
-\begin_inset Formula $o$
+\begin_inset Formula $o\in O$
 \end_inset
 
 , 
-\begin_inset Formula $\gamma(o)$
-\end_inset
-
- is the observations made by each agent, 
 \begin_inset Formula $ens(o)$
 \end_inset
 
- is a single action event and 
+ is a single action event, 
 \begin_inset Formula $alts(o)$
 \end_inset
 
@@ -1349,46 +1546,127 @@ For each action event
 \begin_inset Formula $ens(o')=ens(o)$
 \end_inset
 
+, and 
+\begin_inset Formula $\gamma(o)$
+\end_inset
+
+ is an outcome as produced by the 
+\begin_inset Formula $Outs(a,s)$
+\end_inset
+
+ function for the action 
+\begin_inset Formula $\gamma(ens(o))$
+\end_inset
+
 .
- 
+ A simple example of a joint execution is shown in figure 
+\begin_inset LatexCommand ref
+reference "fig:example-je"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
-TODO: nice diagram here Clearly a configuration of a joint execution corresponds
- to a history as defined in section TODO.
-\end_layout
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
 
 \begin_layout Standard
-The following requirment is key to the whole affair:
-\end_layout
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
 
 \begin_layout Standard
-\begin_inset Formula \[
-a_{1}<a_{2}\rightarrow a_{1}\prec a_{2}\,\vee\, indep(a_{1},a_{2})\]
+\align center
+
+\family sans
+\series bold
+\size tiny
+\begin_inset Include \include{listings/je_example.tex}
+preview false
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Subsection
-Outcome Sets
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-An outcome set is a subset of events 
-\begin_inset Formula $e\subset V$
-\end_inset
+\begin_inset Caption
 
- where every member is an outcome event, satisfying:
-\begin_inset Formula \[
-\forall o_{1},o_{2}\in e\,.\,\neg(o_{1}\#o_{2})\]
+\begin_layout Standard
+A simple joint execution
+\end_layout
 
 \end_inset
 
 
+\begin_inset LatexCommand label
+name "fig:example-je"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The additional component of a joint execution over a standard prime event
+ structure is a 
+\emph on
+total 
+\emph default
+order on events 
+\begin_inset Formula $<$
+\end_inset
+
+ that is consitent with the partial order 
+\begin_inset Formula $\prec$
+\end_inset
+
+ induced by the enabling relation.
+ This will be used to relate parts of the execution back to a situation
+ term to perform reasoning.
+\end_layout
+
+\begin_layout Standard
+An 
+\emph on
+outcome set
+\emph default
+ is a minimal set of non-conflicting outcome events, i.e.
+ a set of events 
+\begin_inset Formula $e\subset O$
+\end_inset
+
+ satisfying:
 \begin_inset Formula \[
-\forall o_{1},o_{2}\in e\,.\,\neg(o_{1}\prec o_{2}\,\vee\, o_{2}\prec o_{1})\]
+\forall o_{1},o_{2}\in e\,:\,\neg(o_{1}\#o_{2})\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\forall o_{1},o_{2}\in e\,:\,\neg(o_{1}\prec o_{2}\,\vee\, o_{2}\prec o_{1})\]
 
 \end_inset
 
@@ -1401,12 +1679,21 @@ Recall that a
 configuration
 \emph default
  is a partial run of execution of the prime event structure.
+ Clearly we can identify any configuration ending in an outcome event 
+\begin_inset Formula $o$
+\end_inset
+
+ as corresponding to a unique history 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, as it will be a set of alternating actions and outcomes.
  We call the 
 \emph on
 histories
 \emph default
  of an outcome set, denoted 
-\begin_inset Formula $hist(e)$
+\begin_inset Formula $hists(e)$
 \end_inset
 
 , the set of all configurations containing all elements of 
@@ -1421,11 +1708,46 @@ histories
 \end_layout
 
 \begin_layout Standard
-TODO: overlapping histories, agent histories, extensions.
-\end_layout
+We say that an outcome set 
+\begin_inset Formula $e_{1}$
+\end_inset
 
-\begin_layout Subsection
-Branches
+ 
+\emph on
+covers 
+\emph default
+an outcome set 
+\emph on
+
+\begin_inset Formula $e_{2}$
+\end_inset
+
+, 
+\emph default
+denoted by 
+\begin_inset Formula $e_{1}\sqsubseteq e_{2}$
+\end_inset
+
+, if every event in 
+\begin_inset Formula $e_{1}$
+\end_inset
+
+ is either also in 
+\begin_inset Formula $e_{2}$
+\end_inset
+
+, or preceeds something in 
+\begin_inset Formula $e_{2}$
+\end_inset
+
+.
+ This defines a partial ordering on outcome sets:
+\begin_inset Formula \[
+e_{1}\sqsubseteq e_{2}\,\equiv\,\forall o_{1}\in e_{1}\,:\,\exists o_{2}\in e_{2}\,:\, o_{1}\preceq o_{2}\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1449,17 +1771,273 @@ That is, for every event less than the maximal element of
 
 , it is either in the branch, conflicts with something in the branch, or
  preceeds something in the branch.
- A branch thus identifies a unique outcome for each action event.
- Given the restriction (TODO), this yields a very useful property: all histories
- of 
-\begin_inset Formula $b$
+ A branch thus identifies a unique outcome for each action event that (totally)
+ preceeds 
+\begin_inset Formula $max(b)$
 \end_inset
 
- are equivalent to the unique history determined by 
+.
+\end_layout
+
+\begin_layout Subsection
+Restrictions on Joint Executions
+\end_layout
+
+\begin_layout Standard
+We now impose several additional restrictions on joint executions.
+ With these restrictions in place, they are an excellent structure for the
+ construction of a joint plan for the execution of a program.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Independent events have independent actions:
+\series default
+ We require that the following holds for all action events 
+\begin_inset Formula $a_{1},a_{2}\in A$
+\end_inset
+
+ :
+\begin_inset Formula \begin{equation}
+a_{1}<a_{2}\,\rightarrow\, a_{1}\prec a_{2}\,\vee\, a_{1}\#a_{2}\,\vee\, indep(\gamma(a_{1}),\gamma(a_{2}))\label{eq:tord-indep}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In words, this states that if 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ is after 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+, but the partial order allows them to be performed out of order, then the
+ corresponding actions must be independent.
+ With this restriction, all histories 
+\begin_inset Formula $hists(b)$
+\end_inset
+
+ of a branch are equivalent to the unique history generated by the ordering
+ 
 \begin_inset Formula $<$
 \end_inset
 
 .
+ Using 
+\begin_inset Formula $hist(b)$
+\end_inset
+
+ to refer to this particular history, it is then possible to determine whether
+ a formula holds after the execution of a given branch:
+\begin_inset Formula \[
+\mathcal{D}\cup\mathbf{sensed}[hist(b)]\models\phi(\mathbf{end}[hist(b)])\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is the key step to integrating joint executions into the ConGolog planning
+ process - we will replace situation terms with branches.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Actions are enabled on a unique branch:
+\series default
+ We restrict the enabling set for each action event to be a branch, rather
+ than an arbitrary set of outcome events.
+ In practise this means that when inserting a new action into the joint
+ execution, one must specify the branch to which it belongs.
+ This restriction allows us to determine what holds immediately before an
+ event 
+\begin_inset Formula $a\in A$
+\end_inset
+
+ using 
+\begin_inset Formula $hist(ens(a))$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+All possible outcomes are considered:
+\series default
+ Clearly planning requires that all possible outcomes of an action be considered.
+ For each action event 
+\begin_inset Formula $a\in A$
+\end_inset
+
+, and each possible outcome 
+\begin_inset Formula $r$
+\end_inset
+
+ of that action, if: 
+\begin_inset Formula \[
+D\cup\mathbf{sensed}[hist(ens(a))]\not\,\models\, Out(\gamma(a),\mathbf{end}[hist(ens(a))])\neq r\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+then:
+\begin_inset Formula \[
+\exists o\in E\,:\, ens(o)=\{a\}\,\wedge\,\gamma(o)=r\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Actions are enabled by observable events:
+\series default
+ If an action is to be enabled by an outcome event 
+\begin_inset Formula $o$
+\end_inset
+
+ produced by another agent, it is clearly necessary that the agent performing
+ the action be able to observe the occurence of 
+\begin_inset Formula $o$
+\end_inset
+
+ - otherwise, it has no way of synchronising its actions with those of its
+ teammate.
+ Let 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+be the agent responsible for performing an action event 
+\begin_inset Formula $a$
+\end_inset
+
+, then we require that:
+\begin_inset Formula \[
+\forall o\in ens(a)\,:\,\gamma(o)(actor(a))\neq nil\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Overlapping views enable identical actions:
+\series default
+ To ensure that the joint execution can actually be carried out by the agents,
+ there must be no confusion about whether a particular action is enabled.
+ Lifting 
+\begin_inset Formula $view()$
+\end_inset
+
+ to operate on sets of histories in the obvious way, then 
+\begin_inset Formula $view(actor(a),hists(ens(a)))$
+\end_inset
+
+ is the set of all local histories after which 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+ is required to perform the action 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+.
+ However, since the agent has only a local viewpoint, it may be the case
+ that some other outcome set produces an identical local history.
+ The following restriction avoids such potential for confusion.
+\end_layout
+
+\begin_layout Standard
+Say that an outcome set 
+\begin_inset Formula $e$
+\end_inset
+
+ 
+\emph on
+overlaps
+\emph default
+ another set 
+\begin_inset Formula $e'$
+\end_inset
+
+ if they could produce an identical local history from the perspective of
+ a given agent:
+\begin_inset Formula \begin{multline*}
+overlaps(agt,e,e')\,\isdef\\
+view(agt,hists(e))\,\cap\, view(agt,hists(e'))\,\neq\varnothing\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then the 
+\emph on
+minimal overlapping set
+\emph default
+ for an outcome set 
+\begin_inset Formula $e$
+\end_inset
+
+ is the set of all outcome sets 
+\begin_inset Formula $e'$
+\end_inset
+
+ satisfying:
+\begin_inset Formula \[
+overlaps(agt,e,e')\wedge\neg\exists e''\left[overlaps(agt,e,e'')\wedge e''\sqsubset e'\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For each 
+\begin_inset Formula $a\in A$
+\end_inset
+
+, every 
+\begin_inset Formula $e$
+\end_inset
+
+ in the minimal overlapping set of 
+\begin_inset Formula $ens(a)$
+\end_inset
+
+ for 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+ must enable an action 
+\begin_inset Formula $a'$
+\end_inset
+
+ with identical action 
+\begin_inset Formula $\gamma(a')=\gamma(a)$
+\end_inset
+
+.
+ This ensures that the agent's local information is always enough to know
+ when it should perform an action.
 \end_layout
 
 \begin_layout Section
@@ -1485,142 +2063,26 @@ key "vanroy03mozart_logic"
  allows the team of agents to share the planning workload.
 \end_layout
 
-\begin_layout Subsection
-Program Steps
-\end_layout
-
-\begin_layout Subsection
-Planning Procedure
-\end_layout
-
 \begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-
-\size scriptsize
-\begin_inset Include \verbatiminput{listings/Planner.oz}
-preview false
+To make things more concrete, figure 
+\begin_inset LatexCommand ref
+reference "fig:plan-output"
 
 \end_inset
 
+ shows the output of our system when run on the 
+\begin_inset Formula $MakeSalad$
+\end_inset
 
-\end_layout
+ example of figure 
+\begin_inset LatexCommand ref
+reference "fig:makesalad-program"
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-Code for main planning loop
-\end_layout
-
-\end_inset
-
-
-\begin_inset LatexCommand label
-name "fig:planning-code"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This is primarily to access its parallel search feature 
-\begin_inset LatexCommand cite
-key "schulte00oz_parallel"
-
-\end_inset
-
-, which is described below.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-
-\size scriptsize
-\begin_inset Include \verbatiminput{listings/psearch.oz}
-preview false
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-Code to run planning procedure in parallel
-\end_layout
-
-\end_inset
-
-
-\begin_inset LatexCommand label
-name "fig:parallel-search"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
+.
+ Since all actions in this program have a single outcome, the outcome events
+ have been suppressed for brevity.
 \end_layout
 
 \begin_layout Standard
@@ -1682,13 +2144,302 @@ name "fig:plan-output"
 
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Program Steps
+\end_layout
+
 \begin_layout Standard
+While the ability to determine whether actions are independent is necessary
+ in constructing partially-ordered executions, it is not sufficient.
+ Actions can have an order imposed on them directly by the program (for
+ example by the sequence construct 
+\begin_inset Formula $a_{1};a_{2}$
+\end_inset
+
+).
+ The execution of the program may require that some additional conditions
+ are true immediately prior to executing an action (for example to satisfy
+ a test construct 
+\begin_inset Formula $\phi?$
+\end_inset
+
+), which would be falsified by an otherwise independent action.
+\end_layout
+
+\begin_layout Standard
+To ensure that the dependencies between actions reflect the needs of the
+ program being executed, we augment the implementation of the 
+\begin_inset Formula $Trans$
+\end_inset
+
+ predicate to keep additional information about what transitions were made,
+ and why.
+ These are encapsulated in 
+\emph on
+step
+\emph default
+ objects, which are combined into 
+\emph on
+runs 
+\emph default
+of program execution.
+ The procedure implementing 
+\begin_inset Formula $Trans$
+\end_inset
+
+ takes a program and a run, and returns a remaining program along with a
+ new program step.
+\end_layout
+
+\begin_layout Subsection
+JointExec ADT
+\end_layout
+
+\begin_layout Subsection
+Planning Procedure
+\end_layout
+
+\begin_layout Standard
+The code for planning a joint execution is shown in figure 
+\begin_inset LatexCommand ref
+reference "fig:planning-code"
+
+\end_inset
+
+.
+ The main procedure is 
+\begin_inset Formula $MakePlan$
+\end_inset
+
+, a recursive procedure that operates on a list of branches-in-progress
+ of the form 
+\begin_inset Formula $(D,R,B)$
+\end_inset
+
+.
+ Here 
+\begin_inset Formula $B$
+\end_inset
+
+ is a branch in the join execution under construction, 
+\begin_inset Formula $D$
+\end_inset
+
+ is the program remaining to be executed on that branch, and 
+\begin_inset Formula $R$
+\end_inset
+
+ is the sequence of program steps made so far.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\size scriptsize
+\begin_inset Include \verbatiminput{listings/Planner.oz}
+preview false
+
+\end_inset
+
 
 \end_layout
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+Code for main planning loop
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:planning-code"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Each itertion of the planning loop proceeds as follows.
+ The procedure 
+\begin_inset Formula $FindOpenBranch$
+\end_inset
+
+ updates each branch to account for events that were added since it was
+ last processed, then searches the list to find a branch for which 
+\begin_inset Formula $Final(D,R)$
+\end_inset
+
+ does not hold.
+ If all branches are final, planning can terminate.
+ Otherwise, the procedure 
+\begin_inset Formula $FindTrans1$
+\end_inset
+
+ is called to find a new step of execution for that branch.
+ The action is inserted into the joint execution, which returns a list of
+ new branches, one for each outcome of the action.
+ Each of these outcomes is added to the list of branches, and the loop is
+ started again.
+\end_layout
+
+\begin_layout Standard
+Of particular interest is the procedure 
+\begin_inset Formula $FindTrans1$
+\end_inset
+
+, which uses the encapsulated search functionality of Mozart to yield possible
+ next steps according to an estimate of how good they are.
+ The procedure 
+\begin_inset Formula $LP.yieldOrdered$
+\end_inset
+
+ yields the solutions of the given search context, sorted using the procedure
+ 
+\begin_inset Formula $CompareSteps$
+\end_inset
+
+.
+ This procedure (not shown) gives preference to steps that can be performed
+ concurrently with as many existing actions as possible.
+\end_layout
+
+\begin_layout Subsection
+Disitributing the Planning Workload
+\end_layout
+
+\begin_layout Standard
+A primary motivation in using Mozart for our implementation is its strong
+ support for distributed logic programming.
+ Utilising the parallel search feature 
+\begin_inset LatexCommand cite
+key "schulte00oz_parallel"
+
+\end_inset
+
+, the planning workload can be transparently distributed between the agents.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\size scriptsize
+\begin_inset Include \verbatiminput{listings/psearch.oz}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+Code to run planning procedure in parallel
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:parallel-search"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset LatexCommand ref
+reference "fig:parallel-search"
+
+\end_inset
+
+ shows the necessary code, which should be executed by one of the agents.
+ The planning procedure is encapsulated in a 
+\emph on
+functor
+\emph default
+, a portable code object.
+ A parallel search object is then created, that uses an ssh connection to
+ spawn remote computations on each of the three agents (identified by their
+ DNS names).
+ The object is asked to provide a single solution, which is then written
+ to a file in the graphviz 'dot' format for easy display.
+\end_layout
+
+\begin_layout Standard
+For the simple example shown in this paper, parallel plan search does not
+ demonstrate a significant time saving, since almost no backtracking is
+ required to reach a solution.
+ For more difficult problems, significant gains can be expected.
 \end_layout
 
 \begin_layout Section
