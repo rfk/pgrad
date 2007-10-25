@@ -45,7 +45,9 @@
 \begin_body
 
 \begin_layout Title
-Cooperative Execution of ConGolog Programs
+Cooperative Execution in the Situation Calculus
+\newline
+using Prime Event Structures
 \end_layout
 
 \begin_layout Author
@@ -53,25 +55,24 @@ Tracking Number: 290
 \end_layout
 
 \begin_layout Abstract
-We show how a team of agents can cooperate to plan and perform the execution
- of a shared ConGolog program in asynchronous, partially observable domains.
- Existing ConGolog variants generate totally ordered sequences of actions,
- requiring constant synchronisation that may be undesirable or even impossible
- in a multi-agent setting.
- Our new approach produces 
-\begin_inset Quotes eld
-\end_inset
-
+We develop a powerful extension to the situation calculus for representing
+ and reasoning about the cooperative execution of tasks by a team of agents
+ in asynchronous, partially observable domains.
+ Existing applications of the situation calculus to multi-agent systems
+ utilise totally ordered sequences of actions, requiring constant synchronisatio
+n between agents that may be undesirable or even impossible in some settings.
+ Our new approach utilises 
+\emph on
 joint executions
-\begin_inset Quotes erd
-\end_inset
-
+\emph default
 , partially ordered branching action sequences based on a prime event structure.
- Using these structures, agents can automatically plan to operate independently
- where possible, and synchronise when necessary, without changing the input
- program or the semantics of ConGolog.
+ By way of demonstration, we show how a team of agents can use these structures
+ to cooperatively plan and perform an execution of a shared ConGolog program.
+ The agents automatically plan to operate independently where possible,
+ and synchronise when necessary, without changing the input program or the
+ semantics of ConGolog.
  Our implementation leverages the distributed logic programming capabilities
- of the Mozart programming system to share the execution planning workload
+ of the Mozart system to transparently share the execution planning workload
  between the agents.
 \end_layout
 
@@ -129,20 +130,20 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-The programming language ConGolog 
-\begin_inset LatexCommand cite
-key "giacomo00congolog"
-
-\end_inset
-
-, based on the situation calculus 
+The situation calculus 
 \begin_inset LatexCommand cite
 key "pirri99contributions_sitcalc"
 
 \end_inset
 
-, has proven an effective formalism for specifying the behavior of agents
- in a dynamic world.
+, and programming languages such as ConGolog 
+\begin_inset LatexCommand cite
+key "giacomo00congolog"
+
+\end_inset
+
+ that are built upon it, has proven an effective formalism for specifying
+ and reasoning about the behavior of agents in a dynamic world.
  While mostly used for single-agent domains, it has also found application
  in a variety of multi-agent settings 
 \begin_inset LatexCommand cite
@@ -151,25 +152,26 @@ key "Ferrein2005readylog,kelly06hlp_dps,shapiro02casl"
 \end_inset
 
 .
- 
+ Among its advantages are an effective reasoning procedure based on regression,
+ a straightforward encoding as a logic program, and a wide range of extensions
+ such as concurrent events, time, and natural actions.
 \end_layout
 
 \begin_layout Standard
-However, some representational limitations of the situation calculus make
- it a less-than-satisfying solution for multi-agent domains.
- The fundamental unit of reasoning, and the outcome of the execution planning
- process, is the 
+However, some representational limis of the situation calculus make it a
+ less-than-satisfying solution for rich multi-agent domains.
+ The fundamental unit of reasoning, and the output of the ConGolog execution
+ planning process, is the 
 \emph on
 situation
 \emph default
- - a complete, ordered history of all the actions that have ocurred in the
- world.
+: a complete, ordered history of all actions that have ocurred in the world.
  Working with a total ordering over actions is far from ideal in a multi-agent
- setting as it requires constant synchronisation between the agents, restricting
- the potential for concurrency.
- Moreover, the required synchronisation may not be possible if agents are
- unaware of the actions performed by others.
- Thus, multi-agent applications of ConGolog invariably make the assumption
+ setting as it requires constant synchronisation between the agents.
+ This severely limits the potential for concurrency in the system.
+ Moreover, such synchronisation may not even be possible if agents are unaware
+ of the actions performed by others.
+ Multi-agent applications of the situation calculus thus invariably assume
  that all actions performed are public, available to all agents for the
  purposes of reasoning and synchronisation.
  This is clearly unrealistic in many domains.
@@ -177,12 +179,8 @@ situation
 
 \begin_layout Standard
 This paper shows how these limitations can be overcome, by developing a
- technique for the cooperative execution of a shared ConGolog program by
- a team of agents in an asynchronous, partially observable domain.
- Key to our approach is moving away from situation terms as the outcome
- of the execution planning process.
- Instead, we take inspiration from a formalism for modelling concurrency
- known as 
+ formalism for explicitly working with only a partial ordering on actions.
+ We take inspiration from a model of concurrent computation known as 
 \emph on
 prime event
 \emph default
@@ -196,24 +194,22 @@ key "npw79event_structures"
 
 \end_inset
 
-, partially-ordered branching sequences of events.
+, which are partially-ordered branching sequences of events.
 
 \emph on
  
 \emph default
 We define a 
-\begin_inset Quotes eld
-\end_inset
-
+\emph on
 joint execution
-\begin_inset Quotes erd
-\end_inset
-
+\emph default
  as a particular kind of prime event structure that is rich enough to capture
  the concurrent execution of independent actions, including actions with
  sensing results, but restricted enough that it can be unambiguously reduced
  back to situation terms for the purposes of reasoning.
- 
+ To demonstrate the utility of the approach, we show how a team of agents
+ can cooperate to plan and perform an execution of a shared ConGolog program
+ in an asynchronous, partially observable domain.
 \end_layout
 
 \begin_layout Standard
@@ -226,7 +222,7 @@ key "kelly07sc_know_obs"
 
  to axiomatize the conditions under which an agent will be aware of the
  occurence of an action.
- Joint executions are restricted to ensure that whenever action 
+ Joint executions are restricted such that whenever action 
 \begin_inset Formula $a_{1}$
 \end_inset
 
@@ -243,29 +239,23 @@ key "kelly07sc_know_obs"
 \end_inset
 
 .
- Synchronisation thus occurs by observing the actions of other agents, only
- when possible and necessary to ensure correctness of the execution.
+ Synchronisation thus occurs by observing the actions of other agents.
+ If this is not possible, yet synchronisation is needed to ensure correctness,
+ then construction of the joint execution will fail.
  In general, whether an action is enabled at any stage of execution can
  be determined using only the information available to the agent who is
  to perform it.
 \end_layout
 
 \begin_layout Standard
-We do 
-\emph on
-not
-\emph default
- change the semantics of the ConGolog language, or require any modifications
- to ConGolog programs.
- Our approach operates at the meta-level, using the situation calculus theory
- of action and the semantics of ConGolog as reasoning tools.
- This is in the spirit of existing extensions to ConGolog, such as 
-\begin_inset LatexCommand cite
-key "giacomo99indigolog"
-
-\end_inset
-
-.
+Joint executions thus allow us to capture the actions that a team of agents
+ is to perform in service of some shared task, without requiring constant
+ synchronisation between the agents, and without assuming that agents know
+ all the actions that have been performed, while still utilising existing
+ reasoning methods based on full situation terms.
+ This is a significant increase in expressiveness over existing aproaches
+ to modelling multi-agent teams in the situation calculus.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -282,15 +272,15 @@ reference "sec:Joint-Execs"
 
 \end_inset
 
- defines the concept of a joint execution and argues for its appropriateness
- as the outcome of the execution planning process; section 
+ defines the concept of a joint execution and argues for its utility in
+ multi-agent settings; section 
 \begin_inset LatexCommand ref
 reference "sec:Implementation"
 
 \end_inset
 
- describes our implementation and gives a small example of its output; section
- 
+ describes our implementation of a ConGolog interpreter using jint executions
+ and gives a small example of its output; section 
 \begin_inset LatexCommand ref
 reference "sec:Related-Work"
 
@@ -307,6 +297,9 @@ reference "sec:Conclusion"
 
 \begin_layout Section
 Background
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand label
 name "sec:Background"
 
@@ -326,7 +319,7 @@ key "pirri99contributions_sitcalc"
 
 \end_inset
 
- is a logic formalism for representing and reasoning about dynamic worlds.
+ is a formalism for representing and reasoning about dynamic worlds.
  We use a variant with multiple agents 
 \begin_inset LatexCommand cite
 key "shapiro02casl"
@@ -334,13 +327,6 @@ key "shapiro02casl"
 \end_inset
 
 , sensing actions and partial observability of actions 
-\begin_inset LatexCommand cite
-key "kelly07sc_know_obs"
-
-\end_inset
-
-.
- For simplicity we do not include concurrent actions as used in 
 \begin_inset LatexCommand cite
 key "kelly07sc_know_obs"
 
@@ -474,8 +460,7 @@ outcome
 \begin_inset Formula $Out(a,s)=o$
 \end_inset
 
- to be a mapping from agents to the observations they made when that action
- was performed.
+ to be a mapping from agents to the observations they make from that action.
 \end_layout
 
 \begin_layout Standard
@@ -524,10 +509,12 @@ formula
 \begin_inset Formula $\mathcal{R}$
 \end_inset
 
- transforms these queries into a form that can be answered using only what
- is known about the initial situation, which can be quite efficient in practise
+ transforms these queries into a form that can be answered based onnly what
+ is known about the initial situation, which can be quite efficient in practice
  (e.g.
- for closed world databases).
+ for prolog-style closed world databases).
+ This restriction means that the full situation term is reuquired in order
+ to perform reasoning.
 \end_layout
 
 \begin_layout Subsection
@@ -578,6 +565,8 @@ status collapsed
 \begin_inset Text
 
 \begin_layout Standard
+
+\series bold
 Operator
 \end_layout
 
@@ -587,6 +576,8 @@ Operator
 \begin_inset Text
 
 \begin_layout Standard
+
+\series bold
 Meaning
 \end_layout
 
@@ -888,7 +879,7 @@ Concurrent execution
 \begin_inset Caption
 
 \begin_layout Standard
-Some ConGolog Operators
+Operators from the ConGolog language
 \begin_inset LatexCommand label
 name "tbl:Golog-Operators"
 
@@ -967,8 +958,13 @@ Two predicates
 \end_inset
 
 .
- The full semantics are available in the references, but as an example consider
- equation (
+ The full semantics are available in 
+\begin_inset LatexCommand cite
+key "giacomo00congolog"
+
+\end_inset
+
+, but as an example consider equation (
 \begin_inset LatexCommand ref
 reference "eqn:trans_conc_orig"
 
@@ -1019,7 +1015,7 @@ key "giacomo99indigolog"
 \end_inset
 
  allows planning to be interleaved with execution, we do not consider such
- online execution here.
+ online execution in this paper.
 \end_layout
 
 \begin_layout Standard
@@ -1036,7 +1032,8 @@ key "lakemeyer99golog_cats"
 \emph on
 conditional action trees
 \emph default
- are used to capture the necessary branching structure.
+ are used as an extension of raw situation terms to capture the necessary
+ branching.
  However, these are still totally ordered sequences of actions, and so are
  less than ideal for many multi-agent settings.
 \end_layout
@@ -1074,12 +1071,12 @@ history
 \end_inset
 
  gives a formula of the situation calculus that captures the information
- given by the action outcomes.
+ given by the sensing results.
  To determine whether a formula 
 \begin_inset Formula $\phi$
 \end_inset
 
- holds after a given history, the situation calculus query 
+ holds after a given history, the query 
 \begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma]\models\phi(\mathbf{end}[\sigma])$
 \end_inset
 
@@ -1134,7 +1131,7 @@ key "kelly07sc_know_obs"
 
 \end_inset
 
-.
+, but is a macro rather than a term in the language of the situation calculus.
 \end_layout
 
 \begin_layout Standard
@@ -1148,13 +1145,10 @@ key "Ferrein2005readylog,kelly06hlp_dps"
 .
  The advantages of this approach include the use of nondeterministic operators
  to provide 'dont-care' nondeterminism regarding which team-member carries
- out which task, the use of the concurrency operator (
-\begin_inset Formula $||$
-\end_inset
-
-) to easily compose subtasks, and the ability to plan for and resolve interactio
-ns between agents such as conflict over resources.
- To demonstrate the approach, we adopt the example from 
+ out which task, the use of the concurrency operator to easily compose subtasks,
+ and the ability to plan for and resolve interactions between agents such
+ as conflict over resources.
+ To demonstrate our approach, we adopt the example from 
 \begin_inset LatexCommand cite
 key "kelly06hlp_dps"
 
@@ -1180,7 +1174,7 @@ reference "sec:Implementation"
 
 \end_inset
 
- we will show the execution that our system produces for this program.
+ we will show the joint execution that our system produces for this program.
 \end_layout
 
 \begin_layout Standard
@@ -1205,11 +1199,11 @@ status open
 \begin_layout Standard
 \begin_inset Formula \begin{multline*}
 \mathbf{proc}\,\, MakeSalad(bowl):\\
-\left[\pi(agt,\, ChopTypeInto(Lettuce,bowl))||\right.\\
-\pi(agt,\, ChopTypeInfo(Tomato,bowl))\\
-\left.\pi(agt,\, ChopTypeInto(Carrot,bowl))\right];\\
+\left[ChopTypeInto(Lettuce,bowl)||\right.\\
+ChopTypeInfo(Tomato,bowl)\\
+\left.ChopTypeInto(Carrot,bowl)\right];\\
 \pi(agt,acquire(agt,bowl)\,;\, mix(agt,bowl)\,;\\
-\, release(agt,dest))\,\mathbf{end}\\
+\, release(agt,bowl))\,\mathbf{end}\\
 \\\mathbf{proc}\,\, ChopTypeInto(type,bowl):\\
 \pi(obj,\, ObjIsType(obj,type)?\,;\, ChopInto(obj,bowl))\,\mathbf{end}\\
 \\\mathbf{proc}\,\, ChopInto(obj,bowl):\\
@@ -1271,11 +1265,13 @@ key "npw79event_structures"
 \emph on
 prime event structures
 \emph default
-, defined as four-tuples 
-\begin_inset Formula $(V,\prec,\#,\gamma)$
+, defined as a four-tuple:
+\begin_inset Formula \[
+(V,\prec,\#,\gamma)\]
+
 \end_inset
 
- where: 
+ were 
 \begin_inset Formula $V$
 \end_inset
 
@@ -1320,28 +1316,29 @@ configuration
  in which no pair of events conflict.
  Each configuation represents a potential partial run of execution of the
  system.
- As shown in 
-\begin_inset LatexCommand cite
-key "pratt91modeling_conc_with_geom"
-
-\end_inset
-
-, event structures have a deep relationship to various other models of concurren
-cy, and can be converted into finite automata for efficient execution.
 \end_layout
 
 \begin_layout Standard
 For convenience, we will define our prime event structures using finite
- sets of direct enablers (
+ sets of direct enablers 
 \begin_inset Formula $ens(i)$
 \end_inset
 
-) and direct alternatives (
+ and direct alternatives 
 \begin_inset Formula $alts(i)$
 \end_inset
 
-) for each event 
+ for each event 
 \begin_inset Formula $i$
+\end_inset
+
+.
+ To maintain symmetry, 
+\begin_inset Formula $i\in alts(j)$
+\end_inset
+
+ iff 
+\begin_inset Formula $j\in alts(i)$
 \end_inset
 
 .
@@ -1363,11 +1360,22 @@ For convenience, we will define our prime event structures using finite
 
 \end_inset
 
+ As shown in 
+\begin_inset LatexCommand cite
+key "pratt91modeling_conc_with_geom"
 
+\end_inset
+
+, event structures have a deep relationship to various other models of concurren
+cy.
+ They can be converted into a kind of finite automaton for efficient execution.
 \end_layout
 
 \begin_layout Section
 Joint Executions
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand label
 name "sec:Joint-Execs"
 
@@ -1421,6 +1429,8 @@ independent
 \begin_inset Formula $\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$
 \end_inset
 
+
+\newline
  for all predicate fluents 
 \begin_inset Formula $\mathcal{P}(s)$
 \end_inset
@@ -1432,6 +1442,8 @@ independent
 \begin_inset Formula $\mathcal{F}(do(a_{1},do(a_{2},s)))=r\equiv\mathcal{F}(do(a_{2},do(a_{1},s)))=r$
 \end_inset
 
+
+\newline
  for all functional fluents 
 \begin_inset Formula $\mathcal{F}(s)$
 \end_inset
@@ -1492,17 +1504,17 @@ Joint Executions
 \end_layout
 
 \begin_layout Standard
-To support distributed concurrent execution, we define a 
+We define a 
 \emph on
 joint execution
 \emph default
  as special kind of prime event structure with the following components:
- 
-\begin_inset Formula $(A,O,ens,alts,\gamma,<)$
+\begin_inset Formula \[
+(A,O,ens,alts,\gamma,<)\]
+
 \end_inset
 
-.
- It contains two disjoint sets of events, 
+It contains two disjoint sets of events, 
 \emph on
 action
 \emph default
@@ -1620,7 +1632,8 @@ preview false
 \begin_inset Caption
 
 \begin_layout Standard
-A simple joint execution
+A simple joint execution.
+ Elliptical nodes are action events, box nodes are outcome events.
 \end_layout
 
 \end_inset
@@ -1649,14 +1662,14 @@ order on events
 \begin_inset Formula $<$
 \end_inset
 
- that is consitent with the partial order 
+ that is consistent with the partial order 
 \begin_inset Formula $\prec$
 \end_inset
 
  induced by the enabling relation.
  This will be used to relate parts of the execution back to a situation
- term in order to perform reasoning.
- In practise, this order will be determined by the order of insertion of
+ term in order to perform reasoning using standard techniques.
+ In practice, this order will be determined by the order of insertion of
  events into the execution.
 \end_layout
 
@@ -1690,11 +1703,11 @@ configuration
 \begin_inset Formula $o$
 \end_inset
 
- corresponding to a unique history 
+ corresponds to a unique history 
 \begin_inset Formula $\sigma$
 \end_inset
 
-, as it is a set of alternating actions and outcomes.
+, as it is a set of alternating actions and their outcomes.
  We call the 
 \emph on
 histories
@@ -1709,6 +1722,12 @@ histories
 
 , and ending in an event from 
 \begin_inset Formula $e$
+\end_inset
+
+.
+ The unique history of a branch that is consistent with the total order
+ will be denoted 
+\begin_inset Formula $hist(e)$
 \end_inset
 
 .
@@ -1788,7 +1807,7 @@ branch
 , is a special case of an outcome set that meets the following additional
  requirement:
 \begin_inset Formula \[
-\forall i<max(b):\,\, i\in b\,\oplus\,(\exists i'\in b\,.\, i\#i'\,\vee\, i\prec i')\]
+\forall i<max(b):\,\, i\in b\,\oplus\,(\exists i'\in b:\,\, i\#i'\,\vee\, i\prec i')\]
 
 \end_inset
 
@@ -1802,8 +1821,8 @@ That is, every event less than the maximal element of
 
  is either in the branch, conflicts with something in the branch, or preceeds
  something in the branch.
- A branch thus identifies a unique outcome for each action event that below
- 
+ A branch thus identifies a unique outcome for each action event that is
+ ordered below 
 \begin_inset Formula $max(b)$
 \end_inset
 
@@ -1812,6 +1831,9 @@ That is, every event less than the maximal element of
 
 \begin_layout Subsection
 Restrictions on Joint Executions
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand label
 name "sub:Restrictions"
 
@@ -1822,18 +1844,19 @@ name "sub:Restrictions"
 
 \begin_layout Standard
 We now impose several restrictions on the structure of a joint execution,
- to ensure they are suitable for representing a plan of execution for a
- team of agents.
-\end_layout
+ to ensure they are suitable for representing the actions to be performed
+ by a team of agents.
+\newline
 
-\begin_layout Itemize
-
-\series bold
-Independent events have independent actions
 \end_layout
 
 \begin_layout Standard
-We require that the following holds for all action events 
+
+\series bold
+Independent events have independent actions:
+\series default
+ Joint executions are restricted such that the following holds for all action
+ events 
 \begin_inset Formula $a_{1},a_{2}\in A$
 \end_inset
 
@@ -1847,7 +1870,7 @@ a_{1}<a_{2}\,\rightarrow\, a_{1}\prec a_{2}\,\vee\, a_{1}\#a_{2}\,\vee\, indep(\
 \end_layout
 
 \begin_layout Standard
-In words, this states that if 
+In words: if 
 \begin_inset Formula $a_{2}$
 \end_inset
 
@@ -1855,20 +1878,16 @@ In words, this states that if
 \begin_inset Formula $a_{1}$
 \end_inset
 
- in the total order, but the partial order allows them to be performed in
- either order, then the corresponding actions must be independent.
+ in the total order, but the execution allows them to be performed in either
+ order, then the corresponding actions must be independent.
  
 \end_layout
 
 \begin_layout Standard
 With this restriction, all histories corresponding to a branch are equivalent
- to the unique history generated by the total order.
- Using 
-\begin_inset Formula $hist(b)$
-\end_inset
-
- to refer to this particular history, it is then possible to determine whether
- a formula holds after the execution of a given branch:
+ to the history generated by the total order.
+ It is thus possible to determine whether a formula holds after the execution
+ of a given branch, using the query:
 \begin_inset Formula \[
 \mathcal{D}\cup\mathbf{sensed}[hist(b)]\models\phi(\mathbf{end}[hist(b)])\]
 
@@ -1894,17 +1913,17 @@ This is a key point and is worth re-iterating: regardless of the precise
 
  generated by the total order.
  This allows us to work with execution branches rather than histories or
- situation terms when planning an execution.
-\end_layout
+ situation terms during planning.
+\newline
 
-\begin_layout Itemize
-
-\series bold
-Actions are enabled by a unique branch
 \end_layout
 
 \begin_layout Standard
-We restrict the enabling set for each action event to be a branch, rather
+
+\series bold
+Actions are enabled by a unique branch:
+\series default
+ We restrict the enabling set for each action event to be a branch, rather
  than an arbitrary set of outcome events.
  In practice this means that when inserting a new action into the joint
  execution, one must specify the branch to which it belongs.
@@ -1918,17 +1937,21 @@ We restrict the enabling set for each action event to be a branch, rather
 \end_inset
 
 .
+ In combination with the restriction above it ensures that whenever an action
+ becomes enabled, it will remain possible until it is performed.
+ Moreover, any events that occur after it is enabled but before it is performed
+ will not interfere with its effects, as they must be independent.
  
-\end_layout
+\newline
 
-\begin_layout Itemize
-
-\series bold
-All possible outcomes are considered
 \end_layout
 
 \begin_layout Standard
-Clearly planning requires that all possible outcomes of an action be considered.
+
+\series bold
+All possible outcomes are considered:
+\series default
+ Clearly planning requires that all possible outcomes of an action be considered.
  For each action event 
 \begin_inset Formula $a\in A$
 \end_inset
@@ -1948,7 +1971,7 @@ Out(\gamma(a),\mathbf{end}[hist(ens(a))])\neq r\end{multline*}
 \end_layout
 
 \begin_layout Standard
-then there will be a corresponding outcome event:
+then there must be a corresponding outcome event:
 \begin_inset Formula \[
 \exists o\in E:\,\, ens(o)=\{a\}\,\wedge\,\gamma(o)=r\]
 
@@ -1957,14 +1980,12 @@ then there will be a corresponding outcome event:
 
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Standard
 
 \series bold
-Actions are enabled by observable events
-\end_layout
-
-\begin_layout Standard
-If an action is to be enabled by an outcome event 
+Actions are enabled by observable events:
+\series default
+ If an action is to be enabled by an outcome event 
 \begin_inset Formula $o$
 \end_inset
 
@@ -1993,14 +2014,12 @@ If an action is to be enabled by an outcome event
 
 \end_layout
 
-\begin_layout Itemize
+\begin_layout Standard
 
 \series bold
-Overlapping views enable identical actions
-\end_layout
-
-\begin_layout Standard
-To ensure that the joint execution can actually be carried out by the agents,
+Overlapping views enable identical actions:
+\series default
+ To ensure that the joint execution can actually be carried out by the agents,
  there must be no confusion about whether a particular action is enabled.
  Lifting the function 
 \begin_inset Formula $view()$
@@ -2076,7 +2095,9 @@ overlaps(agt,e,e')\wedge\neg\exists e''\left[overlaps(agt,e,e'')\wedge e''\sqsub
 \end_layout
 
 \begin_layout Standard
-This is the minimal set of outcome sets that the agent could potentially
+The minimality requirement ensures that every member of this set is a proper
+ branch.
+ This is then the minimal set of branches that the agent could potentially
  confuse for the set 
 \begin_inset Formula $e$
 \end_inset
@@ -2088,7 +2109,7 @@ This is the minimal set of outcome sets that the agent could potentially
 \end_inset
 
 , every 
-\begin_inset Formula $e$
+\begin_inset Formula $b$
 \end_inset
 
  in the minimal overlapping set of 
@@ -2114,7 +2135,11 @@ This is the minimal set of outcome sets that the agent could potentially
 \emph on
 event
 \emph default
- is enabled, it will know enough to determine the action it must perform.
+ is enabled, it will know enough to determine the specific 
+\emph on
+action
+\emph default
+ that it must perform.
 \end_layout
 
 \begin_layout Subsection
@@ -2128,8 +2153,8 @@ joint execution
 \emph default
  as a prime event structure with some additional restrictions.
  It is our contention that such a structure is highly suitable for representing
- the actions to be performed by a team when executing a shared ConGolog
- program.
+ the actions to be performed by a team in service of some shared task, such
+ as executing a shared ConGolog program.
  
 \end_layout
 
@@ -2164,14 +2189,17 @@ On the other, joint executions are significantly more flexible than previous
 \end_layout
 
 \begin_layout Standard
-Of course, the ultimate demonstration of the utility of these structures
- is to implement a ConGolog variant using them.
+To demonstrate the utility of these structures, we have implemented an interpret
+er for ConGolog that produces joint executions as its output.
  In the next section, we highlight the key aspects of our implementation
- and give a small example of its output.
+ and give a small example of the executions it produces.
 \end_layout
 
 \begin_layout Section
 Implementation
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand label
 name "sec:Implementation"
 
@@ -2191,9 +2219,9 @@ available at [identifying information omitted]
 
 \end_inset
 
- utilises the Mozart programming system 
+ of a ConGolog interpreter utilises the Mozart programming system 
 \begin_inset LatexCommand cite
-key "vanroy03mozart_logic"
+key "vanroy99mozart"
 
 \end_inset
 
@@ -2294,7 +2322,7 @@ name "fig:plan-output"
 
 \begin_layout Standard
 In this domain there are three agents, but only two knives are available.
- The agents must thus synchronise their use of these resources.
+ The agents must therefore synchronise their use of these resources.
  Actions are taken to be independent if they deal with different objects.
  As seen in figure 
 \begin_inset LatexCommand ref
@@ -2314,8 +2342,9 @@ reference "fig:plan-output"
 \end_inset
 
 , to be publicly observable.
- This output is clearly a significant improvement over a simple sequence
- of actions as produced by existing ConGolog systems.
+ This output is clearly a significant improvement over a totally ordered
+ sequence (or conditional tree) of actions as produced by existing ConGolog
+ systems.
 \end_layout
 
 \begin_layout Standard
@@ -2329,7 +2358,8 @@ Program Steps
 
 \begin_layout Standard
 While the ability to determine whether actions are independent is necessary
- in constructing partially-ordered executions, it is not sufficient.
+ in constructing partially-ordered executions of a ConGolog program, it
+ is not sufficient.
  Actions might have an order imposed on them directly by the program (for
  example by the sequence construct 
 \begin_inset Formula $a_{1};a_{2}$
@@ -2373,7 +2403,7 @@ test: an additional fluent formula that must hold immediately before performing
 \end_layout
 
 \begin_layout Itemize
-thread: a sequence of '1' and '2' characters indicating the concurrent thread
+thread: a sequence of 'l' and 'r' characters indicating the concurrent thread
  in which the step is performed
 \end_layout
 
@@ -2392,7 +2422,7 @@ run
 \begin_inset Formula $Trans$
 \end_inset
 
- takes a program and a run as input, and returns a new program and new step
+ takes a program and a run as input, returning a new program and new step
  of execution.
  As an example consider the code in figure 
 \begin_inset LatexCommand ref
@@ -2474,7 +2504,7 @@ name "fig:trans-code"
 
 \begin_layout Standard
 Note that whenever the procedure descends through the left side of a concurrency
- operator it pushes a '1' onto the step's 
+ operator it pushes an 'l' onto the step's 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2482,7 +2512,7 @@ thread
 \begin_inset Quotes erd
 \end_inset
 
- attribute, and each descent through the right side pushes a '2'.
+ attribute, and each descent through the right side pushes an 'r'.
  Two steps can be said to come from different threads as long as neither
  
 \begin_inset Quotes eld
@@ -2493,7 +2523,19 @@ thread
 \end_inset
 
  attribute is a prefix of the other.
- 
+\end_layout
+
+\begin_layout Standard
+We say that two steps are 
+\emph on
+ordered
+\emph default
+ if any of the following holds: their action terms are not indepdentent;
+ ones thread is a prefix of the other; ones action falsifies the test condition
+ associated with the other.
+ When building a joint execution, ordered steps are forced to be executed
+ in the order they were generated by the planner, while unordered steps
+ may be performed in either order.
 \end_layout
 
 \begin_layout Subsection
@@ -2504,11 +2546,11 @@ Joint Execution ADT
 We implement a joint execution as an abstract data type.
  The primary operation is inserting a new action event.
  This requires the branch on which to insert it, and a list of previous
- events that the new action 
+ events that the new action
 \emph on
-may
+ 
 \emph default
- be executed independently of.
+may be executed independently of.
  It returns a list of new branches, one for each outcome of the action.
  It also ensures that the restrictions listed in section 
 \begin_inset LatexCommand ref
@@ -2516,8 +2558,8 @@ reference "sub:Restrictions"
 
 \end_inset
 
- are maintained, possibly by inserting additional action events on other
- branches to satisfy the restriction on overlapping views.
+ are maintained, in particular by inserting additional action events on
+ other branches to satisfy the restriction on overlapping views.
 \end_layout
 
 \begin_layout Subsection
@@ -2672,7 +2714,7 @@ A primary motivation in using Mozart for our implementation is its strong
  support for distributed logic programming.
  Utilising the parallel search feature 
 \begin_inset LatexCommand cite
-key "schulte00oz_parallel"
+key "Schulte00constraint_services"
 
 \end_inset
 
@@ -2767,6 +2809,9 @@ For the simple example shown in this paper, parallel plan search does not
 
 \begin_layout Section
 Related Work
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand label
 name "sec:Related-Work"
 
@@ -2787,8 +2832,8 @@ key "Ferrein2005readylog"
  soccer team.
  Their domain satisfies the assumption that all actions are public, so they
  can afford to produce totally ordered plans.
- We consider this paper a generalisation of such an approach to a wider
- variety of domains.
+ The techniques developed in this paper would generalise such an approach
+ to a wider variety of domains.
  (although 
 \begin_inset LatexCommand cite
 key "Ferrein2005readylog"
@@ -2871,6 +2916,9 @@ key "backstrom99reordering"
 
 \begin_layout Section
 Conclusions and Future Work
+\end_layout
+
+\begin_layout Standard
 \begin_inset LatexCommand label
 name "sec:Conclusion"
 

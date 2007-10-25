@@ -1,13 +1,3 @@
-functor
-
-import
-
-  JointExec at 'SitCalc/JointExec.ozf'
-  Search
-  Open
-
-define
-
   functor SearchFunc
   import
     Planner at 'SitCalc/Planner.ozf'
@@ -22,10 +12,8 @@ define
   Searcher = {New Search.parallel init(thomas:1#ssh 
                                        richard:1#ssh
                                        harriet:1#ssh)}
-  Plan = {Searcher one(SearchFunc $)}
-  if Plan \= nil then
-    {JointExec.writeDotFile Plan.1
+  JE = {Searcher one(SearchFunc $)}
+  if JE \= nil then
+    {JointExec.writeDotFile JE.1
      {New Open.file init(name:'plan.dot' flags:[write create])}}
   end
-
-end
