@@ -33,6 +33,7 @@ define
   {Property.put 'print.depth' 1000}
   {Property.put 'errors.width' 1000}
   {Property.put 'errors.depth' 1000}
+  {Property.put 'print.verbose' false}
 
   StdOut = {New Open.file init(name: stdout flags: [write])}
   proc {Print S}
@@ -90,12 +91,15 @@ define
   {Print passed}
 
   {Print "\n==  Testing SitCalc\n"}
-  {SitCalc.test}
-  {Print passed}
+%  try
+    {SitCalc.test}
+    {Print passed}
+%  catch _ then skip end
 
   {Print "\n==  Testing MIndiGolog\n"}
-  {MIndiGolog.test}
-  {Print passed}
+%  {MIndiGolog.test}
+%  {Print passed}
+  {Print disabled}
 
   {Print "\n==  Testing JointExec\n"}
 %  {JointExec.test}
@@ -103,10 +107,11 @@ define
   {Print disabled}
 
   {Print "\n==  Testing Planner\n"}
-  {Planner.test}
-  {Print passed}
+%  {Planner.test}
+%  {Print passed}
+  {Print disabled}
 
   {Print "\n\n===  Done  ===\n\n"}
-  {Application.exit 0}
+%  {Application.exit 0}
 
 end

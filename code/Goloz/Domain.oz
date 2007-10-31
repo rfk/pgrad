@@ -53,6 +53,7 @@ define
   {D.fluent has_object(agent object)}
   {D.fluent used(object)}
   {D.fluent contents(container object)}
+  {D.fluent purple(object)}
 
   {D.adfluent poss}
   {D.adfluent canObs(agent)}
@@ -133,10 +134,10 @@ define
   end}
   {D.outcome check_for no default}
 
-  {D.initially all(obj nexists(agt has_object(agt obj)))}
-  %{D.initially all(obj impl(neg(obj_is_type(obj tomato)) neg(used(obj))))}
-  {D.initially all(obj neg(used(obj)))}
-  {D.initially all(obj nexists(c contents(obj c)))}
+  %{D.initially all(obj nexists(agt has_object(agt obj)))}
+  {D.initially all(obj impl(neg(obj_is_type(obj tomato)) neg(used(obj))))}
+  %{D.initially all(obj neg(used(obj)))}
+  %{D.initially all(obj nexists(c contents(obj c)))}
 
   % TODO: this constraint hangs the prover
   %{D.constraint all(agt1 all(agt2 all(obj impl(and(has_object(agt1 obj) has_object(agt2 obj)) eq(agt1 agt2)))))}

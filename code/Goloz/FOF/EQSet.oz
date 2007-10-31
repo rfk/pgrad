@@ -17,6 +17,7 @@ import
 
   Space
   Combinator
+  System
 
 export
 
@@ -62,10 +63,11 @@ define
   %  see what happens.  If it fails, they're inconsistent.
   %
   proc {Consistent EQ B}
-    P = proc{$ R} {Assert EQ} R=unit end
+    P = proc {$ R} {Assert EQ} R=unit end
     S = {Space.new P}
+    St = {Space.askVerbose S}
   in
-    case {Space.askVerbose S} of failed then B=false
+    case St of failed then B=false
     else B=true
     end
   end
@@ -74,12 +76,14 @@ define
   %  Assert constraints for an equality set into the current space.
   %
   proc {Assert EQ}
-    for EList in EQ.t do thread
-       {Combinator.'or' {List.toTuple '#' {List.map EList MakeConsT}}}
-    end end
-    for EList in EQ.f do thread
-       {Combinator.'or' {List.toTuple '#' {List.map EList MakeConsF}}}
-    end end
+    for EList in EQ.t do Cs in
+       Cs = {List.toTuple '#' {List.map EList MakeConsT}}
+       thread {Combinator.'or' Cs} end
+    end
+    for EList in EQ.f do Cs in
+       Cs = {List.toTuple '#' {List.map EList MakeConsF}}
+       thread {Combinator.'or' Cs} end
+    end
   end
 
   proc {MakeConsT T1#T2 Cons}
@@ -93,8 +97,9 @@ define
 
   proc {Test}
     E = {Init}
-    E1 E2 E3 E4
+    E1 E2 E3 E4 E5 E6 E7
     V1 V2
+    X1 X2 X3
   in
     E1 = {AddT E [b#b]}
     {Consistent E1 true}
@@ -106,6 +111,12 @@ define
     V1 = p(q(f))  V2 = q(f)
     E4 = {AddF E3 [V1#p(q(f))]}
     {Consistent E4 false}
+    E5 = {AddF {AddT E [X3#q(X1)]} [X3#q(X1)]}
+    {Consistent E5 false}
+    E6 = {AddT E5 [X1#X2]}
+    {Consistent E6 false}
+    E7 = {AddF {AddT E [X1#7]} [X1#7]}
+    {Consistent E7 false}
   end
 
 end

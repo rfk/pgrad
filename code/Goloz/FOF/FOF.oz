@@ -430,6 +430,7 @@ define
   %
   proc {Theory_done SData Outcome Res}
     {Lang.assign {StripVE {Dictionary.items SData.fvBind}}}
+    {System.show SData.aVars}
     %{Lang.assign {StripVE SData.aVars}}
     Res = SData
   end
@@ -568,11 +569,13 @@ define
     else
        EVars = PData.eVars
     end
-    proc {Check _}
+    proc {Check _} Sol in
       {EQSet.assert PData.eqs}
-      {Lang.assign EVars}
+      Sol = {Search.base.one proc {$ Q} {Lang.assign EVars} Q=EVars end}
+      not Sol=nil end
     end
     S = {Space.new Check}
+    local Status = {Space.askVerbose S} in {Wait Status} {System.show status(Status)} end
     case {Space.askVerbose S} of failed then B = false
     else B = true end
   end
@@ -617,14 +620,14 @@ define
     %
     % If we already have an open path of this polarity, don't bother.
     %
-    if Polarity == 0 andthen {Not {IsFree SDIn.open_0}} then
+    if Polarity == 0 andthen {IsTrue SDIn.open_0} then
       SDIn=SDOut PDIn=PDOut Res=ok
-    elseif Polarity == 1 andthen {Not {IsFree SDIn.open_1}} then
+    elseif Polarity == 1 andthen {IsTrue SDIn.open_1} then
       SDIn=SDOut PDIn=PDOut Res=ok
     %
     % If we're not interested in closing this path, don't bother
     %
-    elseif L == 0 andthen ({Not PDIn.close_0}) then 
+    elseif L == 0 andthen {Not PDIn.close_0} then 
       SDIn=SDOut PDIn=PDOut Res=ok
     elseif L == 1 andthen {Not PDIn.close_1} then
       SDIn=SDOut PDIn=PDOut Res=ok
@@ -650,7 +653,7 @@ define
            % If there are both open 1-paths and open 0-paths, then
            % exploration cannot achieve anything more so just fail.
            % Otherwise, keep trying to close the other kind.
-           if {Not {IsFree SDIn.open_1}} andthen {Not {IsFree SDIn.open_0}} then
+           if {IsTrue SDIn.open_1} andthen {IsTrue SDIn.open_0} then
              fail
            else
              SDOut=SDIn PDOut=PDIn Res=ok
@@ -677,6 +680,17 @@ define
       end
     end
   end
+
+  proc {IsTrue X B}
+    if {IsFree X} then B = false
+    else B = (X == true) end
+  end
+
+  proc {IsFalse X B}
+    if {IsFree X} then B = false
+    else B = (X == false) end
+  end
+
 
   proc {Theory_trivially_true K B}
     case K of p(eq(T1 T2)) then
@@ -716,7 +730,7 @@ define
   proc {Prove F Binding}
     Searcher = {Explore F proc {$ SD PD}
                   SD.fvMode = e
-                  SD.open_1 = true
+                  SD.open_0 = false
                   PD.close_0 = true
                   PD.close_1 = false
                 end}
@@ -735,7 +749,7 @@ define
   proc {Disprove F Binding}
     Searcher = {Explore F proc {$ SD PD}
                   SD.fvMode = e
-                  SD.open_0 = true
+                  SD.open_1 = false
                   PD.close_0 = false
                   PD.close_1 = true
                 end}
@@ -753,7 +767,7 @@ define
   proc {Tautology F B}
     Searcher = {Explore F proc {$ SD PD}
                   SD.fvMode = a
-                  SD.open_1 = true
+                  SD.open_0 = false
                   PD.close_0 = true
                   PD.close_1 = false
                 end}
@@ -771,7 +785,7 @@ define
   proc {Contradiction F B}
     Searcher = {Explore F proc {$ SD PD}
                   SD.fvMode = a
-                  SD.open_0 = true
+                  SD.open_1 = false
                   PD.close_0 = false
                   PD.close_1 = true
                 end}
@@ -803,7 +817,7 @@ define
   in
     if Res == nil then R = neither
     else [SDOut] = Res in
-      if {Not {IsFree SDOut.open_1}} then R = taut
+      if {Not {IsTrue SDOut.open_0}} then R = taut
       else R = cont end
     end
   end
@@ -855,14 +869,21 @@ define
           ite(eq(thomas thomas) ite(eq(_ knife(1)) true false) false)
           impl(all(obj nexists(c contents(obj c))) nexists(c contents(board(1) c)))
           impl(all(o nexists(a p(a o))) p(agt obj))
-          and(all(o nexists(a p(a o))) p(agt obj))]
-    Be = [true false true false true false true false true true false true true true false false]
-    Bt = [true false true false true false true false true true false false false true false false]
-    Bc = [false false false false false false false true false false true false false false false true]
+          and(all(o nexists(a p(a o))) p(agt obj))
+          and(all(x impl(neg(p(x)) neg(q(x)))) exists(x and(p(x) q(x))))]
+    Be = [true false true false true false true false true true false true true true false false false]
+    Bt = [true false true false true false true false true true false false false true false false false]
+    Bc = [false false false false false false false true false false true false false false false true false]
   in
     {List.length Fs} = {List.length Be}
     {List.length Fs} = {List.length Bt}
     {List.length Fs} = {List.length Bc}
+    {IsTrue _ false}
+    {IsTrue false false}
+    {IsTrue true true}
+    {IsFalse _ false}
+    {IsFalse true false}
+    {IsFalse false true}
     Lang = lang(wfp: proc {$ _} skip end
                 assign: proc {$ _} skip end)
     for F in Fs B in Be do local T P BM in
