@@ -12,7 +12,8 @@
 \firstpageno{0}
 
 
-\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+\newcommand{\isdef}{\ensuremath{\stackrel{\mbox{\tiny def}}{=}}}
+\newcommand{\MOP}[1]{\ensuremath{\mathbf{\mathcal{#1}}}}
 \end_preamble
 \options jair,twoside,11pt,theapa,letterpaper
 \language english
@@ -99,16 +100,7 @@ status collapsed
 
 
 \backslash
-addr NICTA Victoria Research Laboratory
-\backslash
-
-\backslash
-
-\end_layout
-
-\begin_layout Standard
-
-Department of Computer Science and Software Engineering
+addr Department of Computer Science and Software Engineering
 \backslash
 
 \backslash
@@ -137,18 +129,18 @@ Victoria, 3010, Australia
 \begin_layout Abstract
 We present a powerful new account of multi-agent knowledge in the situation
  calculus, along with an effective reasoning procedure for knowledge queries.
- Our approach handles partial observability of action occurences and action
- effects by explicitly reifying the observations made by each agent as the
- world evolves.
- The base case of a single knowledge level is developed and validated as
- an independent technique, then extended with complex epistemic modalities
- such as common knowledge.
+ A key contribution of our approach is the ability to handle partial observabili
+ty, including actions that are completely hidden, by explicitly reifying
+ the observations made by each agent as the world evolves.
+ We also formally treat complex epistemic modalities, including common knowledge
+, which are not available in the standard account.
  By using the persistence condition meta-operator to augment traditional
  regression techniques, we allow agents to effectively reason about knowledge
  using only their internal history of observations, rather than requiring
  a full history of the world.
- The result is a more robust and flexible account of knowledge suitable
- for use in partially-observable multi-agent domains.
+ The result is a more robust and flexible account of knowledge in the situation
+ calculus suitable for use in asynchonrous, partially-observable multi-agent
+ domains.
  
 \end_layout
 
@@ -157,77 +149,188 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-The situation calculus 
+In their landmark paper 
+\emph on
+Knowledge, Action, and the Frame Problem,
+\emph default
+ Scherl and Levesque (2003) extend Reiter's solution to the frame problem
+ in the situation calculus 
 \begin_inset LatexCommand cite
-key "pirri99contributions_sitcalc"
+key "reiter91frameprob,pirri99contributions_sitcalc"
 
 \end_inset
 
- is one of the most popular formalisms for reasoning about dynamic worlds.
- Many extensions have been proposed to incorporate concepts such as knowledge
- 
+ to handle knowledge-producing actions and explicit reasoning about the
+ knowledge of an agent.
+ Extensions to multiple agents 
 \begin_inset LatexCommand cite
-key "scherl03sc_knowledge"
+key "Lesperance01epi_feas_casl"
 
 \end_inset
 
  and concurrent actions 
 \begin_inset LatexCommand cite
-key "reiter96sc_nat_conc"
+key "scherl03conc_knowledge"
 
 \end_inset
 
-, which can be combined to provide a rich formalism for modeling complex
- domains such as multi-agent systems.
- However, the current state-of-the-art still suffers several shortcomings
- in complex multi-agent domains:
-\end_layout
-
-\begin_layout Itemize
-agents are assumed to be fully aware of all actions that have been perfomed
-\end_layout
-
-\begin_layout Itemize
-there is no explicit treatment of group knowledge, in particular common
- knowledge
+ have produced an expressive logic of knowledge, action and change that
+ permits an effective reasoning procedure using standard techniques of the
+ situation calculus.
 \end_layout
 
 \begin_layout Standard
-yadda yadda, introductory waffle goes here
+While powerful, the existing account suffers two major limitations that
+ make it unsuitable for modelling complex multi-agent domains.
+\end_layout
+
+\begin_layout Itemize
+actions are assumed to be public (or, more generally, agents are assumed
+ to be aware of how many actions have ocurred)
+\end_layout
+
+\begin_layout Itemize
+common knowledge is not given a formal treatment
+\end_layout
+
+\begin_layout Standard
+In this paper we overcome these limitations to produce a more robust and
+ flexible account of knowledge suitable for use in asynchonrous, partially-obser
+vable multi-agent domains.
+ Specifically, we provide:
+\end_layout
+
+\begin_layout Itemize
+a formal account of 
+\emph on
+Common Knowledge
+\emph default
+ and other complex epistemic modalities, including an explicit regression
+ rule for reasoning about common knowledge
+\end_layout
+
+\begin_layout Itemize
+support for 
+\emph on
+Hidden Actions
+\emph default
+ and actions that are partially observable, including a reasoning technique
+ to deal with infinite sequences of hidden actions
+\end_layout
+
+\begin_layout Itemize
+an automatic solution to the 
+\emph on
+Frame Problem
+\emph default
+ for each epistemic modality, derived from the solution for primitive actions,
+ and maintaining regression as the primary reasoning tool
 \end_layout
 
 \begin_layout Standard
 After some introductory material on the situation calculus in Section 
 \begin_inset LatexCommand ref
-reference "sec:MA-sitcalc"
+reference "sec:The-Multi-Agent-Situation"
 
 \end_inset
 
-, the main technical contributions of this paper are produced in Sections
- 
+, we address the first major limitation in Section 
 \begin_inset LatexCommand ref
 reference "sec:Obs-Knowledge"
 
 \end_inset
 
- and 
+ by decoupling knowledge from the specific actions that have taken place.
+ Instead we develop an explicit reification of the observations made by
+ each agent as the world evolves, and formulate each agent's knowldge in
+ terms of what it has observed.
+ By utilizing the persistence condition meta-operator 
+\begin_inset LatexCommand cite
+key "kelly07sc_persistence"
+
+\end_inset
+
+ to augment the regression techniques developed by Scherl and Levesque (2003),
+ we maintain their elegant solution to the frame problem despite dealing
+ with potentially infinite sequences of hidden actions.
+ This section is an expanded version of our conference paper on the same
+ topic 
+\begin_inset LatexCommand cite
+key "kelly07sc_know_obs"
+
+\end_inset
+
+ and stands as an significant new account of knowledge in its own right.
+\end_layout
+
+\begin_layout Standard
+Section 
 \begin_inset LatexCommand ref
 reference "sec:Complex-Epistemic-Modalities"
 
 \end_inset
 
-.
- In the former we develop an explcit reification of the observations made
- by each agent as the world evolves, and formulate an account of an agent's
- knowledge in terms of what it has observed.
- The latter extends this with complex epistemic modalities in the style
- of epistemic dynamic logic, allowing us to treat common knowledge.
+ deals with the second limitation by introducing complex epistemic modalities.
+ While the primary motivation is a formal account of common knowledge, work
+ in dynamic epistemic logic 
+\begin_inset LatexCommand cite
+key "baltag99epi_act_structures,vanBenthem06lcc"
+
+\end_inset
+
+ has shown that a more expressive epistemic language is required to allow
+ regression of the common knowledge operator.
+ After summarizing recent advances in this related field, we follow the
+ work of van Benthem et.
+ al.
+ (2006) and use a variant of Propositional Dynamic Logic as a general epistemic
+ path language.
+ The results of Section 
+\begin_inset LatexCommand ref
+reference "sec:Obs-Knowledge"
+
+\end_inset
+
+ are generalized to arbitrary PDL expressions.
+ 
+\end_layout
+
+\begin_layout Standard
+Since our account of knowledge is very general, reasoning with it can be
+ very expensive.
+ In Section 
+\begin_inset LatexCommand ref
+reference "sec:Simplifying-Reasoning"
+
+\end_inset
+
+ we discuss a number of ways to simplify the reasoning procedure by placing
+ restrictions on the domain.
+ Sections 
+\begin_inset LatexCommand ref
+reference "sec:Related-Work"
+
+\end_inset
+
+ and 
+\begin_inset LatexCommand ref
+reference "sec:Future-Work"
+
+\end_inset
+
+ discuss related and future work respectively, and Section 
+\begin_inset LatexCommand ref
+reference "sec:Conclusions"
+
+\end_inset
+
+ concludes with a summary of our achievements in this paper.
 \end_layout
 
 \begin_layout Section
-Multi-Agent Situation Calculus
+The Multi-Agent Situation Calculus
 \begin_inset LatexCommand label
-name "sec:MA-sitcalc"
+name "sec:The-Multi-Agent-Situation"
 
 \end_inset
 
@@ -243,7 +346,7 @@ Knowledge and Sensing
 \end_layout
 
 \begin_layout Standard
-discuss the standard approach, why it's good, what it's limtations are.
+discuss the standard approach, why it's good, what its limtations are.
 \end_layout
 
 \begin_layout Subsection
@@ -251,8 +354,15 @@ Regression
 \end_layout
 
 \begin_layout Standard
-major attraction of the sitcalc, but limited - introduce property persistence
- as a way to extend the technique.
+major attraction of the sitcalc, but limited.
+\end_layout
+
+\begin_layout Subsection
+Property Persistence
+\end_layout
+
+\begin_layout Standard
+introduce property persistence as a way to extend regression.
 \end_layout
 
 \begin_layout Section
@@ -263,6 +373,12 @@ name "sec:Obs-Knowledge"
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+motivation: decouple knowledge from actions, so that agents don't have to
+ have a situation term in order to do reasoning.
+ This is basically the full version of the AAMAS paper.
 \end_layout
 
 \begin_layout Subsection
@@ -298,8 +414,8 @@ Axiomatizing Observations
 \end_layout
 
 \begin_layout Standard
-how to axiomatize observations for several common cased, e.g.
- total awareness, total ignorance, more general partialy observability
+how to axiomatize observations for several common cases, e.g.
+ total awareness, total ignorance, more general partialy observability.
 \end_layout
 
 \begin_layout Subsection
@@ -308,11 +424,12 @@ Observing the Effects of Actions
 
 \begin_layout Standard
 how to further decouple actions from observations, where observations represent
- the effects of the action rather than the action itself
+ the effects of the action rather than the action itself.
+ 
 \end_layout
 
 \begin_layout Subsection
-Illustrative Example
+An Illustrative Example
 \end_layout
 
 \begin_layout Standard
@@ -333,6 +450,7 @@ Reasoning from Observations
 
 \begin_layout Standard
 regression over observations, talk about why it's so good.
+ 
 \end_layout
 
 \begin_layout Section
@@ -355,7 +473,19 @@ Common Knowledge by Direct Calculation
 
 \begin_layout Standard
 we can try to calculate common knowledge as a fixpoint of EKnows, but this
- is not generally a good idea in practise.
+ is not generally a good idea in practise:
+\end_layout
+
+\begin_layout Itemize
+
+\series bold
+very
+\series default
+ computationally expensive
+\end_layout
+
+\begin_layout Itemize
+no guarantee it will terminate
 \end_layout
 
 \begin_layout Subsection
@@ -380,9 +510,15 @@ E-PDL and LCC
 \end_layout
 
 \begin_layout Standard
-describe the work of vB, vE & K, with their epistemic propositional dynamic
- logic and update frames.
- But, it's not precisely what we're after.
+describe the work of 
+\begin_inset LatexCommand cite
+key "vanBenthem06lcc"
+
+\end_inset
+
+ with their epistemic propositional dynamic logic and update frames.
+ It's almost what we're after, but we need to introduce some first-order
+ features.
 \end_layout
 
 \begin_layout Subsection
@@ -393,6 +529,45 @@ The Update Frame
 show how the domain description translates into an update frame, including
  a null element.
  talk about using unification to finitize the frame.
+ We have a finite set of action events (with related outcomes) 
+\begin_inset Formula $\mathcal{A}$
+\end_inset
+
+ as well as a 
+\begin_inset Quotes eld
+\end_inset
+
+null event
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset Formula $\epsilon$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Path Translation
+\end_layout
+
+\begin_layout Standard
+import the 
+\begin_inset Formula $\mathcal{T}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathcal{K}$
+\end_inset
+
+ operators of 
+\begin_inset LatexCommand cite
+key "vanBenthem06lcc"
+
+\end_inset
+
+ into our formalism, discuss how they work.
 \end_layout
 
 \begin_layout Subsection
@@ -400,8 +575,8 @@ A Complex Epistemic Fluent
 \end_layout
 
 \begin_layout Standard
-Discuss 
-\begin_inset Formula $K(\pi,s',s)$
+We need to define 
+\begin_inset Formula $K(\pi,s'',s)$
 \end_inset
 
  for a general epistemic path 
@@ -409,29 +584,27 @@ Discuss
 \end_inset
 
 .
- First we define 
-\begin_inset Quotes eld
-\end_inset
-
-maybe unobservable
-\begin_inset Quotes erd
-\end_inset
-
- to mean that there is a 
-\begin_inset Formula $\pi$
-\end_inset
-
--path relating the given event to the null event:
+ We know the behavior we want, from the semantics of PDL:
 \begin_inset Formula \[
-\mathbf{MU}(\pi,c,s)\,\isdef\,\exists s^{0}\,.\, K(\mathcal{T}[\pi,Event(c,s),0],s^{0},s)\]
+K(?\phi,s',s)\equiv\phi[s]\wedge s=s'\]
 
 \end_inset
 
-The successor state axiom will look something like:
-\begin_inset Formula \begin{multline*}
-K(\pi,s'',do(c,s))\equiv\\
-\mathbf{MU}(\pi,c,s)\,\rightarrow\, K(\pi,s'',s)\,\,\wedge\\
-\neg\mathbf{MU}(\pi,c,s)\,\rightarrow\,\exists c',s'\,.\, K(\mathcal{T}[\pi,Event(c,s),Event(c',s')],s',s)\wedge do(c',s')\leq_{\mathbf{MU}(\pi)}s''\end{multline*}
+
+\begin_inset Formula \[
+K(\pi_{1};\pi_{2},s',s)\equiv\exists s''\, K(\pi_{1},s'',s)\wedge K(\pi_{2}s',s'')\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+K(\pi_{1}|\pi_{2},s',s)\equiv K(\pi_{1},s',s)\vee K(\pi_{2},s',s)\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+K(\pi^{*},s',s)\equiv TransClosure(K(\pi,s',s))\]
 
 \end_inset
 
@@ -439,11 +612,14 @@ K(\pi,s'',do(c,s))\equiv\\
 \end_layout
 
 \begin_layout Standard
-We get the obvious macro 
-\begin_inset Formula $\mathbf{Knows}(\pi,\phi,s)$
+By case analysis, show that this successor state axiom preserves these definitio
+ns:
+\begin_inset Formula \[
+K(\pi,s'',do(a,s))\equiv K(\mathcal{T}[\pi,a,\epsilon],s'',s)\,\vee\,\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s')\]
+
 \end_inset
 
-.
+
 \end_layout
 
 \begin_layout Subsection
@@ -451,20 +627,147 @@ Regressing Complex Modalities
 \end_layout
 
 \begin_layout Standard
-Show that we can use the same technique as before, with the persistence
- condition
+We can define a complex epistemic modality as:
+\begin_inset Formula \[
+\mathbf{Knows}(\pi,\phi,s)\,\isdef\,\forall s'\, K(\pi,s',s)\rightarrow\phi[s']\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Inserting and expanding the successor state axiom:
+\begin_inset Formula \begin{multline*}
+\mathbf{Knows}(\pi,\phi,do(a,s))\,\isdef\,\\
+\forall s''\,\left[K(\mathcal{T}[\pi,a,\epsilon],s'',s)\,\vee\,\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s'')\right]\rightarrow\phi[s'']\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Taking the implication inside the brackets:
+\begin_inset Formula \[
+\forall s''\,\left[K(\mathcal{T}[\pi,a,\epsilon],s'',s)\rightarrow\phi[s']\,\wedge\,\bigcap_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s')\rightarrow\phi[s'']\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using regression and renaming to eliminate 
+\begin_inset Formula $s''$
+\end_inset
+
+, this simplifies into:
+\begin_inset Formula \[
+\forall s'\, K(\mathcal{T}[\pi,a,\epsilon],s',s)\rightarrow\phi[s']\,\wedge\,\bigcap_{a'\in\mathcal{A}}\forall s'\, K(\mathcal{T}[\pi,a,a'],s',s)\rightarrow\mathcal{R}[\phi,a'][s']\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Which is, of course, a conjunction of knowledge statements in 
+\begin_inset Formula $s$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathbf{Knows}(\mathcal{T}[\pi,a,\epsilon],\phi,s)\,\wedge\,\bigcap_{a'\in\mathcal{A}}\mathbf{Knows}(\mathcal{T}[\pi,a,a'],\mathcal{R}[\phi,a'],s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is a proper regression rule for arbitrary epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Reasoning about Common Knowledge
+\end_layout
+
+\begin_layout Standard
+With our framework in place, an agent can now ask 
+\begin_inset Quotes eld
+\end_inset
+
+is 
+\begin_inset Formula $\phi$
+\end_inset
+
+ common knowledge given my current history?
+\begin_inset Quotes erd
+\end_inset
+
+ using the query:
+\begin_inset Formula \[
+\mathcal{D}\,\models\,\mathbf{Knows}(agt,\mathbf{Knows}((agt1|agt2|agt3|\dots)^{*},\phi),h)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Asnwering this query involves the regression techniques we've developed
+ here, including a persistence calculation on 
+\begin_inset Formula $\mathbf{Knows}(\pi,\phi)$
+\end_inset
+
+ formulae.
+ This is valid, as they can be regressed, but will be some pretty hairy
+ reasoning! In particular, calculating 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+ will involve proofs in a first-order varient of PDL.
+ If we assume the domain is decidable (propositional?) this should be OK.
 \end_layout
 
 \begin_layout Section
 Simplifying the Reasoning Procedure
+\begin_inset LatexCommand label
+name "sec:Simplifying-Reasoning"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
 Synchronicity
 \end_layout
 
+\begin_layout Standard
+By equipping agents with a global clock tick, the persistence condition
+ is no longer required.
+ Since this is the biggest source for computational complexity, that's a
+ big win! 
+\end_layout
+
 \begin_layout Subsection
 Observability
+\end_layout
+
+\begin_layout Standard
+Ensure that the update frame is weakly connected, so that most 
+\begin_inset Formula $\mathcal{T}[\pi,a,a']$
+\end_inset
+
+ are vacuously false.
+\newline
+
 \end_layout
 
 \begin_layout Standard
@@ -473,14 +776,41 @@ anything else?
 
 \begin_layout Section
 Related Work
+\begin_inset LatexCommand label
+name "sec:Related-Work"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Future Work
+\begin_inset LatexCommand label
+name "sec:Future-Work"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Lifting the restrictions on the update frame.
+ Can this be done using a stronger path language?
 \end_layout
 
 \begin_layout Section
 Conclusions
+\begin_inset LatexCommand label
+name "sec:Conclusions"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+hooray for us, this is a great paper :-)
 \end_layout
 
 \begin_layout Standard
