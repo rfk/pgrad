@@ -11,10 +11,10 @@ FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
            SitCalc/Planner.ozf
 
 %.ozf: %.oz
-	ozc -c $< -o $@
+	ozc -p -c $< -o $@
 
 %.exe: %.oz
-	ozc -x $< -o $@
+	ozc -p -x $< -o $@
 
 %.png: %.dot
 	dot -o $@ -Tpng $<
@@ -23,7 +23,7 @@ FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
 	dot2tex --preproc $< | dot2tex --figonly > $@
 
 goloz: Goloz.oz $(FUNCTORS)
-	ozc -x $< -o goloz 
+	ozc -p -x $< -o goloz 
 
 plan.dot: goloz
 	./goloz

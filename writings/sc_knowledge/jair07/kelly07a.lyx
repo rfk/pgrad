@@ -529,7 +529,7 @@ The Update Frame
 show how the domain description translates into an update frame, including
  a null element.
  talk about using unification to finitize the frame.
- We have a finite set of action events (with related outcomes) 
+ We have a finite set of (action,outcome) events 
 \begin_inset Formula $\mathcal{A}$
 \end_inset
 
@@ -586,6 +586,12 @@ We need to define
 .
  We know the behavior we want, from the semantics of PDL:
 \begin_inset Formula \[
+K(A,s',s)\, as\, above\]
+
+\end_inset
+
+
+\begin_inset Formula \[
 K(?\phi,s',s)\equiv\phi[s]\wedge s=s'\]
 
 \end_inset
@@ -598,7 +604,7 @@ K(\pi_{1};\pi_{2},s',s)\equiv\exists s''\, K(\pi_{1},s'',s)\wedge K(\pi_{2}s',s'
 
 
 \begin_inset Formula \[
-K(\pi_{1}|\pi_{2},s',s)\equiv K(\pi_{1},s',s)\vee K(\pi_{2},s',s)\]
+K(\pi_{1}\cup\pi_{2},s',s)\equiv K(\pi_{1},s',s)\vee K(\pi_{2},s',s)\]
 
 \end_inset
 
@@ -614,8 +620,139 @@ K(\pi^{*},s',s)\equiv TransClosure(K(\pi,s',s))\]
 \begin_layout Standard
 By case analysis, show that this successor state axiom preserves these definitio
 ns:
+\begin_inset Formula \begin{multline*}
+K(\pi,s'',do(a,s))\equiv K(\mathcal{T}[\pi,a,\epsilon],s'',s)\,\vee\\
+\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(\mathcal{T}[\pi,a,\epsilon])}s''\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Case Analysis
+\end_layout
+
+\begin_layout Subsubsection
+Primitive Modality
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \[
-K(\pi,s'',do(a,s))\equiv K(\mathcal{T}[\pi,a,\epsilon],s'',s)\,\vee\,\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s')\]
+\mathcal{T}[A,a,a']=?pre(a);A;?(poss(a')\wedge pre(a'))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So
+\begin_inset Formula \begin{multline*}
+K(A,s'',do(a,s))\equiv K(?unobs(A,a);A;\top,s'',s)\,\vee\\
+\bigcup_{a'\in\mathcal{A}}\exists s'\, K(?obs(A,a);A;?(poss(a')\wedge obs(A,a')),s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(?unobs(A,a);A;\top,\top)}s''\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, we make a simplifying assumption: for all legal situations s, 
+\begin_inset Formula $\mathbf{Maybe}(A,\top,s)$
+\end_inset
+
+ is true.
+ In other words, every legal situation is A-related to something - since
+ we're dealing with knowledge, that something is itself.
+ This allows any expression of the form 
+\begin_inset Formula $\mathbf{Maybe}(\pi;A,\top,s)$
+\end_inset
+
+ to be simplified to 
+\begin_inset Formula $\mathbf{Maybe(\pi,\top,s)}$
+\end_inset
+
+.
+ Using this, the above is equivalent to our previous SSA for knowledge.
+\end_layout
+
+\begin_layout Subsubsection
+Test Modality
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathcal{T}[?\phi,a,a']=?(a=a'\wedge poss(a)\wedge\mathcal{R}[\phi,a])\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So
+\begin_inset Formula \begin{multline*}
+K(?\phi,s'',do(a,s))\equiv K(\bot,s'',s)\,\vee\\
+\bigcup_{a'\in\mathcal{A}}\exists s'\, K(?(a=a'\wedge poss(a)\wedge\mathcal{R}[\phi,a]),s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(?\bot,\top)}s''\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Which simplifies to:
+\begin_inset Formula \begin{multline*}
+K(?\phi,s'',do(a,s))\equiv\exists s'\, s''=do(a,s')\wedge K(?(poss(a)\wedge\mathcal{R}[\phi,a]),s',s)\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Union Modality
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathcal{T}[\pi_{1}\cup\pi_{2},a,a']=\mathcal{T}[\pi_{1},a,a']\cup\mathcal{T}[\pi_{2},a,a']\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So:
+\begin_inset Formula \begin{multline*}
+K(\pi_{1}\cup\pi_{2},s'',do(a,s))\equiv K(\mathcal{T}[\pi_{1},a,\epsilon]\cup\mathcal{T}[\pi_{2},a,\epsilon],s'',s)\,\vee\\
+\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi_{1},a,a']\cup\mathcal{T}[\pi_{2},a,a'],s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(\mathcal{T}[\pi_{1},a,\epsilon]\cup\mathcal{T}[\pi_{2},a,\epsilon])}s''\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Sequence Modality
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathcal{T}[\pi_{1};\pi_{2},a,a']=\bigcup_{a''\in\mathcal{A}^{\epsilon}}(\mathcal{T}[\pi_{1},a,a''];\mathcal{T}[\pi_{2},a'',a'])\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So:
+\begin_inset Formula \begin{multline*}
+K(\pi_{1};\pi_{2},s'',do(a,s))\equiv K(\bigcup_{a''\in\mathcal{A}^{\epsilon}}(\mathcal{T}[\pi_{1},a,a''];\mathcal{T}[\pi_{2},a'',\epsilon]),s'',s)\,\vee\\
+\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(\mathcal{T}[\pi,a,\epsilon])}s''\end{multline*}
 
 \end_inset
 
@@ -627,70 +764,7 @@ Regressing Complex Modalities
 \end_layout
 
 \begin_layout Standard
-We can define a complex epistemic modality as:
-\begin_inset Formula \[
-\mathbf{Knows}(\pi,\phi,s)\,\isdef\,\forall s'\, K(\pi,s',s)\rightarrow\phi[s']\]
 
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Inserting and expanding the successor state axiom:
-\begin_inset Formula \begin{multline*}
-\mathbf{Knows}(\pi,\phi,do(a,s))\,\isdef\,\\
-\forall s''\,\left[K(\mathcal{T}[\pi,a,\epsilon],s'',s)\,\vee\,\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s'')\right]\rightarrow\phi[s'']\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Taking the implication inside the brackets:
-\begin_inset Formula \[
-\forall s''\,\left[K(\mathcal{T}[\pi,a,\epsilon],s'',s)\rightarrow\phi[s']\,\wedge\,\bigcap_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s')\rightarrow\phi[s'']\right]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using regression and renaming to eliminate 
-\begin_inset Formula $s''$
-\end_inset
-
-, this simplifies into:
-\begin_inset Formula \[
-\forall s'\, K(\mathcal{T}[\pi,a,\epsilon],s',s)\rightarrow\phi[s']\,\wedge\,\bigcap_{a'\in\mathcal{A}}\forall s'\, K(\mathcal{T}[\pi,a,a'],s',s)\rightarrow\mathcal{R}[\phi,a'][s']\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Which is, of course, a conjunction of knowledge statements in 
-\begin_inset Formula $s$
-\end_inset
-
-:
-\begin_inset Formula \[
-\mathbf{Knows}(\mathcal{T}[\pi,a,\epsilon],\phi,s)\,\wedge\,\bigcap_{a'\in\mathcal{A}}\mathbf{Knows}(\mathcal{T}[\pi,a,a'],\mathcal{R}[\phi,a'],s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This is a proper regression rule for arbitrary epistemic path 
-\begin_inset Formula $\pi$
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Subsection
@@ -731,7 +805,7 @@ Asnwering this query involves the regression techniques we've developed
 \begin_inset Formula $\mathcal{P}$
 \end_inset
 
- will involve proofs in a first-order varient of PDL.
+ will involve proofs in a first-order variant of PDL.
  If we assume the domain is decidable (propositional?) this should be OK.
 \end_layout
 
