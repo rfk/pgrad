@@ -618,15 +618,25 @@ K(\pi^{*},s',s)\equiv TransClosure(K(\pi,s',s))\]
 \end_layout
 
 \begin_layout Standard
-By case analysis, show that this successor state axiom preserves these definitio
-ns:
-\begin_inset Formula \begin{multline*}
-K(\pi,s'',do(a,s))\equiv K(\mathcal{T}[\pi,a,\epsilon],s'',s)\,\vee\\
-\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(\mathcal{T}[\pi,a,\epsilon])}s''\end{multline*}
+Let us define a transformer 
+\begin_inset Formula $\mathcal{T}[\pi,e,e']=\{(\pi_{1},\delta_{1}),(\pi_{2},\delta_{2}),\dots\}$
+\end_inset
+
+.
+ The general successor state axiom will then be:
+\begin_inset Formula \[
+K(\pi,s'',do(a,s))\equiv\bigvee_{\begin{array}{c}
+{\scriptstyle e\in\mathcal{A}(a),\, e'\in\mathcal{A},}\\
+{\scriptstyle (\pi',\delta')\in\mathcal{T}[\pi,e,e']}\end{array}}\,\exists s'\, K(\pi',s',s)\wedge\mathbf{Do}(\delta',s',s'')\]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+We develop our transformer on a case-by-case basis to conform to the definition
+ of each operator.
 \end_layout
 
 \begin_layout Subsection
@@ -634,77 +644,12 @@ Case Analysis
 \end_layout
 
 \begin_layout Subsubsection
-Primitive Modality
+Primitive Knowledge Operator
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{T}[A,a,a']=?pre(a);A;?(poss(a')\wedge pre(a'))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-So
-\begin_inset Formula \begin{multline*}
-K(A,s'',do(a,s))\equiv K(?unobs(A,a);A;\top,s'',s)\,\vee\\
-\bigcup_{a'\in\mathcal{A}}\exists s'\, K(?obs(A,a);A;?(poss(a')\wedge obs(A,a')),s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(?unobs(A,a);A;\top,\top)}s''\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Now, we make a simplifying assumption: for all legal situations s, 
-\begin_inset Formula $\mathbf{Maybe}(A,\top,s)$
-\end_inset
-
- is true.
- In other words, every legal situation is A-related to something - since
- we're dealing with knowledge, that something is itself.
- This allows any expression of the form 
-\begin_inset Formula $\mathbf{Maybe}(\pi;A,\top,s)$
-\end_inset
-
- to be simplified to 
-\begin_inset Formula $\mathbf{Maybe(\pi,\top,s)}$
-\end_inset
-
-.
- Using this, the above is equivalent to our previous SSA for knowledge.
-\end_layout
-
-\begin_layout Subsubsection
-Test Modality
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{T}[?\phi,a,a']=?(a=a'\wedge poss(a)\wedge\mathcal{R}[\phi,a])\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-So
-\begin_inset Formula \begin{multline*}
-K(?\phi,s'',do(a,s))\equiv K(\bot,s'',s)\,\vee\\
-\bigcup_{a'\in\mathcal{A}}\exists s'\, K(?(a=a'\wedge poss(a)\wedge\mathcal{R}[\phi,a]),s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(?\bot,\top)}s''\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Which simplifies to:
-\begin_inset Formula \begin{multline*}
-K(?\phi,s'',do(a,s))\equiv\exists s'\, s''=do(a,s')\wedge K(?(poss(a)\wedge\mathcal{R}[\phi,a]),s',s)\end{multline*}
+\mathcal{T}[A,e,e']=\{(pre(e);A;pre(e'),(\pi(a,?Unobs(A,a);a))*)\}\]
 
 \end_inset
 
@@ -712,23 +657,12 @@ K(?\phi,s'',do(a,s))\equiv\exists s'\, s''=do(a,s')\wedge K(?(poss(a)\wedge\math
 \end_layout
 
 \begin_layout Subsubsection
-Union Modality
+Test Operator
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{T}[\pi_{1}\cup\pi_{2},a,a']=\mathcal{T}[\pi_{1},a,a']\cup\mathcal{T}[\pi_{2},a,a']\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-So:
-\begin_inset Formula \begin{multline*}
-K(\pi_{1}\cup\pi_{2},s'',do(a,s))\equiv K(\mathcal{T}[\pi_{1},a,\epsilon]\cup\mathcal{T}[\pi_{2},a,\epsilon],s'',s)\,\vee\\
-\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi_{1},a,a']\cup\mathcal{T}[\pi_{2},a,a'],s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(\mathcal{T}[\pi_{1},a,\epsilon]\cup\mathcal{T}[\pi_{2},a,\epsilon])}s''\end{multline*}
+\mathcal{T}[?\phi,e,e']=\{\}\]
 
 \end_inset
 
@@ -736,35 +670,28 @@ K(\pi_{1}\cup\pi_{2},s'',do(a,s))\equiv K(\mathcal{T}[\pi_{1},a,\epsilon]\cup\ma
 \end_layout
 
 \begin_layout Subsubsection
-Sequence Modality
+Union Operator
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{T}[\pi_{1};\pi_{2},a,a']=\bigcup_{a''\in\mathcal{A}^{\epsilon}}(\mathcal{T}[\pi_{1},a,a''];\mathcal{T}[\pi_{2},a'',a'])\]
+\mathcal{T}[\pi_{1}\cup\pi_{2},e,e']=\mathcal{T}[\pi_{1},e,e']\cup\mathcal{T}[\pi_{2},e,e']\]
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Standard
-So:
-\begin_inset Formula \begin{multline*}
-K(\pi_{1};\pi_{2},s'',do(a,s))\equiv K(\bigcup_{a''\in\mathcal{A}^{\epsilon}}(\mathcal{T}[\pi_{1},a,a''];\mathcal{T}[\pi_{2},a'',\epsilon]),s'',s)\,\vee\\
-\bigcup_{a'\in\mathcal{A}}\exists s'\, K(\mathcal{T}[\pi,a,a'],s',s)\wedge do(a',s')\leq_{\lambda a.Poss(a)\wedge\mathbf{Maybe}(\mathcal{T}[\pi,a,\epsilon])}s''\end{multline*}
+\begin_layout Subsubsection
+Sequence Operator
+\end_layout
 
-\end_inset
-
-
+\begin_layout Subsubsection
+Iteration Operator
 \end_layout
 
 \begin_layout Subsection
 Regressing Complex Modalities
-\end_layout
-
-\begin_layout Standard
-
 \end_layout
 
 \begin_layout Subsection
