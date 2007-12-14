@@ -128,7 +128,7 @@ Victoria, 3010, Australia
 
 \begin_layout Abstract
 We present a powerful new account of multi-agent knowledge in the situation
- calculus, along with an effective reasoning procedure for knowledge queries.
+ calculus, and an effective reasoning procedure for knowledge queries.
  A key contribution of our approach is the ability to handle partial observabili
 ty, including actions that are completely hidden, by explicitly reifying
  the observations made by each agent as the world evolves.
@@ -341,12 +341,8 @@ name "sec:The-Multi-Agent-Situation"
 general description here, lifted from AAMAS paper
 \end_layout
 
-\begin_layout Subsection
-Knowledge and Sensing
-\end_layout
-
 \begin_layout Standard
-discuss the standard approach, why it's good, what its limtations are.
+
 \end_layout
 
 \begin_layout Subsection
@@ -358,11 +354,20 @@ major attraction of the sitcalc, but limited.
 \end_layout
 
 \begin_layout Subsection
+Knowledge and Sensing
+\end_layout
+
+\begin_layout Standard
+discuss the standard approach, why it's good, what its limtations are.
+\end_layout
+
+\begin_layout Subsection
 Property Persistence
 \end_layout
 
 \begin_layout Standard
-introduce property persistence as a way to extend regression.
+introduce property persistence as a way to extend regression for more powerful
+ formulations of knowledge.
 \end_layout
 
 \begin_layout Section
@@ -464,7 +469,8 @@ name "sec:Complex-Epistemic-Modalities"
 \end_layout
 
 \begin_layout Standard
-The goal is to handle common knowledge.
+The goal is to handle common knowledge, but as work in related fields has
+ shown, this demands a lot of technical machinery.
 \end_layout
 
 \begin_layout Subsection
@@ -548,26 +554,8 @@ null event
 .
 \end_layout
 
-\begin_layout Subsection
-Path Translation
-\end_layout
-
 \begin_layout Standard
-import the 
-\begin_inset Formula $\mathcal{T}$
-\end_inset
 
- and 
-\begin_inset Formula $\mathcal{K}$
-\end_inset
-
- operators of 
-\begin_inset LatexCommand cite
-key "vanBenthem06lcc"
-
-\end_inset
-
- into our formalism, discuss how they work.
 \end_layout
 
 \begin_layout Subsection
@@ -618,102 +606,55 @@ K(\pi^{*},s',s)\equiv TransClosure(K(\pi,s',s))\]
 \end_layout
 
 \begin_layout Standard
-Let us define a transformer 
-\begin_inset Formula $\mathcal{T}[\pi,e,e']=\{(\pi_{1},\delta_{1}),(\pi_{2},\delta_{2}),\dots\}$
+If there was no 
+\begin_inset Formula $\epsilon$
 \end_inset
 
-.
- The general successor state axiom will then be:
+ this would be a straightforward import of LCC into the situation calculus.
+ But, we need to handle null events.
+\end_layout
+
+\begin_layout Standard
+Idea: define a hierachy of sets of possible situations, where we include
+ the possibility of more and more null actions.
 \begin_inset Formula \[
-K(\pi,s'',do(a,s))\equiv\bigvee_{\begin{array}{c}
-{\scriptstyle e\in\mathcal{A}(a),\, e'\in\mathcal{A},}\\
-{\scriptstyle (\pi',\delta')\in\mathcal{T}[\pi,e,e']}\end{array}}\,\exists s'\, K(\pi',s',s)\wedge\mathbf{Do}(\delta',s',s'')\]
+K_{0}(\pi,s',s)\,\Rightarrow\mathcal{R}[K_{0}(\pi,s',s)]\]
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-We develop our transformer on a case-by-case basis to conform to the definition
- of each operator.
-\end_layout
-
-\begin_layout Subsection
-Case Analysis
-\end_layout
-
-\begin_layout Subsubsection
-Primitive Knowledge Operator
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
-\mathcal{T}[A,e,e']=\{(pre(e);A;pre(e'),(\pi(a,?Unobs(A,a);a))*)\}\]
+K_{1}(\pi,s',s)\,\Rightarrow\, K_{0}(\pi,s',do(\epsilon,do(a,s)))\]
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Subsubsection
-Test Operator
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
-\mathcal{T}[?\phi,e,e']=\{\}\]
+K_{n}(\pi,s',s)\,\Rightarrow\, K_{0}(\pi,s',do(\epsilon^{n}\cdot a,s))\]
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Subsubsection
-Union Operator
-\end_layout
-
 \begin_layout Standard
+Then knowledge becomes the infinite conjunction:
 \begin_inset Formula \[
-\mathcal{T}[\pi_{1}\cup\pi_{2},e,e']=\mathcal{T}[\pi_{1},e,e']\cup\mathcal{T}[\pi_{2},e,e']\]
+K(\pi,s',s)\equiv K_{0}(\pi,s',s)\vee K_{1}(\pi,s',s)\vee\dots\]
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Subsubsection
-Sequence Operator
-\end_layout
-
-\begin_layout Subsubsection
-Iteration Operator
-\end_layout
-
-\begin_layout Subsection
-Regressing Complex Modalities
-\end_layout
-
-\begin_layout Subsection
-Reasoning about Common Knowledge
 \end_layout
 
 \begin_layout Standard
-With our framework in place, an agent can now ask 
-\begin_inset Quotes eld
+Or, if 
+\begin_inset Formula $K_{n+1}(\pi,s',s)\rightarrow K_{n}(\pi,s',s)$
 \end_inset
 
-is 
-\begin_inset Formula $\phi$
-\end_inset
-
- common knowledge given my current history?
-\begin_inset Quotes erd
-\end_inset
-
- using the query:
+, simply the limit:
 \begin_inset Formula \[
-\mathcal{D}\,\models\,\mathbf{Knows}(agt,\mathbf{Knows}((agt1|agt2|agt3|\dots)^{*},\phi),h)\]
+K(\pi,s',s)\equiv K_{\infty}(\pi,s',s)\]
 
 \end_inset
 
@@ -721,19 +662,36 @@ is
 \end_layout
 
 \begin_layout Standard
-Asnwering this query involves the regression techniques we've developed
- here, including a persistence calculation on 
-\begin_inset Formula $\mathbf{Knows}(\pi,\phi)$
+Either way, we calculate it as a fixpoint.
+ Now, the base case can be regressed using standard techniques:
+\begin_inset Formula \[
+K_{0}(\pi,s'',do(a,s))\equiv\bigcup_{e\in\mathcal{E}|_{a}}\bigcup_{e'\in\mathcal{E}}\exists s'.K(\mathcal{T}[\pi,e,e'],s',s)\]
+
 \end_inset
 
- formulae.
- This is valid, as they can be regressed, but will be some pretty hairy
- reasoning! In particular, calculating 
-\begin_inset Formula $\mathcal{P}$
+
+\end_layout
+
+\begin_layout Standard
+Let's move one level up the chain:
+\begin_inset Formula \[
+K_{1}(\pi,s'',do(a,s))\equiv K_{0}(\pi,s'',do(\epsilon,do(a,s)))\equiv\bigcup_{e_{1}\in\mathcal{E}}\exists s_{1}.K(\mathcal{T}[\pi,\epsilon,e_{1}],s_{1},do(a,s))\]
+
 \end_inset
 
- will involve proofs in a first-order variant of PDL.
- If we assume the domain is decidable (propositional?) this should be OK.
+
+\begin_inset Formula \[
+K_{1}(\pi,s'',do(a,s))\equiv\bigcup_{e_{1}\in\mathcal{E}}\exists s_{1}.K_{0}(\mathcal{T}[\pi,\epsilon,e_{1}],s_{1},do(a,s))\vee K_{1}(\mathcal{T}[\pi,\epsilon,e_{1}],s_{1},do(a,s))\vee...\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+K_{1}(\pi,s'',do(a,s))\equiv\bigcup_{e_{1}\in\mathcal{E}}\exists s_{1}.\bigcup_{e\in\mathcal{E}|_{a}}\bigcup_{e'\in\mathcal{E}}\exists s'.K(\mathcal{T}[\mathcal{T}[\pi,\epsilon,e_{1}],e,e'],s',s)\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -785,6 +743,60 @@ name "sec:Related-Work"
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset LatexCommand cite
+key "morgenstern90knowledge"
+
+\end_inset
+
+ - hidden actions, appeals to motivated action theory.
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand cite
+key "delgrande01sitcalc_cleudo"
+
+\end_inset
+
+ - shows that common knowledge is useful, but appeals to a (non-existent)
+ solution from elsewhere
+\end_layout
+
+\begin_layout Standard
+clearly the long lineage of 
+\begin_inset LatexCommand cite
+key "baltag99epi_act_structures"
+
+\end_inset
+
+, 
+\begin_inset LatexCommand cite
+key "vanBenthem06lcc"
+
+\end_inset
+
+ that have developed the basis of these techniques.
+ Iterated PAL [TODO].
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand cite
+key "vanBentham06epi_temporal_logic"
+
+\end_inset
+
+ big discussion and comparison on epistemic temporal logics.
+ defines notion of 
+\begin_inset Quotes eld
+\end_inset
+
+synchronised
+\begin_inset Quotes erd
+\end_inset
+
+ system that we use above.
+\end_layout
+
 \begin_layout Section
 Future Work
 \begin_inset LatexCommand label
@@ -798,6 +810,10 @@ name "sec:Future-Work"
 \begin_layout Standard
 Lifting the restrictions on the update frame.
  Can this be done using a stronger path language?
+\end_layout
+
+\begin_layout Standard
+Decidability and effectiveness guarantees.
 \end_layout
 
 \begin_layout Section
