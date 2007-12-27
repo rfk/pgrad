@@ -1,0 +1,2480 @@
+#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{aaai}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{tikz}
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+\nocopyright
+\end_preamble
+\options letterpaper
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Cooperative Execution in the Situation Calculus
+\newline
+using Prime Event Structures
+\end_layout
+
+\begin_layout Author
+Tracking Number: ###
+\end_layout
+
+\begin_layout Abstract
+We develop a powerful extension to the situation calculus for representing
+ and reasoning about the cooperative execution of tasks by a team of agents
+ in asynchronous, partially observable domains.
+ Existing applications of the situation calculus utilize totally ordered
+ sequences of actions, requiring constant synchronization between agents
+ that is undesirable or even impossible in some settings.
+ Our new approach utilizes 
+\emph on
+joint executions
+\emph default
+, partially ordered branching action sequences based on a prime event structure.
+ We show how a team of agents can use these structures to cooperatively
+ plan and perform an execution of a shared ConGolog program, with an implementat
+ion in Mozart/Oz that transparently shares the execution planning workload
+ between the agents.
+ The use of prime event structures has the capacity to guarantee legal execution
+s in spite of asynchronicity and partial observability, facilitating the
+ use of powerful non-deterministic programming techniques for multi-agent
+ problem solving tasks.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+The situation calculus 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+, and programming languages such as ConGolog that are built upon it 
+\begin_inset LatexCommand cite
+key "giacomo00congolog"
+
+\end_inset
+
+, has proven an effective formalism for specifying and reasoning about the
+ behavior of agents in a dynamic world.
+ While mostly used for single-agent domains, it has also found application
+ in a variety of multi-agent settings 
+\begin_inset LatexCommand cite
+key "shapiro02casl,Ferrein2005readylog,kelly06hlp_dps_anon"
+
+\end_inset
+
+.
+ Among its advantages are an effective reasoning procedure based on regression,
+ a straightforward encoding as a logic program, and a wide range of extensions
+ such as concurrent actions, time, and natural actions.
+\end_layout
+
+\begin_layout Standard
+However, some representational limits of the situation calculus make it
+ unsatisfactory for rich multi-agent domains.
+ The fundamental unit of reasoning, and the output of the ConGolog execution
+ planning process, is the 
+\emph on
+situation
+\emph default
+: a complete, ordered history of all actions that have occurred in the world.
+ Executing such a total ordering in a multi-agent setting requires constant
+ synchronization between the agents, severely limiting the potential for
+ concurrency in the system.
+ Moreover, such synchronization may not even be possible if agents are unaware
+ of the actions performed by others.
+ Multi-agent applications of the situation calculus thus invariably assume
+ that all actions performed are public, available to all agents for the
+ purposes of reasoning and synchronization.
+ This is clearly unrealistic in many domains.
+\end_layout
+
+\begin_layout Standard
+To overcome these limitations, we leverage a model of concurrent computation
+ known as 
+\emph on
+prime event
+\emph default
+ 
+\emph on
+structures
+\emph default
+, which are partially-ordered branching sequences of events 
+\begin_inset LatexCommand cite
+key "npw79event_structures"
+
+\end_inset
+
+.
+ We define a 
+\emph on
+joint execution
+\emph default
+ as a particular kind of prime event structure that is rich enough to capture
+ the concurrent execution of independent actions, including actions with
+ sensing results, but restricted enough that it can be unambiguously reduced
+ to situation terms for the purposes of reasoning.
+ These structures can directly replace situation terms for the purposes
+ of planning.
+ To demonstrate the utility of our approach, we show how a team of agents
+ can cooperate to plan and perform an execution of a shared ConGolog program
+ in an asynchronous, partially observable domain.
+\end_layout
+
+\begin_layout Standard
+Rather than assuming that all actions are public, we utilize recent work
+ on axiomatizing the conditions under which an agent will be aware of the
+ occurrence of an action 
+\begin_inset LatexCommand cite
+key "kelly07sc_know_obs"
+
+\end_inset
+
+.
+ Joint executions are restricted such that whenever action 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+ must be performed before action 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+, the agent performing 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ is able to observe the occurrence of 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+.
+ Synchronization thus occurs by observing the actions of other agents.
+ If this is not possible, yet synchronization is needed to ensure correctness,
+ then construction of the joint execution will fail.
+ In general, whether an action is enabled at any stage of execution can
+ be determined using only the information available to the agent who is
+ to perform it.
+\end_layout
+
+\begin_layout Standard
+Joint executions thus allow us to capture the actions that a team of agents
+ are to perform in service of some shared task, without requiring constant
+ synchronization between the agents, and without assuming that agents know
+ all the actions that have been performed, while utilizing existing reasoning
+ methods based on full situation terms.
+ This is a significant increase in expressiveness over existing approaches
+ to modeling multi-agent teams in the situation calculus.
+ 
+\end_layout
+
+\begin_layout Standard
+The paper is laid out as follows: section 
+\begin_inset LatexCommand ref
+reference "sec:Background"
+
+\end_inset
+
+ gives the necessary background on the situation calculus, ConGolog and
+ prime event structures; section 
+\begin_inset LatexCommand ref
+reference "sec:Joint-Execs"
+
+\end_inset
+
+ defines the concept of a joint execution and argues for its utility in
+ multi-agent settings; section 
+\begin_inset LatexCommand ref
+reference "sec:Implementation"
+
+\end_inset
+
+ describes our implementation of a ConGolog interpreter using joint executions
+ and gives a small example of its output; section 
+\begin_inset LatexCommand ref
+reference "sec:Related-Work"
+
+\end_inset
+
+ places this paper in the context of related and future work; and section
+ 
+\begin_inset LatexCommand ref
+reference "sec:Conclusion"
+
+\end_inset
+
+ concludes with a brief summary.
+\end_layout
+
+\begin_layout Section
+Background
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "sec:Background"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The Situation Calculus
+\end_layout
+
+\begin_layout Standard
+The situation calculus 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+ is a formalism for representing and reasoning about dynamic worlds.
+ We use a variant with multiple agents 
+\begin_inset LatexCommand cite
+key "shapiro02casl"
+
+\end_inset
+
+, sensing actions and partial observability of actions 
+\begin_inset LatexCommand cite
+key "kelly07sc_know_obs"
+
+\end_inset
+
+.
+ Below is a breif review.
+\end_layout
+
+\begin_layout Standard
+The situation calculus is a many-sorted language of first-order logic augmented
+ with a second-order induction axiom, with the following sorts: 
+\noun on
+Agent
+\noun default
+ terms represent the agents operating in the world; 
+\emph on
+\noun on
+Action
+\emph default
+\noun default
+ terms are functions denoting instantaneous events that can cause the state
+ of the world to change, with the initiating agent indicated by their first
+ argument; 
+\noun on
+Situation
+\noun default
+ terms are histories of the actions that have occurred in the world, with
+ the initial situation represented by 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+ and successive situations built using the function 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+; 
+\noun on
+Result
+\noun default
+ terms represent the sensing results of actions; 
+\noun on
+Object
+\noun default
+ terms represent other objects in the domain.
+ 
+\emph on
+Fluents
+\emph default
+ are predicates or functions representing properties of the world that change
+ between situations, and so take a situation as their final argument.
+\end_layout
+
+\begin_layout Standard
+A 
+\emph on
+basic action theory
+\emph default
+ is a set 
+\begin_inset Formula $\mathcal{D}$
+\end_inset
+
+ of situation calculus sentences (with a specific syntactic form as specified
+ in 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+) that describes a particular dynamic world.
+ Queries about the behavior of the world are posed as logical entailment
+ queries relative to this theory.
+ There is a distinguished fluent 
+\begin_inset Formula $Poss(a,s)$
+\end_inset
+
+ that indicates when it is possible to perform an action in a given situation.
+ The functional fluent 
+\begin_inset Formula $SR(a,s)=r$
+\end_inset
+
+ determines what the sensing result of an action will be, and we assume
+ there is a finite set of possible results for each action.
+\end_layout
+
+\begin_layout Standard
+Rather than assuming all actions are public, the fluent 
+\begin_inset Formula $CanObs(agt,a,s)$
+\end_inset
+
+ indicates when an agent will be aware of the occurrence of an action.
+ Similarly, 
+\begin_inset Formula $CanSense(agt,a,s)$
+\end_inset
+
+ indicates when an agent will be aware of the result of an action.
+ These can be combined into a function yielding what is 
+\emph on
+observed
+\emph default
+ by the agent when an action is performed, 
+\begin_inset Formula $Obs(agt,a,s)=o$
+\end_inset
+
+, defined according to:
+\begin_inset Formula \begin{multline*}
+\neg CanObs(agt,a,s)\,\rightarrow\, o=nil\\
+\shoveleft{\wedge\, CanObs(agt,a,s)\,\rightarrow}\\
+\shoveright{\neg CanSense(agt,a,s)\,\rightarrow\, o=a}\\
+\wedge\, CanSense(agt,a,s)\,\rightarrow\, o=(a,SR(a,s))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If 
+\begin_inset Formula $Obs(agt,a,s)$
+\end_inset
+
+ is the special term 
+\begin_inset Formula $nil$
+\end_inset
+
+, then the agent is completely unaware of the action's occurrence.
+ We define the 
+\emph on
+outcome
+\emph default
+ of an action to be a mapping from agents to the observations they make
+ from that action.
+ This will be denoted 
+\begin_inset Formula $Out(a,s)$
+\end_inset
+
+, and the suggestive notation 
+\begin_inset Formula $Out(a,s)[agt]$
+\end_inset
+
+ will be used to access each agent's entry in the mapping.
+ Clearly 
+\begin_inset Formula $Out(a,s)[agt]=Obs(agt,a,s)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The regression meta-operator 
+\begin_inset Formula $\mathcal{R}$
+\end_inset
+
+ is used to handle reasoning effectively.
+ Queries must be posed in the restricted syntactic form 
+\begin_inset Formula $D\,\models\,\phi(s)$
+\end_inset
+
+.
+ Roughly, this reads 
+\begin_inset Quotes eld
+\end_inset
+
+formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds in situation 
+\begin_inset Formula $s$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, where 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is some logical combination of fluents and 
+\begin_inset Formula $s$
+\end_inset
+
+ is a situation term rooted at 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+.
+ 
+\begin_inset Formula $\mathcal{R}$
+\end_inset
+
+ transforms these queries into a form that can be answered based on what
+ is known about the initial situation, which can be quite efficient in practice
+ (e.g.
+ for Prolog-style closed world databases).
+ This restriction means that a full situation term is required in order
+ to perform reasoning.
+\end_layout
+
+\begin_layout Subsection
+ConGolog
+\end_layout
+
+\begin_layout Standard
+ConGolog 
+\begin_inset LatexCommand cite
+key "giacomo00congolog"
+
+\end_inset
+
+ is a declarative agent programming language based on the situation calculus.
+ Testimony to its success are its wide range of applications and many extensions
+ to provide additional functionality 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon,giacomo99indigolog,farinelli07team_golog,Ferrein2005readylog,shapiro02casl"
+
+\end_inset
+
+.
+ To program an agent using ConGolog one specifies a situation calculus action
+ theory, and a program consisting of actions from the theory connected by
+ programming constructs such as conditionals, loops, and nondeterministic
+ choice.
+ Table 
+\begin_inset LatexCommand ref
+reference "tbl:Golog-Operators"
+
+\end_inset
+
+ lists some of the operators.
+\begin_inset Float table
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="10" columns="2">
+<features>
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<column alignment="center" valignment="top" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Operator
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\series bold
+Meaning
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $nil$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+empty program
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $a$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+perform action 
+\begin_inset Formula $a$
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\phi?$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+proceed if 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is true
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\delta_{1};\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+execute 
+\begin_inset Formula $\delta_{1}$
+\end_inset
+
+, then 
+\begin_inset Formula $\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\delta_{1}|\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+execute either 
+\begin_inset Formula $\delta_{1}$
+\end_inset
+
+ or 
+\begin_inset Formula $\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\pi(x)\delta(x)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Nondet.
+ arg.
+ selection
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\mathbf{if}\,\phi\,\mathbf{then}\,\delta_{1}\,\mathbf{else}\,\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+conditional branching
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\mathbf{proc}\, P(\overrightarrow{x})\delta(\overrightarrow{x})\,\mathbf{end}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Procedure definition
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\delta_{1}||\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Concurrent execution
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+Operators from the ConGolog language
+\begin_inset LatexCommand label
+name "tbl:Golog-Operators"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since the control program may be nondeterministic, it is the task of the
+ agent to plan a deterministic instantiation of the program, a sequence
+ of actions that can legally be performed in the world.
+ We call this the 
+\emph on
+execution planning process 
+\emph default
+and the result is a 
+\emph on
+legal execution
+\emph default
+ of the program.
+ ConGolog programs are executed in an offline manner: a complete situation
+ term constituting a legal execution is constructed, and then executed by
+ the agent in a purely reactive manner.
+\end_layout
+
+\begin_layout Standard
+When actions can have multiple results, such as sensing actions, the output
+ of the execution planning process must be a branching structure rather
+ than a straight sequence of actions.
+ In 
+\begin_inset LatexCommand cite
+key "lakemeyer99golog_cats"
+
+\end_inset
+
+ 
+\emph on
+conditional action trees
+\emph default
+ are used as an extension of raw situation terms to capture the necessary
+ branching.
+ These are still totally ordered sequences of actions, and so are suboptimal
+ in multi-agent settings.
+\end_layout
+
+\begin_layout Standard
+Similarly, planning over sensing actions cannot use situation terms alone
+ for reasoning, as they do not include the sensing information.
+ We follow the approach of 
+\begin_inset LatexCommand cite
+key "giacomo99indigolog"
+
+\end_inset
+
+ and introduce the concept of a 
+\emph on
+history
+\emph default
+, denoted 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, which is a sequence of pairs 
+\begin_inset Formula $(a,Out(a,s))$
+\end_inset
+
+ giving the outcome produced by each action.
+ This is strictly a meta-level construct and does not exist in the language
+ of the situation calculus.
+ Rather, the macro 
+\begin_inset Formula $\mathbf{end}[\sigma]$
+\end_inset
+
+ gives the situation term corresponding to the history, and 
+\begin_inset Formula $\mathbf{sensed}[\sigma]$
+\end_inset
+
+ gives a formula of the situation calculus that captures the information
+ given by the sensing results.
+ To determine whether a formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds after history 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ the query 
+\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma]\models\phi(\mathbf{end}[\sigma])$
+\end_inset
+
+ is used; see 
+\begin_inset LatexCommand cite
+key "giacomo99indigolog"
+
+\end_inset
+
+ for details.
+\end_layout
+
+\begin_layout Standard
+Since we are dealing with multi-agent domains, we must consider not only
+ the global history, but the local view of that history that is available
+ to each agent.
+ Agents can only be expected to act based on their local history of observations.
+ Given a history 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, it is straightforward to produce the 
+\emph on
+view 
+\emph default
+of that history that is available to a given agent: it is the corresponding
+ sequence of 
+\begin_inset Formula $(a,Obs(agt,a,s))$
+\end_inset
+
+ pairs, excluding those where 
+\begin_inset Formula $Obs(agt,a,s)$
+\end_inset
+
+ is 
+\begin_inset Formula $nil$
+\end_inset
+
+.
+ We will denote this by 
+\begin_inset Formula $view(agt,\sigma)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The idea of having a team of agents execute a shared ConGolog program has
+ been utilized in 
+\begin_inset LatexCommand cite
+key "Ferrein2005readylog"
+
+\end_inset
+
+ as well as our own previous work 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon"
+
+\end_inset
+
+.
+ The advantages of this approach include the use of nondeterministic operators
+ to provide 'dont-care' nondeterminism regarding which team-member carries
+ out which task, the use of the concurrency operator to easily compose subtasks,
+ and the ability to plan for and resolve interactions between agents such
+ as conflict over resources.
+ To demonstrate our approach, we adopt the example from 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon"
+
+\end_inset
+
+ of a team of robotic chefs cooperating to prepare a simple salad.
+ Their shared control program is given in figure 
+\begin_inset LatexCommand ref
+reference "fig:makesalad-program"
+
+\end_inset
+
+.
+ It says, in essence: somebody chop a lettuce, somebody chop a tomato, and
+ somebody
+\emph on
+ 
+\emph default
+chop a carrot into the bowl, then mix.
+ In section 
+\begin_inset LatexCommand ref
+reference "sec:Implementation"
+
+\end_inset
+
+ we will show the joint execution that our system produces for this program.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "97col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\begin_inset Formula \begin{multline*}
+\mathbf{proc}\,\, MakeSalad(bowl):\\
+\left[ChopTypeInto(Lettuce,bowl)||\right.\\
+ChopTypeInto(Tomato,bowl)\\
+\left.ChopTypeInto(Carrot,bowl)\right];\\
+\pi(agt,acquire(agt,bowl)\,;\, mix(agt,bowl)\,;\\
+\, release(agt,bowl))\,\mathbf{end}\\
+\\\shoveleft{\mathbf{proc}\,\, ChopTypeInto(type,bowl):}\\
+\pi(obj,\, ObjIsType(obj,type)?\,;\\
+\, ChopInto(obj,bowl))\,\mathbf{end}\\
+\\\shoveleft{\mathbf{proc}\,\, ChopInto(obj,bowl):}\\
+\pi(agt,\,\pi(k,\, ObjIsType(k,knife)?\,;\\
+acquire(agt,obj)\,;\, acquire(agt,k)\,;\, chop(agt,obj)\,\\
+acquire(agt,bowl)\,;\, placeIn(agt,bowl)\,;\\
+release(agt,k)\,;\,\left[nil\,|\, release(agt,bowl)\right]))\mathbf{end}\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+Example of a shared ConGolog program
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:makesalad-program"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Event Structures
+\end_layout
+
+\begin_layout Standard
+To tackle cooperative execution in a multi-agent setting, we have adopted
+ a model of concurrent computation known as 
+\emph on
+event structures, 
+\emph default
+introduced in 
+\begin_inset LatexCommand cite
+key "npw79event_structures"
+
+\end_inset
+
+.
+ The particular variant we are interested in are 
+\emph on
+prime event structures
+\emph default
+, canonically defined as a four-tuple:
+\begin_inset Formula \[
+(\mathcal{V},\prec,\#,\gamma)\]
+
+\end_inset
+
+ where: 
+\begin_inset Formula $\mathcal{V}$
+\end_inset
+
+ is a set of events; 
+\begin_inset Formula $\gamma$
+\end_inset
+
+ is a function assigning a label to each event; 
+\begin_inset Formula $\prec$
+\end_inset
+
+ is the 
+\emph on
+enabling
+\emph default
+ relation, a strict partial order on events; and 
+\begin_inset Formula $\#$
+\end_inset
+
+ is the 
+\emph on
+conflict
+\emph default
+ relation, a binary symmetric relation that is inherited through enablers:
+\begin_inset Formula \[
+\forall i,j,k\in V:i\#j\wedge i\prec k\rightarrow k\#j\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A 
+\emph on
+configuration
+\emph default
+ is a sequence of events consistent with 
+\begin_inset Formula $\prec$
+\end_inset
+
+ in which no pair of events conflict.
+ Each configuration thus represents a potential partial run of execution
+ of the system.
+\end_layout
+
+\begin_layout Standard
+For convenience, we will define our prime event structures using a slightly
+ different form:
+\begin_inset Formula \[
+(\mathcal{V},ens,alts,\gamma)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here 
+\begin_inset Formula $ens(i)$
+\end_inset
+
+ assigns to each event 
+\begin_inset Formula $i\in\mathcal{V}$
+\end_inset
+
+ a finite set of other events that are its direct 
+\emph on
+enablers
+\emph default
+, meaning that event 
+\begin_inset Formula $i$
+\end_inset
+
+ can only occur after all the events in 
+\begin_inset Formula $ens(i)$
+\end_inset
+
+ have occurred.
+ Similarly 
+\begin_inset Formula $alts(i)$
+\end_inset
+
+ assigns to each event a set of direct 
+\emph on
+alternatives
+\emph default
+, meaning that only one of the events in 
+\begin_inset Formula $\{i\}\cup alts(i)$
+\end_inset
+
+ can occur during execution of the system.
+ The enabling relation 
+\begin_inset Formula $i\prec j$
+\end_inset
+
+ is then the transitive closure of 
+\begin_inset Formula $i\in ens(j)$
+\end_inset
+
+, and 
+\begin_inset Formula $\#$
+\end_inset
+
+ is the smallest relation satisfying:
+\begin_inset Formula \[
+\forall i,j\in V:[\exists i',j'\in V:i'\preceq i\wedge j'\preceq j\wedge i\in alts(j)]\rightarrow i\#j\]
+
+\end_inset
+
+ Considered in this way, event structures form a directed acyclic graph
+ of the events that could occur during execution of the system.
+ As shown in 
+\begin_inset LatexCommand cite
+key "pratt91modeling_conc_with_geom"
+
+\end_inset
+
+, it is straightforward to convert these structures into a kind of finite
+ automaton for efficient execution.
+\end_layout
+
+\begin_layout Section
+Joint Executions
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "sec:Joint-Execs"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Independent Actions
+\end_layout
+
+\begin_layout Standard
+As discussed in section 
+\begin_inset LatexCommand ref
+reference "sec:Background"
+
+\end_inset
+
+, posing queries in the situation calculus requires a full situation term,
+ which means a total order on all actions that have occurred.
+ The first step towards providing only a 
+\emph on
+partial
+\emph default
+ order on the actions to be performed is, therefore, to capture the conditions
+ under which actions can be performed out of order without invalidating
+ the results of the reasoning process.
+\end_layout
+
+\begin_layout Standard
+Define 
+\emph on
+independent
+\emph default
+ actions, identified by 
+\begin_inset Formula $indep(a_{1},a_{2})$
+\end_inset
+
+, as those that can be performed in either order without affecting what
+ holds in the resulting situation.
+ Formally, they must satisfy the following restrictions (where 
+\begin_inset Formula $\mathcal{P}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathcal{F}$
+\end_inset
+
+ are meta-variables ranging over predicate and functional fluents respectively):
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2},s))$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$
+\end_inset
+
+
+\newline
+ for all predicate fluents 
+\begin_inset Formula $\mathcal{P}(s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\mathcal{F}(do(a_{1},do(a_{2},s)))=r\equiv\mathcal{F}(do(a_{2},do(a_{1},s)))=r$
+\end_inset
+
+
+\newline
+ for all functional fluents 
+\begin_inset Formula $\mathcal{F}(s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Whether actions are independent can be deduced from the description of the
+ action theory, or (as currently in our implementation) indicated explicitly
+ by the programmer.
+\end_layout
+
+\begin_layout Standard
+We will say that two situations are 
+\emph on
+equivalent
+\emph default
+ if they are identical up to transposition of pairs of adjacent independent
+ actions.
+ A straightforward case analysis on the definition of the regression operator
+ shows that for equivalent situations 
+\begin_inset Formula $s_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $s_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $\mathcal{D}\models\phi(s_{1})$
+\end_inset
+
+ iff 
+\begin_inset Formula $\mathcal{D}\models\phi(s_{2})$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+This notion of equivalence can be extended by macro expansion to histories
+ in the obvious manner, with the analogous result that 
+\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma_{1}]\models\phi(\mathbf{end}[\sigma_{1}])$
+\end_inset
+
+ iff 
+\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{2}])$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Joint Executions
+\end_layout
+
+\begin_layout Standard
+We define a 
+\emph on
+joint execution
+\emph default
+ as a special kind of prime event structure with the following components:
+\begin_inset Formula \[
+(\mathcal{A},\mathcal{O},ens,alts,\gamma,<)\]
+
+\end_inset
+
+It contains two disjoint sets of events: 
+\emph on
+action
+\emph default
+ events 
+\begin_inset Formula $\mathcal{A}$
+\end_inset
+
+ representing the actions to be performed, and 
+\emph on
+outcome
+\emph default
+ events 
+\begin_inset Formula $\mathcal{O}$
+\end_inset
+
+ representing the possible outcomes of each action.
+ For each action event 
+\begin_inset Formula $a\in\mathcal{A}$
+\end_inset
+
+, its enablers 
+\begin_inset Formula $ens(a)$
+\end_inset
+
+ is a set of outcome events, its alternatives 
+\begin_inset Formula $alts(a)$
+\end_inset
+
+ is empty, and its label 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+ is the action to be performed.
+ For each outcome event 
+\begin_inset Formula $o\in\mathcal{O}$
+\end_inset
+
+, 
+\begin_inset Formula $ens(o)$
+\end_inset
+
+ is a single action event for which it is a possible outcome, 
+\begin_inset Formula $alts(o)$
+\end_inset
+
+ is the set of all other outcome events 
+\begin_inset Formula $o'$
+\end_inset
+
+ such that 
+\begin_inset Formula $ens(o')=ens(o)$
+\end_inset
+
+, and 
+\begin_inset Formula $\gamma(o)$
+\end_inset
+
+ is an outcome as produced by the 
+\begin_inset Formula $Out(a,s)$
+\end_inset
+
+ function for the action 
+\begin_inset Formula $\gamma(ens(o))$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+A simple example of a joint execution is shown in figure 
+\begin_inset LatexCommand ref
+reference "fig:example-je"
+
+\end_inset
+
+.
+ Here action 
+\begin_inset Formula $act1$
+\end_inset
+
+ has two possible outcomes, which enable different actions 
+\begin_inset Formula $act2$
+\end_inset
+
+ and 
+\begin_inset Formula $act3$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "97col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+
+\family sans
+\series bold
+\size tiny
+\begin_inset Include \include{listings/je_example.tex}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+A simple joint execution.
+ Elliptical nodes are action events, box nodes are outcome events.
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:example-je"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A joint execution has one additional component over a standard prime event
+ structure: a 
+\emph on
+total 
+\emph default
+order on events 
+\begin_inset Formula $<$
+\end_inset
+
+ that is consistent with the partial order 
+\begin_inset Formula $\prec$
+\end_inset
+
+ induced by the enabling relation.
+ We will use this to perform reasoning by assuming that events occur in
+ the fixed order given by 
+\begin_inset Formula $<$
+\end_inset
+
+, and placing restrictions on the joint execution to ensure this assumption
+ is acceptable.
+ In practice, 
+\begin_inset Formula $<$
+\end_inset
+
+ will be determined by the order of insertion of events.
+\end_layout
+
+\begin_layout Standard
+An 
+\emph on
+outcome set
+\emph default
+ is a minimal set of non-conflicting outcome events; that is, a set of events
+ 
+\begin_inset Formula $e\subset\mathcal{O}$
+\end_inset
+
+ satisfying:
+\begin_inset Formula \begin{gather*}
+\forall o_{1},o_{2}\in e\,:\,\neg(o_{1}\#o_{2})\\
+\forall o_{1},o_{2}\in e\,:\, o_{1}\not\prec o_{2}\,\wedge o_{2}\not\prec o_{1}\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Recall that a 
+\emph on
+configuration
+\emph default
+ is a partial run of execution of the prime event structure.
+ Clearly any configuration ending in an outcome event corresponds to a unique
+ history, as it is a set of alternating actions and their outcomes.
+ We call the 
+\emph on
+histories
+\emph default
+ of an outcome set, denoted 
+\begin_inset Formula $hists(e)$
+\end_inset
+
+, the set of all configurations that contain all elements of 
+\begin_inset Formula $e$
+\end_inset
+
+, and end in an event from 
+\begin_inset Formula $e$
+\end_inset
+
+.
+ The unique history of an outcome set that is consistent with 
+\begin_inset Formula $<$
+\end_inset
+
+ will be denoted 
+\begin_inset Formula $hist(e)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We say that an outcome set 
+\begin_inset Formula $e_{1}$
+\end_inset
+
+ 
+\emph on
+covers 
+\emph default
+a set 
+\emph on
+
+\begin_inset Formula $e_{2}$
+\end_inset
+
+, 
+\emph default
+denoted by 
+\begin_inset Formula $e_{1}\sqsubseteq e_{2}$
+\end_inset
+
+, if every event in 
+\begin_inset Formula $e_{1}$
+\end_inset
+
+ is either also in 
+\begin_inset Formula $e_{2}$
+\end_inset
+
+, or precedes something in 
+\begin_inset Formula $e_{2}$
+\end_inset
+
+.
+ Every history in 
+\begin_inset Formula $hists(e_{2})$
+\end_inset
+
+ will have a prefix in 
+\begin_inset Formula $hists(e_{1})$
+\end_inset
+
+.
+ This defines a partial ordering on outcome sets:
+\begin_inset Formula \[
+e_{1}\sqsubseteq e_{2}\,\equiv\,\forall o_{1}\in e_{1}:\,\,\exists o_{2}\in e_{2}:\,\, o_{1}\preceq o_{2}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $max(e)$
+\end_inset
+
+ denote the maximal element of an outcome set with respect to the total
+ order 
+\begin_inset Formula $<$
+\end_inset
+
+.
+ A 
+\emph on
+branch
+\emph default
+, denoted 
+\begin_inset Formula $b$
+\end_inset
+
+, is a special case of an outcome set that meets the following additional
+ requirement:
+\begin_inset Formula \[
+\forall i<max(b):\,\, i\in b\,\oplus\,(\exists i'\in b:\,\, i\#i'\,\vee\, i\prec i')\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+That is, every event less than the maximal element of 
+\begin_inset Formula $b$
+\end_inset
+
+ is either in the branch, conflicts with something in the branch, or precedes
+ something in the branch.
+ A branch thus identifies a unique outcome for each action event that is
+ ordered below 
+\begin_inset Formula $max(b)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Restrictions on Joint Executions
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "sub:Restrictions"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We now impose several restrictions on the structure of a joint execution,
+ to ensure they are suitable for representing the actions to be performed
+ by a team of agents.
+\newline
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+(R1) Independent events have independent actions:
+\newline
+
+\series default
+Joint executions are restricted such that the following holds for all action
+ events 
+\begin_inset Formula $a_{1},a_{2}\in\mathcal{A}$
+\end_inset
+
+:
+\begin_inset Formula \[
+a_{1}<a_{2}\,\rightarrow\, a_{1}\prec a_{2}\,\vee\, a_{1}\#a_{2}\,\vee\, indep(\gamma(a_{1}),\gamma(a_{2}))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In words: if event 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+ is after 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+ in the total order, but the execution allows them to be performed in either
+ order, then the corresponding actions must be independent.
+ 
+\end_layout
+
+\begin_layout Standard
+With this restriction, the histories given by 
+\begin_inset Formula $hists(b)$
+\end_inset
+
+ will differ from each other only by transposition of independent actions,
+ making them equivalent to the unique history 
+\begin_inset Formula $hist(b)$
+\end_inset
+
+.
+ It is thus possible to determine whether a formula holds after the execution
+ of a given branch, using the query:
+\begin_inset Formula \[
+\mathcal{D}\cup\mathbf{sensed}[hist(b)]\models\phi(\mathbf{end}[hist(b)])\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is a key point and is worth re-iterating: regardless of the precise
+ order in which events are executed, any history that contains all events
+ on a branch 
+\begin_inset Formula $b$
+\end_inset
+
+, and that ends in an event from 
+\begin_inset Formula $b$
+\end_inset
+
+, is equivalent to the unique history of 
+\begin_inset Formula $b$
+\end_inset
+
+ generated by the total order.
+ This allows us to plan using execution branches rather than histories or
+ situation terms.
+\newline
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+(R2) Actions are enabled by a unique branch:
+\newline
+
+\series default
+We restrict the enabling set for each action event to be a branch, rather
+ than an arbitrary set of outcome events.
+ In practice this means that when inserting a new action into the joint
+ execution, one must specify the branch to which it belongs.
+ This restriction allows us to determine what holds immediately before an
+ event 
+\begin_inset Formula $a\in\mathcal{A}$
+\end_inset
+
+ becomes enabled, using 
+\begin_inset Formula $hist(ens(a))$
+\end_inset
+
+.
+ Given that the action 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+ is possible after 
+\begin_inset Formula $ens(a)$
+\end_inset
+
+, then when 
+\begin_inset Formula $a$
+\end_inset
+
+ becomes enabled it will remain possible until it is performed.
+ Moreover, any events that occur after it is enabled but before it is performed
+ will not interfere with its effects, as these actions must be independent
+ of 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+.
+ 
+\newline
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+(R3) All possible outcomes are considered:
+\newline
+
+\series default
+Clearly planning requires that all possible outcomes of an action be considered.
+ For each action event 
+\begin_inset Formula $a\in\mathcal{A}$
+\end_inset
+
+, and each possible outcome 
+\begin_inset Formula $r$
+\end_inset
+
+ of that action, if:
+\begin_inset Formula \begin{multline*}
+D\cup\mathbf{sensed}[hist(ens(a))]\not\,\models\,\\
+Out(\gamma(a),\mathbf{end}[hist(ens(a))])\neq r\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+then there must be a corresponding outcome event:
+\begin_inset Formula \[
+\exists o\in E:\,\, ens(o)=\{a\}\,\wedge\,\gamma(o)=r\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+(R4) Actions are enabled by observable events:
+\newline
+
+\series default
+If an action is to be enabled by an outcome event 
+\begin_inset Formula $o$
+\end_inset
+
+ produced by another agent, it is clearly necessary that the agent performing
+ the action be able to observe the occurrence of 
+\begin_inset Formula $o$
+\end_inset
+
+.
+ Otherwise, it has no way of synchronizing its actions with those of its
+ teammate.
+ Let 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+ be the agent responsible for performing an action event 
+\begin_inset Formula $a$
+\end_inset
+
+, then we require that:
+\begin_inset Formula \[
+\forall o\in ens(a):\,\,\gamma(o)[actor(a)]\neq nil\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+(R5) Overlapping views enable identical actions:
+\newline
+
+\series default
+To ensure that the joint execution can actually be carried out by the agents,
+ there must be no confusion about whether a particular action is enabled.
+ Lifting the function 
+\begin_inset Formula $view$
+\end_inset
+
+ to operate on sets of histories in the obvious way, then:
+\begin_inset Formula \[
+view(actor(a),\, hists(ens(a)))\]
+
+\end_inset
+
+ gives the set of all local histories after which 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+ is required to perform the action 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+.
+ However, since the agent has only a local viewpoint, it may be the case
+ that some other outcome set can produce an identical local history.
+\end_layout
+
+\begin_layout Standard
+Say that two branches overlap, denoted 
+\begin_inset Formula $overlaps(b,b')$
+\end_inset
+
+, if they could produce an identical local history from the perspective
+ of a given agent:
+\begin_inset Formula \[
+view(agt,hists(b))\,\cap\, view(agt,hists(b'))\,\neq\varnothing\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then the 
+\emph on
+minimal overlapping set
+\emph default
+ for 
+\begin_inset Formula $b$
+\end_inset
+
+, from the perspective of 
+\begin_inset Formula $agt$
+\end_inset
+
+, is the set of all 
+\begin_inset Formula $b'$
+\end_inset
+
+ satisfying:
+\begin_inset Formula \[
+overlaps(agt,b,b')\wedge\neg\exists b''\left[overlaps(agt,b,b'')\wedge b''\sqsubset b'\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This set captures all branches that the agent could potentially confuse
+ for 
+\begin_inset Formula $b$
+\end_inset
+
+.
+ To ensure there is no confusion about whether an action is enabled, for
+ each 
+\begin_inset Formula $a\in\mathcal{A}$
+\end_inset
+
+, every 
+\begin_inset Formula $b$
+\end_inset
+
+ in the minimal overlapping set of 
+\begin_inset Formula $ens(a)$
+\end_inset
+
+ for 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+ must enable an event 
+\begin_inset Formula $a'$
+\end_inset
+
+ with identical action 
+\begin_inset Formula $\gamma(a')=\gamma(a)$
+\end_inset
+
+.
+ This ensures that the agent's local information is always enough to know
+ when it should perform an action.
+ While it may not know precisely which 
+\emph on
+event
+\emph default
+ is enabled, it will know enough to determine the specific 
+\emph on
+action
+\emph default
+ that it must perform.
+\end_layout
+
+\begin_layout Subsection
+Planning with Joint Executions
+\end_layout
+
+\begin_layout Standard
+Our implementation of an execution planning system uses joint executions
+ as an abstract data type that can be built up one event at a time, one
+ branch at a time.
+ For a particular branch 
+\begin_inset Formula $b$
+\end_inset
+
+, the state of the world is reasoned about using standard regression techniques
+ over 
+\begin_inset Formula $hist(b)$
+\end_inset
+
+, to determine the next action to perform.
+ This action is then be inserted into the joint execution to extend the
+ branch.
+\end_layout
+
+\begin_layout Standard
+Inserting a new action event requires specifying the action to be performed,
+ the branch on which to insert it, and a set of existing events on that
+ branch that must precede it.
+ The code managing the joint execution determines all possible outcomes
+ of the action and adds them as outcome events, returning a new branch for
+ each outcome.
+ It also ensures that the restrictions in section 
+\begin_inset LatexCommand ref
+reference "sub:Restrictions"
+
+\end_inset
+
+ are satisfied, which can involve forcing an ordering between potentially
+ concurrent events to ensure independence (R1) or synchronization (R4),
+ or adding actions to other branches that the acting agent cannot distinguish
+ from the current one (R5).
+ If the restrictions cannot be met, insertion fails and the planner must
+ backtrack to find a different action.
+\end_layout
+
+\begin_layout Standard
+The intricacies of synchronization between agents in the face of partial
+ observability are thus hidden from the planning algorithm itself, automatically
+ managed by the construction of a joint execution.
+\end_layout
+
+\begin_layout Subsection
+Summary
+\end_layout
+
+\begin_layout Standard
+In this section we have defined a 
+\emph on
+joint execution
+\emph default
+ as a prime event structure with some additional restrictions.
+ We contend that such structures are highly suitable for planning the actions
+ to be performed by a team in service of some shared task, such as executing
+ a shared ConGolog program.
+ 
+\end_layout
+
+\begin_layout Standard
+On one hand, joint executions are restricted enough to be practical for
+ such use.
+ Like the situation terms or conditional action trees used in previous approache
+s, prime event structures are purely reactive (equivalent to a kind of finite
+ automaton) and can be executed without further deliberation.
+ They are restricted to ensure that whenever an agent is required to perform
+ an action, it is able to determine this using only its local information.
+ Each branch of execution can be easily converted into a situation term
+ for the purposes of reasoning, and can be extended one action at a time.
+\end_layout
+
+\begin_layout Standard
+Joint executions are also significantly more flexible than previous approaches.
+ They allow independent actions to be performed without synchronization,
+ in any order.
+ The agents need never know precisely what actions have been executed, only
+ those that enable them to perform their next action.
+ Synchronization is automatically achieved when required by explicitly reasoning
+ about what actions each agent can observe, rather than requiring that all
+ actions be public.
+\end_layout
+
+\begin_layout Standard
+To demonstrate the utility of these structures, we have implemented an interpret
+er for multi-agent ConGolog programs that produces joint executions as its
+ output.
+ In the next section, we highlight the key aspects of our implementation
+ and give an example of the output it produces.
+\end_layout
+
+\begin_layout Section
+Implementation
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "sec:Implementation"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Our implementation
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+available at [identifying information omitted]
+\end_layout
+
+\end_inset
+
+ of a ConGolog execution planner utilizes the Mozart programming system,
+ which implements the Oz language 
+\begin_inset LatexCommand cite
+key "vanroy99mozart"
+
+\end_inset
+
+ rather than the traditional use of Prolog.
+ As we shall see, Mozart's strong support for distributed logic programming
+ allows the team of agents to share the planning workload with almost no
+ additional code.
+ 
+\end_layout
+
+\begin_layout Standard
+To make things more concrete, figure 
+\begin_inset LatexCommand ref
+reference "fig:plan-output"
+
+\end_inset
+
+ shows the output of our system when run on the 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+ example of figure 
+\begin_inset LatexCommand ref
+reference "fig:makesalad-program"
+
+\end_inset
+
+.
+ Since all actions in this program have a single outcome, the outcome events
+ have been suppressed for brevity.
+\end_layout
+
+\begin_layout Standard
+In this domain there are three agents, but only two knives are available.
+ The agents must therefore synchronize their use of these resources.
+ Actions are taken to be independent if they deal with different objects.
+ As seen in figure 
+\begin_inset LatexCommand ref
+reference "fig:plan-output"
+
+\end_inset
+
+, the use of a partial order structure facilitates parallelism between the
+ agents, with each processing a different ingredient and only synchronizing
+ on the availability of the required resources.
+ There is no need for processing actions, such as 
+\begin_inset Formula $mix$
+\end_inset
+
+ and 
+\begin_inset Formula $chop$
+\end_inset
+
+, to be publicly observable.
+ This execution is maximally concurrent given the constraints of the domain,
+ and is clearly a significant improvement over totally ordered sequences
+ of actions as produced by existing systems.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "97col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\family sans
+\series bold
+\size tiny
+\begin_inset Include \include{listings/plan.tex}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+Joint execution for 
+\begin_inset Formula $MakeSalad(bowl(1))$
+\end_inset
+
+, showing significant concurrency between agents
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:plan-output"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Related and Future Work
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "sec:Related-Work"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The idea of having a shared ConGolog program that is executed by a team
+ of agents is used with considerable success in 
+\begin_inset LatexCommand cite
+key "Ferrein2005readylog"
+
+\end_inset
+
+, where the variant Readylog is used to coordinate and control a RoboCup
+ soccer team.
+ Their domain satisfies the assumption that all actions are public, so they
+ can afford to produce totally ordered plans.
+ The techniques developed in this paper would generalize such an approach
+ to a wider variety of domains (although their work includes some decision
+ theoretic aspects that are not present in our work).
+\end_layout
+
+\begin_layout Standard
+There has also been significant work using the situation calculus in settings
+ where each agent has its own control program 
+\begin_inset LatexCommand cite
+key "shapiro02casl"
+
+\end_inset
+
+.
+ The behavior of the overall system is specified as the concurrent combination
+ of each agent's program, 
+\begin_inset Formula $\delta_{1}||\delta_{2}||\dots$
+\end_inset
+
+, and ConGolog is used to verify that the system satisfies certain constraints
+ (e.g.
+ safety or liveness).
+ Again, this cannot handle partial observability of actions since all reasoning
+ is based on a full situation term.
+ We believe the joint execution formalism could be helpful in such settings,
+ by permitting synchronization only when actions are observable by the agents.
+\end_layout
+
+\begin_layout Standard
+An alternate approach to handling partial observability is the language
+ TeamGolog developed in 
+\begin_inset LatexCommand cite
+key "farinelli07team_golog"
+
+\end_inset
+
+, where agents explicitly synchronize through communication and a shared
+ state.
+ By contrast, our approach constructs synchronization implicitly by reasoning
+ about the actions that can be observed by each agent.
+ This has the advantage of requiring no changes to the form or semantics
+ of the agents' control program, but the disadvantage that joint execution
+ construction may fail if too many actions are unobservable.
+ It would be interesting to combine these approaches by automatically incorporat
+ing communication when implicit synchronization is not possible.
+\end_layout
+
+\begin_layout Standard
+Several authors have introduced operators for expressing partial orderings
+ between actions into the ConGolog language itself, for example 
+\begin_inset LatexCommand cite
+key "son00htn_golog"
+
+\end_inset
+
+.
+ While this is useful for specifying behavior, the 
+\emph on
+output
+\emph default
+ from such systems is still a totally ordered sequence of actions and thus
+ maintains the limitations of existing systems when actually performing
+ the execution in a multi-agent setting.
+\end_layout
+
+\begin_layout Standard
+There is, of course, an extensive body of work on partial-order planning
+ in the context of goal-based planning.
+ The joint execution structure we develop here has deep similarities to
+ the structures used in conditional partial-order planners such as 
+\begin_inset LatexCommand cite
+key "peot92conditional_nonlinear"
+
+\end_inset
+
+, but is intentionally specific to the situation calculus.
+ We make no use of many concepts common in partial-order goal-based planning
+ (causal links, threats, conflicts, etc) because we do not deal explicitly
+ with goals, but with steps generated by an underlying transition semantics.
+ Our approach can be considered roughly equivalent to 
+\emph on
+deordering
+\emph default
+ of a totally-ordered plan as described in 
+\begin_inset LatexCommand cite
+key "backstrom99reordering"
+
+\end_inset
+
+, except performed during plan construction rather than as a post-processing
+ step.
+\end_layout
+
+\begin_layout Standard
+This paper considers only the offline construction of a joint execution.
+ IndiGolog 
+\begin_inset LatexCommand cite
+key "giacomo99indigolog"
+
+\end_inset
+
+ has shown how to interleave planning with steps of execution.
+ Extending this to the multi-agent case is non-trivial, as the agents may
+ have different knowledge about the state of execution.
+ We are presently developing an approach based on explicit notions of knowledge
+ and common knowledge, leveraging the formalism developed by 
+\begin_inset LatexCommand cite
+key "kelly07sc_know_obs"
+
+\end_inset
+
+.
+ We are also working to incorporate truly concurrent actions into our account.
+\end_layout
+
+\begin_layout Section
+Conclusion
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "sec:Conclusion"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this paper, we have demonstrated that an apparently fundamental limitation
+ of the situation calculus - the need for a totally-ordered history of actions
+ - can be overcome by the use of a restricted prime event structure which
+ we call a 
+\emph on
+joint execution
+\emph default
+.
+ While these structures are rich enough to capture the parallel execution
+ of independent actions, including actions with sensing results, they are
+ restricted enough that they can be built and reasoned about using the standard
+ tools of the situation calculus.
+\end_layout
+
+\begin_layout Standard
+The utility of these structures has been demonstrated by implementing a
+ system that constructs a joint execution for a shared ConGolog program,
+ distributing the planning workload between the agents in the team.
+ Once a valid joint execution is found, the team is guaranteed to be able
+ to execute it in the world without further deliberation and without explicit
+ synchronization between the agents, in spite of asynchronicity and partial
+ observability of actions.
+\end_layout
+
+\begin_layout Standard
+Our approach thus facilitates the use of the situation calculus, and powerful
+ non-deterministic programming techniques such as ConGolog, for multi-agent
+ problem solving tasks in richer, more realistic domains.
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand bibtex
+options "aaai"
+bibfiles "/storage/uni/pgrad/library/references"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
