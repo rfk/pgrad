@@ -898,7 +898,10 @@ reference "fig:makesalad-program"
  
 \emph default
 chop a carrot into the bowl, then mix.
- Later we show the joint execution that our system produces for this program.
+ Later we show a joint execution found by our system for this program.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
@@ -1320,15 +1323,19 @@ reference "fig:example-je"
 
 .
  Here action 
-\begin_inset Formula $act1$
+\begin_inset Formula $act_{1}$
 \end_inset
 
- has two possible outcomes, which enable different actions 
-\begin_inset Formula $act2$
+ has two possible outcomes which enable different actions, while 
+\begin_inset Formula $act_{3}$
+\end_inset
+
+ must occur after both 
+\begin_inset Formula $act_{1}$
 \end_inset
 
  and 
-\begin_inset Formula $act3$
+\begin_inset Formula $act_{2}$
 \end_inset
 
 .
@@ -1377,7 +1384,7 @@ preview false
 
 \begin_layout Standard
 A simple joint execution.
- Elliptical nodes are action events, box nodes are outcome events.
+ Ellipses are action events, boxes are outcome events.
 \end_layout
 
 \end_inset
@@ -1824,24 +1831,6 @@ action
 \end_layout
 
 \begin_layout Subsection
-Building Joint Executions
-\end_layout
-
-\begin_layout Standard
-As we intend joint executions to be more-or-less drop-in replacements for
- situation terms in the planning process, we must be able to build them
- up one action at a time.
-\begin_inset Formula \begin{multline*}
-JDo(a,(\mathcal{A},\mathcal{O},ens,alts,\gamma,<),(\mathcal{A}',\mathcal{O}',ens',alts',\gamma',<'))\equiv\\
-\exists i':\,\mathcal{A}'=\mathcal{A}\cup\{i'\}\,\wedge\,\gamma'(i')=a\,\wedge\,\forall i\in\mathcal{A}:\, i<'i'\\
-\\\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
 Planning with Joint Executions
 \end_layout
 
@@ -1985,36 +1974,6 @@ reference "fig:makesalad-program"
 .
  Since all actions in this program have a single outcome, the outcome events
  have been suppressed for brevity.
-\end_layout
-
-\begin_layout Standard
-In this domain there are three agents, but only two knives are available.
- The agents must therefore synchronize their use of these resources.
- Actions are taken to be independent if they deal with different objects.
- As seen in figure 
-\begin_inset LatexCommand ref
-reference "fig:plan-output"
-
-\end_inset
-
-, the use of a partial order structure facilitates parallelism between the
- agents, with each processing a different ingredient and only synchronizing
- on the availability of the required resources.
- There is no need for processing actions, such as 
-\begin_inset Formula $mix$
-\end_inset
-
- and 
-\begin_inset Formula $chop$
-\end_inset
-
-, to be publicly observable.
- This execution is maximally concurrent given the constraints of the domain,
- and is clearly a significant improvement over totally ordered sequences
- of actions as produced by existing systems.
-\end_layout
-
-\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
@@ -2079,6 +2038,33 @@ name "fig:plan-output"
 \end_layout
 
 \begin_layout Standard
+In this domain there are three agents, but only two knives are available.
+ The agents must therefore synchronize their use of these resources.
+ Actions are taken to be independent if they deal with different objects.
+ As seen in figure 
+\begin_inset LatexCommand ref
+reference "fig:plan-output"
+
+\end_inset
+
+, the use of a partial order structure facilitates parallelism between the
+ agents, with each processing a different ingredient and only synchronizing
+ on the availability of the required resources.
+ There is no need for processing actions, such as 
+\begin_inset Formula $mix$
+\end_inset
+
+ and 
+\begin_inset Formula $chop$
+\end_inset
+
+, to be publicly observable.
+ This execution is maximally concurrent given the constraints of the domain,
+ and is clearly a significant improvement over totally ordered sequences
+ of actions as produced by existing systems.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
@@ -2100,6 +2086,20 @@ status open
 \begin_layout Standard
 
 \size scriptsize
+\begin_inset ERT
+status open
+
+\begin_layout Standard
+
+\size scriptsize
+
+\backslash
+tiny
+\end_layout
+
+\end_inset
+
+
 \begin_inset Include \verbatiminput{listings/Planner.oz}
 preview false
 
@@ -2136,26 +2136,21 @@ name "fig:planning-code"
 
 \end_layout
 
-\begin_layout Standard
-
-\end_layout
-
 \begin_layout Section
 Related and Future Work
 \end_layout
 
 \begin_layout Standard
-The idea of having a shared ConGolog program that is executed by a team
- of agents is used with considerable success in 
+A shared ConGolog program that is executed by a team of agents is used with
+ considerable success in 
 \begin_inset LatexCommand cite
 key "Ferrein2005readylog"
 
 \end_inset
 
-, where the variant Readylog is used to coordinate and control a RoboCup
- soccer team.
- Their domain satisfies the assumption that all actions are public, so they
- can afford to produce totally ordered plans.
+ to coordinate and control a RoboCup soccer team.
+ In their target domain all actions are public, so totally ordered plans
+ can be used.
  The techniques developed in this paper would generalize such an approach
  to a wider variety of domains (although their work includes some decision
  theoretic aspects that are not present in our work).
@@ -2163,25 +2158,20 @@ key "Ferrein2005readylog"
 
 \begin_layout Standard
 There has also been significant work using the situation calculus in settings
- where each agent has its own control program 
+ where agents have individual control programs 
 \begin_inset LatexCommand cite
 key "shapiro02casl"
 
 \end_inset
 
 .
- The behavior of the overall system is specified as the concurrent combination
- of each agent's program, 
-\begin_inset Formula $\delta_{1}||\delta_{2}||\dots$
-\end_inset
-
-, and ConGolog is used to verify that the system satisfies certain constraints
- (e.g.
- safety or liveness).
+ The behavior of the whole system is specified as the concurrent combination
+ of each agent's program, and ConGolog is used to verify that the system
+ satisfies certain constraints.
  Again, this cannot handle partial observability of actions since all reasoning
  is based on a full situation term.
  We believe the joint execution formalism could be helpful in such settings,
- by permitting synchronization only when actions are observable by the agents.
+ by only allowing synchronization on observable actions.
 \end_layout
 
 \begin_layout Standard
@@ -2194,18 +2184,18 @@ key "farinelli07team_golog"
 
 , where agents explicitly synchronize through communication and a shared
  state.
- By contrast, our approach constructs synchronization implicitly by reasoning
- about the actions that can be observed by each agent.
+ By contrast, our approach constructs synchronization implicitly using the
+ actions observed by each agent.
  This has the advantage of requiring no changes to the form or semantics
  of the agents' control program, but the disadvantage that joint execution
- construction may fail if too many actions are unobservable.
- It would be interesting to combine these approaches by automatically incorporat
-ing communication when implicit synchronization is not possible.
+ construction may fail if too few actions are observable.
+ It would be interesting to combine the approaches, using communication
+ when implicit synchronization is impossible.
 \end_layout
 
 \begin_layout Standard
-Several authors have introduced operators for expressing partial orderings
- between actions into the ConGolog language itself, for example 
+Several authors have introduced explicit partial-order operators into the
+ ConGolog language itself, for example 
 \begin_inset LatexCommand cite
 key "son00htn_golog"
 
@@ -2216,26 +2206,26 @@ key "son00htn_golog"
 \emph on
 output
 \emph default
- from such systems is still a totally ordered sequence of actions and thus
- maintains the limitations of existing systems when actually performing
- the execution in a multi-agent setting.
+ from such systems is still a totally ordered sequence of actions.
+ They thus maintain the limitations of existing systems when executing in
+ a multi-agent setting.
 \end_layout
 
 \begin_layout Standard
 There is, of course, an extensive body of work on partial-order planning
  in the context of goal-based planning.
- The joint execution structure we develop here has deep similarities to
- the structures used in conditional partial-order planners such as 
+ Our joint executions have deep similarities to the structures used in condition
+al partial-order planners such as 
 \begin_inset LatexCommand cite
 key "peot92conditional_nonlinear"
 
 \end_inset
 
-, but is intentionally specific to the situation calculus.
- We make no use of many concepts common in partial-order goal-based planning
- (causal links, threats, conflicts, etc) because we do not deal explicitly
- with goals, but with steps generated by an underlying transition semantics.
- Our approach can be considered roughly equivalent to 
+, but are intentionally specific to the situation calculus.
+ We neglect many concepts common in partial-order goal-based planning (causal
+ links, threats, conflicts, etc) because we do not deal explicitly with
+ goals, but with steps generated by a transition semantics.
+ Our approach is roughly equivalent to 
 \emph on
 deordering
 \emph default
@@ -2271,23 +2261,6 @@ key "kelly07sc_know_obs"
  We are also working to incorporate truly concurrent actions into our account.
 \end_layout
 
-\begin_layout Standard
-In 
-\begin_inset LatexCommand cite
-key "lakemeyer99golog_cats"
-
-\end_inset
-
- 
-\emph on
-conditional action trees
-\emph default
- are used as an extension of raw situation terms to capture the necessary
- branching.
- These are still totally ordered sequences of actions, and so are suboptimal
- in multi-agent settings.
-\end_layout
-
 \begin_layout Section
 Conclusion
 \end_layout
@@ -2295,16 +2268,16 @@ Conclusion
 \begin_layout Standard
 In this paper, we have demonstrated that an apparently fundamental limitation
  of the situation calculus - the need for a totally-ordered history of actions
- - can be overcome by the use of a restricted prime event structure which
- we call a 
+ - can be overcome using a restricted prime event structure which we call
+ a 
 \emph on
 joint execution
 \emph default
 .
- While these structures are rich enough to capture the parallel execution
- of independent actions, including actions with sensing results, they are
- restricted enough that they can be built and reasoned about using the standard
- tools of the situation calculus.
+ These structures are rich enough to capture the parallel execution of independe
+nt actions, including sensing results, but are restricted enough that they
+ can be built and reasoned about using the standard tools of the situation
+ calculus.
 \end_layout
 
 \begin_layout Standard
