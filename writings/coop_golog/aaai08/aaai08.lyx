@@ -163,13 +163,9 @@ joint execution.
  of reasoning.
  They are further restricted such that for every action, the agent required
  to perform it can determine when to do so based only on its local history
- of observations.
-\end_layout
-
-\begin_layout Standard
-To demonstrate the utility of our approach, we show how a team of agents
- can cooperate to plan and perform an execution of a shared ConGolog program
- in an asynchronous, partially observable domain.
+ of observations, allowing synchronization in the face of partial observability.
+ To demonstrate the utility of our approach, we show how a team of agents
+ can cooperate to plan and perform an execution of a shared ConGolog program.
 \end_layout
 
 \begin_layout Standard
@@ -1072,10 +1068,9 @@ independent
 \end_layout
 
 \begin_layout Standard
-Which actions are independent may be deduced from the action theory, or
- specified explicitly by the programmer - what matters is that the planner
- can determine whether two actions are independent.
- We will say that two histories 
+We assume that the planning system has some way of identifying independent
+ actions.
+ Two histories 
 \begin_inset Formula $\sigma_{1}$
 \end_inset
 
@@ -1083,7 +1078,7 @@ Which actions are independent may be deduced from the action theory, or
 \begin_inset Formula $\sigma_{2}$
 \end_inset
 
- are 
+ are called 
 \emph on
 equivalent
 \emph default
@@ -1433,11 +1428,11 @@ reference "fig:example-je"
 \end_inset
 
 .
- Here action 
+ Here 
 \begin_inset Formula $act_{1}$
 \end_inset
 
- has two possible outcomes which enable different actions, while 
+ has two possible outcomes, while 
 \begin_inset Formula $act_{3}$
 \end_inset
 
@@ -1538,16 +1533,16 @@ order
 \end_inset
 
 , allowing us to produce a proper situation or history term.
- Joint executions are restricted to ensure this assumption is acceptable.
- 
+ Joint executions are restricted to ensure this assumption is acceptable
+ (see R1 below).
 \end_layout
 
 \begin_layout Standard
-Following some definitions, we describe and justify a total of five restrictions
- that joint executions must satisfy.
- Since we intend to use joint executions as a replacement for situation
- terms in the planning process, they will be built up one action at a time.
- The restrictions should thus be considered invariants that must be preserved
+Following some definitions, we describe and justify five restrictions that
+ joint executions must satisfy.
+ Since we will use joint executions as a replacement for situation terms
+ in the planning process, they will be built up one action at a time.
+ The restrictions should be considered invariants that must be preserved
  when each new action is added.
 \end_layout
 
@@ -1615,7 +1610,7 @@ canonical history
 \end_layout
 
 \begin_layout Standard
-We say that an outcome set 
+We say that a set 
 \begin_inset Formula $e_{1}$
 \end_inset
 
@@ -1657,20 +1652,7 @@ e_{1}\sqsubseteq e_{2}\,\equiv\,\forall j_{1}\in e_{1}:\,\,\exists j_{2}\in e_{2
 \end_layout
 
 \begin_layout Standard
-When 
-\begin_inset Formula $e_{1}\sqsubseteq e_{2}$
-\end_inset
-
- every history in 
-\begin_inset Formula $hists(e_{2})$
-\end_inset
-
- will have a prefix in 
-\begin_inset Formula $hists(e_{1})$
-\end_inset
-
-.
- A 
+A 
 \emph on
 branch
 \emph default
@@ -1706,8 +1688,6 @@ Restrictions
 We now impose several restrictions on the structure of a joint execution,
  to ensure they are suitable for representing the actions to be performed
  by a team of agents.
-\newline
-
 \end_layout
 
 \begin_layout Standard
@@ -1779,8 +1759,6 @@ reference "thm:equiv-compat"
 \end_inset
 
  using standard techniques.
-\newline
-
 \end_layout
 
 \begin_layout Standard
@@ -1812,8 +1790,6 @@ reference "thm:equiv-legal"
 
  this ensures that every possible run of execution of the system will produce
  a legal history.
-\newline
-
 \end_layout
 
 \begin_layout Standard
@@ -1852,13 +1828,11 @@ then there must be a corresponding outcome event:
 \end_layout
 
 \begin_layout Standard
-We can use the canonical history 
+We can safely use the canonical history 
 \begin_inset Formula $hist(ens(a))$
 \end_inset
 
- to perform this reasoning because of (R1).
-\newline
-
+ to perform this reasoning, thanks to R1.
 \end_layout
 
 \begin_layout Standard
@@ -1880,7 +1854,7 @@ If an action
 \begin_inset Formula $i$
 \end_inset
 
- must able to observe the occurrence of 
+ must be able to observe the occurrence of 
 \begin_inset Formula $j$
 \end_inset
 
@@ -1905,10 +1879,8 @@ If an action
 \end_layout
 
 \begin_layout Standard
-If is restriction cannot be met, the agents have no way of synchronizing
+If this restriction cannot be met, the agents have no way of synchronizing
  their actions and the construction of the joint execution must fail.
-\newline
-
 \end_layout
 
 \begin_layout Standard
@@ -1924,7 +1896,7 @@ There must be no confusion about whether a particular action is enabled
 \begin_inset Formula $view$
 \end_inset
 
- to operate on sets of histories in the obvious way, then:
+ to operate on sets of histories, then:
 \begin_inset Formula \[
 view(actor(i),\, hists(ens(i)))\]
 
@@ -1940,13 +1912,12 @@ view(actor(i),\, hists(ens(i)))\]
 
 .
  Since the agent has only a local viewpoint, it is possible that some other
- outcome set can produce an identical local history.
+ outcome set can produce an identical view.
  Say that two outcome sets overlap, denoted 
 \begin_inset Formula $ovlaps(agt,e_{1},e_{2})$
 \end_inset
 
-, if they could produce an identical local history from the perspective
- of a given agent:
+, if they could produce an identical local history for a given agent:
 \begin_inset Formula \[
 view(agt,hists(e_{1}))\,\cap\, view(agt,hists(e_{2}))\,\neq\varnothing\]
 
@@ -1982,7 +1953,7 @@ ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedg
 \end_layout
 
 \begin_layout Standard
-This set captures all outcome sets that the agent could potentially confuse
+This captures all outcome sets that the agent could potentially confuse
  for 
 \begin_inset Formula $e$
 \end_inset
@@ -2050,8 +2021,9 @@ On one hand, joint executions are restricted enough to be practical for
  event structures can be executed without further deliberation.
  They are restricted to ensure that whenever an agent is required to perform
  an action, it is able to determine this using only its local information.
- Each branch of execution can be easily converted into a history term for
- the purposes of reasoning, and can easily be extended one action at a time.
+ Each branch of execution can be easily converted into a situation or history
+ term for the purposes of reasoning, and can easily be extended one action
+ at a time.
 \end_layout
 
 \begin_layout Standard
@@ -2063,12 +2035,6 @@ Joint executions are also significantly more flexible than previous approaches.
  Synchronization is automatically achieved when required by explicitly reasoning
  about what actions each agent can observe, rather than requiring that all
  actions be public.
-\end_layout
-
-\begin_layout Standard
-To demonstrate the utility of these structures, we have implemented an interpret
-er for multi-agent ConGolog programs that produces joint executions as its
- output, which is discussed in the next section.
 \end_layout
 
 \begin_layout Section
@@ -2100,7 +2066,7 @@ reference "fig:plan-output"
 
 \end_inset
 
- shows the output of our system when run on the 
+ shows the output our system produces for the 
 \begin_inset Formula $MakeSalad$
 \end_inset
 
@@ -2112,7 +2078,7 @@ reference "fig:makesalad-program"
 
 .
  Since all actions in this program have a single outcome, the outcome events
- have been suppressed for brevity.
+ have been suppressed.
 \begin_inset Float figure
 wide false
 sideways false
@@ -2177,8 +2143,8 @@ name "fig:plan-output"
 \end_layout
 
 \begin_layout Standard
-In this domain there are three agents but only two knives are available,
- so the agents must synchronize their use of these resources.
+In this domain there are three agents but only two knives, so the agents
+ must synchronize their use of these resources.
  Actions are independent if they deal with different objects.
  As seen in figure 
 \begin_inset LatexCommand ref
@@ -2188,8 +2154,8 @@ reference "fig:plan-output"
 
 , the use of a partial order structure facilitates concurrency between the
  agents, with each processing a different ingredient and only synchronizing
- on the availability of the required resources.
- There is no need for processing actions, such as 
+ on the availability of resources.
+ There is no need for actions such as 
 \begin_inset Formula $mix$
 \end_inset
 
@@ -2197,7 +2163,7 @@ reference "fig:plan-output"
 \begin_inset Formula $chop$
 \end_inset
 
-, to be publicly observable.
+ to be public.
  This execution is maximally concurrent given the constraints of the domain,
  and is clearly a significant improvement over totally ordered sequences
  of actions as produced by existing systems.
@@ -2284,16 +2250,15 @@ reference "fig:planning-code"
 \end_inset
 
  is a list of all branches in the joint execution, along with the program
- remaining to be executed on each branch.
- The procedure is basically: find a branch in which the program has not
- terminated, find a new program transition on this branch, insert that action
- into the joint execution, and update the list of branches.
- The only complication is the use of 
-\begin_inset Formula $MkPrecFunc$
+ remaining to execute on each and the corresponding history term 
+\begin_inset Formula $hist(b)$
 \end_inset
 
- when inserting the action - this function determines which existing actions
- must precede the new action according to the semantics of ConGolog.
+.
+ The basic procedure is: find a branch where the program has not terminated,
+ find a new transition step on this branch, insert that action into the
+ joint execution, and update the list of branches.
+ This is very similar to the planning loop for existing ConGolog systems.
 \end_layout
 
 \begin_layout Standard
@@ -2317,8 +2282,7 @@ Related and Future Work
 \end_layout
 
 \begin_layout Standard
-A shared ConGolog program that is executed by a team of agents is used with
- considerable success in 
+A shared ConGolog program is used with considerable success in 
 \begin_inset LatexCommand cite
 key "Ferrein2005readylog"
 
@@ -2328,13 +2292,13 @@ key "Ferrein2005readylog"
  In their target domain all actions are public, so totally ordered plans
  can be used.
  The techniques developed in this paper would generalize such an approach
- to a wider variety of domains (although their work includes some decision
- theoretic aspects that are not present in our work).
+ to a wider variety of domains (although their work includes decision theoretic
+ aspects not considered here).
 \end_layout
 
 \begin_layout Standard
-There has also been significant work using the situation calculus in settings
- where agents have individual control programs 
+There is also significant work using the situation calculus for agents with
+ individual control programs 
 \begin_inset LatexCommand cite
 key "shapiro02casl"
 
@@ -2342,12 +2306,10 @@ key "shapiro02casl"
 
 .
  The behavior of the whole system is specified as the concurrent combination
- of each agent's program, and ConGolog is used to verify that the system
- satisfies certain constraints.
- Again, this cannot handle partial observability of actions since all reasoning
+ of individual programs, and ConGolog is used to verify aspects of the behavior.
+ This cannot handle partial observability of actions since all reasoning
  is based on a full situation term.
- We believe the joint execution formalism could be helpful in such settings,
- by only allowing synchronization on observable actions.
+ Joint executions could be used to overcome this limitation.
 \end_layout
 
 \begin_layout Standard
@@ -2388,48 +2350,47 @@ output
 \end_layout
 
 \begin_layout Standard
-There is, of course, an extensive body of work on partial-order planning
- in the context of goal-based planning.
+There is, of course, an extensive body of work using partial orders for
+ goal-based planning.
  Our joint executions have deep similarities to the structures used in condition
 al partial-order planners, but are intentionally specific to the situation
  calculus.
- We neglect many concepts common in partial-order goal-based planning (causal
- links, threats, conflicts, etc) because we do not deal explicitly with
- goals, but with steps generated by a transition semantics.
+ We neglect common concepts from this field (e.g.
+ threats, conflicts) because we do not deal explicitly with goals, but with
+ single steps of execution.
  Our approach is roughly equivalent to 
 \emph on
 deordering
 \emph default
- of a totally-ordered plan as described in 
+ a totally-ordered plan 
 \begin_inset LatexCommand cite
 key "backstrom99reordering"
 
 \end_inset
 
-, except performed during plan construction rather than as a post-processing
+, but performed during plan construction rather than as a post-processing
  step.
 \end_layout
 
 \begin_layout Standard
-This paper considers only the offline construction of a joint execution.
+While this paper considers only offline construction of a joint execution,
  IndiGolog 
 \begin_inset LatexCommand cite
 key "giacomo99indigolog"
 
 \end_inset
 
- has shown how to interleave planning with steps of execution.
- Extending this to the multi-agent case is non-trivial, as the agents may
- have different knowledge about the state of execution.
- We are presently developing an approach based on explicit notions of knowledge
- and common knowledge, leveraging the formalism developed by 
+ allows interleaving planning with steps of execution.
+ Extending this technique a team of agents is difficult, as each may have
+ different knowledge about the state of execution.
+ We are developing an approach based on the epistemic reasoning techniques
+ of 
 \begin_inset LatexCommand cite
 key "kelly07sc_know_obs"
 
 \end_inset
 
 .
- We are also working to incorporate truly concurrent actions into our account.
 \end_layout
 
 \begin_layout Section
