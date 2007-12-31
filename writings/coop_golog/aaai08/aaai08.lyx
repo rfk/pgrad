@@ -9,8 +9,11 @@
 \usepackage{helvet}
 \usepackage{courier}
 \usepackage{tikz}
+\usepackage{amsthm}
 \newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
 \nocopyright
+
+\newtheorem{theorem}{Theorem}
 \end_preamble
 \options letterpaper
 \language english
@@ -148,17 +151,23 @@ key "npw79event_structures"
 \end_inset
 
 .
- We define a 
+ Rather than building ordinary situation terms during the planning process,
+ we build a restricted prime event structure which we call a 
 \emph on
-joint execution
+joint execution.
+
 \emph default
- as a particular kind of prime event structure that is rich enough to capture
- the concurrent execution of independent actions, including actions with
- sensing results, but restricted enough that it can be unambiguously reduced
- to situation terms for the purposes of reasoning.
- These structures can directly replace situation terms for the purposes
- of planning.
- To demonstrate the utility of our approach, we show how a team of agents
+ These structures are rich enough to capture the concurrent execution of
+ independent actions, including actions with sensing results, but restricted
+ enough to be unambiguously reduced to situation terms for the purposes
+ of reasoning.
+ They are further restricted such that for every action, the agent required
+ to perform it can determine when to do so based only on its local history
+ of observations.
+\end_layout
+
+\begin_layout Standard
+To demonstrate the utility of our approach, we show how a team of agents
  can cooperate to plan and perform an execution of a shared ConGolog program
  in an asynchronous, partially observable domain.
 \end_layout
@@ -172,16 +181,6 @@ zation between the agents, and without assuming that agents know all the
  This is a significant increase in expressiveness over existing approaches
  to modeling multi-agent teams in the situation calculus.
  
-\end_layout
-
-\begin_layout Standard
-The paper is laid out as follows: section 2 gives the necessary background
- on the situation calculus, ConGolog and prime event structures; section
- 3 defines the concept of a joint execution and argues for its utility in
- multi-agent settings; section 4 describes our implementation of a ConGolog
- interpreter using joint executions and gives an example of its output;
- section 5 places this paper in the context of related and future work;
- section 6 concludes with a brief summary.
 \end_layout
 
 \begin_layout Section
@@ -339,6 +338,15 @@ outcome
 \end_inset
 
 .
+ The suggestive notation 
+\begin_inset Formula $Out(a,s)[agt]$
+\end_inset
+
+ accesses a specific 
+\begin_inset Formula $Obs(agt,a,s)$
+\end_inset
+
+ term.
 \end_layout
 
 \begin_layout Standard
@@ -383,6 +391,7 @@ formula
 .
  This restriction means that a full situation term is required in order
  to perform reasoning.
+ Regression can be effectively implemented as a logic program.
 \end_layout
 
 \begin_layout Standard
@@ -414,7 +423,7 @@ history
 \end_inset
 
  gives the situation term corresponding to the history, and 
-\begin_inset Formula $\mathbf{sensed}[\sigma]$
+\begin_inset Formula $\mathbf{res}[\sigma]$
 \end_inset
 
  gives a formula capturing the information given by the sensing results.
@@ -427,16 +436,31 @@ history
 \end_inset
 
  the query 
-\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma]\models\phi(\mathbf{end}[\sigma])$
+\begin_inset Formula $\mathcal{D}\models\mathbf{res}[\sigma]\rightarrow\phi(\mathbf{end}[\sigma])$
 \end_inset
 
- is used; see 
+ is used, which we abbreviate to 
+\begin_inset Formula $\mathcal{D}\models\mathbf{holds}[\phi,\sigma]$
+\end_inset
+
+; see 
 \begin_inset LatexCommand cite
 key "giacomo99indigolog"
 
 \end_inset
 
  for details.
+ A history is 
+\emph on
+legal
+\emph default
+ if each action is possible at the time it is performed, and its outcome
+ is consistent with previous outcomes; the macro 
+\begin_inset Formula $\mathbf{legal}[\sigma]$
+\end_inset
+
+ asserts this.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -977,27 +1001,16 @@ rdly converted to a kind of finite automaton for efficient execution.
 \end_layout
 
 \begin_layout Section
-Joint Executions
-\end_layout
-
-\begin_layout Subsection
 Independent Actions
 \end_layout
 
 \begin_layout Standard
-As discussed earlier, posing queries in the situation calculus requires
- a full situation term, which means a total order on actions.
- To provide only a 
-\emph on
-partial
-\emph default
- order on the actions to be performed, we must capture the conditions under
- which actions can be performed out of order without invalidating the results
- of the reasoning process.
-\end_layout
-
-\begin_layout Standard
-Define 
+In order to provide only a partial order on the actions to be performed,
+ while maintaining the use of exising reasoning techniques based on full
+ situation terms, we must capture the conditions under which actions can
+ be performed out of order without invalidating the results of the reasoning
+ process.
+ Define 
 \emph on
 independent
 \emph default
@@ -1005,8 +1018,8 @@ independent
 \begin_inset Formula $indep(a_{1},a_{2})$
 \end_inset
 
-, as those that can be performed in either order without affecting what
- holds in the resulting situation.
+, as those that do not interfere with each others preconditions, outcome
+ or effects.
  Formally, they must satisfy the following restrictions (where 
 \begin_inset Formula $\mathcal{P}$
 \end_inset
@@ -1059,63 +1072,294 @@ independent
 \end_layout
 
 \begin_layout Standard
-Whether actions are independent can be deduced from the description of the
- action theory, or (as currently in our implementation) axiomatized explicitly
- by the programmer.
-\end_layout
-
-\begin_layout Standard
-We will say that two situations are 
-\emph on
-equivalent
-\emph default
- if they are identical up to transposition of pairs of adjacent independent
- actions.
- A straightforward case analysis on the definition of the regression operator
- shows that for equivalent situations 
-\begin_inset Formula $s_{1}$
+Which actions are independent may be deduced from the action theory, or
+ specified explicitly by the programmer - what matters is that the planner
+ can determine whether two actions are independent.
+ We will say that two histories 
+\begin_inset Formula $\sigma_{1}$
 \end_inset
 
  and 
-\begin_inset Formula $s_{2}$
+\begin_inset Formula $\sigma_{2}$
 \end_inset
 
-, 
-\begin_inset Formula $\mathcal{D}\models\phi(s_{1})$
+ are 
+\emph on
+equivalent
+\emph default
+ if they are identical up to the ordering of independent actions: they contain
+ the same set of 
+\begin_inset Formula $(a,Out(a,s))$
 \end_inset
 
- iff 
-\begin_inset Formula $\mathcal{D}\models\phi(s_{2})$
+ pairs, and whenever two such pairs occur in a different order in 
+\begin_inset Formula $\sigma_{1}$
+\end_inset
+
+ than in 
+\begin_inset Formula $\sigma_{2}$
+\end_inset
+
+ the actions are independent.
+ Two histories 
+\begin_inset Formula $\sigma_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\sigma_{2}$
+\end_inset
+
+ are 
+\emph on
+compatible for 
+\begin_inset Formula $a$
+\end_inset
+
+ 
+\emph default
+if they are equivalent after removing all actions that are independent of
+ 
+\begin_inset Formula $a$
 \end_inset
 
 .
+ We then have the following properties of histories:
 \end_layout
 
 \begin_layout Standard
-This notion of equivalence can be extended by macro expansion to histories
- in the obvious manner, with the analogous result that 
-\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma_{1}]\models\phi(\mathbf{end}[\sigma_{1}])$
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{theorem}
+\end_layout
+
 \end_inset
 
- iff 
-\begin_inset Formula $\mathcal{D}\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{2}])$
+
+\begin_inset LatexCommand label
+name "thm:equiv-holds"
+
+\end_inset
+
+For equivalent histories 
+\begin_inset Formula $\sigma_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\sigma_{2}$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathcal{D}\,\models\,\mathbf{holds}[\phi,\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[\phi,\sigma_{2}]\]
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{theorem}
+\backslash
+begin{proof}
+\end_layout
+
+\end_inset
+
+A straightforward case analysis on the definition of the regression operator.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{proof}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{theorem}
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "thm:equiv-legal"
+
+\end_inset
+
+For equivalent histories 
+\begin_inset Formula $\sigma_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\sigma_{2}$
+\end_inset
+
+:
+\begin_inset Formula \[
+\mathcal{D}\,\models\,\mathbf{legal}[\sigma_{1}]\,\,\equiv\,\,\mathbf{legal}[\sigma_{2}]\]
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{theorem}
+\backslash
+begin{proof}
+\end_layout
+
+\end_inset
+
+Using theorem 
+\begin_inset LatexCommand ref
+reference "thm:equiv-holds"
+
+\end_inset
+
+, and invariance of 
+\begin_inset Formula $Poss$
+\end_inset
+
+ and 
+\begin_inset Formula $Out$
+\end_inset
+
+ when transposing independent actions.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{proof}
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{theorem}
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "thm:equiv-compat"
+
+\end_inset
+
+For histories 
+\begin_inset Formula $\sigma_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\sigma_{2}$
+\end_inset
+
+ compatible for 
+\begin_inset Formula $a$
+\end_inset
+
+:
+\begin_inset Formula \begin{gather*}
+\mathcal{D}\,\models\,\mathbf{holds}[Poss(a),\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[Poss(a),\sigma_{2}]\\
+\mathcal{D}\,\models\,\mathbf{holds}[Out(a)=r,\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[Out(a)=r,\sigma_{2}]\end{gather*}
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{theorem}
+\backslash
+begin{proof}
+\end_layout
+
+\end_inset
+
+Using theorem 
+\begin_inset LatexCommand ref
+reference "thm:equiv-holds"
+
+\end_inset
+
+, and the fact that the removed actions do not affect the preconditions
+ or outcome of 
+\begin_inset Formula $a$
 \end_inset
 
 .
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{proof}
 \end_layout
 
-\begin_layout Subsection
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Section
 Joint Executions
 \end_layout
 
 \begin_layout Standard
-We define a 
+We can now define a 
 \emph on
 joint execution
 \emph default
- as a special kind of prime event structure with the following components:
+ as a restricted prime event structure coupled with a total ordering relation:
 \begin_inset Formula \[
-(\mathcal{A},\mathcal{O},ens,alts,\gamma,<)\]
+(\mathcal{A}\cup\mathcal{O},ens,alts,\gamma,<)\]
 
 \end_inset
 
@@ -1127,7 +1371,7 @@ action
 \begin_inset Formula $\mathcal{A}$
 \end_inset
 
- representing the actions to be performed, and 
+ represent the actions to be performed, and 
 \emph on
 outcome
 \emph default
@@ -1135,54 +1379,50 @@ outcome
 \begin_inset Formula $\mathcal{O}$
 \end_inset
 
- representing the possible outcomes of each action.
+ represent the possible outcomes of the actions.
  For each action event 
-\begin_inset Formula $a\in\mathcal{A}$
+\begin_inset Formula $i\in\mathcal{A}$
 \end_inset
 
 , its enablers 
-\begin_inset Formula $ens(a)$
+\begin_inset Formula $ens(i)$
 \end_inset
 
  is a set of outcome events, its alternatives 
-\begin_inset Formula $alts(a)$
+\begin_inset Formula $alts(i)$
 \end_inset
 
  is empty, and its label 
-\begin_inset Formula $\gamma(a)$
+\begin_inset Formula $\gamma(i)$
 \end_inset
 
  is the action to be performed.
  For each outcome event 
-\begin_inset Formula $o\in\mathcal{O}$
+\begin_inset Formula $j\in\mathcal{O}$
 \end_inset
 
 , 
-\begin_inset Formula $ens(o)$
+\begin_inset Formula $ens(j)$
 \end_inset
 
  is a single action event for which it is a possible outcome, 
-\begin_inset Formula $alts(o)$
+\begin_inset Formula $alts(j)$
 \end_inset
 
  is the set of all other outcome events 
-\begin_inset Formula $o'$
+\begin_inset Formula $j'$
 \end_inset
 
  such that 
-\begin_inset Formula $ens(o')=ens(o)$
+\begin_inset Formula $ens(j')=ens(j)$
 \end_inset
 
 , and 
-\begin_inset Formula $\gamma(o)$
+\begin_inset Formula $\gamma(j)$
 \end_inset
 
- is an outcome as produced by the 
-\begin_inset Formula $Out(a,s)$
-\end_inset
-
- function for the action 
-\begin_inset Formula $\gamma(ens(o))$
+ is an outcome of the action 
+\begin_inset Formula $\gamma(ens(j))$
 \end_inset
 
 .
@@ -1275,32 +1515,44 @@ name "fig:example-je"
 \end_layout
 
 \begin_layout Standard
-A joint execution has one additional component over a standard prime event
- structure: a 
+The total
 \emph on
-total 
+ 
 \emph default
-order on events 
+order 
 \begin_inset Formula $<$
 \end_inset
 
- that is consistent with the partial order 
+ on events is arbitrary, but must be consistent with the partial order 
 \begin_inset Formula $\prec$
 \end_inset
 
- induced by the enabling relation.
- We will use this to perform reasoning by assuming that events occur in
- the fixed order given by 
+ induced by 
+\begin_inset Formula $ens$
+\end_inset
+
+.
+ We use it to perform reasoning by assuming that events occur in the fixed
+ order given by 
 \begin_inset Formula $<$
 \end_inset
 
-, and placing restrictions on the joint execution to ensure this assumption
- is acceptable.
- In practice, 
-\begin_inset Formula $<$
-\end_inset
+, allowing us to produce a proper situation or history term.
+ Joint executions are restricted to ensure this assumption is acceptable.
+ 
+\end_layout
 
- will be determined by the order of insertion of events.
+\begin_layout Standard
+Following some definitions, we describe and justify a total of five restrictions
+ that joint executions must satisfy.
+ Since we intend to use joint executions as a replacement for situation
+ terms in the planning process, they will be built up one action at a time.
+ The restritions should thus be considered invariants that must be preserved
+ when each new action is added.
+\end_layout
+
+\begin_layout Subsection
+Definitions
 \end_layout
 
 \begin_layout Standard
@@ -1315,7 +1567,7 @@ outcome set
 
  satisfying:
 \begin_inset Formula \begin{gather*}
-\forall o_{1},o_{2}\in e\,:\, o_{1}\not\prec o_{2}\,\wedge\, o_{2}\not\prec o_{1}\,\wedge\,\neg(o_{1}\#o_{2})\end{gather*}
+\forall j_{1},j_{2}\in e\,:\, j_{1}\not\prec j_{2}\,\wedge\, j_{2}\not\prec j_{1}\,\wedge\,\neg(j_{1}\#j_{2})\end{gather*}
 
 \end_inset
 
@@ -1328,17 +1580,17 @@ Recall that a
 configuration
 \emph default
  is a partial run of execution of the prime event structure.
- Clearly any configuration ending in an outcome event corresponds to a unique
- history, as it is a set of alternating actions and their outcomes.
- We call the 
+ Any configuration ending in an outcome event corresponds to a unique history,
+ as it is a sequence of alternating actions and their outcomes.
+ The 
 \emph on
 histories
 \emph default
- of an outcome set, denoted 
+ of an outcome set, 
 \begin_inset Formula $hists(e)$
 \end_inset
 
-, the set of all configurations that contain all elements of 
+, is the set of all configurations that contain all elements of 
 \begin_inset Formula $e$
 \end_inset
 
@@ -1347,11 +1599,15 @@ histories
 \end_inset
 
 .
- The unique history of an outcome set that is consistent with 
+ The unique history that is consistent with 
 \begin_inset Formula $<$
 \end_inset
 
- will be denoted 
+ is called the 
+\emph on
+canonical history
+\emph default
+ and denoted 
 \begin_inset Formula $hist(e)$
 \end_inset
 
@@ -1365,9 +1621,9 @@ We say that an outcome set
 
  
 \emph on
-covers 
+covers
 \emph default
-a set 
+ 
 \emph on
 
 \begin_inset Formula $e_{2}$
@@ -1383,16 +1639,29 @@ denoted by
 \begin_inset Formula $e_{1}$
 \end_inset
 
- is either also in 
+ is either in 
 \begin_inset Formula $e_{2}$
 \end_inset
 
-, or precedes something in 
+ or precedes something in 
 \begin_inset Formula $e_{2}$
 \end_inset
 
-.
- Every history in 
+: 
+\begin_inset Formula \[
+e_{1}\sqsubseteq e_{2}\,\equiv\,\forall j_{1}\in e_{1}:\,\,\exists j_{2}\in e_{2}:\,\, j_{1}\preceq j_{2}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When 
+\begin_inset Formula $e_{1}\sqsubseteq e_{2}$
+\end_inset
+
+ every history in 
 \begin_inset Formula $hists(e_{2})$
 \end_inset
 
@@ -1401,38 +1670,14 @@ denoted by
 \end_inset
 
 .
- This defines a partial ordering on outcome sets:
-\begin_inset Formula \[
-e_{1}\sqsubseteq e_{2}\,\equiv\,\forall o_{1}\in e_{1}:\,\,\exists o_{2}\in e_{2}:\,\, o_{1}\preceq o_{2}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Let 
-\begin_inset Formula $max(e)$
-\end_inset
-
- denote the maximal element of an outcome set with respect to the total
- order 
-\begin_inset Formula $<$
-\end_inset
-
-.
  A 
 \emph on
 branch
 \emph default
-, denoted 
-\begin_inset Formula $b$
-\end_inset
-
-, is a special case of an outcome set that meets the following additional
+ is a special case of an outcome set that meets the following additional
  requirement:
 \begin_inset Formula \[
-\forall i<max(b):\,\, i\in b\,\oplus\,(\exists i'\in b:\,\, i\#i'\,\vee\, i\prec i')\]
+\forall j_{1}\in\mathcal{O}:\,\, j_{1}\in b\,\oplus\,(\exists j_{2}\in b:\,\, j_{1}\#j_{2}\,\vee\, j_{1}\prec j_{2})\]
 
 \end_inset
 
@@ -1440,22 +1685,21 @@ branch
 \end_layout
 
 \begin_layout Standard
-That is, every event less than the maximal element of 
+That is, every event is either in the branch, conflicts with something in
+ the branch, or precedes something in the branch.
+ The union of 
+\begin_inset Formula $hists(b)$
+\end_inset
+
+ for every branch 
 \begin_inset Formula $b$
 \end_inset
 
- is either in the branch, conflicts with something in the branch, or precedes
- something in the branch.
- A branch thus identifies a unique outcome for each action event that is
- ordered below 
-\begin_inset Formula $max(b)$
-\end_inset
-
-.
+ thus gives the complete set possible runs of execution.
 \end_layout
 
 \begin_layout Subsection
-Restrictions on Joint Executions
+Restrictions
 \end_layout
 
 \begin_layout Standard
@@ -1469,18 +1713,19 @@ We now impose several restrictions on the structure of a joint execution,
 \begin_layout Standard
 
 \series bold
-(R1) Independent events have independent actions:
+(R1) Independent events have independent actions
 \newline
 
 \series default
-Joint executions are restricted such that the following holds for all action
- events 
-\begin_inset Formula $a_{1},a_{2}\in\mathcal{A}$
+If the execution allows two action events to occur in either order, then
+ the corresponding actions must be independent.
+ Formally, for each 
+\begin_inset Formula $i_{1},i_{2}\in\mathcal{A}$
 \end_inset
 
 :
 \begin_inset Formula \[
-a_{1}\prec a_{2}\,\vee\, a_{2}\prec a_{1}\vee\, a_{1}\#a_{2}\,\vee\, indep(\gamma(a_{1}),\gamma(a_{2}))\]
+i_{1}\prec i_{2}\,\vee\, i_{2}\prec i_{1}\,\vee\, i_{1}\#i_{2}\,\vee\, indep(\gamma(i_{1}),\gamma(i_{2}))\]
 
 \end_inset
 
@@ -1488,9 +1733,52 @@ a_{1}\prec a_{2}\,\vee\, a_{2}\prec a_{1}\vee\, a_{1}\#a_{2}\,\vee\, indep(\gamm
 \end_layout
 
 \begin_layout Standard
-If the execution allows two action events to be performed in either order,
- then the corresponding actions must be independent.
- 
+This restriction is key to the power of joint executions.
+ It implies that for every branch 
+\begin_inset Formula $b$
+\end_inset
+
+, all histories in 
+\begin_inset Formula $hists(b)$
+\end_inset
+
+ are equivalent.
+ By theorem 
+\begin_inset LatexCommand ref
+reference "thm:equiv-holds"
+
+\end_inset
+
+ we can use the canonical history 
+\begin_inset Formula $hist(b)$
+\end_inset
+
+ for planning purposes, and be assured that the same fluents will hold regardles
+s of the specific order in which actions are executed.
+ More generally, it ensures that every history in 
+\begin_inset Formula $hists(ens(a))$
+\end_inset
+
+ is compatible for 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+.
+ By theorem 
+\begin_inset LatexCommand ref
+reference "thm:equiv-compat"
+
+\end_inset
+
+ we can safely use 
+\begin_inset Formula $hist(ens(a))$
+\end_inset
+
+ to reason about the preconditions and outcomes of 
+\begin_inset Formula $\gamma(a)$
+\end_inset
+
+ using standard techniques.
 \newline
 
 \end_layout
@@ -1498,14 +1786,32 @@ If the execution allows two action events to be performed in either order,
 \begin_layout Standard
 
 \series bold
-(R2) Actions are enabled by a unique outcome set:
+(R2) Every canonical branch history is legal
 \newline
 
 \series default
-We restrict the enabling set for each action event to be a proper outcome
- set.
- This simply ensures there is no redundancy in the definition of the joint
- execution.
+For every branch 
+\begin_inset Formula $b$
+\end_inset
+
+: 
+\begin_inset Formula \[
+\mathcal{D}\,\models\,\mathbf{legal}[hist(b)]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By theorem 
+\begin_inset LatexCommand ref
+reference "thm:equiv-legal"
+
+\end_inset
+
+ this ensures that every possible run of execution of the system will produce
+ a legal history.
 \newline
 
 \end_layout
@@ -1513,11 +1819,11 @@ We restrict the enabling set for each action event to be a proper outcome
 \begin_layout Standard
 
 \series bold
-(R3) All possible outcomes are considered:
+(R3) All possible outcomes are considered
 \newline
 
 \series default
-Clearly planning requires that all possible outcomes of an action be considered.
+Planning clearly requires that all possible outcomes of an action be considered.
  For each action event 
 \begin_inset Formula $a\in\mathcal{A}$
 \end_inset
@@ -1527,9 +1833,8 @@ Clearly planning requires that all possible outcomes of an action be considered.
 \end_inset
 
  of that action, if:
-\begin_inset Formula \begin{multline*}
-D\cup\mathbf{sensed}[hist(ens(a))]\not\,\models\,\\
-Out(\gamma(a),\mathbf{end}[hist(ens(a))])\neq r\end{multline*}
+\begin_inset Formula \[
+\mathcal{D}\,\not\models\,\mathbf{holds}[Out(\gamma(a))\neq r,hist(ens(a))]\]
 
 \end_inset
 
@@ -1547,38 +1852,62 @@ then there must be a corresponding outcome event:
 \end_layout
 
 \begin_layout Standard
+We can use the canonical history 
+\begin_inset Formula $hist(ens(a))$
+\end_inset
+
+ to perform this reasoning because of (R1).
+\newline
+
+\end_layout
+
+\begin_layout Standard
 
 \series bold
 (R4) Actions are enabled by observable events:
 \newline
 
 \series default
-If an action is to be enabled by an outcome event 
-\begin_inset Formula $o$
+If an action 
+\begin_inset Formula $i$
 \end_inset
 
- produced by another agent, it is clearly necessary that the agent performing
- the action be able to observe the occurrence of 
-\begin_inset Formula $o$
+ is enabled by an outcome event 
+\begin_inset Formula $j$
+\end_inset
+
+ produced by another agent, the agent performing 
+\begin_inset Formula $i$
+\end_inset
+
+ must able to observe the occurrence of 
+\begin_inset Formula $j$
 \end_inset
 
 .
  Otherwise, it has no way of synchronizing its actions with those of its
  teammate.
  Let 
-\begin_inset Formula $actor(a)$
+\begin_inset Formula $actor(i)$
 \end_inset
 
  be the agent responsible for performing an action event 
-\begin_inset Formula $a$
+\begin_inset Formula $i$
 \end_inset
 
 , then we require that:
 \begin_inset Formula \[
-\forall o\in ens(a):\,\,\gamma(o)[actor(a)]\neq nil\]
+\forall j\in ens(i):\,\,\gamma(j)[actor(i)]\neq\{\}\]
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+If is restriction cannot be met, the agents have no way of synchronising
+ their actions and the construction of the joint execution must fail.
+\newline
 
 \end_layout
 
@@ -1589,40 +1918,37 @@ If an action is to be enabled by an outcome event
 \newline
 
 \series default
-To ensure that the joint execution can actually be carried out by the agents,
- there must be no confusion about whether a particular action is enabled.
+There must be no confusion about whether a particular action is enabled
+ at any point during execution.
  Lifting the function 
 \begin_inset Formula $view$
 \end_inset
 
  to operate on sets of histories in the obvious way, then:
 \begin_inset Formula \[
-view(actor(a),\, hists(ens(a)))\]
+view(actor(i),\, hists(ens(i)))\]
 
 \end_inset
 
  gives the set of all local histories after which 
-\begin_inset Formula $actor(a)$
+\begin_inset Formula $actor(i)$
 \end_inset
 
  is required to perform the action 
-\begin_inset Formula $\gamma(a)$
+\begin_inset Formula $\gamma(i)$
 \end_inset
 
 .
- However, since the agent has only a local viewpoint, it may be the case
- that some other outcome set can produce an identical local history.
-\end_layout
-
-\begin_layout Standard
-Say that two branches overlap, denoted 
-\begin_inset Formula $overlaps(b,b')$
+ Since the agent has only a local viewpoint, it is possible that some other
+ outcome set can produce an identical local history.
+ Say that two outcome sets overlap, denoted 
+\begin_inset Formula $ovlaps(agt,e_{1},e_{2})$
 \end_inset
 
 , if they could produce an identical local history from the perspective
  of a given agent:
 \begin_inset Formula \[
-view(agt,hists(b))\,\cap\, view(agt,hists(b'))\,\neq\varnothing\]
+view(agt,hists(e_{1}))\,\cap\, view(agt,hists(e_{2}))\,\neq\varnothing\]
 
 \end_inset
 
@@ -1635,7 +1961,7 @@ Then the
 minimal overlapping set
 \emph default
  for 
-\begin_inset Formula $b$
+\begin_inset Formula $e_{1}$
 \end_inset
 
 , from the perspective of 
@@ -1643,12 +1969,12 @@ minimal overlapping set
 \end_inset
 
 , is the set of all 
-\begin_inset Formula $b'$
+\begin_inset Formula $e_{2}$
 \end_inset
 
  satisfying:
 \begin_inset Formula \[
-overlaps(agt,b,b')\wedge\neg\exists b''\left[overlaps(agt,b,b'')\wedge b''\sqsubset b'\right]\]
+ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedge e_{3}\sqsubset e_{2}\right]\]
 
 \end_inset
 
@@ -1656,35 +1982,35 @@ overlaps(agt,b,b')\wedge\neg\exists b''\left[overlaps(agt,b,b'')\wedge b''\sqsub
 \end_layout
 
 \begin_layout Standard
-This set captures all branches that the agent could potentially confuse
+This set captures all outcome sets that the agent could potentially confuse
  for 
-\begin_inset Formula $b$
+\begin_inset Formula $e$
 \end_inset
 
 .
  To ensure there is no confusion about whether an action is enabled, for
  each 
-\begin_inset Formula $a\in\mathcal{A}$
+\begin_inset Formula $i\in\mathcal{A}$
 \end_inset
 
 , every 
-\begin_inset Formula $b$
+\begin_inset Formula $e$
 \end_inset
 
  in the minimal overlapping set of 
-\begin_inset Formula $ens(a)$
+\begin_inset Formula $ens(i)$
 \end_inset
 
  for 
-\begin_inset Formula $actor(a)$
+\begin_inset Formula $actor(i)$
 \end_inset
 
  must enable an event 
-\begin_inset Formula $a'$
+\begin_inset Formula $i'$
 \end_inset
 
  with identical action 
-\begin_inset Formula $\gamma(a')=\gamma(a)$
+\begin_inset Formula $\gamma(i')=\gamma(a)$
 \end_inset
 
 .
@@ -1702,55 +2028,6 @@ action
 \end_layout
 
 \begin_layout Subsection
-Planning with Joint Executions
-\end_layout
-
-\begin_layout Standard
-Our implementation of an execution planning system uses joint executions
- as an abstract data type that can be built up one event at a time, one
- branch at a time.
- For a particular branch 
-\begin_inset Formula $b$
-\end_inset
-
-, the state of the world is reasoned about using standard regression techniques
- over 
-\begin_inset Formula $hist(b)$
-\end_inset
-
-, to determine the next action to perform.
- This action is then be inserted into the joint execution to extend the
- branch.
-\end_layout
-
-\begin_layout Standard
-Inserting a new action event requires specifying the action to be performed,
- the branch on which to insert it, and a set of existing events on that
- branch that must precede it.
- The code managing the joint execution determines all possible outcomes
- of the action and adds them as outcome events, returning a new branch for
- each outcome.
- It also ensures that the restrictions in section 
-\begin_inset LatexCommand ref
-reference "sub:Restrictions"
-
-\end_inset
-
- are satisfied, which can involve forcing an ordering between potentially
- concurrent events to ensure independence (R1) or synchronization (R4),
- or adding actions to other branches that the acting agent cannot distinguish
- from the current one (R5).
- If the restrictions cannot be met, insertion fails and the planner must
- backtrack to find a different action.
-\end_layout
-
-\begin_layout Standard
-The intricacies of synchronization between agents in the face of partial
- observability are thus hidden from the planning algorithm itself, automatically
- managed by the construction of a joint execution.
-\end_layout
-
-\begin_layout Subsection
 Summary
 \end_layout
 
@@ -1763,6 +2040,63 @@ joint execution
  We contend that such structures are highly suitable for planning the actions
  to be performed by a team in service of some shared task, such as executing
  a shared ConGolog program.
+ 
+\end_layout
+
+\begin_layout Standard
+On one hand, joint executions are restricted enough to be practical for
+ such use.
+ Like the totally-ordered structures used in previous approaches, prime
+ event structures can be executed without further deliberation.
+ They are restricted to ensure that whenever an agent is required to perform
+ an action, it is able to determine this using only its local information.
+ Each branch of execution can be easily converted into a history term for
+ the purposes of reasoning, and can easily be extended one action at a time.
+\end_layout
+
+\begin_layout Standard
+Joint executions are also significantly more flexible than previous approaches.
+ They allow independent actions to be performed without synchronization,
+ in any order.
+ The agents need never know precisely what actions have been executed, only
+ those that enable them to perform their next action.
+ Synchronization is automatically achieved when required by explicitly reasoning
+ about what actions each agent can observe, rather than requiring that all
+ actions be public.
+\end_layout
+
+\begin_layout Standard
+To demonstrate the utility of these structures, we have implemented an interpret
+er for multi-agent ConGolog programs that produces joint executions as its
+ output, which is disucssed in the next section.
+\end_layout
+
+\begin_layout Section
+Implementation
+\end_layout
+
+\begin_layout Standard
+Our implementation
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+available at [identifying information omitted]
+\end_layout
+
+\end_inset
+
+ of a ConGolog execution planner utilizes the Mozart/Oz programming system
+ rather than the traditional use of Prolog 
+\begin_inset LatexCommand cite
+key "vanroy99mozart"
+
+\end_inset
+
+.
+ This platform has strong support for distributed logic programming, allowing
+ the team of agents to transparently share the execution planning workload.
+ 
 \begin_inset Float figure
 wide false
 sideways false
@@ -1823,66 +2157,7 @@ name "fig:plan-output"
 
 \end_inset
 
- 
-\end_layout
 
-\begin_layout Standard
-On one hand, joint executions are restricted enough to be practical for
- such use.
- Like the situation terms or conditional action trees used in previous approache
-s, prime event structures can be executed without further deliberation.
- They are restricted to ensure that whenever an agent is required to perform
- an action, it is able to determine this using only its local information.
- Each branch of execution can be easily converted into a situation term
- for the purposes of reasoning, and can be extended one action at a time.
-\end_layout
-
-\begin_layout Standard
-Joint executions are also significantly more flexible than previous approaches.
- They allow independent actions to be performed without synchronization,
- in any order.
- The agents need never know precisely what actions have been executed, only
- those that enable them to perform their next action.
- Synchronization is automatically achieved when required by explicitly reasoning
- about what actions each agent can observe, rather than requiring that all
- actions be public.
-\end_layout
-
-\begin_layout Standard
-To demonstrate the utility of these structures, we have implemented an interpret
-er for multi-agent ConGolog programs that produces joint executions as its
- output.
- In the next section, we highlight the key aspects of our implementation
- and give an example of the output it produces.
-\end_layout
-
-\begin_layout Section
-Implementation
-\end_layout
-
-\begin_layout Standard
-Our implementation
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-available at [identifying information omitted]
-\end_layout
-
-\end_inset
-
- of a ConGolog execution planner utilizes the Mozart programming system,
- which implements the Oz language 
-\begin_inset LatexCommand cite
-key "vanroy99mozart"
-
-\end_inset
-
- rather than the traditional use of Prolog.
- As we shall see, Mozart's strong support for distributed logic programming
- allows the team of agents to share the planning workload with almost no
- additional code.
- 
 \end_layout
 
 \begin_layout Standard
@@ -1932,6 +2207,51 @@ reference "fig:plan-output"
  This execution is maximally concurrent given the constraints of the domain,
  and is clearly a significant improvement over totally ordered sequences
  of actions as produced by existing systems.
+\end_layout
+
+\begin_layout Standard
+Our implementation of an execution planning system uses joint executions
+ as an abstract data type that can be built up one event at a time, one
+ branch at a time.
+ For a particular branch 
+\begin_inset Formula $b$
+\end_inset
+
+, the state of the world is reasoned about using standard regression techniques
+ over 
+\begin_inset Formula $hist(b)$
+\end_inset
+
+, to determine the next action to perform.
+ This action is then be inserted into the joint execution to extend the
+ branch.
+\end_layout
+
+\begin_layout Standard
+Inserting a new action event requires specifying the action to be performed,
+ the branch on which to insert it, and a set of existing events on that
+ branch that must precede it.
+ The code managing the joint execution determines all possible outcomes
+ of the action and adds them as outcome events, returning a new branch for
+ each outcome.
+ It also ensures that the restrictions in section 
+\begin_inset LatexCommand ref
+reference "sub:Restrictions"
+
+\end_inset
+
+ are satisfied, which can involve forcing an ordering between potentially
+ concurrent events to ensure independence (R1) or synchronization (R4),
+ or adding actions to other branches that the acting agent cannot distinguish
+ from the current one (R5).
+ If the restrictions cannot be met, insertion fails and the planner must
+ backtrack to find a different action.
+\end_layout
+
+\begin_layout Standard
+The intricacies of synchronization between agents in the face of partial
+ observability are thus hidden from the planning algorithm itself, automatically
+ managed by the construction of a joint execution.
 \end_layout
 
 \begin_layout Standard
