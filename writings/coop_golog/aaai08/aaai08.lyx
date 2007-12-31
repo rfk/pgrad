@@ -56,7 +56,7 @@ using Prime Event Structures
 \end_layout
 
 \begin_layout Author
-Tracking Number: ###
+Tracking Number: 9
 \end_layout
 
 \begin_layout Abstract
@@ -72,9 +72,7 @@ joint executions
 \emph default
 , partially ordered branching action sequences based on a prime event structure.
  We show how a team of agents can use these structures to cooperatively
- plan and perform an execution of a shared ConGolog program, with an implementat
-ion in Mozart/Oz that transparently shares the execution planning workload
- between the agents.
+ plan and perform an execution of a shared ConGolog program.
  The use of prime event structures has the capacity to guarantee legal execution
 s in spite of asynchronicity and partial observability, facilitating the
  use of powerful non-deterministic programming techniques for multi-agent
@@ -125,8 +123,8 @@ situation
  Executing such a total ordering in a multi-agent setting requires constant
  synchronization between the agents, severely limiting the potential for
  concurrency in the system.
- Moreover, such synchronization may not even be possible if agents are unaware
- of the actions performed by others.
+ Such synchronization may not even be possible if agents are unaware of
+ the actions performed by others.
  Multi-agent applications of the situation calculus thus invariably assume
  that all actions performed are public, available to all agents for the
  purposes of reasoning and synchronization.
@@ -166,46 +164,11 @@ joint execution
 \end_layout
 
 \begin_layout Standard
-Rather than assuming that all actions are public, we utilize recent work
- on axiomatizing the conditions under which an agent will be aware of the
- occurrence of an action 
-\begin_inset LatexCommand cite
-key "kelly07sc_know_obs"
-
-\end_inset
-
-.
- Joint executions are restricted such that whenever action 
-\begin_inset Formula $a_{1}$
-\end_inset
-
- must be performed before action 
-\begin_inset Formula $a_{2}$
-\end_inset
-
-, the agent performing 
-\begin_inset Formula $a_{2}$
-\end_inset
-
- is able to observe the occurrence of 
-\begin_inset Formula $a_{1}$
-\end_inset
-
-.
- Synchronization thus occurs by observing the actions of other agents.
- If this is not possible, yet synchronization is needed to ensure correctness,
- then construction of the joint execution will fail.
- In general, whether an action is enabled at any stage of execution can
- be determined using only the information available to the agent who is
- to perform it.
-\end_layout
-
-\begin_layout Standard
-Joint executions thus allow us to capture the actions that a team of agents
- are to perform in service of some shared task, without requiring constant
- synchronization between the agents, and without assuming that agents know
- all the actions that have been performed, while utilizing existing reasoning
- methods based on full situation terms.
+Joint executions allow us to capture the actions that a team of agents are
+ to perform in service of some shared task, without requiring constant synchroni
+zation between the agents, and without assuming that agents know all the
+ actions that have been performed, while utilizing existing reasoning methods
+ based on full situation terms.
  This is a significant increase in expressiveness over existing approaches
  to modeling multi-agent teams in the situation calculus.
  
@@ -367,19 +330,12 @@ key "kelly07sc_know_obs"
 \emph on
 outcome
 \emph default
- of an action to be a mapping from agents to the observations they make
- from that action.
- This will be denoted 
+ of an action to be the full set of 
+\begin_inset Formula $(agt,Obs(agt,a,s))$
+\end_inset
+
+ pairs for every agent in the domain, and denote this 
 \begin_inset Formula $Out(a,s)$
-\end_inset
-
-, with the suggestive notation 
-\begin_inset Formula $Out(a,s)[agt]$
-\end_inset
-
- to access each agent's entry in the mapping.
- Clearly 
-\begin_inset Formula $Out(a,s)[agt]=Obs(agt,a,s)$
 \end_inset
 
 .
@@ -391,12 +347,12 @@ The regression meta-operator
 \end_inset
 
  is used to handle reasoning effectively.
- Queries must be posed in the restricted syntactic form 
-\begin_inset Formula $D\,\models\,\phi(s)$
+ Queries must be posed in the form 
+\begin_inset Formula $\mathcal{D}\,\models\,\phi(s)$
 \end_inset
 
 .
- Roughly, this reads 
+ This reads 
 \begin_inset Quotes eld
 \end_inset
 
@@ -425,357 +381,13 @@ formula
 \end_inset
 
 .
- 
-\begin_inset Formula $\mathcal{R}$
-\end_inset
-
- transforms these queries into a form that can be answered based on what
- is known about the initial situation, which can be quite efficient in practice
- (e.g.
- for Prolog-style closed world databases).
  This restriction means that a full situation term is required in order
  to perform reasoning.
 \end_layout
 
-\begin_layout Subsection
-ConGolog
-\end_layout
-
 \begin_layout Standard
-ConGolog is a declarative agent programming language based on the situation
- calculus 
-\begin_inset LatexCommand cite
-key "giacomo00congolog"
-
-\end_inset
-
-.
- Testimony to its success are its wide range of applications and many extensions
- to provide additional functionality 
-\begin_inset LatexCommand cite
-key "kelly06hlp_dps_anon,giacomo99indigolog,farinelli07team_golog,Ferrein2005readylog,shapiro02casl"
-
-\end_inset
-
-.
- To program an agent using ConGolog one specifies a situation calculus action
- theory, and a program consisting of actions from the theory connected by
- programming constructs such as conditionals, loops, and nondeterministic
- choice.
- Table 
-\begin_inset LatexCommand ref
-reference "tbl:Golog-Operators"
-
-\end_inset
-
- lists some of the operators.
-\begin_inset Float table
-wide false
-sideways false
-status collapsed
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="9" columns="2">
-<features>
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
-<column alignment="center" valignment="top" rightline="true" width="0">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\series bold
-Operator
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\series bold
-Meaning
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $nil$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-empty program
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $a$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-perform action 
-\begin_inset Formula $a$
-\end_inset
-
- 
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\phi?$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-proceed if 
-\begin_inset Formula $\phi$
-\end_inset
-
- is true
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\delta_{1};\delta_{2}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-execute 
-\begin_inset Formula $\delta_{1}$
-\end_inset
-
-, then 
-\begin_inset Formula $\delta_{2}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\delta_{1}|\delta_{2}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-execute either 
-\begin_inset Formula $\delta_{1}$
-\end_inset
-
- or 
-\begin_inset Formula $\delta_{2}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\pi(x)\delta(x)$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Nondet.
- arg.
- selection
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\delta_{1}||\delta_{2}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Concurrent execution
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\mathbf{proc}\, P(\overrightarrow{x})\delta(\overrightarrow{x})\,\mathbf{end}$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Procedure definition
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-ConGolog operators used in this paper
-\begin_inset LatexCommand label
-name "tbl:Golog-Operators"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Since the control program may be nondeterministic, it is the task of the
- agent to plan a deterministic instantiation of the program, a sequence
- of actions that can legally be performed in the world.
- We call this the 
-\emph on
-execution planning process 
-\emph default
-and the result is a 
-\emph on
-legal execution
-\emph default
- of the program.
- ConGolog programs are executed in an offline manner: a complete situation
- term constituting a legal execution is constructed, then executed by the
- agent in a reactive manner.
- When actions can have multiple results, the output must be a branching
- structure rather than a straight situation term, and planning deals with
- each branch in turn 
-\begin_inset LatexCommand cite
-key "lakemeyer99golog_cats"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-Similarly, planning over sensing actions cannot use situation terms alone
- for reasoning, as they do not include the sensing information.
- We follow the approach of 
+For reasoning with sensing results that are only available at runtime, we
+ follow the approach of 
 \begin_inset LatexCommand cite
 key "giacomo99indigolog"
 
@@ -789,12 +401,13 @@ history
 \begin_inset Formula $\sigma$
 \end_inset
 
-, which is a sequence of pairs 
+.
+ This is a sequence of pairs 
 \begin_inset Formula $(a,Out(a,s))$
 \end_inset
 
  giving the outcome produced by each action.
- This is strictly a meta-level construct and does not exist in the language
+ Histories are strictly a meta-level construct and do not exist in the language
  of the situation calculus.
  Rather, the macro 
 \begin_inset Formula $\mathbf{end}[\sigma]$
@@ -804,9 +417,8 @@ history
 \begin_inset Formula $\mathbf{sensed}[\sigma]$
 \end_inset
 
- gives a formula of the situation calculus that captures the information
- given by the sensing results.
- To determine whether a formula 
+ gives a formula capturing the information given by the sensing results.
+ To determine whether 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -850,6 +462,269 @@ of that history that is available to a given agent: it is the corresponding
  is non-empty.
  We will denote this by 
 \begin_inset Formula $view(agt,\sigma)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+ConGolog
+\end_layout
+
+\begin_layout Standard
+ConGolog is a declarative agent programming language based on the situation
+ calculus 
+\begin_inset LatexCommand cite
+key "giacomo00congolog"
+
+\end_inset
+
+.
+ Testimony to its success are its wide range of applications and many extensions
+ to provide additional functionality 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon,giacomo99indigolog,farinelli07team_golog,Ferrein2005readylog,shapiro02casl"
+
+\end_inset
+
+.
+ To program an agent using ConGolog one specifies a situation calculus action
+ theory, and a program consisting of actions from the theory connected by
+ programming constructs such as the following:
+\newline
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="2">
+<features>
+<column alignment="right" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $nil$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- the empty program
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $a$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- perform action 
+\begin_inset Formula $a$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\phi?$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- proceed if condition 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is true
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\delta_{1};\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- execute program 
+\begin_inset Formula $\delta_{1}$
+\end_inset
+
+, followed by 
+\begin_inset Formula $\delta_{2}$
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\delta_{1}|\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- execute either 
+\begin_inset Formula $\delta_{1}$
+\end_inset
+
+ or 
+\begin_inset Formula $\delta_{2}$
+\end_inset
+
+ 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\pi(\overrightarrow{x})\delta(\overrightarrow{x})$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- nondeterministic choice of arguments
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\delta_{1}||\delta_{2}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+- execute 
+\begin_inset Formula $\delta_{1}$
+\end_inset
+
+ and 
+\begin_inset Formula $\delta_{2}$
+\end_inset
+
+ concurrently
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\newline
+
+\end_layout
+
+\begin_layout Standard
+Since the control program may be nondeterministic, it is the task of the
+ agent to plan a deterministic instantiation of the program, a sequence
+ of actions that can legally be performed in the world.
+ We call this the 
+\emph on
+execution planning process 
+\emph default
+and the result is a 
+\emph on
+legal execution
+\emph default
+ of the program.
+ ConGolog programs are executed in an offline manner: a complete situation
+ term constituting a legal execution is constructed, then executed by the
+ agent in a reactive manner.
+ When actions can have multiple results, the output must be a branching
+ structure rather than a straight situation term, and planning deals with
+ each branch in turn 
+\begin_inset LatexCommand cite
+key "lakemeyer99golog_cats"
+
 \end_inset
 
 .
@@ -901,7 +776,7 @@ chop a carrot into the bowl, then mix.
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Standard
 \begin_inset Box Boxed
@@ -914,7 +789,7 @@ width "97col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status collapsed
+status open
 
 \begin_layout Standard
 \begin_inset Formula \begin{multline*}
@@ -925,11 +800,11 @@ ChopTypeInto(Tomato,bowl)\,||\\
 \pi(agt,acquire(agt,bowl)\,;\, mix(agt,bowl)\,;\\
 \shoveright{\, release(agt,bowl))\,\mathbf{end}}\\
 \\\shoveleft{\mathbf{proc}\,\, ChopTypeInto(type,bowl):}\\
-\pi(obj,\, ObjIsType(obj,type)?\,;\\
-\pi(agt,\,\pi(k,\, ObjIsType(k,knife)?\,;\\
-acquire(agt,obj)\,;\, acquire(agt,k)\,;\, chop(agt,obj)\,\\
+\pi((obj,agt,k),\, ObjIsType(obj,type)?\,;\\
+ObjIsType(k,knife)?\,;acquire(agt,obj)\,;\\
+acquire(agt,k)\,;\, chop(agt,obj)\,\\
 acquire(agt,bowl)\,;\, placeIn(agt,bowl)\,;\\
-release(agt,k)\,;\,\left[nil\,|\, release(agt,bowl)\right])))\,\mathbf{end}\end{multline*}
+release(agt,k)\,;\,\left[nil\,|\, release(agt,bowl)\right])\,\mathbf{end}\end{multline*}
 
 \end_inset
 
@@ -1888,6 +1763,66 @@ joint execution
  We contend that such structures are highly suitable for planning the actions
  to be performed by a team in service of some shared task, such as executing
  a shared ConGolog program.
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "97col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+
+\family sans
+\series bold
+\size tiny
+\begin_inset Include \include{listings/plan.tex}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+Joint execution for 
+\begin_inset Formula $MakeSalad(bowl(1))$
+\end_inset
+
+, showing significant concurrency between agents
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:plan-output"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
  
 \end_layout
 
@@ -1970,67 +1905,6 @@ reference "fig:makesalad-program"
 .
  Since all actions in this program have a single outcome, the outcome events
  have been suppressed for brevity.
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "97col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-
-\family sans
-\series bold
-\size tiny
-\begin_inset Include \include{listings/plan.tex}
-preview false
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-Joint execution for 
-\begin_inset Formula $MakeSalad(bowl(1))$
-\end_inset
-
-, showing significant concurrency between agents
-\end_layout
-
-\end_inset
-
-
-\begin_inset LatexCommand label
-name "fig:plan-output"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -2087,7 +1961,6 @@ status open
 
 \begin_layout Standard
 
-\size scriptsize
 
 \backslash
 tiny
