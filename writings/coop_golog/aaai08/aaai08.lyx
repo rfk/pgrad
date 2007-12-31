@@ -395,8 +395,8 @@ formula
 \end_layout
 
 \begin_layout Standard
-For reasoning with sensing results that are only available at runtime, we
- follow the approach of 
+For reasoning with sensing results that are only available at run-time,
+ we follow the approach of 
 \begin_inset LatexCommand cite
 key "giacomo99indigolog"
 
@@ -771,8 +771,8 @@ key "kelly06hlp_dps_anon"
 .
  The advantages of this approach include the use of nondeterministic operators
  to provide 'dont-care' nondeterminism regarding which team-member carries
- out which task, the use of the concurrency operator to easily compose subtasks,
- and the ability to plan for and resolve conflicts between agents.
+ out which task, the use of the concurrency operator to easily compose sub-tasks
+, and the ability to plan for and resolve conflicts between agents.
  To demonstrate our approach, we adopt the example from 
 \begin_inset LatexCommand cite
 key "kelly06hlp_dps_anon"
@@ -1006,7 +1006,7 @@ Independent Actions
 
 \begin_layout Standard
 In order to provide only a partial order on the actions to be performed,
- while maintaining the use of exising reasoning techniques based on full
+ while maintaining the use of existing reasoning techniques based on full
  situation terms, we must capture the conditions under which actions can
  be performed out of order without invalidating the results of the reasoning
  process.
@@ -1547,7 +1547,7 @@ Following some definitions, we describe and justify a total of five restrictions
  that joint executions must satisfy.
  Since we intend to use joint executions as a replacement for situation
  terms in the planning process, they will be built up one action at a time.
- The restritions should thus be considered invariants that must be preserved
+ The restrictions should thus be considered invariants that must be preserved
  when each new action is added.
 \end_layout
 
@@ -1905,7 +1905,7 @@ If an action
 \end_layout
 
 \begin_layout Standard
-If is restriction cannot be met, the agents have no way of synchronising
+If is restriction cannot be met, the agents have no way of synchronizing
  their actions and the construction of the joint execution must fail.
 \newline
 
@@ -2068,7 +2068,7 @@ Joint executions are also significantly more flexible than previous approaches.
 \begin_layout Standard
 To demonstrate the utility of these structures, we have implemented an interpret
 er for multi-agent ConGolog programs that produces joint executions as its
- output, which is disucssed in the next section.
+ output, which is discussed in the next section.
 \end_layout
 
 \begin_layout Section
@@ -2094,9 +2094,25 @@ key "vanroy99mozart"
 \end_inset
 
 .
- This platform has strong support for distributed logic programming, allowing
- the team of agents to transparently share the execution planning workload.
- 
+ Figure 
+\begin_inset LatexCommand ref
+reference "fig:plan-output"
+
+\end_inset
+
+ shows the output of our system when run on the 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+ example of figure 
+\begin_inset LatexCommand ref
+reference "fig:makesalad-program"
+
+\end_inset
+
+.
+ Since all actions in this program have a single outcome, the outcome events
+ have been suppressed for brevity.
 \begin_inset Float figure
 wide false
 sideways false
@@ -2161,38 +2177,16 @@ name "fig:plan-output"
 \end_layout
 
 \begin_layout Standard
-To make things more concrete, figure 
-\begin_inset LatexCommand ref
-reference "fig:plan-output"
-
-\end_inset
-
- shows the output of our system when run on the 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
- example of figure 
-\begin_inset LatexCommand ref
-reference "fig:makesalad-program"
-
-\end_inset
-
-.
- Since all actions in this program have a single outcome, the outcome events
- have been suppressed for brevity.
-\end_layout
-
-\begin_layout Standard
-In this domain there are three agents, but only two knives are available.
- The agents must therefore synchronize their use of these resources.
- Actions are taken to be independent if they deal with different objects.
+In this domain there are three agents but only two knives are available,
+ so the agents must synchronize their use of these resources.
+ Actions are independent if they deal with different objects.
  As seen in figure 
 \begin_inset LatexCommand ref
 reference "fig:plan-output"
 
 \end_inset
 
-, the use of a partial order structure facilitates parallelism between the
+, the use of a partial order structure facilitates concurrency between the
  agents, with each processing a different ingredient and only synchronizing
  on the availability of the required resources.
  There is no need for processing actions, such as 
@@ -2207,54 +2201,6 @@ reference "fig:plan-output"
  This execution is maximally concurrent given the constraints of the domain,
  and is clearly a significant improvement over totally ordered sequences
  of actions as produced by existing systems.
-\end_layout
-
-\begin_layout Standard
-Our implementation of an execution planning system uses joint executions
- as an abstract data type that can be built up one event at a time, one
- branch at a time.
- For a particular branch 
-\begin_inset Formula $b$
-\end_inset
-
-, the state of the world is reasoned about using standard regression techniques
- over 
-\begin_inset Formula $hist(b)$
-\end_inset
-
-, to determine the next action to perform.
- This action is then be inserted into the joint execution to extend the
- branch.
-\end_layout
-
-\begin_layout Standard
-Inserting a new action event requires specifying the action to be performed,
- the branch on which to insert it, and a set of existing events on that
- branch that must precede it.
- The code managing the joint execution determines all possible outcomes
- of the action and adds them as outcome events, returning a new branch for
- each outcome.
- It also ensures that the restrictions in section 
-\begin_inset LatexCommand ref
-reference "sub:Restrictions"
-
-\end_inset
-
- are satisfied, which can involve forcing an ordering between potentially
- concurrent events to ensure independence (R1) or synchronization (R4),
- or adding actions to other branches that the acting agent cannot distinguish
- from the current one (R5).
- If the restrictions cannot be met, insertion fails and the planner must
- backtrack to find a different action.
-\end_layout
-
-\begin_layout Standard
-The intricacies of synchronization between agents in the face of partial
- observability are thus hidden from the planning algorithm itself, automatically
- managed by the construction of a joint execution.
-\end_layout
-
-\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
@@ -2323,6 +2269,47 @@ name "fig:planning-code"
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset LatexCommand ref
+reference "fig:planning-code"
+
+\end_inset
+
+ shows the code for our main planning loop.
+ 
+\begin_inset Formula $Branches$
+\end_inset
+
+ is a list of all branches in the joint execution, along with the program
+ remaining to be executed on each branch.
+ The procedure is basically: find a branch in which the program has not
+ terminated, find a new program transition on this branch, insert that action
+ into the joint execution, and update the list of branches.
+ The only complication is the use of 
+\begin_inset Formula $MkPrecFunc$
+\end_inset
+
+ when inserting the action - this function determines which existing actions
+ must precede the new action according to the semantics of ConGolog.
+\end_layout
+
+\begin_layout Standard
+A significant advantage of remaining close to existing situation calculus
+ techniques is that our planner remains a straightforward logic program.
+ As demonstrated in 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon"
+
+\end_inset
+
+, the parallel search capabilities of Mozart/Oz allow the team of agents
+ to transparently share the workload of solving this logic program, allowing
+ them to cooperate in both planning and performing the execution of their
+ shared control program.
+ See the source download for full details.
 \end_layout
 
 \begin_layout Section
