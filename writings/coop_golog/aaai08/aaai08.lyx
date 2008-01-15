@@ -776,7 +776,7 @@ key "kelly06hlp_dps_anon"
 \end_inset
 
  of a team of robotic chefs cooperating to prepare a simple salad.
- Their control program is shown in figure 
+ Their control program is shown in Figure 
 \begin_inset LatexCommand ref
 reference "fig:makesalad-program"
 
@@ -809,7 +809,7 @@ width "97col%"
 special "none"
 height "1in"
 height_special "totalheight"
-status open
+status collapsed
 
 \begin_layout Standard
 \begin_inset Formula \begin{multline*}
@@ -860,7 +860,7 @@ name "fig:makesalad-program"
 \end_layout
 
 \begin_layout Subsection
-Event Structures
+Prime Event Structures
 \end_layout
 
 \begin_layout Standard
@@ -1348,17 +1348,19 @@ Joint Executions
 \end_layout
 
 \begin_layout Standard
-We can now define a 
+We now define 
 \emph on
-joint execution
+joint executions
 \emph default
- as a restricted prime event structure coupled with a total ordering relation:
+ to represent the actions that a team of agents are to perform.
+ They are restricted prime event structures coupled with a total ordering
+ relation:
 \begin_inset Formula \[
 (\mathcal{A}\cup\mathcal{O},ens,alts,\gamma,<)\]
 
 \end_inset
 
-It contains two disjoint sets of events: 
+A joint execution contains two disjoint sets of events: 
 \emph on
 action
 \emph default
@@ -1421,7 +1423,7 @@ outcome
 \end_inset
 
 .
- A simple example of a joint execution is shown in figure 
+ A simple example of a joint execution is shown in Figure 
 \begin_inset LatexCommand ref
 reference "fig:example-je"
 
@@ -1451,7 +1453,7 @@ reference "fig:example-je"
 \begin_inset Float figure
 wide false
 sideways false
-status collapsed
+status open
 
 \begin_layout Standard
 \begin_inset Box Boxed
@@ -1489,7 +1491,7 @@ preview false
 \begin_inset Caption
 
 \begin_layout Standard
-A simple joint execution.
+The prime event structure representing a simple joint execution.
  Ellipses are action events, boxes are outcome events.
 \end_layout
 
@@ -1735,11 +1737,11 @@ reference "thm:equiv-holds"
 
  for planning purposes, and be assured that the same fluents will hold regardles
 s of the specific order in which actions are executed.
- More generally, it ensures that every history in 
+ More generally, it ensures that all histories in 
 \begin_inset Formula $hists(ens(a))$
 \end_inset
 
- is compatible for 
+ are compatible for 
 \begin_inset Formula $\gamma(a)$
 \end_inset
 
@@ -1842,7 +1844,7 @@ We can safely use the canonical history
 \newline
 
 \series default
-If an action 
+If an action event 
 \begin_inset Formula $i$
 \end_inset
 
@@ -1879,8 +1881,9 @@ If an action
 \end_layout
 
 \begin_layout Standard
-If this restriction cannot be met, the agents have no way of synchronizing
- their actions and the construction of the joint execution must fail.
+If this restriction cannot be met, then the agents have no way of synchronizing
+ their actions.
+ Construction of the joint execution must therefore fail.
 \end_layout
 
 \begin_layout Standard
@@ -1944,8 +1947,9 @@ minimal overlapping set
 \end_inset
 
  satisfying:
-\begin_inset Formula \[
-ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedge e_{3}\sqsubset e_{2}\right]\]
+\begin_inset Formula \begin{multline*}
+e_{2}\in minovlp(agt,e_{1})\,\equiv\\
+ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedge e_{3}\sqsubset e_{2}\right]\end{multline*}
 
 \end_inset
 
@@ -1955,7 +1959,7 @@ ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedg
 \begin_layout Standard
 This captures all outcome sets that the agent could potentially confuse
  for 
-\begin_inset Formula $e$
+\begin_inset Formula $e_{1}$
 \end_inset
 
 .
@@ -1985,8 +1989,15 @@ This captures all outcome sets that the agent could potentially confuse
 \end_inset
 
 .
- This ensures that the agent's local information is always enough to know
- when it should perform an action.
+ Formally:
+\begin_inset Formula \begin{multline*}
+\forall e\in minovlp(actor(i),ens(i)):\,\\
+\exists i':\,\gamma(i')=\gamma(i)\,\wedge\, ens(i')=e\end{multline*}
+
+\end_inset
+
+ This ensures that the agent's local information is enough to know when
+ it should perform an action.
  While it may not know precisely which 
 \emph on
 event
@@ -1996,89 +2007,6 @@ event
 action
 \emph default
  that it must perform.
-\end_layout
-
-\begin_layout Subsection
-Summary
-\end_layout
-
-\begin_layout Standard
-In this section we have defined a 
-\emph on
-joint execution
-\emph default
- as a prime event structure with some additional restrictions.
- We contend that such structures are highly suitable for planning the actions
- to be performed by a team in service of some shared task, such as executing
- a shared ConGolog program.
- 
-\end_layout
-
-\begin_layout Standard
-On one hand, joint executions are restricted enough to be practical for
- such use.
- Like the totally-ordered structures used in previous approaches, prime
- event structures can be executed without further deliberation.
- They are restricted to ensure that whenever an agent is required to perform
- an action, it is able to determine this using only its local information.
- Each branch of execution can be easily converted into a situation or history
- term for the purposes of reasoning, and can easily be extended one action
- at a time.
-\end_layout
-
-\begin_layout Standard
-Joint executions are also significantly more flexible than previous approaches.
- They allow independent actions to be performed without synchronization,
- in any order.
- The agents need never know precisely what actions have been executed, only
- those that enable them to perform their next action.
- Synchronization is automatically achieved when required by explicitly reasoning
- about what actions each agent can observe, rather than requiring that all
- actions be public.
-\end_layout
-
-\begin_layout Section
-Implementation
-\end_layout
-
-\begin_layout Standard
-Our implementation
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-available at [identifying information omitted]
-\end_layout
-
-\end_inset
-
- of a ConGolog execution planner utilizes the Mozart/Oz programming system
- rather than the traditional use of Prolog 
-\begin_inset LatexCommand cite
-key "vanroy99mozart"
-
-\end_inset
-
-.
- Figure 
-\begin_inset LatexCommand ref
-reference "fig:plan-output"
-
-\end_inset
-
- shows the output our system produces for the 
-\begin_inset Formula $MakeSalad$
-\end_inset
-
- example of figure 
-\begin_inset LatexCommand ref
-reference "fig:makesalad-program"
-
-\end_inset
-
-.
- Since all actions in this program have a single outcome, the outcome events
- have been suppressed.
 \begin_inset Float figure
 wide false
 sideways false
@@ -2142,6 +2070,50 @@ name "fig:plan-output"
 
 \end_layout
 
+\begin_layout Subsection
+Planning with Joint Executions
+\end_layout
+
+\begin_layout Standard
+Our ConGolog execution planner
+\begin_inset Foot
+status collapsed
+
+\begin_layout Standard
+available at [identifying information omitted]
+\end_layout
+
+\end_inset
+
+ is implemented using the Mozart/Oz programming system rather than the tradition
+al use of Prolog 
+\begin_inset LatexCommand cite
+key "vanroy99mozart"
+
+\end_inset
+
+.
+ Figure 
+\begin_inset LatexCommand ref
+reference "fig:plan-output"
+
+\end_inset
+
+ shows the output our system produces for the 
+\begin_inset Formula $MakeSalad$
+\end_inset
+
+ example of figure 
+\begin_inset LatexCommand ref
+reference "fig:makesalad-program"
+
+\end_inset
+
+.
+ Since all actions in this program have a single outcome, the outcome events
+ have been suppressed.
+\end_layout
+
 \begin_layout Standard
 In this domain there are three agents but only two knives, so the agents
  must synchronize their use of these resources.
@@ -2167,102 +2139,14 @@ reference "fig:plan-output"
  This execution is maximally concurrent given the constraints of the domain,
  and is clearly a significant improvement over totally ordered sequences
  of actions as produced by existing systems.
-\begin_inset Float figure
-wide false
-sideways false
-status collapsed
-
-\begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "100col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-
-\size scriptsize
-\begin_inset ERT
-status open
-
-\begin_layout Standard
-
-
-\backslash
-tiny
-\end_layout
-
-\end_inset
-
-
-\begin_inset Include \verbatiminput{listings/Planner.oz}
-preview false
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-Code for main planning loop
-\end_layout
-
-\end_inset
-
-
-\begin_inset LatexCommand label
-name "fig:planning-code"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Figure 
-\begin_inset LatexCommand ref
-reference "fig:planning-code"
-
-\end_inset
-
- shows the code for our main planning loop.
- 
-\begin_inset Formula $Branches$
-\end_inset
-
- is a list of all branches in the joint execution, along with the program
- remaining to execute on each and the corresponding history term 
-\begin_inset Formula $hist(b)$
-\end_inset
-
-.
- The basic procedure is: find a branch where the program has not terminated,
- find a new transition step on this branch, insert that action into the
- joint execution, and update the list of branches.
- This is very similar to the planning loop for existing ConGolog systems.
-\end_layout
-
-\begin_layout Standard
-A significant advantage of remaining close to existing situation calculus
+Our main planning loop is very similar to the planning loop for existing
+ ConGolog systems.
+ It searches for a legal execution one program step at a time, but builds
+ up a joint execution instead of situation terms.
+ A significant advantage of remaining close to existing situation calculus
  techniques is that our planner remains a straightforward logic program.
  As demonstrated in 
 \begin_inset LatexCommand cite
@@ -2275,6 +2159,10 @@ key "kelly06hlp_dps_anon"
  them to cooperate in both planning and performing the execution of their
  shared control program.
  See the source download for full details.
+\end_layout
+
+\begin_layout Standard
+
 \end_layout
 
 \begin_layout Section
@@ -2406,10 +2294,33 @@ In this paper, we have demonstrated that an apparently fundamental limitation
 joint execution
 \emph default
 .
- These structures are rich enough to capture the parallel execution of independe
-nt actions, including sensing results, but are restricted enough that they
- can be built and reasoned about using the standard tools of the situation
- calculus.
+ We contend that such structures are highly suitable for planning the actions
+ to be performed by a team in service of some shared task, such as executing
+ a shared ConGolog program.
+ 
+\end_layout
+
+\begin_layout Standard
+On one hand, joint executions are restricted enough to be practical for
+ such use.
+ Like the totally-ordered structures used in previous approaches, prime
+ event structures can be executed without further deliberation.
+ They are restricted to ensure that whenever an agent is required to perform
+ an action, it is able to determine this using only its local information.
+ Each branch of execution can be easily converted into a situation or history
+ term for the purposes of reasoning, and can easily be extended one action
+ at a time.
+\end_layout
+
+\begin_layout Standard
+Joint executions are also significantly more flexible than previous approaches.
+ They allow independent actions to be performed without synchronization,
+ in any order.
+ The agents need never know precisely what actions have been executed, only
+ those that enable them to perform their next action.
+ Synchronization is automatically achieved when required by explicitly reasoning
+ about what actions each agent can observe, rather than requiring that all
+ actions be public.
 \end_layout
 
 \begin_layout Standard
