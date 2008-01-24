@@ -14,6 +14,7 @@
 \nocopyright
 
 \newtheorem{theorem}{Theorem}
+\newtheorem{defn}{Definition}
 \end_preamble
 \options letterpaper
 \language english
@@ -136,9 +137,9 @@ situation
 
 \begin_layout Standard
 To overcome these limitations, we leverage a model of concurrent computation
- known as 
+ known as
 \emph on
-prime event
+ prime event
 \emph default
  
 \emph on
@@ -170,12 +171,16 @@ joint execution.
 
 \begin_layout Standard
 Joint executions allow us to capture the actions that a team of agents are
- to perform in service of some shared task, without requiring constant synchroni
-zation between the agents, and without assuming that agents know all the
- actions that have been performed, while utilizing existing reasoning methods
- based on full situation terms.
- This is a significant increase in expressiveness over existing approaches
- to modeling multi-agent teams in the situation calculus.
+ to perform - in service of some shared task - without requiring constant
+ synchronization between the agents, and without assuming that agents know
+ all the actions that have been performed, while utilizing existing reasoning
+ methods based on full situation terms.
+ 
+\end_layout
+
+\begin_layout Standard
+This paper thus contributes a significant increase in expressiveness over
+ existing approaches to modeling multi-agent teams in the situation calculus.
  
 \end_layout
 
@@ -748,55 +753,10 @@ key "lakemeyer99golog_cats"
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-The idea of having a team of agents execute a shared ConGolog program has
- been utilized in 
-\begin_inset LatexCommand cite
-key "Ferrein2005readylog"
-
-\end_inset
-
- as well as our own previous work 
-\begin_inset LatexCommand cite
-key "kelly06hlp_dps_anon"
-
-\end_inset
-
-.
- The advantages of this approach include the use of nondeterministic operators
- to provide 'dont-care' nondeterminism regarding which team-member carries
- out which task, the use of the concurrency operator to easily compose sub-tasks
-, and the ability to plan for and resolve conflicts between agents.
- To demonstrate our approach, we adopt the example from 
-\begin_inset LatexCommand cite
-key "kelly06hlp_dps_anon"
-
-\end_inset
-
- of a team of robotic chefs cooperating to prepare a simple salad.
- Their control program is shown in Figure 
-\begin_inset LatexCommand ref
-reference "fig:makesalad-program"
-
-\end_inset
-
-.
- It says, in essence: somebody chop a lettuce, somebody chop a tomato, and
- somebody
-\emph on
- 
-\emph default
-chop a carrot into the bowl, then mix.
- Later we show a joint execution found by our system for this program.
-\end_layout
-
-\begin_layout Standard
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Standard
 \begin_inset Box Boxed
@@ -859,112 +819,160 @@ name "fig:makesalad-program"
 
 \end_layout
 
+\begin_layout Standard
+The idea of having a team of agents execute a shared ConGolog program has
+ been utilized in 
+\begin_inset LatexCommand cite
+key "Ferrein2005readylog"
+
+\end_inset
+
+ as well as our own previous work 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon"
+
+\end_inset
+
+.
+ The advantages of this approach include the use of nondeterministic operators
+ to provide 'dont-care' nondeterminism regarding which team-member carries
+ out which task, the use of the concurrency operator to easily compose sub-tasks
+, and the ability to plan for and resolve conflicts between agents.
+\end_layout
+
+\begin_layout Standard
+To demonstrate our approach, we adopt the example from 
+\begin_inset LatexCommand cite
+key "kelly06hlp_dps_anon"
+
+\end_inset
+
+ of a team of robotic chefs cooperating to prepare a simple salad.
+ Their control program is shown in Figure 
+\begin_inset LatexCommand ref
+reference "fig:makesalad-program"
+
+\end_inset
+
+.
+ In essence, this (non-deterministic) program states that somebody is to
+ chop a lettuce, somebody a tomato, and somebody
+\emph on
+ 
+\emph default
+a carrot, and then somebody is to mix the ingredients.
+ Later we show how our system finds a successful joint execution for this
+ program.
+\end_layout
+
 \begin_layout Subsection
 Prime Event Structures
 \end_layout
 
 \begin_layout Standard
-To tackle cooperative execution in a multi-agent setting, we have adopted
- a model of concurrent computation known as 
+To tackle cooperative execution in a multi-agent setting, we adopt a model
+ of concurrent computation known as 
 \emph on
-event structures, 
+prime event structures
 \emph default
-introduced in 
+ 
 \begin_inset LatexCommand cite
 key "npw79event_structures"
 
 \end_inset
 
 .
- The particular variant we use are 
-\emph on
-prime event structures
-\emph default
-, canonically defined as a four-tuple 
-\begin_inset Formula $(\mathcal{V},\prec,\#,\gamma)$
+ Conceptually, these structures represent all possible runs of execution
+ of a system in terms of partially-ordered branching sequences of events.
+ They are a very general model of concurrent execution, and can be efficiently
+ executed in a reactive manner 
+\begin_inset LatexCommand cite
+key "pratt91modeling_conc_with_geom"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{defn}
+\end_layout
+
+\end_inset
+
+a 
+\series bold
+prime event structure
+\series default
+ is a four-tuple 
+\begin_inset Formula $(\mathcal{V},\gamma,\prec,\#)$
 \end_inset
 
  where: 
 \begin_inset Formula $\mathcal{V}$
 \end_inset
 
- is a set of events; 
+ is a set of 
+\series bold
+events
+\series default
+; 
 \begin_inset Formula $\gamma$
 \end_inset
 
- is a function assigning a label to each event; 
+ is a function assigning a 
+\series bold
+label
+\series default
+ to each event; 
 \begin_inset Formula $\prec$
 \end_inset
 
  is the 
-\emph on
+\series bold
 enabling
-\emph default
+\series default
  relation, a strict partial order on events; and 
 \begin_inset Formula $\#$
 \end_inset
 
  is the 
-\emph on
+\series bold
 conflict
-\emph default
- relation, a binary symmetric relation indicating event that are mutually
+\series default
+ relation, a binary symmetric relation indicating events that are mutually
  exclusive.
- A 
-\emph on
-configuration
-\emph default
- is a sequence of events consistent with 
-\begin_inset Formula $\prec$
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{defn}
+\end_layout
+
 \end_inset
 
- in which no pair of events conflict.
- Each configuration thus represents a potential partial run of execution
- of the system.
+
 \end_layout
 
 \begin_layout Standard
-In this paper we will specify our structures using the more convenient form
- 
-\begin_inset Formula $(\mathcal{V},ens,alts,\gamma)$
+The labels assigned by 
+\begin_inset Formula $\gamma$
 \end_inset
 
-.
- Here 
-\begin_inset Formula $ens(i)$
-\end_inset
-
- assigns to each event 
-\begin_inset Formula $i\in\mathcal{V}$
-\end_inset
-
- a finite set of other events that are its direct 
-\emph on
-enablers
-\emph default
-, meaning that event 
-\begin_inset Formula $i$
-\end_inset
-
- can only occur after all the events in 
-\begin_inset Formula $ens(i)$
-\end_inset
-
-.
- Similarly 
-\begin_inset Formula $alts(i)$
-\end_inset
-
- assigns to each event a set of direct 
-\emph on
-alternatives
-\emph default
-, meaning that only one event in 
-\begin_inset Formula $\{i\}\cup alts(i)$
-\end_inset
-
- can occur during execution of the system.
- Defining 
+ represent the actions that may occur in the world, and each event represents
+ a potential occurrence of an action.
+ Which events can occur at each stage of execution is determined by 
 \begin_inset Formula $\prec$
 \end_inset
 
@@ -972,28 +980,134 @@ alternatives
 \begin_inset Formula $\#$
 \end_inset
 
- in terms of 
-\begin_inset Formula $ens$
-\end_inset
-
- and 
-\begin_inset Formula $alts$
-\end_inset
-
- is straightforward.
+.
 \end_layout
 
 \begin_layout Standard
-Event structures thus form a directed acyclic graph of the events that could
- occur during execution of the system.
- As shown in 
-\begin_inset LatexCommand cite
-key "pratt91modeling_conc_with_geom"
+As it can be cumbersome to specify 
+\begin_inset Formula $\prec$
+\end_inset
+
+ and 
+\begin_inset Formula $\#$
+\end_inset
+
+ completely, we will frequently give only the direct 
+\emph on
+enablers
+\emph default
+ and 
+\emph on
+alternatives
+\emph default
+ for each event, denoted by 
+\begin_inset Formula $ens(i)$
+\end_inset
+
+ and 
+\begin_inset Formula $alts(i)$
+\end_inset
+
+ respectively.
+ Construction of 
+\begin_inset Formula $(\prec,\#)$
+\end_inset
+
+ from 
+\begin_inset Formula $(ens,alts)$
+\end_inset
+
+ is a straightforward transitive closure.
+ Figure 
+\begin_inset LatexCommand ref
+reference "fig:example-je"
 
 \end_inset
 
- they are a very general model of concurrent execution, and can be straightforwa
-rdly converted to a kind of finite automaton for efficient execution.
+ shows a prime event structure specified in this manner.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{defn}
+\end_layout
+
+\end_inset
+
+the 
+\series bold
+enablers
+\series default
+ and 
+\series bold
+alternatives
+\series default
+ of an event are the largest sets satisfing:
+\begin_inset Formula \begin{gather*}
+j\in ens(i)\equiv j\prec i\,\wedge\,\forall k\in ens(i):\,\neg(j\prec k)\\
+j\in alts(i)\equiv j\#i\,\wedge\,\forall k\in ens(i):\,\neg(j\#k)\end{gather*}
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{defn}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+begin{defn}
+\end_layout
+
+\end_inset
+
+A 
+\series bold
+configuration
+\series default
+ is a sequence of events consistent with 
+\begin_inset Formula $\prec$
+\end_inset
+
+ in which no pair of events conflict, representing a potential partial run
+ of execution of the system.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+
+\backslash
+end{defn}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1062,6 +1176,69 @@ independent
 \newline
  for all functional fluents 
 \begin_inset Formula $\mathcal{F}(s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
+\begin_layout Standard
+\begin_inset Box Boxed
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+width "97col%"
+special "none"
+height "1in"
+height_special "totalheight"
+status open
+
+\begin_layout Standard
+\align center
+
+\family sans
+\series bold
+\size tiny
+\begin_inset Include \include{listings/je_example.tex}
+preview false
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+A prime event structure representing a simple joint execution.
+ Arrows indicate enablers, dots indicate alternatives.
+ Ellipses are action events, boxes are outcome events.
+\end_layout
+
+\end_inset
+
+
+\begin_inset LatexCommand label
+name "fig:example-je"
+
+\end_inset
+
+
+\end_layout
+
 \end_inset
 
 
@@ -1447,68 +1624,6 @@ reference "fig:example-je"
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float figure
-wide false
-sideways false
-status open
-
-\begin_layout Standard
-\begin_inset Box Boxed
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 0
-width "97col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status open
-
-\begin_layout Standard
-\align center
-
-\family sans
-\series bold
-\size tiny
-\begin_inset Include \include{listings/je_example.tex}
-preview false
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-The prime event structure representing a simple joint execution.
- Ellipses are action events, boxes are outcome events.
-\end_layout
-
-\end_inset
-
-
-\begin_inset LatexCommand label
-name "fig:example-je"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
