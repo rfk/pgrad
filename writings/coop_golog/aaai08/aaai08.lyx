@@ -424,7 +424,7 @@ history
 \begin_inset Formula $(a,Out(a,s))$
 \end_inset
 
- coupling an outcome with each action.
+ coupling each action with its outcome.
  Histories are strictly a meta-level construct and do not exist in the language
  of the situation calculus.
  Rather, the macro 
@@ -516,7 +516,7 @@ key "giacomo00congolog"
  Testimony to its success are its wide range of applications and many extensions
  to provide additional functionality 
 \begin_inset LatexCommand cite
-key "kelly06hlp_dps_anon,giacomo99indigolog,farinelli07team_golog,Ferrein2005readylog,shapiro02casl"
+key "giacomo99indigolog,shapiro02casl,Ferrein2005readylog,kelly06hlp_dps_anon,farinelli07team_golog"
 
 \end_inset
 
@@ -750,8 +750,8 @@ legal execution
 \emph default
  of the program.
  ConGolog programs are executed in an offline manner: a complete situation
- (or history) term constituting a legal execution is constructed, then executed
- by the agent in a reactive manner.
+ term constituting a legal execution is constructed, then executed by the
+ agent in a reactive manner.
  When actions can have multiple results the output must be a branching structure
 , and planning treats each branch as a standard history term 
 \begin_inset LatexCommand cite
@@ -878,7 +878,11 @@ Prime Event Structures
 
 \begin_layout Standard
 To tackle cooperative execution in a multi-agent setting, we adopt a model
- of concurrent computation known as prime event structures 
+ of concurrent computation known as 
+\emph on
+prime event structures
+\emph default
+ 
 \begin_inset LatexCommand cite
 key "npw79event_structures"
 
@@ -1558,7 +1562,7 @@ end{defn}
 \begin_layout Standard
 In order to be useful for planning purposes, joint executions must satisfy
  five further restrictions.
- We detail these below after introducting some necessary definitions.
+ We detail these below after introducing some necessary definitions.
 \end_layout
 
 \begin_layout Standard
@@ -1752,22 +1756,28 @@ histories
 \begin_inset Formula $hists(b)$
 \end_inset
 
- for all branches gives all possible histories that could be produced by
- performing the joint execution.
- The unique history that is consistent with 
+ for all branches gives the set of all histories that could be produced
+ by performing the joint execution.
+ 
+\end_layout
+
+\begin_layout Standard
+The unique history consistent with 
 \begin_inset Formula $<$
 \end_inset
 
- is called the 
+ is the 
 \emph on
 canonical history
 \emph default
- and denoted 
+, denoted 
 \begin_inset Formula $hist(e)$
 \end_inset
 
 .
- 
+ We use it to reason about the joint execution using standard techniques,
+ by assuming that events occur in this specific order.
+ The restrictions below ensure that this assumption is acceptable.
 \end_layout
 
 \begin_layout Subsection
@@ -1778,10 +1788,7 @@ Restrictions on Joint Executions
 We now impose several restrictions on the structure of a joint execution,
  to ensure they are suitable for representing the actions to be performed
  by a team of agents.
- Since we will use joint executions to replace situation terms in the ConGolog
- execution planning process, they will be built up one action at a time.
- These restrictions are thus invariants that must be preserved when each
- new action is added.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -1823,12 +1830,9 @@ reference "thm:equiv-holds"
 
 \end_inset
 
- we can use the canonical history 
-\begin_inset Formula $hist(b)$
-\end_inset
-
- for planning purposes, and be assured that the same fluents will hold regardles
-s of the specific order in which actions are executed.
+ we can use the canonical history for planning purposes, and be assured
+ that the same fluents will hold regardless of the specific order in which
+ actions are executed.
  More generally, it ensures that all histories in 
 \begin_inset Formula $hists(ens(i))$
 \end_inset
@@ -2183,14 +2187,25 @@ key "vanroy99mozart"
 
 \end_inset
 
- rather than the traditional use of Prolog.
- Figure 
+ rather than the traditional use of Prolog, but its main planning loop is
+ very similar to that of existing ConGolog systems.
+ It searches for a legal execution one program step at a time, building
+ up a joint execution rather than situation terms or histories.
+ The restrictions (R1)-(R5) form invariants that are maintained as each
+ action is added to the joint execution.
+ All reasoning is performed using standard regression techniques on canonical
+ branch histories, hiding the details of the joint execution from the rest
+ of the system.
+\end_layout
+
+\begin_layout Standard
+Figure 
 \begin_inset LatexCommand ref
 reference "fig:plan-output"
 
 \end_inset
 
- shows the output our system produces for the 
+ shows the output our planner produces for the 
 \begin_inset Formula $MakeSalad$
 \end_inset
 
@@ -2201,8 +2216,8 @@ reference "fig:makesalad-program"
 \end_inset
 
 .
- Since all actions in this program have a single outcome, the outcome events
- have been suppressed.
+ Since all actions in this program have a single outcome, there is no branching
+ and the outcome events have been suppressed.
 \end_layout
 
 \begin_layout Standard
@@ -2230,28 +2245,18 @@ reference "fig:plan-output"
 \end_layout
 
 \begin_layout Standard
-Our main planning loop is very similar to the planning loop for existing
- ConGolog systems.
- It searches for a legal execution one program step at a time, but builds
- up a joint execution instead of situation terms or histories.
- All reasoning is performed using standard regression techniques on canonical
- branch histories, making the details of the joint execution transparent
- to the rest of the system.
-\end_layout
-
-\begin_layout Standard
-The planner explicitly searches for highly concurrent executions, primarily
- by giving priority to new program steps that are unordered relative to
- more of the existing steps.
+Our system explicitly searches for highly concurrent executions, by giving
+ priority to new program steps that are unordered relative to many existing
+ steps.
  The execution in Figure 
 \begin_inset LatexCommand ref
 reference "fig:plan-output"
 
 \end_inset
 
- is maximally concurrent given the constraints of the domain, and is clearly
- a significant improvement over totally ordered sequences of actions as
- produced by existing systems.
+ is maximally concurrent given the domain constraints, clearly a significant
+ improvement over totally ordered sequences of actions as produced by existing
+ systems.
 \end_layout
 
 \begin_layout Standard
