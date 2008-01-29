@@ -168,6 +168,7 @@ joint execution.
  to be public.
  To demonstrate the utility of our approach, we show how a team of agents
  can cooperate to plan and perform an execution of a shared ConGolog program.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -176,12 +177,13 @@ Joint executions allow us to capture the actions to be executed by a team
  synchronization between the agents, and without assuming that agents know
  all the actions that have been performed, while utilizing existing reasoning
  methods based on full situation terms.
- 
+ They also facilitate an explicit search for highly concurrent executions.
 \end_layout
 
 \begin_layout Standard
-This paper thus contributes a significant increase in expressiveness over
- existing approaches to handling multi-agent teams in the situation calculus.
+This paper thus contributes a significant increase in expressiveness and
+ utility over existing approaches to handling multi-agent teams in the situation
+ calculus.
  
 \end_layout
 
@@ -267,10 +269,8 @@ Fluents
 
 \begin_layout Standard
 A 
-\series bold
 \emph on
 basic action theory
-\series default
 \emph default
  is a set 
 \begin_inset Formula $\mathcal{D}$
@@ -424,7 +424,7 @@ history
 \begin_inset Formula $(a,Out(a,s))$
 \end_inset
 
- giving the outcome produced by each action.
+ coupling an outcome with each action.
  Histories are strictly a meta-level construct and do not exist in the language
  of the situation calculus.
  Rather, the macro 
@@ -1627,11 +1627,11 @@ configuration
 \emph default
  is a partial run of execution of the prime event structure, it is clear
  that any configuration ending in an outcome event corresponds to a history
- in 
+ from 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
- - it is a sequence of actions and their corresponding outcomes.
+; it is a sequence of actions and their corresponding outcomes.
  
 \end_layout
 
@@ -2194,7 +2194,7 @@ reference "fig:plan-output"
 \begin_inset Formula $MakeSalad$
 \end_inset
 
- example of figure 
+ example of Figure 
 \begin_inset LatexCommand ref
 reference "fig:makesalad-program"
 
@@ -2230,7 +2230,19 @@ reference "fig:plan-output"
 \end_layout
 
 \begin_layout Standard
-Our approach also facilitates searching for highly concurrent executions.
+Our main planning loop is very similar to the planning loop for existing
+ ConGolog systems.
+ It searches for a legal execution one program step at a time, but builds
+ up a joint execution instead of situation terms or histories.
+ All reasoning is performed using standard regression techniques on canonical
+ branch histories, making the details of the joint execution transparent
+ to the rest of the system.
+\end_layout
+
+\begin_layout Standard
+The planner explicitly searches for highly concurrent executions, primarily
+ by giving priority to new program steps that are unordered relative to
+ more of the existing steps.
  The execution in Figure 
 \begin_inset LatexCommand ref
 reference "fig:plan-output"
@@ -2240,16 +2252,6 @@ reference "fig:plan-output"
  is maximally concurrent given the constraints of the domain, and is clearly
  a significant improvement over totally ordered sequences of actions as
  produced by existing systems.
-\end_layout
-
-\begin_layout Standard
-Our main planning loop is very similar to the planning loop for existing
- ConGolog systems.
- It searches for a legal execution one program step at a time, but builds
- up a joint execution instead of situation terms or histories.
- All reasoning is performed using standard regression techniques on canonical
- branch histories, making the details of the joint execution transparent
- to the rest of the system.
 \end_layout
 
 \begin_layout Standard
@@ -2368,7 +2370,15 @@ key "backstrom99reordering"
 
 \end_inset
 
-, but performed during plan construction rather than as a post-processing
+, considering 
+\begin_inset Formula $\prec$
+\end_inset
+
+ as a deordering of 
+\begin_inset Formula $<$
+\end_inset
+
+ that is built during plan construction rather than as a post-processing
  step.
 \end_layout
 
@@ -2381,8 +2391,8 @@ key "giacomo99indigolog"
 \end_inset
 
  allows interleaving planning with steps of execution.
- Extending this technique a team of agents is difficult, as each may have
- different knowledge about the state of execution.
+ Extending this technique to a team of agents is difficult, as each may
+ have different knowledge about the state of execution.
  We are developing an approach based on explicit epistemic reasoning, using
  the techniques of 
 \begin_inset LatexCommand cite
@@ -2406,9 +2416,9 @@ In this paper, we have demonstrated that an apparently fundamental limitation
 joint execution
 \emph default
 .
- We contend that such structures are highly suitable for planning the actions
- to be performed by a team in service of some shared task, such as executing
- a shared ConGolog program.
+ These structures are highly suitable for planning the actions to be performed
+ by a team in service of some shared task, such as executing a shared ConGolog
+ program.
  
 \end_layout
 
@@ -2420,8 +2430,8 @@ On one hand, joint executions are restricted enough to be practical for
  They are restricted to ensure that whenever an agent is required to perform
  an action, it is able to determine this using only its local information.
  Each branch of execution can be easily converted into a situation or history
- term for the purposes of reasoning, and can easily be extended one action
- at a time.
+ term for the purposes of reasoning, and can be built up one action at a
+ time.
 \end_layout
 
 \begin_layout Standard
@@ -2437,8 +2447,9 @@ Joint executions are also significantly more flexible than previous approaches.
 
 \begin_layout Standard
 The utility of these structures has been demonstrated by implementing a
- system that constructs a joint execution for a shared ConGolog program,
- distributing the planning workload between the agents in the team.
+ system that constructs a highly concurrent joint execution for a shared
+ ConGolog program, distributing the planning workload between the agents
+ in the team.
  Once a valid joint execution is found, the team is guaranteed to be able
  to execute it in the world without further deliberation and without explicit
  synchronization between the agents, in spite of asynchronicity and partial
