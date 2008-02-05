@@ -313,7 +313,7 @@ reference "sec:Obs-Knowledge"
 
  treats the indivdual knowledge of each agent in the face of hidden actions,
  by decoupling knowledge from the specific actions that have taken place.
- Instead we develop an explicit reification of the 
+ We develop an explicit reification of the 
 \emph on
 observations
 \emph default
@@ -347,15 +347,19 @@ reference "sec:Complex-Epistemic-Modalities"
 
  builds on this by introducing complex epistemic modalities.
  While the primary motivation is a formal account of common knowledge, we
- are bound by the following expressivity result from dynamic epistemic logic
+ are bound by the following expressivity result from modal logic: epistemic
+ logic with actions and common knowledge is more expressive than epistemic
+ logic with common knowledge alone.
  
 \begin_inset LatexCommand cite
-key "baltag99epi_act_structures,vanBenthem06lcc"
+key "baltag98pa_ck"
 
 \end_inset
 
-: the regression of common knowledge cannot be expressed in terms of common
- knowledge, but requires a more expressive epistemic language.
+.
+ In situation calculus terms, this means that the regression of common knowledge
+ cannot be defined in terms of common knowledge, but requires a more expressive
+ epistemic language.
  After summarizing recent advances in this related field, we follow the
  work of van Benthem et.
  al.
@@ -428,14 +432,7 @@ key "shapiro01casl_feat_inter"
 
 \end_inset
 
- and concurrent actions 
-\begin_inset LatexCommand cite
-key "reiter96sc_nat_conc"
-
-\end_inset
-
-.
- We begin from the standard account of knowledge due to 
+ and we begin from the standard account of knowledge due to 
 \begin_inset LatexCommand cite
 key "scherl03sc_knowledge"
 
@@ -466,23 +463,19 @@ Agent
 Action
 \emph default
 \noun default
- terms are functions denoting individual instantaneous events that can cause
- the state of the world to change, with the initiating agent indicated by
- their first argument; 
-\noun on
-Concurrent
-\noun default
- terms are sets of actions that occur simultaneously; 
+ terms are functions denoting instantaneous events that can cause the state
+ of the world to change, with the initiating agent indicated by their first
+ argument; 
 \noun on
 Situation
 \noun default
- terms are histories of the concurrent actions that have occurred in the
- world, with the initial situation represented by 
+ terms are histories of the actions that have occurred in the world, with
+ the initial situation represented by 
 \begin_inset Formula $S_{0}$
 \end_inset
 
  and successive situations built using the function 
-\begin_inset Formula $do\,:\, Concurrent\times Situation\rightarrow Situation$
+\begin_inset Formula $do\,:\, Action\times Situation\rightarrow Situation$
 \end_inset
 
 ; 
@@ -494,12 +487,12 @@ Result
 Object
 \noun default
  terms represent any other object in the domain.
- It also distinguishes 
+ 
 \emph on
-fluents
+Fluents
 \emph default
- as predicates or functions representing properties of the world that may
- change between situations, and so take a situation term as their final
+ are predicates or functions that represent properties of the world that
+ may change between situations; they take a situation term as their final
  argument.
 \end_layout
 
@@ -531,9 +524,9 @@ Sam is not holding Box1 after dropping Box1
 \end_inset
 
 , written formally as:
-\begin_inset Formula \begin{multline*}
+\begin_inset Formula \begin{gather*}
 Holding(Sam,Box1,S_{0})\\
-\neg Holding(Sam,Box1,do(drop(Sam,Box1),S_{0})\end{multline*}
+\neg Holding(Sam,Box1,do(drop(Sam,Box1),S_{0})\end{gather*}
 
 \end_inset
 
@@ -549,8 +542,14 @@ basic action theory
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
- of situation calculus sentences (with a specific syntactic form) that describes
- a particular dynamic world.
+ of situation calculus sentences (with a specific syntactic form, specified
+ in 
+\begin_inset LatexCommand cite
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+) that describes a particular dynamic world.
  Queries about the behavior of the world are posed as logical entailment
  queries relative to this theory.
  It consists of the following disjoint sets: the foundational axioms of
@@ -643,16 +642,10 @@ The axiom set
 \end_inset
 
  axiom of this form for each type of action.
- We also utilize the more general notion of 
+ This notion can be generalized to what we will call 
 \emph on
 action description predicates
 \emph default
- 
-\begin_inset LatexCommand cite
-key "kelly07sc_persistence"
-
-\end_inset
-
 .
  These are predicates defined in the same manner as 
 \begin_inset Formula $Poss$
@@ -664,38 +657,6 @@ key "kelly07sc_persistence"
 \end_inset
 
  that specifies when an agent will observe the occurrence of an action.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula $Poss$
-\end_inset
-
- can be extended to concurrent actions as follows:
-\begin_inset Formula \[
-Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\,.\, a\in c\rightarrow Poss(a,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Unfortunately this is insufficient for domains where certain actions cannot
- be performed together, even if each action is possible individually.
- This is know as 
-\emph on
-precondition interaction
-\emph default
- and can be addressed by several techniques that are outside the scope of
- this paper 
-\begin_inset LatexCommand cite
-key "reiter96sc_nat_conc,pinto94temporal"
-
-\end_inset
-
-.
- In the interests of simplicity, we will not deal with interactions between
- concurrent actions in this paper
 \end_layout
 
 \begin_layout Standard
@@ -736,7 +697,7 @@ Situations form a tree structure with
 
 
 \begin_inset Formula \[
-s\sqsubset do(c,s')\equiv s\sqsubseteq s'\]
+s\sqsubset do(a,s')\equiv s\sqsubseteq s'\]
 
 \end_inset
 
@@ -770,7 +731,7 @@ Here
 
 
 \begin_inset Formula \[
-s<_{\alpha}do(c,s')\equiv s\leq_{\alpha}s'\wedge\alpha(c,s')\]
+s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s')\]
 
 \end_inset
 
@@ -796,7 +757,7 @@ legal situations
 \begin_inset Formula $\leq$
 \end_inset
 
- is introduced as a shorthand for 
+ is used as a shorthand for 
 \begin_inset Formula $\leq_{Poss}$
 \end_inset
 
@@ -958,7 +919,7 @@ key "pirri99contributions_sitcalc"
 \end_inset
 
  uniform in 
-\begin_inset Formula $do(c,s)$
+\begin_inset Formula $do(a,s)$
 \end_inset
 
  into a formula 
@@ -988,7 +949,7 @@ key "pirri99contributions_sitcalc"
 
 \begin_layout Standard
 In the base case, this involves replacing fluents 
-\begin_inset Formula $F(\overrightarrow{x},do(c,s))$
+\begin_inset Formula $F(\overrightarrow{x},do(a,s))$
 \end_inset
 
  with their matching successor state axioms.
@@ -1024,7 +985,7 @@ compiled in
  and so are not required for answering the regressed query, making reasoning
  simpler:
 \begin_inset Formula \begin{gather*}
-\mathcal{D}\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\\
+\mathcal{D}\models\phi[do(a_{n},do(a_{n-1},\dots,do(a_{1},S_{0}))]\\
 \mathrm{iff}\\
 \mathcal{D}_{una}\cup\mathcal{D}_{S_{0}}\models\mathcal{R}_{\mathcal{D}}^{*}(\phi)[S_{0}]\end{gather*}
 
@@ -1140,37 +1101,10 @@ in situation
 \end_layout
 
 \begin_layout Standard
-Combining the multi-agent semantics of 
-\begin_inset LatexCommand cite
-key "shapiro01casl_feat_inter"
-
-\end_inset
-
- with the handling of concurrent actions in 
-\begin_inset LatexCommand cite
-key "scherl03conc_knowledge"
-
-\end_inset
-
-, the common form of successor state axiom for the knowledge fluent is:
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-Using the obvious abbreviation 
-\begin_inset Formula $\forall a\in c\,.\,\psi\,\,\isdef\,\,\forall a\,.a\in c\rightarrow\psi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
- 
+The common form of successor state axiom for the knowledge fluent is: 
 \begin_inset Formula \begin{multline}
-K(agt,s'',do(c,s))\equiv\\
-\exists s'\,.\, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\\
-\wedge\,\forall a\in c.\left[agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\label{eqn:k_ssa_standard}\end{multline}
+K(agt,s'',do(a,s))\equiv\exists s'\,.\, s''=do(a,s')\,\wedge K(agt,s',s)\wedge Poss(a,s')\\
+\wedge\, agent(a)=agt\,\rightarrow\, SR(a,s)=SR(a,s')\label{eqn:k_ssa_standard}\end{multline}
 
 \end_inset
 
@@ -1188,15 +1122,15 @@ The function
 \end_inset
 
  is considered a possible alternative to 
-\begin_inset Formula $do(c,s)$
+\begin_inset Formula $do(a,s)$
 \end_inset
 
  when 
 \begin_inset Formula $s''$
 \end_inset
 
- is the result of doing those same actions 
-\begin_inset Formula $c$
+ is the result of doing the same action 
+\begin_inset Formula $a$
 \end_inset
 
  in a situation 
@@ -1208,15 +1142,12 @@ The function
 \end_inset
 
 .
- It must furthermore have been possible to perform those actions in 
+ It must furthermore have been possible to perform that action in 
 \begin_inset Formula $s'$
 \end_inset
 
-, and the sensing results must match for all actions in 
-\begin_inset Formula $c$
-\end_inset
-
- that were carried out by the agent.
+, and the sensing results must match if the action was carried out by the
+ agent in question.
 \end_layout
 
 \begin_layout Standard
@@ -1257,7 +1188,7 @@ We introduce a notational shorthand to refer to this standard account of
  knowledge throughout the rest of the paper:
 \end_layout
 
-\begin_layout Standard
+\begin_layout Definition
 We will denote by 
 \begin_inset Formula $\mathcal{D}_{Std}$
 \end_inset
@@ -1266,15 +1197,7 @@ We will denote by
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
- augmented with the standard 
-\begin_inset Quotes eld
-\end_inset
-
-total awareness
-\begin_inset Quotes erd
-\end_inset
-
- account of knowledge from 
+ augmented with the standard account of knowledge from 
 \begin_inset LatexCommand cite
 key "scherl03sc_knowledge"
 
@@ -1329,8 +1252,8 @@ key "Lesperance99sitcalc_approach"
  assumes the opposite extreme, that agents are only aware of the actions
  that they themselves perform:
 \begin_inset Formula \begin{multline}
-K(agt,s'',do(c,s))\equiv\\
-\exists s',s^{*},c'\,.\, s''=do(c',s^{*})\,\wedge K(s',s)\wedge Poss(c',s^{*})\\
+K(agt,s'',do(a,s))\equiv\\
+\exists s',s^{*},a'\,.\, s''=do(a',s^{*})\,\wedge K(s',s)\wedge Poss(a',s^{*})\\
 \wedge\,\mathbf{ExoOnly}(agt,s',s^{*})\\
 \wedge\,\forall a\left[agent(a)=agt\rightarrow a\in c'\equiv a\in c\right]\\
 \wedge\,\forall a\in c\left[agent(a)=agt\rightarrow SR(a,s)=SR(a,s')\right]\label{eqn:k_ssa_exo}\end{multline}
@@ -1772,7 +1695,7 @@ observations
 Observations
 \end_layout
 
-\begin_layout Standard
+\begin_layout Definition
 An 
 \emph on
 observation
@@ -3275,16 +3198,16 @@ name "sec:Complex-Epistemic-Modalities"
 \end_layout
 
 \begin_layout Standard
-At this stage, we have built a powerful new account of 
+So far we have constructed a powerful new account of 
 \emph on
 individual 
 \emph default
 knowledge in a multi-agent setting.
- For rich multi-agent domains, we also need to be able to reason about group-lev
-el knowledge and, in particular, about common knowledge.
- The aim of this section is a formal treatment of common knowledge within
- our framework, but as we shall see, this requires technical machinery capable
- of handling much more general epistmic modalities.
+ For rich multi-agent domains, we must also be able to reason about group-level
+ knowledge and, in particular, about common knowledge.
+ The primary motivation for this section is a formal treatment of common
+ knowledge within our framework, but as we shall see, this requires significant
+ technical machinery capable of handling much more general epistmic modalities.
 \end_layout
 
 \begin_layout Subsection
@@ -3298,15 +3221,20 @@ We breifly review the various group-level epistemic modalities found in
 \begin_inset Formula $G$
 \end_inset
 
- be a finite group of agents, then 
+ be a finite group of agents.
+ The basic group-level modality is 
 \begin_inset Quotes eld
 \end_inset
 
-everyone knows
+everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+
 \begin_inset Quotes erd
 \end_inset
 
- can be defined simply as:
+, which is defined as:
 \begin_inset Formula \[
 \mathbf{EKnows}(G,\phi,s)\,\isdef\,\bigwedge_{agt\in G}\,\mathbf{Knows}(agt,\phi,s)\]
 
@@ -3316,12 +3244,25 @@ everyone knows
 \end_layout
 
 \begin_layout Standard
-By nesting 
+To assert more complete knowledge by members of the group, one can say that
+ 
+\begin_inset Quotes eld
+\end_inset
+
+everyone knows that everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ by nesting 
 \begin_inset Formula $\mathbf{EKnows}$
 \end_inset
 
- operators, we can assert more and more knowledge about the knowledge of
- the group:
+ operators.
+ In general: 
 \begin_inset Formula \begin{multline*}
 \mathbf{EKnows}^{1}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\phi,s)\\
 \mathbf{EKnows}^{n}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)\end{multline*}
@@ -3332,7 +3273,29 @@ By nesting
 \end_layout
 
 \begin_layout Standard
-We can then definte common knowledge as the infinite comjunction:
+The most powerful group-level modality is 
+\begin_inset Quotes eld
+\end_inset
+
+it is common knowledge that 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Intuitively this indicates that everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+, everyone knows that everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+, and so on ad infimitum.
+ Formally, it can be defined as the infinite conjunction:
 \begin_inset Formula \[
 \mathbf{CKnows}(G,\phi,s)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi,s)\]
 
@@ -3360,8 +3323,8 @@ The Trouble with Common Knowledge
 We are aware of no formal treatments of common knowledge in the situation
  calculus literature, and certainly none in domains as rich as those we
  consider here.
- This can be attributed, at least in part, to the difficulty of handling
- common knowledge using the regression operator.
+ This can be attributed to the difficulty of handling common knowledge using
+ the regression operator.
 \end_layout
 
 \begin_layout Standard
@@ -3381,8 +3344,13 @@ Epistemic logic with actions and common knowledge is more expressive than
 
 \begin_layout Standard
 Given the deep similarities between the situation caluclus and epistemic
- modal logic [TODO], we should expect a similar result to hold in the situation
- caluculus.
+ modal logic 
+\begin_inset LatexCommand cite
+key "vanbentham07ml_sitcalc"
+
+\end_inset
+
+, we should expect a similar result to hold in the situation caluculus.
  In our terminology: there is no regression rule for 
 \begin_inset Formula $\Reg(\CKnows(G,\phi,do(a,s)))$
 \end_inset
@@ -3406,7 +3374,7 @@ While one could reason about common knowledge by calculating it directly
 
 , this process would be immensely computationally expensive and unlikely
  to terminate.
- For effective reasoning, we require a regression rule.
+ Effective reasoning requires a regression rule.
 \end_layout
 
 \begin_layout Subsection
@@ -3422,7 +3390,7 @@ key "vanBenthem06lcc"
 
  has shown that this limitation can be overcome by increasing the expressivity
  of the epistemic language in use.
- Rather than limiting themselves to 
+ Rather than limiting the language to 
 \begin_inset Formula $\Knows$
 \end_inset
 
@@ -3464,7 +3432,7 @@ We need to define
 .
  To do so, we begin with a straightforward import of LCC into the situation
  calculus, treating 
-\begin_inset Formula $\{\}$
+\begin_inset Formula $\epsilon$
 \end_inset
 
  as an ordinary action.
@@ -3475,7 +3443,7 @@ We need to define
  to denote this version.
  Then:
 \begin_inset Formula \[
-K_{0}(\pi,s'',do(c,s))\equiv\exists c',s':\, K_{0}(\mathcal{T}[\pi,c,c'],s',s)\wedge s''=do(c',s)\]
+K_{0}(\pi,s'',do(a,s))\equiv\exists a',s':\, K_{0}(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s)\]
 
 \end_inset
 
@@ -3486,7 +3454,7 @@ K_{0}(\pi,s'',do(c,s))\equiv\exists c',s':\, K_{0}(\mathcal{T}[\pi,c,c'],s',s)\w
 We can use analogous arguments to those for LCC to show that this works
  as intended, preserving the semantics of PDL.
  Now let us make an intuitive argument for dealing with 
-\begin_inset Formula $\{\}$
+\begin_inset Formula $\epsilon$
 \end_inset
 
  actions.
@@ -3510,7 +3478,7 @@ We can use analogous arguments to those for LCC to show that this works
 
 
 \begin_inset Formula \[
-\mathcal{E}^{1}(s)=do(\{\},s)\]
+\mathcal{E}^{1}(s)=do(\epsilon,s)\]
 
 \end_inset
 
@@ -3519,7 +3487,7 @@ We can use analogous arguments to those for LCC to show that this works
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\{\},do(\{\},...,do(\{\},s)))\]
+\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\epsilon,do(\epsilon,...,do(\epsilon,s)))\]
 
 \end_inset
 
@@ -3562,19 +3530,19 @@ Use the following regression definitions:
 
 \begin_layout Standard
 \begin_inset Formula \[
-\Reg(\KnowsZ(\pi,\phi,do(c,s)))\,\isdef\,\forall c':\,\Knows(\Trn(\pi,c,c'),\Reg(\phi,c'),s)\]
+\Reg(\KnowsZ(\pi,\phi,do(a,s)))\,\isdef\,\forall a':\,\Knows(\Trn(\pi,a,a'),\Reg(\phi,a'),s)\]
 
 \end_inset
 
 
 \begin_inset Formula \[
-\Reg(\KnowsZ(\pi,\phi,do(\{\},s))\,\isdef\,\forall c':\,\KnowsZ(\Trn(\pi,c,c'),\Reg(\phi,c'),s)\]
+\Reg(\KnowsZ(\pi,\phi,do(\epsilon,s))\,\isdef\,\forall c':\,\KnowsZ(\Trn(\pi,a,a'),\Reg(\phi,a'),s)\]
 
 \end_inset
 
 
 \begin_inset Formula \[
-\Reg(\Knows(\pi,\phi,do(c,s)))\,\isdef\,\bigwedge_{n\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{n}(do(c,s)))\]
+\Reg(\Knows(\pi,\phi,do(a,s)))\,\isdef\,\bigwedge_{n\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{n}(do(a,s)))\]
 
 \end_inset
 
