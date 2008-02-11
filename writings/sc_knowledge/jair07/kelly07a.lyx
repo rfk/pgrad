@@ -10,12 +10,13 @@
 \firstpageno{0}
 
 \newcommand{\isdef}{\ensuremath{\stackrel{\mbox{\tiny def}}{=}}}
-\newcommand{\MOP}[1]{\ensuremath{\mathbf{\mathcal{#1}}}}
+\newcommand{\MOP}[1]{\ensuremath{\pmb{\mathcal{#1}}}}
 
-\newcommand{\Reg}{\MOP{R}_{\MOP{D}}}
-\newcommand{\Pst}{\MOP{P}_{\MOP{D}}}
-\newcommand{\Trn}{\MOP{T}_{\MOP{D}}}
-\newcommand{\Kln}{\MOP{T}_{\MOP{D}}}
+\newcommand{\Reg}{\ensuremath{\MOP{R}_{\Dt}}}
+\newcommand{\Pst}{\ensuremath{\MOP{P}_{\Dt}}}
+\newcommand{\Trn}{\ensuremath{\MOP{T}_{\Dt}}}
+\newcommand{\Kln}{\ensuremath{\MOP{T}_{\Dt}}}
+\newcommand{\Dt}{\ensuremath{\mathcal{D}}}
 \newcommand{\Knows}{\ensuremath{\mathbf{Knows}}}
 \newcommand{\EKnows}{\ensuremath{\mathbf{EKnows}}}
 \newcommand{\CKnows}{\ensuremath{\mathbf{CKnows}}}
@@ -247,7 +248,7 @@ support for
 Hidden Actions
 \emph default
  and actions that are partially observable, including a reasoning technique
- to deal with infinite sequences of hidden actions
+ to deal with arbitrarily-long sequences of hidden actions
 \end_layout
 
 \begin_layout Itemize
@@ -552,50 +553,40 @@ Holding(Sam,Box1,S_{0})\\
 
 \end_layout
 
-\begin_layout Standard
-A 
-\emph on
-basic action theory
-\emph default
- is a set 
-\begin_inset Formula $\mathcal{D}$
+\begin_layout DefinitionLbld
+Basic\InsetSpace ~
+Action\InsetSpace ~
+Theory A basic action theory, denoted 
+\begin_inset Formula $\Dt$
 \end_inset
 
- of situation calculus sentences (with a specific syntactic form, specified
- in 
-\begin_inset LatexCommand cite
-key "pirri99contributions_sitcalc"
-
-\end_inset
-
-) that describes a particular dynamic world.
- Queries about the behavior of the world are posed as logical entailment
- queries relative to this theory.
+, is a set of situation calculus sentences (with a specific syntactic form
+ outlined below) that describes a particular dynamic world.
  It consists of the following disjoint sets: the foundational axioms of
  the situation calculus (
 \begin_inset Formula $\Sigma$
 \end_inset
 
 ); unique names axioms ensuring that action terms are distinct (
-\begin_inset Formula $\mathcal{D}_{una}$
+\begin_inset Formula $\Dt_{una}$
 \end_inset
 
 ); precondition axioms indicating when actions can be performed (
-\begin_inset Formula $\mathcal{D}_{ap}$
+\begin_inset Formula $\Dt_{ap}$
 \end_inset
 
 ); successor state axioms describing how fluents change between situations
  (
-\begin_inset Formula $\mathcal{D}_{ss}$
+\begin_inset Formula $\Dt_{ss}$
 \end_inset
 
 ); and axioms describing the value of fluents in the initial situation (
-\begin_inset Formula $\mathcal{D}_{S_{0}}$
+\begin_inset Formula $\Dt_{S_{0}}$
 \end_inset
 
 ):
 \begin_inset Formula \[
-\mathcal{D}=\Sigma\cup\mathcal{D}_{una}\cup\mathcal{D}_{ap}\cup\mathcal{D}_{ss}\cup\mathcal{D}_{S_{0}}\]
+\Dt=\Sigma\cup\Dt_{una}\cup\Dt_{ap}\cup\Dt_{ss}\cup\Dt_{S_{0}}\]
 
 \end_inset
 
@@ -603,8 +594,13 @@ key "pirri99contributions_sitcalc"
 \end_layout
 
 \begin_layout Standard
+Queries about the behavior of the world are posed as logical entailment
+ queries relative to this theory.
+\end_layout
+
+\begin_layout Standard
 The set 
-\begin_inset Formula $\mathcal{D}_{una}$
+\begin_inset Formula $\Dt_{una}$
 \end_inset
 
  restricts action terms to a finite number of action types, and ensures
@@ -653,7 +649,7 @@ Poss(drop(agt,obj),s)\equiv Holding(agt,obj,s)\]
 
 \begin_layout Standard
 The axiom set 
-\begin_inset Formula $\mathcal{D}_{ap}$
+\begin_inset Formula $\Dt_{ap}$
 \end_inset
 
  contains one 
@@ -1672,6 +1668,22 @@ First and foremost, we avoid the need for the second-order induction axiom.
  require few iterations in a large number of cases.
 \end_layout
 
+\begin_layout Subsection
+Things to Define
+\end_layout
+
+\begin_layout Standard
+rooted situation term
+\end_layout
+
+\begin_layout Standard
+objective formula
+\end_layout
+
+\begin_layout Standard
+uniform formula
+\end_layout
+
 \begin_layout Section
 Observation-Based Semantics for Knowledge
 \begin_inset LatexCommand label
@@ -1683,49 +1695,68 @@ name "sec:Obs-Knowledge"
 \end_layout
 
 \begin_layout Standard
-As shown in section 
+Existing accounts of knowledge in the situation calculus directly express
+ the dynamics of knowledge update in terms of the actions that have occurred
+ in the world, as seen in Section 
 \begin_inset LatexCommand ref
 reference "sub:Knowledge-and-Sensing"
 
 \end_inset
 
-, existing accounts of knowledge in the situation calculus explicitly express
- the dynamics of knowledge update in terms of the actions that have occurred
- in the world.
- This immdiately implies that in order to reason about knowledge, one must
- know the current situation.
- In partially observable domains, agents cannot use such formalisms to reason
- about their own knowledge.
+.
+ An immediate consequence of this is that one can only reason about knowledge
+ if one has a rooted situation term, as the required query is:
+\begin_inset Formula \[
+\Dt\,\models\,\Knows(agt,\phi,s)\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-In this section we remove this coupling by introducing the notion of 
-\emph on
-observations
-\emph default
-.
- These are internal notifications that agents receive when an action has
- occurred.
- By expressing knowledge in terms of observations rather than actions, TODO
- we can do good stuff.
+In asynrchonous domains with hidden actions, where agents are not necessarily
+ aware of the number of actions that have been performed, the agents cannot
+ use this formulation to reason about their own knowledge.
+ Since knowledge is directly coupled to actions, and hence to situation
+ terms, they cannot construct an appropriate query.
+ This section is devoted to removing this troublesome coupling.
 \end_layout
 
 \begin_layout Subsection
 Observations
 \end_layout
 
-\begin_layout Definition
-An 
+\begin_layout Standard
+To remove the the direct coupling between knowledge and actions, we introduce
+ the notion of 
 \emph on
-observation
+observations
 \emph default
- is a notification received by an agent that makes it aware of some change
- in the state of the world.
+.
+ These are internal notifications that agents receive when an action has
+ occurred.
+ By expressing knowledge in terms of observations rather than actions, we
+ ensure that agents can always reason about their own knowledge based on
+ their own internal history of observations.
+\end_layout
+
+\begin_layout DefinitionLbld
+Observations An observation is a notification event received by an agent,
+ making it aware of some change in the state of the world.
  When an agent receives such a notification, we say that it 
 \begin_inset Quotes eld
 \end_inset
 
 observed
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+made
 \begin_inset Quotes erd
 \end_inset
 
@@ -1741,10 +1772,30 @@ perceived
 \end_layout
 
 \begin_layout Standard
-For simplicity we assume that agents perceive observations instantaneously,
+Since the state of the world may only change in response to some action,
+ observations can only be made as a result of some action.
+ For simplicity we assume that agents perceive observations instantaneously,
  i.e.
- in the same instant as the actions that led to them.
- We make no commitment as to how these notifications are generated, preferring
+ in the same instant as the actions that cause them.
+\end_layout
+
+\begin_layout Standard
+Since 
+\begin_inset Quotes eld
+\end_inset
+
+observation
+\begin_inset Quotes erd
+\end_inset
+
+ is quite a loaded term, it is worth re-iterating this point: observations
+ are instantanous
+\emph on
+ events
+\emph default
+ generated internally by each agent in response to actions occurring in
+ the world.
+ We make no commitment as to how these events are generated, preferring
  a clean delineation between the task of observing change and the dynamics
  of knowledge update based on those observations.
  As with the work of 
@@ -1754,29 +1805,31 @@ key "scherl03sc_knowledge"
 \end_inset
 
 , generating awareness is the responsibility of a lower-level component
- of the agent's control software.
+ of the agent's control software and we will not consider it further.
 \end_layout
 
 \begin_layout Standard
-To demonstrate this idea let us introduce an additional sort 
+To make this idea concrete, let us introduce an additional sort 
 \noun on
 Observations
 \noun default
  to the language of the situation calculus, for the moment without any particula
 r commitment towards what this sort will contain.
- We then introduce the function 
-\begin_inset Formula $Obs(agt,c,s)=o$
+ We then introduce the function:
+\begin_inset Formula \[
+obs(agt,a,s)=o\]
+
 \end_inset
 
-, returning a set of observations, to mean 
+This function returns a set of observations, and should be read as 
 \begin_inset Quotes eld
 \end_inset
 
-when the actions 
-\begin_inset Formula $c$
+when action 
+\begin_inset Formula $a$
 \end_inset
 
- are performed in situation 
+ is performed in situation 
 \begin_inset Formula $s$
 \end_inset
 
@@ -1793,6 +1846,8 @@ when the actions
 \end_inset
 
 .
+ Using a set of observations allows an agent to perceive multiple observations
+ in response to a single action occurrence.
 \end_layout
 
 \begin_layout Standard
@@ -1802,7 +1857,23 @@ view
 \emph default
  follows naturally - it is a sequence of all the observations made by an
  agent as the world has evolved.
- We introduce another sort 
+\end_layout
+
+\begin_layout DefinitionLbld
+View An agent's view in a given situation 
+\begin_inset Formula $\mathrm{s}$
+\end_inset
+
+ is the corresponding sequence of observations made by the agent as a result
+ of each action in 
+\begin_inset Formula $\mathrm{s}$
+\end_inset
+
+, exluding those actions for which no observations were made.
+\end_layout
+
+\begin_layout Standard
+We introduce another sort 
 \noun on
 Views
 \noun default
@@ -1815,12 +1886,10 @@ Views
 \end_inset
 
  giving the observation history associated with a particular situation:
-\begin_inset Formula \begin{multline}
-Init(s)\rightarrow View(agt,s)=\epsilon\\
-\shoveleft{View(agt,do(c,s))=v\equiv}\\
-\exists o\,.\, Obs(agt,c,s)=o\\
-\shoveright{\wedge\,\left(o=\{\}\rightarrow v=View(agt,s)\right)}\\
-\wedge\,\left(o\neq\{\}\rightarrow v=o\cdot View(agt,s)\right)\label{eqn:obshist_defn}\end{multline}
+\begin_inset Formula \begin{align}
+Init(s)\,\rightarrow & \, view(agt,s)=\epsilon\nonumber \\
+obs(agt,a,s)=\{\}\,\rightarrow & \, view(agt,do(a,s))=view(agt,s)\nonumber \\
+obs(agt,a,s)\neq\{\}\,\rightarrow & \, view(agt,do(a,s))=obs(agt,a,s)\cdot view(agt,s)\label{eq:view_defn}\end{align}
 
 \end_inset
 
@@ -1863,7 +1932,7 @@ key "halpern90knowledge_distrib"
 \begin_inset Formula $K$
 \end_inset
 
- relation are clear - 
+ relation are clear: 
 \begin_inset Formula $K(agt,s',s)$
 \end_inset
 
@@ -1880,9 +1949,8 @@ key "halpern90knowledge_distrib"
 \end_inset
 
  would result in the same view for the agent:
-\begin_inset Formula \begin{multline*}
-\mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\,\wedge\\
-Root(s')\leq s'\,\wedge\, View(agt,s')=View(agt,s)\end{multline*}
+\begin_inset Formula \begin{equation}
+\mathcal{D}\models K(agt,s',s)\equiv K(root(s'),root(s))\wedge Legal(s')\wedge view(agt,s')=view(agt,s)\label{eq:k-desired}\end{equation}
 
 \end_inset
 
@@ -1904,7 +1972,7 @@ While a wonderfully succinct definition of how knowledge should behave,
 \begin_layout Standard
 For notational convenience, let us first introduce an action description
  predicate 
-\begin_inset Formula $PbU(agt,c,s)$
+\begin_inset Formula $PbU(agt,a,s)$
 \end_inset
 
  (for 
@@ -1928,9 +1996,8 @@ possible but unobservable
 \end_inset
 
  if they are performed:
-\begin_inset Formula \begin{multline}
-PbU(agt,c,s)\equiv\\
-Poss(c,s)\wedge Obs(agt,c,s)=\{\}\label{eq:PbU_defn}\end{multline}
+\begin_inset Formula \begin{equation}
+PbU(agt,a,s)\isdef Poss(a,s)\wedge obs(agt,a,s)=\{\}\label{eqn:PbU_defn}\end{equation}
 
 \end_inset
 
@@ -1952,6 +2019,7 @@ By stating that
 \end_inset
 
 .
+ This means that the views of both situations would be identical.
  The two situations would be indistinguishable to the agent, so if it considers
  
 \begin_inset Formula $s$
@@ -1964,12 +2032,10 @@ By stating that
  possible.
  Following this intuition, the successor state axiom below captures the
  desired dynamics of the knowledge fluent:
-\begin_inset Formula \begin{multline}
-K(agt,s'',do(c,s))\equiv\\
-\shoveleft{\,\,\,\,\,\,\,\,\,\,\left[\, Obs(agt,c,s)=\{\}\rightarrow K(agt,s'',s)\,\right]}\\
-\shoveleft{\,\,\wedge\,\,\,\left[\, Obs(agt,c,s)\neq\{\}\rightarrow\right.}\\
-\exists c',s'\,.\, Obs(agt,c',s')=Obs(agt,c,s)\\
-\left.\wedge\, Poss(c',s')\wedge K(agt,s',s)\wedge do(c',s')\leq_{PbU(agt)}s''\,\right]\label{eqn:new_k_ssa}\end{multline}
+\begin_inset Formula \begin{align}
+K(agt,s'',do(a,s))\equiv & \left[\, obs(agt,a,s)=\{\}\rightarrow K(agt,s'',s)\,\right]\nonumber \\
+\wedge & \left[\, obs(agt,a,s)\neq\{\}\rightarrow\exists a',s'\,.\, obs(agt,a',s')=obs(agt,a,s)\right.\nonumber \\
+ & \left.\,\,\,\,\,\,\,\,\wedge\, Poss(a',s')\wedge K(agt,s',s)\wedge do(a',s')\leq_{PbU(agt)}s''\,\right]\label{eqn:new_k_ssa}\end{align}
 
 \end_inset
 
@@ -1978,7 +2044,7 @@ K(agt,s'',do(c,s))\equiv\\
 
 \begin_layout Standard
 If 
-\begin_inset Formula $c$
+\begin_inset Formula $a$
 \end_inset
 
  was totally unobservable, the agent's state of knowledge does not change.
@@ -1987,8 +2053,8 @@ If
 \begin_inset Formula $s'$
 \end_inset
 
- that can be brought about by actions 
-\begin_inset Formula $c'$
+ that can be brought about by an action 
+\begin_inset Formula $a'$
 \end_inset
 
  that result in identical observations.
@@ -2018,30 +2084,32 @@ It remains to specify
 \begin_inset Formula $K_{0}$
 \end_inset
 
- to specify each agent's initial knowledge: 
-\begin_inset Formula \begin{multline}
-K_{0}(agt,s',s)\rightarrow Init(s')\wedge Init(s)\\
-\shoveleft{Init(s)\rightarrow K(agt,s'',s)\equiv}\\
-\exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{PbU(agt)}s'')\label{eqn:new_k_s0}\end{multline}
+ to specify each agent's initial knowledge:
+\begin_inset Formula \begin{gather}
+K_{0}(agt,s',s)\rightarrow Init(s')\wedge Init(s)\nonumber \\
+Init(s)\rightarrow\left[K(agt,s'',s)\equiv\exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{PbU(agt)}s'')\right]\label{eqn:new_k_s0}\end{gather}
 
 \end_inset
 
  These definitions suffice to ensure that knowledge behaves as we require.
 \end_layout
 
-\begin_layout Definition
-We will denote by 
-\begin_inset Formula $\mathcal{D}_{Obs}$
+\begin_layout DefinitionLbld
+Observation-Based\InsetSpace ~
+Semantics\InsetSpace ~
+of\InsetSpace ~
+Knowledge We will denote by 
+\begin_inset Formula $\Dt_{obs}$
 \end_inset
 
  a basic action theory 
-\begin_inset Formula $\mathcal{D}$
+\begin_inset Formula $\Dt$
 \end_inset
 
  augmented with our new observation-based semantics for knowledge, as detailed
  in equations (
 \begin_inset LatexCommand ref
-reference "eqn:obshist_defn"
+reference "eq:view_defn"
 
 \end_inset
 
@@ -2060,64 +2128,31 @@ reference "eqn:new_k_s0"
 ).
 \end_layout
 
-\begin_layout Theorem
-\begin_inset LatexCommand label
-name "thm:k_obs_equiv"
-
+\begin_layout Standard
+We close this section with a proof that our formulation of knowledge behaves
+ as intended: two situations will be related by 
+\begin_inset Formula $K(agt,s',s)$
 \end_inset
 
- For any basic action theory 
-\begin_inset Formula $\mathcal{D}_{Obs}$
-\end_inset
-
-, any agent 
+ if and only if they result in identical views for 
 \begin_inset Formula $agt$
 \end_inset
 
- and situations 
-\begin_inset Formula $s$
-\end_inset
-
- and 
+, 
 \begin_inset Formula $s'$
 \end_inset
 
-:
-\begin_inset Formula \begin{multline*}
-\mathcal{D}\models K(agt,s',s)\equiv K(Root(s'),Root(s))\,\wedge Root(s')\leq s'\,\wedge\, View(agt,s')=View(agt,s)\end{multline*}
-
+ is legal, and their root situations were initially related.
+ All proofs proceed by induction on situation terms, establishng the base
+ case of 
+\begin_inset Formula $Init(s)$
 \end_inset
 
-
-\end_layout
-
-\begin_layout Proof
-Straightforward, using equations (
-\begin_inset LatexCommand ref
-reference "eqn:obshist_defn"
-
+ and the inductive case of 
+\begin_inset Formula $do(a,s)$
 \end_inset
 
-,
-\begin_inset LatexCommand ref
-reference "eq:PbU_defn"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eqn:new_k_ssa"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eqn:new_k_s0"
-
-\end_inset
-
-).
- 
+.
 \end_layout
 
 \begin_layout Standard
@@ -2129,10 +2164,634 @@ Using this new formulation, an agent's knowledge is completely decoupled
 Observations
 \noun default
  sort contains, and how the 
-\begin_inset Formula $Obs()$
+\begin_inset Formula $obs()$
 \end_inset
 
  function behaves.
+ This will be the focus of the next section.
+\newline
+
+\end_layout
+
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:pbu-implies-legal"
+
+\end_inset
+
+For situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s'$
+\end_inset
+
+, and agent 
+\begin_inset Formula $agt$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt_{obs}\,\models\, Legal(s)\wedge s\leq_{PbU(agt)}s'\,\rightarrow\, Legal(s')\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Trivial, since 
+\begin_inset Formula $PbU$
+\end_inset
+
+ implies 
+\begin_inset Formula $Poss$
+\end_inset
+
+ and 
+\begin_inset Formula $Legal$
+\end_inset
+
+ is equivalent to 
+\begin_inset Formula $\leq_{Poss}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:pbu-implies-view"
+
+\end_inset
+
+For situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s'$
+\end_inset
+
+, and agent 
+\begin_inset Formula $agt$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt_{obs}\,\models\, s\leq_{PbU(agt)}s'\,\rightarrow\, view(agt,s')=view(agt,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Trivial, by induction on the definition of 
+\begin_inset Formula $view$
+\end_inset
+
+ from equation (
+\begin_inset LatexCommand ref
+reference "eq:view_defn"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:K-implies-root"
+
+\end_inset
+
+For situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s''$
+\end_inset
+
+, and agent 
+\begin_inset Formula $agt$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt_{obs}\,\models\, K(agt,s'',s)\,\rightarrow\, K(agt,root(s''),root(s))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Trivial in the base case.
+ For the 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ case, suppose that 
+\begin_inset Formula $K(agt,s'',do(a,s))$
+\end_inset
+
+.
+ Then by equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+) there is some 
+\begin_inset Formula $s'$
+\end_inset
+
+ such that 
+\begin_inset Formula $s'\sqsubseteq s''$
+\end_inset
+
+ and 
+\begin_inset Formula $K(agt,s',s)$
+\end_inset
+
+.
+ Then 
+\begin_inset Formula $root(s'')$
+\end_inset
+
+ = 
+\begin_inset Formula $root(s')$
+\end_inset
+
+, and 
+\begin_inset Formula $K(root(s'),root(s))$
+\end_inset
+
+ by the inductive hypothesis.
+\end_layout
+
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:K-implies-legal"
+
+\end_inset
+
+For situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s''$
+\end_inset
+
+, and agent 
+\begin_inset Formula $agt$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt_{obs}\,\models\, K(agt,s'',s)\,\rightarrow\, Legal(s'')\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+All 
+\begin_inset Formula $s'$
+\end_inset
+
+ such that 
+\begin_inset Formula $K_{0}(agt,s',s)$
+\end_inset
+
+ are initial and therefore legal.
+ So in the base case when 
+\begin_inset Formula $s$
+\end_inset
+
+ is initial, by equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+) we have 
+\begin_inset Formula $s'\leq_{PbU(agt)}s''$
+\end_inset
+
+ and 
+\begin_inset Formula $s''$
+\end_inset
+
+ is legal by lemma 
+\begin_inset LatexCommand ref
+reference "lem:pbu-implies-legal"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Proof
+For the 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ case, equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+) ensures that 
+\begin_inset Formula $do(a',s')\leq_{PbU(agt)}s''$
+\end_inset
+
+ for some 
+\begin_inset Formula $s'$
+\end_inset
+
+,
+\begin_inset Formula $a'$
+\end_inset
+
+ satisfying 
+\begin_inset Formula $K(agt,s',s)$
+\end_inset
+
+ and 
+\begin_inset Formula $Poss(a',s')$
+\end_inset
+
+.
+ Since 
+\begin_inset Formula $s'$
+\end_inset
+
+ is legal by the inductive hypothesis, 
+\begin_inset Formula $s''$
+\end_inset
+
+ must be legal.
+ 
+\end_layout
+
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:K-implies-view"
+
+\end_inset
+
+For situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s''$
+\end_inset
+
+, and agent 
+\begin_inset Formula $agt$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt_{obs}\,\models\, K(agt,s'',s)\,\rightarrow view(agt,s'')=view(agt,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+For the base case, there must be an 
+\begin_inset Formula $s'$
+\end_inset
+
+ such that 
+\begin_inset Formula $Init(s')$
+\end_inset
+
+ and 
+\begin_inset Formula $s'\leq_{PbU(agt)}s''$
+\end_inset
+
+.
+ Therefore 
+\begin_inset Formula $view(s'')$
+\end_inset
+
+ = 
+\begin_inset Formula $view(s')$
+\end_inset
+
+ = 
+\begin_inset Formula $\epsilon$
+\end_inset
+
+ = 
+\begin_inset Formula $view(s)$
+\end_inset
+
+, as required.
+\end_layout
+
+\begin_layout Proof
+For the 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ case, suppose 
+\begin_inset Formula $obs(agt,a,s)=\{\}$
+\end_inset
+
+.
+ Then 
+\begin_inset Formula $view(agt,do(a,s))$
+\end_inset
+
+= 
+\begin_inset Formula $view(agt,s)$
+\end_inset
+
+, while equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+) gives us 
+\begin_inset Formula $K(agt,s'',s)$
+\end_inset
+
+, which yields 
+\begin_inset Formula $view(agt,s'')$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,s)$
+\end_inset
+
+ by the inductive hypothesis.
+ 
+\end_layout
+
+\begin_layout Proof
+Alternately, suppose 
+\begin_inset Formula $obs(agt,a,s)\neq\{\}$
+\end_inset
+
+, then we have 
+\begin_inset Formula $s'$
+\end_inset
+
+,
+\begin_inset Formula $a'$
+\end_inset
+
+ such that 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $do(a',s')\leq_{PbU(agt)}s''$
+\end_inset
+
+, 
+\begin_inset Formula $obs(agt,a,s)$
+\end_inset
+
+ = 
+\begin_inset Formula $obs(agt,a',s')$
+\end_inset
+
+, and 
+\begin_inset Formula $K(agt,s',s)$
+\end_inset
+
+.
+ By the inductive hypothesis 
+\begin_inset Formula $view(agt,s')=view(agt,s)$
+\end_inset
+
+, and we have the following: 
+\begin_inset Formula $view(agt,s'')$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,do(a',s'))$
+\end_inset
+
+ = 
+\begin_inset Formula $obs(agt,a,s)\cdot view(agt,s')$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,do(a,s))$
+\end_inset
+
+ as required.
+ 
+\end_layout
+
+\begin_layout Standard
+Combining these results, we can state the following theorem:
+\end_layout
+
+\begin_layout Theorem
+\begin_inset LatexCommand label
+name "thm:k_obs_equiv"
+
+\end_inset
+
+ For a basic action theory 
+\begin_inset Formula $\Dt_{obs}$
+\end_inset
+
+, for any agent 
+\begin_inset Formula $agt$
+\end_inset
+
+ and situations 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s''$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt_{obs}\models K(agt,s'',s)\equiv K(root(s''),root(s))\wedge Legal(s'')\wedge view(agt,s'')=view(agt,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+For the 
+\series bold
+if
+\series default
+ direction, we simply combine lemmas 
+\begin_inset LatexCommand ref
+reference "lem:K-implies-root"
+
+\end_inset
+
+, 
+\begin_inset LatexCommand ref
+reference "lem:K-implies-legal"
+
+\end_inset
+
+ and 
+\begin_inset LatexCommand ref
+reference "lem:K-implies-view"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Proof
+For the 
+\series bold
+only-if
+\series default
+ base case, the 
+\begin_inset Formula $\exists s'$
+\end_inset
+
+ part of equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+) is trivially satisfied by 
+\begin_inset Formula $root(s'')$
+\end_inset
+
+ and so the equivalence holds.
+\end_layout
+
+\begin_layout Proof
+For the 
+\series bold
+only-if
+\series default
+ inductive case with 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+, we have two sub-cases to consider.
+ Suppose 
+\begin_inset Formula $obs(agt,a,s)=\{\}$
+\end_inset
+
+: then 
+\begin_inset Formula $view(agt,s'')$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,do(a,s))$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,s)$
+\end_inset
+
+ and 
+\begin_inset Formula $K(agt,s'',s)$
+\end_inset
+
+ holds by the inductive hypothesis, satisfying the equivalence in equation
+ (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Proof
+Alternately, suppose 
+\begin_inset Formula $obs(agt,a,s)\neq\{\}$
+\end_inset
+
+: then we have 
+\begin_inset Formula $view(agt,do(a,s))$
+\end_inset
+
+ = 
+\begin_inset Formula $obs(agt,a,s)\cdot view(agt,s)$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,s'')$
+\end_inset
+
+.
+ For this to be the case, and since 
+\begin_inset Formula $s''$
+\end_inset
+
+ is legal, there must be some 
+\begin_inset Formula $s'$
+\end_inset
+
+,
+\begin_inset Formula $a'$
+\end_inset
+
+ satisfying 
+\begin_inset Formula $obs(agt,a',s')$
+\end_inset
+
+ = 
+\begin_inset Formula $obs(agt,a,s)$
+\end_inset
+
+, 
+\begin_inset Formula $view(agt,s')$
+\end_inset
+
+ = 
+\begin_inset Formula $view(agt,s)$
+\end_inset
+
+ and 
+\begin_inset Formula $do(a',s')\leq_{PbU(agt)}s''$
+\end_inset
+
+ .
+ This is enough to satisfy the 
+\begin_inset Formula $\exists s',a'$
+\end_inset
+
+ part of equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+) and so the equivalence holds.
 \end_layout
 
 \begin_layout Subsection
@@ -2173,12 +2832,12 @@ Observations
 Action
 \noun default
  terms, this assumption is akin to the following assertion about the 
-\begin_inset Formula $Observations()$
+\begin_inset Formula $obs()$
 \end_inset
 
  function:
 \begin_inset Formula \begin{equation}
-a\in Observations(agt,c,s)\equiv a\in c\label{eq:ax_obs_std1}\end{equation}
+a'\in obs(agt,a,s)\equiv a=a'\label{eq:ax_obs_std1}\end{equation}
 
 \end_inset
 
@@ -2200,8 +2859,7 @@ Observations
 \emph default
  and axiomatize like so:
 \begin_inset Formula \begin{multline}
-(a=r)\in Observations(agt,c,s)\equiv\\
-a\in c\wedge SR(a,s)=r\wedge agent(a)=agt\label{eq:ax_obs_std2}\end{multline}
+(a'=r)\in obs(agt,a,s)\equiv a=a'\wedge SR(a,s)=r\wedge agent(a)=agt\label{eq:ax_obs_std2}\end{multline}
 
 \end_inset
 
@@ -2213,13 +2871,13 @@ Using these definitions, our new account of knowledge will behave identically
  to the standard account:
 \end_layout
 
-\begin_layout Standard
+\begin_layout Theorem
 For basic action theories 
-\begin_inset Formula $\mathcal{D}_{Std}$
+\begin_inset Formula $\Dt_{std}$
 \end_inset
 
  and 
-\begin_inset Formula $\mathcal{D}_{Obs}$
+\begin_inset Formula $\Dt_{obs}$
 \end_inset
 
  describing the same world, and where 
@@ -2239,10 +2897,10 @@ reference "eq:ax_obs_std2"
 \end_inset
 
 ) to define the 
-\begin_inset Formula $Observations()$
+\begin_inset Formula $obs()$
 \end_inset
 
- function, then for any situations 
+ function, then for any situation terms 
 \begin_inset Formula $s$
 \end_inset
 
@@ -2252,14 +2910,14 @@ reference "eq:ax_obs_std2"
 
 :
 \begin_inset Formula \[
-\mathcal{D}_{Std}\models K(agt,s',s)\,\,\,\,\mathrm{iff}\,\,\,\,\mathcal{D}_{Obs}\models K(agt,s',s)\]
+\Dt\cup\Dt_{std}\models K(agt,s',s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\cup\Dt_{obs}\models K(agt,s',s)\]
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Standard
+\begin_layout Proof
 Equations (
 \begin_inset LatexCommand ref
 reference "eq:ax_obs_std1"
@@ -2273,14 +2931,10 @@ reference "eq:ax_obs_std2"
 \end_inset
 
 ) mean 
-\begin_inset Formula $Observations(agt,c,s)$
+\begin_inset Formula $obs(agt,a,s)$
 \end_inset
 
- cannot be empty for non-empty 
-\begin_inset Formula $c$
-\end_inset
-
-, so 
+ cannot be empty, so 
 \begin_inset Formula $s\leq_{PbU(agt)}s'$
 \end_inset
 
@@ -2328,11 +2982,11 @@ reference "eq:ax_obs_std1"
 \end_inset
 
 ), a similar result holds between 
-\begin_inset Formula $\mathcal{D}_{Obs}$
+\begin_inset Formula $\Dt_{obs}$
 \end_inset
 
  and 
-\begin_inset Formula $\mathcal{D}_{Exo}$
+\begin_inset Formula $\Dt_{exo}$
 \end_inset
 
 .
@@ -2362,12 +3016,12 @@ To generalize this for partial observability of actions we introduce a new
 
 .
  We can then formulate the 
-\begin_inset Formula $Observations()$
+\begin_inset Formula $obs()$
 \end_inset
 
  function according to:
 \begin_inset Formula \[
-a\in Observations(agt,c,s)\equiv a\in c\wedge CanObs(agt,a,s)\]
+a'\in obs(agt,a,s)\equiv a'=a\wedge CanObs(agt,a,s)\]
 
 \end_inset
 
@@ -2392,45 +3046,18 @@ There is an additional assumption in the standard handling of sensing actions:
 (Action=Result)
 \emph default
  terms when it also senses the result:
-\begin_inset Formula \begin{multline*}
-a\in Observations(agt,c,s)\equiv a\in c\\
-\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\end{multline*}
+\begin_inset Formula \[
+a'\in obs(agt,a,s)\equiv a=a'\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\]
 
 \end_inset
 
 
 \begin_inset Formula \begin{multline*}
-(a=r)\in Observations(agt,c,s)\equiv a\in c\wedge SR(a,s)=r\\
-\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{multline*}
+(a'=r)\in obs(agt,a,s)\equiv a'=a\wedge SR(a,s)=r\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{multline*}
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-Like their counterpart 
-\begin_inset Formula $Poss$
-\end_inset
-
-, 
-\begin_inset Formula $CanObs$
-\end_inset
-
- and 
-\begin_inset Formula $CanSense$
-\end_inset
-
- may suffer from interaction problems when concurrent actions are considered
- - for example, one action may alter the observability of another if performed
- concurrently.
- This is another instance of the precondition interaction problem 
-\begin_inset LatexCommand cite
-key "reiter96sc_nat_conc,pinto94temporal"
-
-\end_inset
-
- and is outside the scope of this paper.
 \end_layout
 
 \begin_layout Subsection
@@ -2475,7 +3102,7 @@ Observations
  The following could be used to include this information in an agent's observati
 ons: 
 \begin_inset Formula \begin{multline*}
-f_{\phi}\in Observations(agt,c,s)\equiv\neg\phi[s]\wedge\mathcal{R}_{\mathcal{D}}(\phi[do(c,s)])\end{multline*}
+f_{\phi}\in obs(agt,a,s)\equiv\neg\phi[s]\wedge\Reg(\phi[do(a,s)])\end{multline*}
 
 \end_inset
 
@@ -2484,12 +3111,12 @@ f_{\phi}\in Observations(agt,c,s)\equiv\neg\phi[s]\wedge\mathcal{R}_{\mathcal{D}
 
 \begin_layout Standard
 Note that since we use 
-\begin_inset Formula $Observations()$
+\begin_inset Formula $obs()$
 \end_inset
 
  as an action description predicate in equation (
 \begin_inset LatexCommand ref
-reference "eq:PbU_defn"
+reference "eqn:PbU_defn"
 
 \end_inset
 
@@ -2501,8 +3128,7 @@ reference "eq:PbU_defn"
 .
  Expanding on the example of the light, we might have an axiom like this:
 \begin_inset Formula \begin{multline*}
-lightCameOn\in Observations(agt,c,s)\equiv\\
-\neg lightIsOn(s)\wedge\exists agt2\,.\, turnLightOn(agt2)\in c\end{multline*}
+lightCameOn\in obs(agt,a,s)\equiv\neg lightIsOn(s)\wedge\exists agt2\,.\, a=turnLightOn(agt2)\end{multline*}
 
 \end_inset
 
@@ -3313,7 +3939,7 @@ it is common knowledge that
 \begin_inset Formula $\phi$
 \end_inset
 
-, and so on ad infimitum.
+, and so on ad infinitum.
  Formally, it can be defined as the infinite conjunction:
 \begin_inset Formula \[
 \mathbf{CKnows}(G,\phi,s)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi,s)\]
@@ -3332,6 +3958,9 @@ key "halpern90knowledge_distrib"
 \end_inset
 
 .
+ For example, in the famous Byzantine Generals problem (TODO) the proof
+ that the generals cannot coordinate an attack depends heavily on their
+ inability to obtain common knowledge.
 \end_layout
 
 \begin_layout Subsection
@@ -3396,10 +4025,6 @@ While one could reason about common knowledge by calculating it directly
  Effective reasoning requires a regression rule.
 \end_layout
 
-\begin_layout Subsection
-E-PDL
-\end_layout
-
 \begin_layout Standard
 Fortunately, recent work by 
 \begin_inset LatexCommand cite
@@ -3409,117 +4034,195 @@ key "vanBenthem06lcc"
 
  has shown that this limitation can be overcome by increasing the expressivity
  of the epistemic language in use.
- Rather than limiting the language to 
-\begin_inset Formula $\Knows$
-\end_inset
+ Their solution rests on three main ideas:
+\end_layout
 
- and 
-\begin_inset Formula $\CKnows$
-\end_inset
+\begin_layout Enumerate
+Use the syntax of propositional dynamic logic as a more expressive epistemic
+ path language
+\end_layout
 
-, they allow expressions from propositional dynamic logic (PDL) to express
- complex epistemic modalities.
- Since we restrict ourselves to a subset of PDL in this paper, and to avoid
- confusion with its original (action-oriented) interpetation, we shall refer
- to this language as 
-\begin_inset Quotes eld
-\end_inset
+\begin_layout Enumerate
+Explicitly represent and reason about the epistemic uncertainty between
+ actions
+\end_layout
 
-E-PDL
-\begin_inset Quotes erd
-\end_inset
-
-.
+\begin_layout Enumerate
+Regress epistemic path expressions as well as the contained formulae
 \end_layout
 
 \begin_layout Standard
-Let 
-\begin_inset Formula $\phi$
-\end_inset
-
- be a formula uniform in 
-\begin_inset Formula $now$
-\end_inset
-
-, and 
-\begin_inset Formula $agt$
-\end_inset
-
- an agent from the theory 
-\begin_inset Formula $\mathcal{D}$
-\end_inset
-
-.
- The an E-PDL 
-\emph on
-path expression 
-\emph default
-
-\begin_inset Formula $\pi$
-\end_inset
-
- is given by
-\begin_inset Formula \begin{gather*}
-\pi::=a\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\end{gather*}
-
-\end_inset
-
-
+After introducing these ideas in their original context, we will adapt and
+ expand them for use within our framework.
 \end_layout
 
 \begin_layout Standard
-The idea is then to use path modalities in place of individual knowledge
- modalities.
+
 \end_layout
 
 \begin_layout Subsection
-LCC
+The Logic of Communication and Change
 \end_layout
 
 \begin_layout Standard
-Utilising this extended epsitemic path language, 
+This section is a brief overview of the Logic of Communication and Change
+ (hereafter denoted 
+\begin_inset Quotes eld
+\end_inset
+
+LCC
+\begin_inset Quotes erd
+\end_inset
+
+) developed by 
 \begin_inset LatexCommand cite
 key "vanBenthem06lcc"
 
 \end_inset
 
- build a formalism for dynamic epistemic reasoning which they call the Logic
- of Communication and Change, or 
-\begin_inset Quotes eld
+, designed to introduce their ideas and contributions to the field.
+ The paper on this logic 
+\begin_inset LatexCommand citep
+key "vanBenthem06lcc"
+
 \end_inset
 
-LCC
-\begin_inset Quotes erd
+ is quite accessible and should be consulted for full details.
+ This section assumes some familiarity with the syntax and semantics of
+ modal logic.
+\end_layout
+
+\begin_layout Standard
+In traditional modal logics of knowledge, there is one accessibility relation
+ 
+\begin_inset Formula $K_{agt}$
+\end_inset
+
+ for each agent.
+ Knowledge is expressed using the modal box operator, as in 
+\begin_inset Formula $[K_{agt}]\phi$
 \end_inset
 
 .
- In this logic, actions are represented explicitly as modal frames with
- epistemic relations between individual actions.
- These are termed 
+ The first major contribution of LCC is to increase the expressiveness of
+ the epistemic language by allowing complex 
+\emph on
+path expressions
+\emph default
+ in place of the base knowledge operators.
+ Path expressions are based on propositional dynamic logic and take the
+ following forms:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{gather*}
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Some common kinds of knowledge:
+\begin_inset Formula \[
+\Knows(agt,\phi)\,\,\,\,\,\,[K_{agt}]\phi\,\,\,\,\,\,[agt]\phi\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Knows(agt_{1},\Knows(agt_{2},\phi))\,\,\,\,\,\,[K_{agt_{1}}][K_{agt_{2}}]\phi\,\,\,\,\,\,[agt_{1};agt_{2}]\phi\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Knows(agt_{1},\phi)\vee\Knows(agt_{2},\phi)\,\,\,\,\,\,[K_{agt_{1}}]\phi\vee[K_{agt_{2}}]\phi\,\,\,\,\,\,[agt_{1}\cup agt_{2}]\phi\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\CKnows(G,\phi)\,\,\,\,\,\,[C_{G}]\phi\,\,\,\,\,\,[(\bigcup_{agt\in G}agt)^{*}]\phi\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Here we see the first advantage of this approach - there is no need for
+ a special-purpose common knowledge operator.
+ It is simply expressed as one specific instance of the iteration operator.
+\end_layout
+
+\begin_layout Standard
+The next major idea is the explicitly represent the epistemic uncertainty
+ about the actions that are performed.
+ This is done by means of 
 \emph on
 update frames
 \emph default
-.
- Each update frame contains a finite number of actions, labelled from 
+, which are a finite set of actions connected by indistinguishability relations.
+ The actions are labelled 
 \begin_inset Formula $1$
 \end_inset
 
- to 
+ through 
 \begin_inset Formula $n$
 \end_inset
 
 .
+\newline
+
 \end_layout
 
 \begin_layout Standard
 Example goes here
+\newline
+
 \end_layout
 
 \begin_layout Standard
-To reason about knowledge after the ocurrence of an action, one uses a formula
+To express what happens after the ocurrence of an action, one specified
+ the update frame along with the specific action that actually occurred.
+ This formula says 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds after performing action 
+\begin_inset Formula $i$
+\end_inset
+
+ from update frame 
+\begin_inset Formula $\mathrm{U}$
+\end_inset
+
+:
+\begin_inset Formula \[
+[\mathrm{U},i]\phi\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When 
+\begin_inset Formula $\phi$
+\end_inset
+
+ does not contain any epistemic modalities, this is straightforward dynamic
+ logic.
+ The third major contribution of LCC is a technique for handling formula
  of the form:
 \begin_inset Formula \[
-[\mathrm{U},e_{i}][\pi]\varphi\]
+[\mathrm{U},i][\pi]\phi\]
 
 \end_inset
 
@@ -3531,20 +4234,20 @@ This reads:
 \begin_inset Quotes eld
 \end_inset
 
-after epistemic action 
+after performing action 
+\begin_inset Formula $i$
+\end_inset
+
+ from update frame 
 \begin_inset Formula $\mathrm{U}$
 \end_inset
 
- with 
-\begin_inset Formula $e_{i}$
-\end_inset
-
- as the actual action, it is 
+, it is 
 \begin_inset Formula $\pi$
 \end_inset
 
 -known that 
-\begin_inset Formula $\varphi$
+\begin_inset Formula $\phi$
 \end_inset
 
 
@@ -3552,15 +4255,13 @@ after epistemic action
 \end_inset
 
 .
- The key development of 
-\begin_inset LatexCommand cite
-key "vanBenthem06lcc"
-
+ They use a syntactic transformation 
+\begin_inset Formula $\mathcal{T}$
 \end_inset
 
- is a reduction rule akin to regresion for such formula
+ to reduce this formula to an equivalent, simpler form as follows: 
 \begin_inset Formula \[
-[\mathrm{U},e_{i}][\pi]\varphi\,\,\,\equiv\,\,\,\bigwedge_{j=0}^{n-1}[\mathbf{\mathcal{T}}_{ij}^{\mathrm{U}}(\pi)][\mathrm{U},e_{j}]\varphi\]
+[\mathrm{U},i][\pi]\phi\,\,\,\equiv\,\,\,\bigwedge_{j=1}^{n}[\mathbf{\mathcal{T}}_{ij}^{\mathrm{U}}(\pi)][\mathrm{U},j]\phi\]
 
 \end_inset
 
@@ -3568,12 +4269,11 @@ key "vanBenthem06lcc"
 \end_layout
 
 \begin_layout Standard
-Here 
+The transform 
 \begin_inset Formula $\mathbf{\mathcal{T}}$
 \end_inset
 
- is a syntactic transformation that takes the update frame, the actual action
- 
+ takes the update frame, the actual action 
 \begin_inset Formula $i$
 \end_inset
 
@@ -3611,22 +4311,115 @@ Here
 \end_layout
 
 \begin_layout Standard
-The definition of the translation function is as follows:
-\end_layout
+The (partial) definition of the translation function is as follows:
+\begin_inset Formula \begin{alignat*}{1}
+\mathcal{T}_{ij}^{\mathrm{U}}(agt)= & \begin{cases}
+?pre(i);agt & \mathrm{if\, iR(a)j}\\
+?\bot & otherwise\end{cases}\\
+\mathcal{T}_{ij}^{\mathrm{U}}(\pi_{1};\pi_{2})= & \bigcup_{k=1}^{n}\left(\mathcal{T}_{ik}^{\mathrm{U}}(\pi_{1});\mathcal{T}_{kj}^{\mathrm{U}}(\pi_{2})\right)\\
+\mathcal{T}_{ij}^{\mathrm{U}}(\pi^{*})= & \mathcal{K}_{ijn}^{\mathrm{U}}(\pi)\end{alignat*}
 
-\begin_layout Subsection
-An Implicit Update Frame
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Unlike the explicit update frames used in the semantics of LCC, the situation
- calculus defines the epistemic relationships between actions implicitly
- - in our case, by means of the 
-\begin_inset Formula $Obs$
+The most prominent innovation of LCC is the use of a variant of Kleene's
+ theorem on finite automata to handle the 
+\begin_inset Formula $\pi^{*}$
+\end_inset
+
+ case.
+ 
+\begin_inset Formula \begin{alignat*}{1}
+\mathcal{K}_{ij0}^{\mathrm{U}}= & \begin{cases}
+?\top\cup\mathcal{T}_{ij}^{\mathrm{U}}(\pi) & if\, i=j\\
+\mathcal{T}_{ij}^{\mathrm{U}}(\pi) & otherwise\end{cases}\\
+\mathcal{K}_{ij(k+1)}^{\mathrm{U}}= & \begin{cases}
+(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*} & if\, i=k=j\\
+(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*};\mathcal{K}_{kjk}^{\mathrm{U}}(\pi) & if\, i=k\neq j\\
+\mathcal{K}_{ikk}^{\mathrm{U}}(\pi);(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*} & if\, i\neq k=j\\
+\mathcal{K}_{ijk}^{\mathrm{U}}(\pi)\cup\left(\mathcal{K}_{ikk}^{\mathrm{U}}(\pi);(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*};\mathcal{K}_{kjk}^{\mathrm{U}}(\pi)\right) & otherwise\end{cases}\end{alignat*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Key to understanding this construction is to consider the update frame as
+ a finite automaton, and 
+\begin_inset Formula $\mathcal{T}_{ij}^{\mathrm{U}}(\pi)$
+\end_inset
+
+ as a regular expression generated by the automaton when travelling a 
+\begin_inset Formula $\pi$
+\end_inset
+
+-path from state 
+\begin_inset Formula $i$
+\end_inset
+
+ to state 
+\begin_inset Formula $j$
+\end_inset
+
+.
+ Then 
+\begin_inset Formula $\mathcal{K}_{ijk}^{\mathrm{U}}(\pi)$
+\end_inset
+
+ is the language generated by taking a 
+\begin_inset Formula $\pi^{*}$
+\end_inset
+
+-path from 
+\begin_inset Formula $i$
+\end_inset
+
+ to 
+\begin_inset Formula $j$
+\end_inset
+
+ without stopovers through states labelled higher than 
+\begin_inset Formula $k$
+\end_inset
+
+.
+ 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $\mathcal{K}_{ijn}^{\mathrm{U}}(\pi)$
+\end_inset
+
+ allows stopovers at any state, and so is the entire language.
+\end_layout
+
+\begin_layout Subsection
+From LCC to the Situation Calculus
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Standard
+Unlike the explicit update frames used in the semantics of LCC, the our
+ framework defines the epistemic relationships between actions implicitly
+ by means of the 
+\begin_inset Formula $obs$
 \end_inset
 
  function.
- We therefore have an implicit update frame
+ We can therefore omit the notion of update frames
 \end_layout
 
 \begin_layout Subsection
