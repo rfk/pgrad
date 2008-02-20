@@ -4668,7 +4668,7 @@ Basically, this formula says: consider every possible action
 \begin_inset Formula $j$
 \end_inset
 
-, and determine the effects of 
+; and determine the effects of 
 \begin_inset Formula $j$
 \end_inset
 
@@ -4798,12 +4798,148 @@ Unlike the explicit update frames used in the semantics of LCC, our framework
 \end_inset
 
  function.
- We can therefore omit the notion of update frames
+ We therefore have no need for the notion of update frames.
+\end_layout
+
+\begin_layout Subsection
+A Complex Epistemic Fluent
 \end_layout
 
 \begin_layout Standard
-To understand how this is intended to work, let us reflect on the meaning
- of the regression operator.
+The first step, then, is to encode epistmic path expressions into the situation
+ calculus.
+ We introduce another sort 
+\noun on
+Epaths 
+\noun default
+into the language of the situation calculus.
+ 
+\end_layout
+
+\begin_layout DefinitionLbld
+Epistemic\InsetSpace ~
+Path Let 
+\begin_inset Formula $agt$
+\end_inset
+
+ be an 
+\noun on
+Agent 
+\noun default
+term and 
+\begin_inset Formula $\phi$
+\end_inset
+
+ be the encoding of a uniform formula, then the epistemic path terms 
+\begin_inset Formula $\pi$
+\end_inset
+
+ are the smallest set matching the following structural rules:
+\begin_inset Formula \[
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We then extend the synchronous knowledge fluent 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+ to take a general epistemic path as its first argument, rather than just
+ an agent: 
+\begin_inset Formula $K(\pi,s'',s)$
+\end_inset
+
+.
+ The macro for knowledge extends in the obvious way to 
+\begin_inset Formula $\Knows(\pi,\phi,s)$
+\end_inset
+
+.
+ The following axioms then define the required semantics for knowledge:
+\begin_inset Formula \begin{gather*}
+K(?\phi,s'',s)\,\equiv\, s''=s\,\wedge\,\phi[s]\\
+K(\pi_{1};\pi_{2},s'',s)\,\equiv\,\exists s':\, K(\pi_{1},s',s)\wedge K(\pi_{2},s'',s')\\
+K(\pi_{1}\cup\pi_{2},s'',s)\,\equiv\, K(\pi_{1},s'',s)\vee K(\pi_{2},s'',s)\\
+\forall P:\,\left[P(s,s)\,\wedge\,\left(\forall s_{1},s_{2}:\, K(\pi,s_{2},s_{1})\rightarrow P(s_{2},s_{1})\right)\,\wedge\,\left(\forall s_{1},s_{2}:\, P(s_{1},s)\wedge P(s_{2},s_{1})\,\rightarrow\, P(s_{2},s)\right)\right]\\
+\rightarrow\,\left[P(s'',s)\rightarrow K(\pi^{*},s'',s)\right]\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that we require a second-order axiom to express the iteration operator,
+ as expected for a transitive-closure style definition.
+\end_layout
+
+\begin_layout Standard
+As was the case for individual knowledge, these axioms cannot be used for
+ the purposes of reasoning as they do not match the special syntactic form
+ required by a basic action theory.
+ Instead, we will deal with such formulae at the meta-level, by defining
+ the regression operator directly.
+\end_layout
+
+\begin_layout Subsection
+A Synchronous Epistemic Fluent
+\end_layout
+
+\begin_layout Standard
+To separate the handling of epistemic paths from the handling of hidden
+ actions, we introduce a special 
+\begin_inset Quotes eld
+\end_inset
+
+synchronous
+\begin_inset Quotes erd
+\end_inset
+
+ epistemic fluent 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+.
+ The semantics of 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+ are the situation calculus equivalent of LCC.
+ We then express the full asynchronous version 
+\begin_inset Formula $K$
+\end_inset
+
+ in terms of 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+.
+ For this to work, we introduce a special action term called the 
+\begin_inset Quotes eld
+\end_inset
+
+empty action
+\begin_inset Quotes erd
+\end_inset
+
+, denoted 
+\begin_inset Formula $\varepsilon$
+\end_inset
+
+.
+ It indicates the possibility of agents thinking that nothing has happened.
+\end_layout
+
+\begin_layout Standard
+To understand the required operation of 
+\begin_inset Formula $\Trn$
+\end_inset
+
+, consider again the role of regression.
  One can think of regression as a 
 \begin_inset Quotes eld
 \end_inset
@@ -4833,7 +4969,7 @@ pre-encoding
 \begin_inset Formula $\Trn$
 \end_inset
 
- lifts this idea to epistemic paths: there is a 
+ needs to lift this idea to epistemic paths: there is a 
 \begin_inset Formula $\pi$
 \end_inset
 
@@ -4849,7 +4985,7 @@ pre-encoding
 \begin_inset Formula $\Trn(\pi,a,a')$
 \end_inset
 
- path from 
+-path from 
 \begin_inset Formula $s$
 \end_inset
 
@@ -4858,51 +4994,47 @@ pre-encoding
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Subsection
-A Complex Epistemic Fluent
+ 
 \end_layout
 
 \begin_layout Standard
-We need to define 
-\begin_inset Formula $K(\pi,s'',s)$
+\begin_inset Formula \[
+K_{0}(\pi,s'',do(a,s))\equiv K_{0}(\Trn(\pi,a,\varepsilon),s'',s)\,\vee\,\exists a',s':\, K_{0}(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s')\]
+
 \end_inset
 
- for a general path expression 
+
+\end_layout
+
+\begin_layout Standard
+In order to meet the restrictions on the syntax of 
 \begin_inset Formula $\pi$
 \end_inset
 
-.
- To do so, we begin with a straightforward import of LCC into the situation
- calculus, treating 
-\begin_inset Formula $\epsilon$
+, we need to be able to enumerate the possible observations from an action.
+ 
+\end_layout
+
+\begin_layout Standard
+Definition of 
+\begin_inset Formula $\Trn$
 \end_inset
 
- as an ordinary action.
- We shall use 
-\begin_inset Formula $K_{0}$
-\end_inset
-
- to denote this version.
- Then:
-\begin_inset Formula \[
-K_{0}(\pi,s'',do(a,s))\equiv\exists a',s':\, K_{0}(\mathcal{T}[\pi,a,a'],s',s)\wedge s''=do(a',s)\]
+:
+\begin_inset Formula \begin{gather*}
+\Trn(agt,a,a')\,\isdef\,\bigcup_{\varphi\in}\end{gather*}
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout Standard
-We can use analogous arguments to those for LCC to show that this works
- as intended, preserving the semantics of PDL.
- Now let us make an intuitive argument for dealing with 
-\begin_inset Formula $\epsilon$
-\end_inset
+\begin_layout Subsection
+Introducing Hidden Actions
+\end_layout
 
- actions.
- Define 
+\begin_layout Standard
+Define 
 \begin_inset Formula $\mathcal{E}^{n}(s)$
 \end_inset
 
@@ -4922,7 +5054,7 @@ We can use analogous arguments to those for LCC to show that this works
 
 
 \begin_inset Formula \[
-\mathcal{E}^{1}(s)=do(\epsilon,s)\]
+\mathcal{E}^{1}(s)=do(\varepsilon,s)\]
 
 \end_inset
 
@@ -4931,7 +5063,7 @@ We can use analogous arguments to those for LCC to show that this works
 
 \begin_layout Standard
 \begin_inset Formula \[
-\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\epsilon,do(\epsilon,...,do(\epsilon,s)))\]
+\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\varepsilon,do(\varepsilon,...,do(\varepsilon,s)))\]
 
 \end_inset
 
