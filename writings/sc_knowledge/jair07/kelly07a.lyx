@@ -8,19 +8,6 @@
 \jairheading{0}{0000}{0-0}{0/0}{0/0}
 \ShortHeadings{Common Knowledge, Hidden Actions, and the Frame Problem}{R. F. Kelly \& A. R. Pearce}
 \firstpageno{0}
-
-\newcommand{\isdef}{\ensuremath{\stackrel{\mbox{\tiny def}}{=}}}
-\newcommand{\MOP}[1]{\ensuremath{\mathcal{#1}}}
-
-\newcommand{\Reg}{\ensuremath{\MOP{R}_{\Dt}}}
-\newcommand{\Pst}{\ensuremath{\MOP{P}_{\Dt}}}
-\newcommand{\Trn}{\ensuremath{\MOP{T}_{\Dt}}}
-\newcommand{\Kln}{\ensuremath{\MOP{T}_{\Dt}}}
-\newcommand{\Dt}{\ensuremath{\mathcal{D}}}
-\newcommand{\Knows}{\ensuremath{\mathbf{Knows}}}
-\newcommand{\EKnows}{\ensuremath{\mathbf{EKnows}}}
-\newcommand{\CKnows}{\ensuremath{\mathbf{CKnows}}}
-\newcommand{\KnowsZ}{\ensuremath{\mathbf{Knows_0}}}
 \end_preamble
 \options jair,twoside,11pt,theapa,letterpaper
 \language english
@@ -150,6 +137,67 @@ ty, including actions that are completely hidden, by explicitly reifying
  calculus suitable for use in asynchonrous, partially-observable multi-agent
  domains.
  
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\isdef}{\stackrel{\mbox{\tiny def}}{=}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Reg}{\mathcal{R}_{\mathcal{D}}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Trn}{\mathcal{T}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Pst}{\mathcal{P}_{\mathcal{D}}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Dt}{\mathcal{D}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\EKnows}{\mathbf{EKnows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Knows}{\mathbf{Knows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\CKnows}{\mathbf{CKnows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\KnowsZ}{\mathbf{Knows_{0}}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Kln}{\mathcal{K}}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\vars}[1]{\bar{#1}}
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1672,7 +1720,7 @@ In words,
 
  will continue to hold.
  Unfortunately the calculation of 
-\begin_inset Formula $\\Pst$
+\begin_inset Formula $Pst$
 \end_inset
 
  requires first-order theorem proving, unlike that of 
@@ -3635,7 +3683,7 @@ Given a basic action theory
 
 , it is always the case that:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\,\phi[do(a,s)]\equiv\\Reg(\phi[do(a,s)])\]
+\Dt\cup\Dt_{K,obs}\,\models\,\phi[do(a,s)]\equiv Reg(\phi[do(a,s)])\]
 
 \end_inset
 
@@ -4067,9 +4115,16 @@ key "halpern90knowledge_distrib"
 \end_inset
 
 .
- For example, in the famous Byzantine Generals problem (TODO:ref) the proof
- that the generals cannot coordinate an attack depends heavily on their
- inability to obtain common knowledge.
+ For example, in the famous 
+\begin_inset Quotes eld
+\end_inset
+
+Coordinated Attack
+\begin_inset Quotes erd
+\end_inset
+
+ problem, the proof that the generals cannot coordinate an attack depends
+ heavily on their inability to obtain common knowledge.
 \end_layout
 
 \begin_layout Subsection
@@ -4801,6 +4856,11 @@ Unlike the explicit update frames used in the semantics of LCC, our framework
  We therefore have no need for the notion of update frames.
 \end_layout
 
+\begin_layout Standard
+Also, we need some variety of existential quantification.
+ We will use Golog as an epistemic path language rather than PDL.
+\end_layout
+
 \begin_layout Subsection
 A Complex Epistemic Fluent
 \end_layout
@@ -4836,7 +4896,7 @@ term and
 
  are the smallest set matching the following structural rules:
 \begin_inset Formula \[
-\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\]
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\, ex(x,\pi)\,|\,\pi^{*}\]
 
 \end_inset
 
@@ -4875,6 +4935,72 @@ K(\pi_{1}\cup\pi_{2},s'',s)\,\equiv\, K(\pi_{1},s'',s)\vee K(\pi_{2},s'',s)\\
 \begin_layout Standard
 Note that we require a second-order axiom to express the iteration operator,
  as expected for a transitive-closure style definition.
+\begin_inset Formula \[
+\Trn(agt,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef z:=?;?Obs(agt,a_{i}(\vars{x}))=z;agt;?Obs(agt,a_{j}(\vars{y}))=z;?Poss(a_{j}(\overrightarrow{y}))\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Trn(?\phi,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef\begin{cases}
+?\Reg(\phi,a_{i}(\vars{x}))\wedge\vars{x}=\vars{y} & \mathrm{if}\,\, i=j\\
+\bot & \mathrm{otherwise}\end{cases}\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Trn(z:=?,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef\begin{cases}
+z:=?;?\vars{x}=\vars{y} & \mathrm{if}\,\, i=j\\
+\bot & \mathrm{otherwise}\end{cases}\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Trn(\pi_{1};\pi_{2},a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef\bigcup_{k=0}^{n-1}\vars{z}:=?;\Trn(\pi_{1},a_{i}(\vars{x}),a_{k}(\vars{z}))\,;\,\Trn(\pi_{2},a_{k}(\vars{z}),a_{j}(\vars{y}))\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Trn(\pi_{1}\cup\pi_{2},a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef\Trn(\pi_{1},a_{i}(\vars{x}),a_{j}(\vars{y}))\,\cup\,\Trn(\pi_{2},a_{i}(\vars{x}),a_{j}(\vars{y}))\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\Trn(\pi^{*},a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),n)\]
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),0)=\begin{cases}
+?\top\cup\Trn(\pi,a_{i}(\vars{x}),a_{j}(\vars{y})) & \mathrm{if}\, i=j\\
+\Trn(\pi,a_{i}(\vars{x}),a_{j}(\vars{y})) & \mathrm{otherwise}\end{cases}\\
+\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),k+1)=\\
+\begin{cases}
+\mathbf{Kk}(\pi,\vars{x},\vars{z})^{*}\,;\,?\vars{y}=\vars{z} & \mathrm{if}\,\, i=j=k\\
+\mathbf{Kk}(\pi,\vars{x},\vars{z})^{*};\,\Kln(\pi,a_{k}(\vars{z}),a_{j}(\vars{y}),k) & \mathrm{if}\,\, i=j\neq k\\
+\vars{w}:=?;\Kln(\pi,a_{i}(\vars{x}),a_{k}(\vars{w}));\mathbf{Kk}(\pi,\vars{w},\vars{z})^{*};\,?\vars{y}=\vars{z} & \mathrm{if}\,\, i=\neq j=k\\
+\begin{array}{c}
+\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),k)\,\cup\,\\
+\left(\vars{w}:=?;\Kln(\pi,a_{i}(\vars{x}),a_{k}(\vars{w}));\mathbf{Kk}(\pi,\vars{w},\vars{z})^{*};\,\Kln(\pi,a_{k}(\vars{z}),a_{j}(\vars{y}))\right)\end{array} & \mathrm{otherwise}\end{cases}\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where we use the appreviation:
+\begin_inset Formula \[
+\mathbf{Kk}(\pi,\vars{x},\vars{y})\isdef\left(\vars{y}:=?;\Kln(\pi,a_{k}(\vars{x}),a_{k}(\vars{y}),k);\vars{x}:=\vars{y}\right)\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -5013,20 +5139,6 @@ In order to meet the restrictions on the syntax of
 
 , we need to be able to enumerate the possible observations from an action.
  
-\end_layout
-
-\begin_layout Standard
-Definition of 
-\begin_inset Formula $\Trn$
-\end_inset
-
-:
-\begin_inset Formula \begin{gather*}
-\Trn(agt,a,a')\,\isdef\,\bigcup_{\varphi\in}\end{gather*}
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
