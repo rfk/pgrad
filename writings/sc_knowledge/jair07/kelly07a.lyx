@@ -166,7 +166,7 @@ ty, including actions that are completely hidden, by explicitly reifying
 
 
 \begin_inset FormulaMacro
-\newcommand{\Kln}{\mathcal{K}_{}}
+\newcommand{\Kln}{\mathcal{K}}
 \end_inset
 
 
@@ -195,6 +195,11 @@ ty, including actions that are completely hidden, by explicitly reifying
 \begin_layout Standard
 \begin_inset FormulaMacro
 \newcommand{\vars}[1]{\bar{#1}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\TrnA}{\Trn_{a}}
 \end_inset
 
 
@@ -447,26 +452,15 @@ In situation calculus terms, this means that the regression of common knowledge
  cannot be defined in terms of common knowledge, but requires a more powerful
  epistemic language.
  Recent advances in dynamic epistemic logic have shown how to overcome this
- restriction, using three key ideas 
+ restriction, using two key ideas: use dynamic logic as a power expressive
+ epistemic path language; and use regression to encode the effects of actions
+ within epistemic paths 
 \begin_inset LatexCommand citep
 key "vanBenthem06lcc"
 
 \end_inset
 
-:
-\end_layout
-
-\begin_layout Itemize
-Use dynamic logic as a more powerful epistemic path language
-\end_layout
-
-\begin_layout Itemize
-Use regression to encode the effects of actions within epistemic paths
-\end_layout
-
-\begin_layout Itemize
-Use Kleene's theorem on finite automata to handle transitive closure in
- a finite manner
+.
 \end_layout
 
 \begin_layout Standard
@@ -1516,7 +1510,7 @@ One of the attractions of the situation calculus is the existence of effective
 \end_layout
 
 \begin_layout Subsubsection*
-The Reasoning Hierachy
+Types of Reasoning
 \end_layout
 
 \begin_layout Standard
@@ -2303,7 +2297,7 @@ possible but unobservable
 
  if it is performed:
 \begin_inset Formula \begin{equation}
-PbU\isdef\lambda agt,a,s:\, Poss(a,s)\wedge obs(agt,a,s)=\{\}\label{eqn:PbU_defn}\end{equation}
+PbU(agt,a,s)\isdef Poss(a,s)\wedge obs(agt,a,s)=\{\}\label{eqn:PbU_defn}\end{equation}
 
 \end_inset
 
@@ -2417,7 +2411,20 @@ Init(s)\rightarrow\left[K(agt,s'',s)\equiv\exists s'\,.\, K_{0}(agt,s',s)\wedge 
 
 \end_inset
 
-These definitions suffice to ensure that knowledge behaves as we require.
+These definitions suffice to ensure that knowledge behaves as we require:
+ two situations will be related by 
+\begin_inset Formula $K(agt,s',s)$
+\end_inset
+
+ if and only if they result in identical views for 
+\begin_inset Formula $agt$
+\end_inset
+
+, 
+\begin_inset Formula $s'$
+\end_inset
+
+ is legal, and their root situations were initially related.
 \end_layout
 
 \begin_layout Definition
@@ -2451,31 +2458,99 @@ reference "eqn:new_k_s0"
 ).
 \end_layout
 
-\begin_layout Standard
-We close this subsection with a proof that our formulation of knowledge
- behaves as intended: two situations will be related by 
-\begin_inset Formula $K(agt,s',s)$
+\begin_layout Theorem
+\begin_inset LatexCommand label
+name "thm:k_obs_equiv"
+
 \end_inset
 
- if and only if they result in identical views for 
+ For a basic action theory 
+\begin_inset Formula $\Dt$
+\end_inset
+
+, for any agent 
 \begin_inset Formula $agt$
 \end_inset
 
-, 
-\begin_inset Formula $s'$
+ and situations 
+\begin_inset Formula $s$
 \end_inset
 
- is legal, and their root situations were initially related.
- All proofs proceed by induction on situation terms, establishing the base
- case of 
-\begin_inset Formula $Init(s)$
+ and 
+\begin_inset Formula $s''$
 \end_inset
 
- and the inductive case of 
-\begin_inset Formula $do(a,s)$
+:
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,obs}\models K(agt,s'',s)\equiv K(root(s''),root(s))\wedge Legal(s'')\wedge view(agt,s'')=view(agt,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout ProofSketch
+For the
+\series bold
+ 
+\series default
+\emph on
+if
+\emph default
+ direction, we establish each of the three conjuncts individually.
+ The roots case is trivial since equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+) always expresses 
+\begin_inset Formula $K(s'',do(a,s))$
+\end_inset
+
+ in terms of 
+\begin_inset Formula $K(s',s)$
 \end_inset
 
 .
+ Legality relies on the fact that 
+\begin_inset Formula $PbU$
+\end_inset
+
+ implies 
+\begin_inset Formula $Poss$
+\end_inset
+
+, while the views case relies on the fact that 
+\begin_inset Formula $s\leq_{PbU}s'\rightarrow view(s)=view(s')$
+\end_inset
+
+.
+ For the 
+\emph on
+only-if
+\emph default
+ direction, we show how to construct an 
+\begin_inset Formula $s'$
+\end_inset
+
+ satisfying the 
+\begin_inset Formula $\exists s'$
+\end_inset
+
+ parts of equations (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+), completing the proof.
 \end_layout
 
 \begin_layout Standard
@@ -2492,7 +2567,3340 @@ Observations
 
  function behaves.
  This will be the focus of the next subsection.
+\end_layout
+
+\begin_layout Subsection
+Axiomatizing Observations
+\end_layout
+
+\begin_layout Standard
+Let us begin by considering again the standard account of knowledge due
+ to 
+\begin_inset LatexCommand cite
+key "scherl03sc_knowledge"
+
+\end_inset
+
+.
+ Its basic assumption that 
+\begin_inset Quotes eld
+\end_inset
+
+all agents are aware of all actions
+\begin_inset Quotes erd
+\end_inset
+
+ may be rephrased as 
+\begin_inset Quotes eld
+\end_inset
+
+when an action occurs, all agents will observe that action
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Allowing the 
+\noun on
+Observations
+\noun default
+ sort to contain 
+\noun on
+Action
+\noun default
+ terms, this assumption is akin to the following assertion about the 
+\begin_inset Formula $obs()$
+\end_inset
+
+ function:
+\begin_inset Formula \begin{equation}
+a'\in obs(agt,a,s)\equiv a=a'\label{eq:ax_obs_std1}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+What about sensing information? We can extend the 
+\noun on
+Observations
+\noun default
+ sort to contain terms of the form 
+\emph on
+
+\begin_inset Formula $(Action=Result)$
+\end_inset
+
+
+\emph default
+ and axiomatize like so:
+\begin_inset Formula \begin{equation}
+(a'=r)\in obs(agt,a,s)\equiv a=a'\wedge SR(a,s)=r\wedge agent(a)=agt\label{eq:ax_obs_std2}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using these definitions, our new account of knowledge will behave identically
+ to the standard account:
+\end_layout
+
+\begin_layout Theorem
+Suppose 
+\begin_inset Formula $\mathcal{D}_{K,obs}$
+\end_inset
+
+ uses equations (
+\begin_inset LatexCommand ref
+reference "eq:ax_obs_std1"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eq:ax_obs_std2"
+
+\end_inset
+
+) to define the 
+\begin_inset Formula $obs()$
+\end_inset
+
+ function, then for any situation terms 
+\begin_inset Formula $s$
+\end_inset
+
+ and 
+\begin_inset Formula $s'$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,std}\models K(agt,s',s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\cup\Dt_{K,obs}\models K(agt,s',s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Equations (
+\begin_inset LatexCommand ref
+reference "eq:ax_obs_std1"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eq:ax_obs_std2"
+
+\end_inset
+
+) mean 
+\begin_inset Formula $obs(agt,a,s)$
+\end_inset
+
+ cannot be empty, so 
+\begin_inset Formula $s\leq_{PbU(agt)}s'$
+\end_inset
+
+ iff 
+\begin_inset Formula $s=s'$
+\end_inset
+
+.
+ Equations (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+) then amount to simple transformations of equations (
+\begin_inset LatexCommand ref
+reference "eq:k_ssa_standard"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eq:k_s0_standard"
+
+\end_inset
+
+) respectively, meaning that 
+\begin_inset Formula $K$
+\end_inset
+
+ behaves the same under both theories.
+\end_layout
+
+\begin_layout Standard
+To generalize this for partial observability of actions we introduce a new
+ action description predicate, akin to 
+\begin_inset Formula $Poss$
+\end_inset
+
+ but describing when actions will be observed by agents: 
+\begin_inset Formula $CanObs(agt,a,s)$
+\end_inset
+
+ indicates that agent 
+\begin_inset Formula $agt$
+\end_inset
+
+ would observe action 
+\begin_inset Formula $a$
+\end_inset
+
+ being performed in situation 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ We can then formulate the 
+\begin_inset Formula $obs()$
+\end_inset
+
+ function according to:
+\begin_inset Formula \[
+a'\in obs(agt,a,s)\equiv a'=a\wedge CanObs(agt,a,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There is an additional assumption in the standard handling of sensing actions:
+ only the agent performing a sensing action is aware of its result.
+ Such a restriction is common but certainly not universal.
+ For example, if an agent waiting for a train activates a speaker to determine
+ when it will arrive, the result of this sensing action would be available
+ to any other agent within earshot.
+ We add an analogous predicate 
+\begin_inset Formula $CanSense(agt,a,s)$
+\end_inset
+
+ to indicate when sensing information is available to an agent.
+ We then include bare action terms in an agent's observations when it observes
+ the action but not its result, and 
+\emph on
+(Action=Result)
+\emph default
+ terms when it also senses the result:
+\begin_inset Formula \begin{gather*}
+a'\in obs(agt,a,s)\equiv a=a'\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\\
+(a'=r)\in obs(agt,a,s)\equiv a'=a\wedge SR(a,s)=r\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Regression
+\end_layout
+
+\begin_layout Standard
+The appearance of the 
+\begin_inset Formula $\leq_{PbU(agt)}$
+\end_inset
+
+ ordering over situations in equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+) means that our new successor state axiom universally quantifies over situation
+s, so standard regression techniques cannot be applied.
+ We must appeal to the persistence condition meta-operator to transform
+ this quantification into a uniform formula, so that regression can be applied.
+\end_layout
+
+\begin_layout Standard
+We propose the following definition for the regression of 
+\begin_inset Formula $\Knows$
+\end_inset
+
+:
+\begin_inset Formula \begin{align}
+\Reg(\Knows(agt,\phi,do(a,s)))\isdef\,\, & \exists o:\, obs(agt,a,s)=o\nonumber \\
+ & \wedge\,\left[o=\{\}\,\rightarrow\,\Knows(agt,\phi,s)\right]\nonumber \\
+ & \wedge\,\left[o\neq\{\}\,\rightarrow\,\Knows(agt,\forall a':\, obs(agt,a')=o\right.\nonumber \\
+ & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(a')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt)),a),s)\right]\label{eqn:R_do_c_s}\end{align}
+
+\end_inset
+
+ As required, this reduces a knowledge query at 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ to a knowledge query at 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ It is also intuitively appealing: to know that 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds, the agent must know that in all situations that agree with its observati
+ons, 
+\begin_inset Formula $\phi$
+\end_inset
+
+ cannot become false without it making an observation.
+\end_layout
+
+\begin_layout Standard
+We must also specify the regression of 
+\begin_inset Formula $\Knows$
+\end_inset
+
+ in the initial situation, as equation (
+\begin_inset LatexCommand ref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+) also quantifies over situations.
+ This clause produces an expression in 
+\begin_inset Formula $\KnowsZ$
+\end_inset
+
+ at 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+, meaning that it can be handled by epistemic reasoning about the initial
+ situation only:
+\begin_inset Formula \begin{equation}
+\Reg(\Knows(agt,\phi,S_{0}))\,\isdef\,\KnowsZ(agt,\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),S_{0})\label{eqn:R_s0}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Theorem
+Given a basic action theory 
+\begin_inset Formula $\Dt\cup\Dt_{K,obs}$
+\end_inset
+
+ and a formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ uniform in 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+, it is always the case that:
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,obs}\,\models\,\phi[do(a,s)]\equiv\Reg(\phi[do(a,s)])\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout ProofSketch
+We need only consider the case of 
+\begin_inset Formula $\Reg(\Knows(agt,\phi,s))$
+\end_inset
+
+.
+ In the recursive case of 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+, we proceed by expanding the definition for 
+\begin_inset Formula $\Knows$
+\end_inset
+
+ using our new successor state axiom for 
+\begin_inset Formula $K$
+\end_inset
+
+, collecting sub-formulae that match the form of the 
+\begin_inset Formula $\Knows$
+\end_inset
+
+ macro, and using regression and the persistence condition to render the
+ resulting knowledge expressions uniform in 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ In the base case, applying the persistence condition to an expansion of
+ 
+\begin_inset Formula $\Knows$
+\end_inset
+
+ at the initial situation completes the proof.
+\end_layout
+
+\begin_layout Standard
+We can thus handle knowledge queries using regression, the standard technique
+ for effective reasoning in the situation calculus.
+\end_layout
+
+\begin_layout Standard
+While this reasoning method is suitable for modeling and simulation purposes,
+ it would be unreasonable for a situated agent to ask 
+\begin_inset Quotes eld
+\end_inset
+
+do I know 
+\begin_inset Formula $\phi$
+\end_inset
+
+ in the current situation?
+\begin_inset Quotes erd
+\end_inset
+
+ using the situation calculus query 
+\begin_inset Formula $\Dt\models\mathbf{Knows}(agt,\phi,s)$
+\end_inset
+
+, as it cannot be expected to have the full current situation 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ However, it will have its current view 
+\begin_inset Formula $v$
+\end_inset
+
+.
+ We define knowledge with respect to a view as follows:
+\begin_inset Formula \[
+\mathbf{Knows}(agt,\phi,v)\,\isdef\,\forall s:\, view(agt,s)=v\wedge root(s)=S_{0}\rightarrow\mathbf{Knows}(agt,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is a straightforward consequence of Theorem 
+\begin_inset LatexCommand ref
+reference "thm:k_obs_equiv"
+
+\end_inset
+
+ that this form of knowledge is equivalent to knowledge based on a situation
+ term having that observation history and rooted at 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Extending the regression rules in equations (
+\begin_inset LatexCommand ref
+reference "eqn:R_do_c_s"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eqn:R_s0"
+
+\end_inset
+
+) to handle formulae of this form is actually simpler than for regression
+ over situations, as there are no empty observations in a history.
+ The result is:
+\begin_inset Formula \begin{align*}
+\mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,o\cdot v))\isdef\,\, & \mathbf{Knows}(agt,\forall a:\, obs(agt,a)=o\\
+ & \,\,\,\,\,\,\,\,\wedge Poss(a)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),a),v)\\
+\mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,\epsilon))\isdef\,\, & \KnowsZ(agt,\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),S_{0})\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using regression in this way, agents can reason about their own knowledge
+ using only their local information.
+ Our work thus makes it possible to include a situation calculus model in
+ the implementation of a real-world multi-agent system, even when agents
+ have only partial awareness of the actions being performed.
+\end_layout
+
+\begin_layout Subsection
+An Illustrative Example
+\end_layout
+
+\begin_layout Standard
+Consider again a package-processing facility where agents are required to
+ move boxes between various rooms.
+ There are three actions (
+\begin_inset Formula $pickup$
+\end_inset
+
+, 
+\begin_inset Formula $drop$
+\end_inset
+
+ and 
+\begin_inset Formula $move$
+\end_inset
+
+) and two fluents (
+\begin_inset Formula $Holding$
+\end_inset
+
+ and 
+\begin_inset Formula $InRoom$
+\end_inset
+
+) whose meanings should be clear.
+ There are no sensing actions.
+ 
+\end_layout
+
+\begin_layout Standard
+Agents may pickup a box if they are in the same room and no-one is holding
+ it.
+ They can drop a box they are holding at any time, and can move freely between
+ rooms:
+\begin_inset Formula \begin{align*}
+Poss(pickup(agt,box),s)\equiv\, & \neg\exists agt:\, Holding(agt,box,s)\\
+ & \,\wedge\,\exists rm:\, InRoom(agt,rm)\wedge InRoom(box,rm)\\
+Poss(drop(agt,box),s)\equiv & \, Holding(agt,box,s)\\
+Poss(move(agt,rm),s)\equiv & \, true\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+An agent is holding a box if they picked it up, or were already holding
+ it and didn't put it down:
+\begin_inset Formula \begin{align*}
+Holding(agt,box,do(a,s))\equiv & \, a=pickup(agt,box)\\
+ & \,\vee\, Holding(agt,box,s)\wedge a\neq drop(agt,box)\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+An object is in a room if it was taken there, or it was already in that
+ room and it was not taken elsewhere:
+\begin_inset Formula \begin{align*}
+InRoom(obj,rm,do(a,s))\equiv\,\, & \exists agt:\, a=move(agt,rm)\wedge\left[obj=agt\vee Holding(agt,obj,s)\right]\\
+ & \vee\, InRoom(obj,rm,s)\wedge\neg\left[\exists agt,rm_{2}:\, a=move(agt,rm_{2})\right.\\
+ & \,\,\,\,\,\,\,\,\,\,\left.\wedge rm_{2}\neq rm\wedge\left(obj=agt\vee Holding(agt,obj,s)\right)\right]\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Agents can observe actions performed by an agent in the same room as themselves,
+ and can observe agents entering their room:
+\begin_inset Formula \begin{align*}
+CanObs(agt,a,s)\equiv\,\, & \exists rm\,.\, InRoom(agt,rm)\wedge\\
+ & \wedge\left(InRoom(agent(a),rm)\,\vee\,\exists agt_{2}\,.\, a=move(agt_{2},rm)\right)\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Initially, Sam is in Room1 with Box1, Max is in Room2 with Box2, and no-one
+ is holding any boxes.
+ Everyone has complete knowledge of the initial situation:
+\begin_inset Formula \begin{gather*}
+InRoom(Sam,Room1,S_{0})\\
+InRoom(Box1,Room1,S_{0})\\
+InRoom(Max,Room2,S_{0})\\
+InRoom(Box2,Room2,S_{0})\\
+\neg Holding(agt,box,S_{0})\\
+K_{0}(agt,s,S_{0})\equiv s=S_{0}\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The following are examples of knowledge queries that can be posed in our
+ formalism, and a brief explanation of their outcome:
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,obs}\models\mathbf{Knows}(Sam,\neg Holding(Max,Box1),S_{0})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Initially, Sam knows that Max is not holding Box1.
+ For 
+\begin_inset Formula $Holding(Max,Box1)$
+\end_inset
+
+ to be true, he must have picked Box1 up.
+ Since Box1 is in the same room as Sam, she would be able to observe him
+ doing so.
+ Since she has not observed that, she can conclude that 
+\begin_inset Formula $Holding(Max,Box1)$
+\end_inset
+
+ is false.
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,obs}\models\mathbf{\neg Knows}(Sam,\neg Holding(Max,Box2),S_{0})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By contrast, Sam does 
+\emph on
+not
+\emph default
+ know that Max is not holding Box2.
+ Since Box2 is in a different room, Max could have picked it up without
+ her observing the action.
+\begin_inset Formula \begin{multline*}
+\Dt\cup\Dt_{K,obs}\models\mathbf{Knows}(Sam,Holding(Max,Box1),\\
+do(pickup(Max,Box1),do(move(Max,Room1),S_{0}))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For Max to put down Box1 without Sam observing anything, he would have to
+ first move to a different room.
+ Since the action of moving to a different room would be observed by Sam,
+ she knows that he must be holding the box.
+\begin_inset Formula \begin{multline*}
+\Dt\cup\Dt_{K,obs}\models\mathbf{\neg Knows}(Sam,Holding(Max,Box1),\\
+do(move(Max,Room2),do(pickup(Max,Box1),do(move(Max,Room1),S_{0})))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Once Max takes Box1 into a different room, Sam can no longer be sure that
+ he is holding it, since he may put it down without her observing anything.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Subsection
+Observing the Effects of Actions
+\end_layout
+
+\begin_layout Standard
+In many domains it would be infeasible for an agent to observe a particular
+ action occurring, but it may be able to observe some of the effects of
+ that action.
+ For example, suppose that an agent monitors the state of a light in its
+ environment, such that it notices it changing from dark to light.
+ While it knows that 
+\emph on
+some
+\emph default
+ action must have occurred to produce that effect, it may not be sure precisely
+ what action took place (e.g.
+ precisely 
+\emph on
+who
+\emph default
+ turned on the light).
+\end_layout
+
+\begin_layout Standard
+This can be modeled by further extending the 
+\noun on
+Observations
+\noun default
+ sort.
+ Suppose that the observation term 
+\begin_inset Formula $f_{\phi}$
+\end_inset
+
+ indicates that a particular property of the world 
+\begin_inset Formula $\phi$
+\end_inset
+
+ has changed from false to true and (for simplicity) that this information
+ would be available to all agents.
+ The following could be used to include this information in an agent's observati
+ons:
+\begin_inset Formula \[
+f_{\phi}\in obs(agt,a,s)\equiv\neg\phi[s]\wedge\Reg(\phi[do(a,s)])\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+Note that since we use 
+\begin_inset Formula $obs()$
+\end_inset
+
+ as an action description predicate in equation (
+\begin_inset LatexCommand ref
+reference "eqn:PbU_defn"
+
+\end_inset
+
+), we must use regression to ensure that the right-hand side of this equivalence
+ refers only to 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ Expanding on the example of the light, we might have an axiom like this:
+\begin_inset Formula \[
+lightCameOn\in obs(agt,a,s)\equiv\neg lightIsOn(s)\wedge\exists agt_{2}:\, a=turnLightOn(agt_{2})\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When the light is switched on, each agent's observation set will contain
+ the term 
+\begin_inset Formula $lightCameOn$
+\end_inset
+
+, and they will know that this change has occurred without necessarily knowing
+ the action responsible for the change.
+ That this powerful new ability is a straightforward extension of our approach
+ highlights the flexibility and robustness of the observation-based semantics.
+\end_layout
+
+\begin_layout Subsection
+Summary
+\end_layout
+
+\begin_layout Standard
+powerul account of knowledge, subsumes existing appraoches, blah blah blah
+\end_layout
+
+\begin_layout Section
+Complex Epistemic Modalities
+\begin_inset LatexCommand label
+name "sec:Complex-Epistemic-Modalities"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+So far we have constructed a powerful new account of 
+\emph on
+individual 
+\emph default
+knowledge in a multi-agent setting.
+ For rich multi-agent domains, we must also be able to reason about group-level
+ knowledge and, in particular, about common knowledge.
+ The primary motivation for this section is a formal treatment of common
+ knowledge within our framework, but as we shall see, this requires significant
+ technical machinery capable of handling much more general epistmic modalities.
+\end_layout
+
+\begin_layout Subsection
+Group-Level Epistemic Modalities
+\end_layout
+
+\begin_layout Standard
+We breifly review the various group-level epistemic modalities found in
+ the literature.
+ Let 
+\begin_inset Formula $G$
+\end_inset
+
+ be a finite group of agents.
+ The basic group-level modality is 
+\begin_inset Quotes eld
+\end_inset
+
+everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+, which is defined as:
+\begin_inset Formula \[
+\mathbf{EKnows}(G,\phi,s)\,\isdef\,\bigwedge_{agt\in G}\,\mathbf{Knows}(agt,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To assert more complete knowledge by members of the group, one can say that
+ 
+\begin_inset Quotes eld
+\end_inset
+
+everyone knows that everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ by nesting 
+\begin_inset Formula $\mathbf{EKnows}$
+\end_inset
+
+ operators.
+ In general:
+\begin_inset Formula \begin{gather*}
+\mathbf{EKnows}^{1}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\phi,s)\\
+\mathbf{EKnows}^{n}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The higher the value of 
+\begin_inset Formula $n$
+\end_inset
+
+, the stronger an assertion is made about the knowledge of the group.
+ The strongest group-level modality is 
+\begin_inset Quotes eld
+\end_inset
+
+it is common knowledge that 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Intuitively this indicates that everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+, everyone knows that everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+, and so on ad infinitum.
+ Formally, it can be defined as the infinite conjunction:
+\begin_inset Formula \[
+\mathbf{CKnows}(G,\phi,s)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Common knowledge can be equivalently defined as a fixpoint or transitive
+ closure of the 
+\begin_inset Formula $\EKnows$
+\end_inset
+
+ relation.
+ It is an extremely powerful form of knowledge that has deep implications
+ for coordinated group behavior 
+\begin_inset LatexCommand citep
+key "halpern90knowledge_distrib"
+
+\end_inset
+
+.
+ For example, in the famous 
+\begin_inset Quotes eld
+\end_inset
+
+Coordinated Attack
+\begin_inset Quotes erd
+\end_inset
+
+ problem, the proof that the generals cannot coordinate an attack depends
+ heavily on their inability to obtain common knowledge.
+\end_layout
+
+\begin_layout Subsection
+The Trouble with Common Knowledge
+\end_layout
+
+\begin_layout Standard
+We are aware of no formal treatments of common knowledge in the situation
+ calculus literature, and certainly none in domains as rich as those we
+ consider here.
+ This can be attributed to the difficulty of reasoning about common knowledge
+ using techniques such as regression.
+\end_layout
+
+\begin_layout Standard
+In the related field of dynamic epistemic logic, a famous result of 
+\begin_inset LatexCommand cite
+key "baltag98pa_ck"
+
+\end_inset
+
+ states that:
+\end_layout
+
+\begin_layout Quote
+Epistemic logic with actions and common knowledge is more expressive than
+ epistemic logic with common knowledge alone.
+\end_layout
+
+\begin_layout Standard
+In our terminology: unlike the case of individual knowledge, 
+\begin_inset Formula $\Reg(\CKnows(G,\phi,do(a,s)))$
+\end_inset
+
+ cannot be defined in terms of 
+\begin_inset Formula $\CKnows$
+\end_inset
+
+.
+ Given the deep similarities between the situation caluclus and epistemic
+ modal logic 
+\begin_inset LatexCommand citep
+key "vanbentham07ml_sitcalc"
+
+\end_inset
+
+, we can be confident that this expressivity limitation also applies in
+ the situation calculus.
+\end_layout
+
+\begin_layout Standard
+One alternative for reasoning about common knowledge is to calculate it
+ directly as a fixpoint of 
+\begin_inset Formula $\EKnows$
+\end_inset
+
+.
+ This process would be immensely computationally expensive, and is not guarantee
+d to terminate Effective reasoning requires a regression rule.
+\end_layout
+
+\begin_layout Standard
+Fortunately, recent work by 
+\begin_inset LatexCommand citet
+key "vanBenthem06lcc"
+
+\end_inset
+
+ has shown that a regression rule can be formulated by increasing the expressivi
+e power of the epistemic language in use.
+ Their basic idea is to use dynamic logic as a more expressive epistemic
+ path language.
+ During regression, the effects of an action are encoded inside the epistemic
+ path as well as in the formulae under consideration.
+\end_layout
+
+\begin_layout Standard
+After introducing these ideas in their original context, we will adapt and
+ expand them for use within our framework.
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\begin_layout Subsection
+The Logic of Communication and Change
+\end_layout
+
+\begin_layout Standard
+This section is a brief overview of the Logic of Communication and Change
+ (hereafter denoted 
+\begin_inset Quotes eld
+\end_inset
+
+LCC
+\begin_inset Quotes erd
+\end_inset
+
+) developed by 
+\begin_inset LatexCommand cite
+key "vanBenthem06lcc"
+
+\end_inset
+
+, designed to introduce their ideas and contributions to the field.
+ The paper on this logic is quite accessible and should be consulted for
+ full details.
+ This section assumes some familiarity with the syntax and semantics of
+ modal logic.
+\end_layout
+
+\begin_layout Standard
+In traditional modal logics of knowledge, there is one accessibility relation
+ 
+\begin_inset Formula $K_{agt}$
+\end_inset
+
+ for each agent.
+ Knowledge is expressed using the modal box operator, as in 
+\begin_inset Formula $[K_{agt}]\phi$
+\end_inset
+
+.
+ Common knowledge is handled by introducing additional modalities 
+\begin_inset Formula $[C_{G}]\phi$
+\end_inset
+
+ and semantically defining the 
+\begin_inset Formula $C_{G}$
+\end_inset
+
+ relation as the transitive closure of inidivual agent's knowledge relations.
+ As discussed above, such logics do not permit a regression rule for reasoning
+ about common knowledge.
+\end_layout
+
+\begin_layout Standard
+The first major contribution of LCC is to increase the expressiveness of
+ the epistemic language by allowing complex 
+\emph on
+path expressions
+\emph default
+ in place of these knowledge operators.
+ Conceptualyly, knowledge is expressed by propositional dynamic logic interprete
+d over an epistemic frame.
+ An epistemic path expression 
+\begin_inset Formula $\pi$
+\end_inset
+
+ takes the form:
+\begin_inset Formula \begin{gather*}
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Table 
+\begin_inset LatexCommand ref
+reference "tbl:knowledge-exprs"
+
+\end_inset
+
+ shows some standard knowledge expressions with their syntax in the situation
+ calculus, traditional epistemic logic, and LCC.
+ Here we see the first advantage of this approach - there is no need for
+ a special-purpose common knowledge operator.
+ It is directly expressed as the transitive closure of 
+\begin_inset Formula $\EKnows$
+\end_inset
+
+ using the iteration operator of dynamic logic.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="3">
+<features>
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" width="0">
+<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Situation Calculus
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+Epistemic Logic
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+LCC
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\Knows(agt,\phi)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[K_{agt}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[agt]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\Knows(agt_{1},\Knows(agt_{2},\phi))$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[K_{agt_{1}}][K_{agt_{2}}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[agt_{1};agt_{2}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+\begin_inset Formula $\Knows(agt_{1},\phi)\wedge\Knows(agt_{2},\phi)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[K_{agt_{1}}]\phi\wedge[K_{agt_{2}}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[agt_{1}\cup agt_{2}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\EKnows(G,\phi)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[E_{G}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[\bigcup_{agt\in G}agt]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row topline="true" bottomline="true">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $\CKnows(G,\phi)$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[C_{G}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Standard
+\begin_inset Formula $[(\bigcup_{agt\in G}agt)^{*}]\phi$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Caption
+
+\begin_layout Standard
+\begin_inset LatexCommand label
+name "tbl:knowledge-exprs"
+
+\end_inset
+
+Some knowledge expressions in the Situation Calculus, Epistemic Logic, and
+ LCC
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Actions in LCC are represented using 
+\emph on
+update frames
+\emph default
+.
+ These are finite directed graphs (actually, Kripke-style modal frames)
+ where nodes are labelled from 
+\begin_inset Formula $0$
+\end_inset
+
+ to 
+\begin_inset Formula $n-1$
+\end_inset
+
+ and represent possible actions that were performed, and the relations between
+ nodes represent epistemic uncertainty about precisely which action was
+ performed.
+ To express what holds after the ocurrence of an action, one specifies an
+ update frame along with the specific action from that frame that actually
+ occurred.
+ This formula says 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds after performing action 
+\begin_inset Formula $i$
+\end_inset
+
+ from update frame 
+\begin_inset Formula $\mathrm{U}$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Formula \[
+[\mathrm{U},i]\phi\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The semantics of actions are defined in terms of a product update operation
+ on the underlying modal frame.
+ Briefly, we can think of the state of the world before an action as being
+ represented by an epistemic frame 
+\begin_inset Formula $\mathcal{M}$
+\end_inset
+
+ of modal logic .
+ The action 
+\begin_inset Formula $[U,i]$
+\end_inset
+
+ generates a new epistemic frame representing the state of the world after
+ the action.
+ The individual worlds in this new frame are the pairs 
+\begin_inset Formula $\{(w,j)\,|\, w\in\mathcal{M},j\in\mathrm{U}\}$
+\end_inset
+
+, and the relations between these worlds are based on the corresponding
+ relations in 
+\begin_inset Formula $\mathcal{M}$
+\end_inset
+
+ and 
+\begin_inset Formula $\mathrm{U}$
+\end_inset
+
+.
+ The enclosed formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is then interpreted on this updated frame.
+\end_layout
+
+\begin_layout Standard
+The second major contribution of LCC is a regression rule for handling formulae
+ of this general form, namely:
+\begin_inset Formula \[
+[\mathrm{U},i][\pi]\phi\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Such a formula reads: 
+\begin_inset Quotes eld
+\end_inset
+
+after performing action 
+\begin_inset Formula $i$
+\end_inset
+
+ from update frame 
+\begin_inset Formula $\mathrm{U}$
+\end_inset
+
+, it is 
+\begin_inset Formula $\pi$
+\end_inset
+
+-known that 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ As a more concrete example, the following formula states that 
+\begin_inset Quotes eld
+\end_inset
+
+after performing action 
+\begin_inset Formula $i$
+\end_inset
+
+ from update frame 
+\begin_inset Formula $\mathrm{U}$
+\end_inset
+
+, it is common knowledge amount 
+\begin_inset Formula $G$
+\end_inset
+
+ that 
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Formula \[
+[\mathrm{U},i][(\bigcup_{agt\in G}agt)^{*}]\phi\]
+
+\end_inset
+
+ Their regression technique works by encoding the effects of the action
+ 
+\begin_inset Formula $[\mathrm{U},i]$
+\end_inset
+
+ into both the formula 
+\begin_inset Formula $\phi$
+\end_inset
+
+ and the epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+.
+ A syntactic transformation 
+\begin_inset Formula $\mathcal{T}$
+\end_inset
+
+ achieves this according to the following equivalence: 
+\begin_inset Formula \[
+[\mathrm{U},i][\pi]\phi\,\,\,\equiv\,\,\,\bigwedge_{j=0}^{n-1}[\mathbf{\mathcal{T}}_{ij}^{\mathrm{U}}(\pi)][\mathrm{U},j]\phi\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Loosly, this formula says: consider every possible action 
+\begin_inset Formula $j=0$
+\end_inset
+
+ to 
+\begin_inset Formula $j=n-1$
+\end_inset
+
+; determine the epistemic paths that would cause action 
+\begin_inset Formula $i$
+\end_inset
+
+ to be mistaken for action 
+\begin_inset Formula $j$
+\end_inset
+
+; and determine the effects of 
+\begin_inset Formula $j$
+\end_inset
+
+ on the formula in question.
+\end_layout
+
+\begin_layout Standard
+To understand the operation of 
+\begin_inset Formula $\Trn_{ij}^{\mathrm{U}}$
+\end_inset
+
+, we reason as follows: suppose that the epistemic frame before the action
+ is 
+\begin_inset Formula $\mathcal{M}$
+\end_inset
+
+ with current world 
+\begin_inset Formula $w$
+\end_inset
+
+, then frame after performing action 
+\begin_inset Formula $[\mathrm{U},i]$
+\end_inset
+
+ is 
+\begin_inset Formula $\mathcal{M}'$
+\end_inset
+
+ with current world 
+\begin_inset Formula $(w,i)$
+\end_inset
+
+.
+ Further suppose that another world 
+\begin_inset Formula $(u,j)\in\mathcal{M}'$
+\end_inset
+
+ is reachable from 
+\begin_inset Formula $(w,i)$
+\end_inset
+
+ by following the path 
+\begin_inset Formula $\pi$
+\end_inset
+
+.
+ These are the worlds that are picked out by the modal box 
+\begin_inset Formula $[\pi]$
+\end_inset
+
+.
+ Clearly the corresponding parent world 
+\begin_inset Formula $u\in\mathcal{M}$
+\end_inset
+
+ must be related to 
+\begin_inset Formula $w$
+\end_inset
+
+ in some way.
+ The translation function allows us to locate such worlds: taking some liberties
+ with notation, 
+\begin_inset Formula $\mathcal{M}'\models((w,i),(u,j))\in\pi$
+\end_inset
+
+ if and only if 
+\begin_inset Formula $\mathcal{M}\models(w,u)\in\Trn_{ij}^{\mathrm{U}}(\pi)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The (partial) definition of the translation function is as follows:
+\begin_inset Formula \begin{alignat*}{1}
+\mathcal{T}_{ij}^{\mathrm{U}}(agt)= & \begin{cases}
+?pre(i);agt & \mathrm{if\, i\stackrel{\tiny agt}{\rightsquigarrow}j}\\
+?\bot & otherwise\end{cases}\\
+\mathcal{T}_{ij}^{\mathrm{U}}(\pi_{1};\pi_{2})= & \bigcup_{k=0}^{n-1}\left(\mathcal{T}_{ik}^{\mathrm{U}}(\pi_{1});\mathcal{T}_{kj}^{\mathrm{U}}(\pi_{2})\right)\\
+\mathcal{T}_{ij}^{\mathrm{U}}(\pi^{*})= & \mathcal{K}_{ijn}^{\mathrm{U}}(\pi)\end{alignat*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Most of the cases are straightforward encodings of the semantics of product
+ update.
+ The only difficult case is the iteration operator 
+\begin_inset Formula $\pi*$
+\end_inset
+
+ - it is handled using a variant of Kleene's theorem on finite automata
+ to finitely express the transitive closure of the expressions produced
+ by 
+\begin_inset Formula $\Trn_{ij}^{*}(\pi)$
+\end_inset
+
+.
+ Reproducing the definition of 
+\begin_inset Formula $\Kln$
+\end_inset
+
+ here would take us too far afield.
+\end_layout
+
+\begin_layout Subsection
+From LCC to the Situation Calculus
+\end_layout
+
+\begin_layout Standard
+In the remainder of this section, we adapt the techniques introduced in
+ LCC to handle complex epistemic modalities in our formalism in the situation
+ calculus.
+ This is far from straightforward, as LCC domains have two restrictions
+ which are entirely inappropriate for the situation calculus:
+\end_layout
+
+\begin_layout Itemize
+LCC is 
+\emph on
+propositional
+\emph default
+: actions do not take arguments and no quantification is required.
+\end_layout
+
+\begin_layout Itemize
+LCC is funamentally 
+\emph on
+synchronous
+\emph default
+:
+\emph on
+ 
+\emph default
+reasoning is performed by regressing one action at a time, without the 
+\begin_inset Quotes eld
+\end_inset
+
+all possible futures
+\begin_inset Quotes erd
+\end_inset
+
+ approach needed to handle hidden actions.
+\end_layout
+
+\begin_layout Standard
+We also gain some simplifications in moving to the situation calculus.
+ We have no need for explicit update frames, as the epistemic relationships
+ between actions are given implicitly by means of the 
+\begin_inset Formula $obs$
+\end_inset
+
+ function.
+ In moving to a first-order formalism, we also gain the expressivity needed
+ to directly express the regression of 
+\begin_inset Formula $\pi^{*}$
+\end_inset
+
+ without having to employ a Kleene-style argument.
+\end_layout
+
+\begin_layout Standard
+The section proceeds as follows.
+ In Subsection 
+\begin_inset LatexCommand ref
+reference "sub:Epistemic-Paths"
+
+\end_inset
+
+ we define a variant of first-order dynamic logic for use as an epistemic
+ path language, a show how to encode it in the situation calculus.
+ Subsection 
+\begin_inset LatexCommand ref
+reference "sub:Synchronous-Epistemic-Fluent"
+
+\end_inset
+
+ develops a syncrhonous account of knowledge, assuming that there are no
+ hidden actions.
+ We develop regression rules for this version and prove that they respect
+ the semantics of the epistemic path language.
+ Subsection 
+\begin_inset LatexCommand ref
+reference "sub:Introducing-Hidden-Actions"
+
+\end_inset
+
+ introduces hidden actions by explicitly representing them as a special
+ action term, and shows how a fixpoint construction can reason about arbitrarily
+-long sequences of hidden actions.
+ We then relate our construction back to the results of Section 
+\begin_inset LatexCommand ref
+reference "sec:Obs-Knowledge"
+
+\end_inset
+
+ by showing that in the case of a single agent, this fixpoint construction
+ precisely matches that produced by the persistence condition in equation
+ 
+\begin_inset LatexCommand eqref
+reference "eqn:R_do_c_s"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Subsection
+Epistemic Paths
+\begin_inset LatexCommand label
+name "sub:Epistemic-Paths"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Unlike the work of 
+\begin_inset LatexCommand citet
+key "vanBenthem06lcc"
+
+\end_inset
+
+, we cannot use propositional dynamic logic as our epistemic path language.
+ While we have limited ourselves to finitely many action types, our action
+ types take arguments and we thus have potentially infinitely many individual
+ action instances.
+ To handle this we need some form of quantification in our epistemic path
+ language - in short, we need 
+\emph on
+first-order dynamic logic
+\emph default
+.
+ The variant we use is the dynamic term-modal logic of 
+\begin_inset LatexCommand citet
+key "kooi07dyn_termmodal_logic"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+The presentation we use below is standard in the situation calculus, but
+ unusual for modal logic: we encode the syntax and semantics of our epistemic
+ path language in the language of the situation calculus, using terms to
+ represent formulae, substitutions, and other semantic objects of dynamic
+ logic.
+ The details of this encoding are straightforward but tedious, and are ommitted;
+ the standard treatment is by 
+\begin_inset LatexCommand citet
+key "giacomo00congolog"
+
+\end_inset
+
+.
+ In the following 
+\begin_inset Formula $\phi$
+\end_inset
+
+ will be (the encoding of) a uniform formula, and 
+\begin_inset Formula $\mu$
+\end_inset
+
+ will be (the encoding of) a first-order substitution.
+\end_layout
+
+\begin_layout Standard
+First, we must specify the syntax of our epistemic path language.
+ We will use 
+\begin_inset Formula $\pi$
+\end_inset
+
+ to denote an arbitrary epistemic path expression.
+ 
+\end_layout
+
+\begin_layout DefinitionLbld
+Epistemic\InsetSpace ~
+Path Let 
+\begin_inset Formula $agt$
+\end_inset
+
+ be an 
+\noun on
+Agent 
+\noun default
+term, 
+\begin_inset Formula $\phi$
+\end_inset
+
+ a uniform formula, 
+\begin_inset Formula $x$
+\end_inset
+
+ a variable and 
+\begin_inset Formula $t$
+\end_inset
+
+ a term, then the epistemic path terms 
+\begin_inset Formula $\pi$
+\end_inset
+
+ are the smallest set matching the following structural rules:
+\begin_inset Formula \[
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\, x:=t\,|\,\exists x\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The test (
+\begin_inset Formula $?$
+\end_inset
+
+), sequence (
+\begin_inset Formula $;$
+\end_inset
+
+), choice (
+\begin_inset Formula $\cup$
+\end_inset
+
+) and transitive closure (
+\begin_inset Formula $^{*}$
+\end_inset
+
+) operators are standard in dynamic logic and have the same meaning as in
+ LCC.
+ The two additional operators allow the value of variables to change during
+ path traversal: 
+\begin_inset Formula $x:=t$
+\end_inset
+
+ sets the variable 
+\begin_inset Formula $x$
+\end_inset
+
+ to the specific term 
+\begin_inset Formula $t$
+\end_inset
+
+, while 
+\begin_inset Formula $\exists x$
+\end_inset
+
+ non-deterministically binds 
+\begin_inset Formula $x$
+\end_inset
+
+ to some value.
+\end_layout
+
+\begin_layout Standard
+It's worth reviewing again the purpose of this language.
+ Despite utilising the syntax of dynamic logic, it is 
+\emph on
+not
+\emph default
+ related to actions in any way.
+ Rather it expresses complex 
+\emph on
+epistemic
+\emph default
+ paths, and will be interpreted over the epistemic frame generated by the
+ various 
+\begin_inset Formula $K(agt,s',s)$
+\end_inset
+
+ relations.
+ To make this clear, here is some standard kinds of knowledge would be expressed
+ using the standard account of knowledge, and using these epistemic modalities:
+\end_layout
+
+\begin_layout Itemize
+Individual Knowledge: 
+\begin_inset Formula $\Knows(agt,\phi,s)\,\,\,\,\Rightarrow\,\,\,\,\Knows(agt,\phi,s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Nested Knowledge: 
+\begin_inset Formula $\Knows(agt_{1},\Knows(agt_{2},\phi),s)\,\,\,\,\Rightarrow\,\,\,\,\Knows(agt_{1};agt_{2},\phi,s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Joint Knowledge: 
+\begin_inset Formula $\Knows(agt_{1},\phi,s)\,\wedge\,\Knows(agt_{2},\phi,s)\,\,\,\,\Rightarrow\,\,\,\,\Knows(agt_{1}\cup agt_{2},\phi,s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Common Knowledge: 
+\begin_inset Formula $\CKnows(G,\phi,s)\,\,\,\,\Rightarrow\,\,\,\,\Knows((\bigcup_{agt\in G}agt)^{*},\phi,s)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As discussed above, the first step in this formalisation is to treat only
+ the case of 
+\emph on
+syncrhonous
+\emph default
+ knowledge - that is, knowledge when everyone is aware that an action has
+ occurred.
+ To this end, we extend the notation of Section 
+\begin_inset LatexCommand ref
+reference "sec:Obs-Knowledge"
+
+\end_inset
+
+ and let 
+\begin_inset Formula $K_{0}(agt,s'',s)$
+\end_inset
+
+ (with corresponding macro 
+\begin_inset Formula $\KnowsZ(agt,\phi,s)$
+\end_inset
+
+) denote the synchronous knowledge of an agent in situation 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ Given synchronicity, the successor state axiom for this fluent is straightforwa
+rd:
+\begin_inset Formula \begin{multline}
+K_{0}(agt,s'',do(a,s))\equiv\\
+\exists s',a':\, s''=do(a',s')\wedge Poss(a',s')\wedge obs(agt,a,s)=obs(agt,a',s')\wedge K_{0}(agt,s',s)\label{eq:K0_ssa}\end{multline}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now, formulae of first-order dynamic logic are interpreted relative to both
+ a 
+\begin_inset Quotes eld
+\end_inset
+
+current world
+\begin_inset Quotes erd
+\end_inset
+
+ and a 
+\begin_inset Quotes eld
+\end_inset
+
+current substitution
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset LatexCommand citep
+key "kooi07dyn_termmodal_logic"
+
+\end_inset
+
+.
+ To encode the semantics in the situation calculus, we introduce a new fluent
+ 
+\begin_inset Formula $K_{DL}$
+\end_inset
+
+ that gives a transition-style semantics over pairs 
+\begin_inset Formula $(\mu,s)$
+\end_inset
+
+.
+ As is traditional in the situation calculus, the 
+\begin_inset Quotes eld
+\end_inset
+
+current world
+\begin_inset Quotes erd
+\end_inset
+
+ is the final argument to the fluent.
+\end_layout
+
+\begin_layout DefinitionLbld
+Epistemic\InsetSpace ~
+Path\InsetSpace ~
+Semantics The semantics of an epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+ are given by the fluent 
+\begin_inset Formula $K_{DL}$
+\end_inset
+
+, defined as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{gather*}
+K_{DL}(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
+K_{DL}(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
+K_{DL}(\pi_{1};\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\exists\mu',s':\, K_{DL}(\pi_{1},\mu',s',\mu,s)\,\wedge\, K_{DL}(\pi_{2},\mu'',s'',\mu',s')\\
+K_{DL}(\pi_{1}\cup\pi_{2},\mu'',s'',\mu,s)\,\equiv\, K_{DL}(\pi_{1},\mu'',s'',\mu,s)\,\vee\, K_{DL}(\pi_{2},\mu'',s'',\mu,s)\\
+K_{DL}(x:=t,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu[x/t]\\
+K_{DL}(\exists x,\mu'',s'',\mu,s)\,\equiv\,\exists z:\, s''=s\,\wedge\,\mu''=\mu[x/z]\\
+\forall P:\,\left[\mathbf{refl}\,\wedge\,\mathbf{tran}\,\wedge\,\mathbf{cont}\right]\rightarrow\left[P(\mu'',s'',\mu,s)\rightarrow K_{DL}(\pi^{*},\mu'',s'',\mu,s)\right]\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where we use the following abbreviations (standing for 
+\begin_inset Quotes eld
+\end_inset
+
+reflexive
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+transitive
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+contains
+\begin_inset Quotes erd
+\end_inset
+
+ respectively) to define 
+\begin_inset Formula $\pi*$
+\end_inset
+
+ as the reflexive transitive closure of 
+\begin_inset Formula $\pi$
+\end_inset
+
+:
+\begin_inset Formula \begin{align*}
+\mathbf{refl}\isdef & \,\, P(\mu,s,\mu,s)\\
+\mathbf{tran\isdef} & \,\,\forall\mu_{1},s_{1},\mu_{2},s_{2}:\, P(\mu_{1},s_{1},\mu,s)\wedge K_{DL}(\pi,\mu_{2},s_{2},\mu_{1},s_{1})\,\rightarrow\, P(\mu_{2},s_{2},\mu,s)\\
+\mathbf{cont}\isdef & \,\,\forall\mu',s':\, K_{DL}(\pi,\mu',s',\mu,s)\,\rightarrow\, P(\mu',s',\mu,s)\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that we require a second-order axiom to express transitive closure.
+\end_layout
+
+\begin_layout Subsection
+A Synchronous Epistemic Fluent
+\begin_inset LatexCommand label
+name "sub:Synchronous-Epistemic-Fluent"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Using 
+\begin_inset Formula $K_{DL}$
+\end_inset
+
+ for the path semantics, we can easily extend the synchronous knowledge
+ fluent 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+ to take epistemic paths are its first argument, rather than only taking
+ agent terms.
+ Let 
+\begin_inset Formula $\mu^{\epsilon}$
+\end_inset
+
+ denote the empty substituion, then:
+\begin_inset Formula \[
+\pi\neq agt\,\rightarrow\,\left[K_{0}(\pi,s'',s)\,\equiv\,\exists\mu:\, K_{DL}(\pi,\mu,s'',\mu^{\epsilon},s)\right]\ \]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The macro 
+\begin_inset Formula $\KnowsZ$
+\end_inset
+
+ can also be extended to epistemic paths in the obvious way:
+\begin_inset Formula \[
+\KnowsZ(\pi,\phi,s)\isdef\forall s':\, K_{0}(\pi,s',s)\,\rightarrow\,\phi[s']\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Definition
+We will denote by 
+\begin_inset Formula $\Dt_{K_{0},\pi}$
+\end_inset
+
+ the axioms developed above for syncrhonous complex epistemic modalities.
+\end_layout
+
+\begin_layout Standard
+Now, we are in a similar position to Section 
+\begin_inset LatexCommand ref
+reference "sub:Knowledge-and-Observation"
+
+\end_inset
+
+: we have defined a knowledge fluent, and given axioms for how it should
+ behave, but these axioms are not in the correct form to include in a basic
+ action theory.
+ To overcome this, we define a regression rule for 
+\begin_inset Formula $\KnowsZ(\pi,\phi,s)$
+\end_inset
+
+ expressions and prove that it respects the semantics of 
+\begin_inset Formula $\Dt_{K_{0},\pi}$
+\end_inset
+
+.
+ It is here that we incorporate the second big idea from LCC - use a syntactic
+ transform to encode the effects of actions within epistemic paths as well
+ as in primitive formulae.
+ Mirrorring LCC, we introduce another meta-operator 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ for this purpose.
+\end_layout
+
+\begin_layout Standard
+First, some notation.
+ We assume that the domain 
+\begin_inset Formula $\Dt$
+\end_inset
+
+ contains 
+\begin_inset Formula $n$
+\end_inset
+
+ distinct action types, which we shall denote 
+\begin_inset Formula $A_{0}$
+\end_inset
+
+ through 
+\begin_inset Formula $A_{n-1}$
+\end_inset
+
+.
+ We will use 
+\begin_inset Formula $\vars{x}$
+\end_inset
+
+ to stand for a vector of (enodings of) variables and use 
+\begin_inset Formula $\vars{x}:=\vars{y}$
+\end_inset
+
+ and 
+\begin_inset Formula $\exists\vars{x}$
+\end_inset
+
+ as syntactic shortcuts for a series of individual variable assignments.
+\end_layout
+
+\begin_layout Standard
+Now let us consider the required operation of 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ by analogy to the standard regression operator 
+\begin_inset Formula $\Reg$
+\end_inset
+
+.
+ One can think of regression as a 
+\begin_inset Quotes eld
+\end_inset
+
+pre-encoding
+\begin_inset Quotes erd
+\end_inset
+
+ of the effects of an action: 
+\begin_inset Formula $\phi$
+\end_inset
+
+ will hold in 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ if and only if 
+\begin_inset Formula $\Reg(\phi,a)$
+\end_inset
+
+ holds in 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ The path regressor 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ needs to lift this idea to epistemic paths as follows: there is a 
+\begin_inset Formula $\pi$
+\end_inset
+
+-path from 
+\begin_inset Formula $do(a,s)$
+\end_inset
+
+ to 
+\begin_inset Formula $do(a',s')$
+\end_inset
+
+ if and only if there is a 
+\begin_inset Formula $\Trn(\pi,a,a')$
+\end_inset
+
+-path from 
+\begin_inset Formula $s$
+\end_inset
+
+ to 
+\begin_inset Formula $s'$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Before giving the definition for this operator, let us show how it will
+ be used.
+ The clause for regressing a complex epistemic modality will be: 
+\begin_inset Formula \begin{equation}
+\Reg(\KnowsZ(\pi,\phi,do(a,s)))\,\isdef\,\bigwedge_{i=0}^{n-1}\forall\vars{x}:\,\KnowsZ(\Trn(\pi,a,A_{i}(\vars{x})),\Reg(\phi,A_{i}(\vars{x})),s)\label{eq:R_pi}\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We consider each action type 
+\begin_inset Formula $A_{i}(\vars{x})$
+\end_inset
+
+ in turn, using 
+\begin_inset Formula $\Trn(\pi,a,A_{i}(\vars{x}))$
+\end_inset
+
+ to identify the conditions under which 
+\begin_inset Formula $A_{i}(\vars{x})$
+\end_inset
+
+ could be confused for 
+\begin_inset Formula $a$
+\end_inset
+
+, and standard regression to encode the effects of 
+\begin_inset Formula $A_{i}(\vars{x})$
+\end_inset
+
+ into 
+\begin_inset Formula $\phi$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Now, in order to accomplish its task, the path regressor will need to make
+ various assertions about the action that is to be performed in each situation
+ traversed by the path.
+ In LCC this was tracked implicitly, since propositional dynamic logic has
+ no way to express this stateful information.
+ By moving to first-order dynamic logic, we can use a variable for this
+ purpose.
+ As well as making the presentation more concise, we avoid the need to resort
+ to a Kleene-style argument for handling the iteration operator.
+ So the basic operation of 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ will be:
+\end_layout
+
+\begin_layout Itemize
+introduce a fresh variable 
+\begin_inset Formula $x_{a}$
+\end_inset
+
+ to hold the action that will be performed in the current situation
+\end_layout
+
+\begin_layout Itemize
+whenever the path traverses to a new situation, use 
+\begin_inset Formula $\exists x_{a}$
+\end_inset
+
+ to select a new action to be performed there
+\end_layout
+
+\begin_layout Itemize
+at the beginning and end of the path, bind 
+\begin_inset Formula $x_{a}$
+\end_inset
+
+ to a specific action type
+\end_layout
+
+\begin_layout DefinitionLbld
+Epistemic\InsetSpace ~
+Path\InsetSpace ~
+Regressor
+\begin_inset LatexCommand label
+name "def:EpistemicPathRegression"
+
+\end_inset
+
+ The epistemic path regressor 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ operates according to the definitions below, where 
+\begin_inset Formula $x_{a}$
+\end_inset
+
+ and 
+\begin_inset Formula $z$
+\end_inset
+
+ are fresh variables not appearing in 
+\begin_inset Formula $\pi$
+\end_inset
+
+ :
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{align*}
+\Trn(agt,A_{i}(\vars{x}),A_{j}(\vars{y}))\,\isdef\,\, & x_{a}:=A_{i}(\vars{x})\,;\,\TrnA(\pi,x_{a})\,;\, x_{a}:=A_{j}(\vars{y})\\
+\\\TrnA(agt,x)\,\isdef\,\, & \exists z\,;\,?obs(agt,x)=z\,;\,\exists x\,;\, agt\,;\,?obs(agt,x)=z\,;\,?Poss(x)\\
+\TrnA(?\phi,x)\isdef\,\, & \Reg(\phi,x)\\
+\TrnA(\exists y,x)\isdef\,\, & \exists z\\
+\TrnA(y:=t,x)\isdef\,\, & y:=t\\
+\TrnA(\pi_{1};\pi_{2},x)\isdef\,\, & \begin{array}{c}
+\TrnA(\pi_{1},x)\,;\,\TrnA(\pi_{2},x)\end{array}\\
+\TrnA(\pi_{1}\cup\pi_{2},x)\isdef\,\, & \TrnA(\pi_{1},x)\cup\TrnA(\pi_{2},x)\\
+\TrnA(\pi^{*},x)\isdef\,\, & \TrnA(\pi,x)^{*}\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The following theorem states that these definitions behave has desired,
+ respecting the semantics of the epistemic paths:
+\end_layout
+
+\begin_layout Theorem
+\begin_inset LatexCommand label
+name "thm:Trn-respects-epi-paths"
+
+\end_inset
+
+For any epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+ and action 
+\begin_inset Formula $a$
+\end_inset
+
+:
+\begin_inset Formula \begin{gather*}
+\Dt\cup\Dt_{K_{0},\pi}\,\models\, K_{0}(\pi,s'',do(a,s))\,\equiv\,\bigvee_{i=0}^{n-1}\exists\vars{x},s':\, s''=do(A_{i}(\vars{x}),s')\wedge K_{0}(\Trn(\pi,a,A_{i}(\vars{x})),s',s)\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout ProofSketch
+The proof proceeds by cases, covering each path operator in turn.
+ In the case of a single agent the theorem is a direct consequence of equation
+ 
+\begin_inset LatexCommand eqref
+reference "eq:K0_ssa"
+
+\end_inset
+
+.
+ The other operators are straightforward using the definitions of 
+\begin_inset Formula $K_{DL}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Given that 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ respects the semantics of our epistemic path language, we are free to use
+ it to define the regression of a complex epistemic modality.
+ The definition given in equation 
+\begin_inset LatexCommand eqref
+reference "eq:R_pi"
+
+\end_inset
+
+ is justified by the following theorem:
+\end_layout
+
+\begin_layout Theorem
+For any epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+ and action 
+\begin_inset Formula $a$
+\end_inset
+
+:
+\begin_inset Formula \begin{gather*}
+\Dt\cup\Dt_{K_{0},\pi}\,\models\,\KnowsZ(\pi,\phi,do(a,s))\,\equiv\,\bigwedge_{i=0}^{n-1}\forall\vars{x}:\,\KnowsZ(\Trn(\pi,a,A_{i}(\vars{x})),\Reg(\phi,A_{i}(\vars{x})),s)\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Expanding the definition of the 
+\begin_inset Formula $\KnowsZ$
+\end_inset
+
+ macro gives 
+\begin_inset Formula $\forall s':\, K_{0}(\pi,s',do(a,s))\rightarrow\phi[s'].$
+\end_inset
+
+ Substituting the right-hand side of the equivalence in Theorem 
+\begin_inset LatexCommand eqref
+reference "thm:Trn-respects-epi-paths"
+
+\end_inset
+
+ for 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+, the enclosing universal quantification transforms the 
+\begin_inset Formula $\bigvee\exists$
+\end_inset
+
+ prefix into 
+\begin_inset Formula $\bigwedge\forall$
+\end_inset
+
+ to give the required equivalence.
+ 
+\end_layout
+
+\begin_layout Subsection
+Introducing Hidden Actions
+\begin_inset LatexCommand label
+name "sub:Introducing-Hidden-Actions"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We now have a powerful account of multi-agent knowledge for synchronous
+ domains, but it remains to combine this with our handling of arbitrarily-long
+ sequences of hidden actions.
+ We develop support for hidden actions entirely at the meta-level, defining
+ it directly in the operation of the regression operator.
+\end_layout
+
+\begin_layout Standard
+First, we introduce a special action term 
+\begin_inset Formula $\varepsilon$
+\end_inset
+
+, which should be read as 
+\begin_inset Quotes eld
+\end_inset
+
+nothing happens
+\begin_inset Quotes erd
+\end_inset
+
+.
+ It has no preconditions, no effects, and results in no observations for
+ any agent.
+\end_layout
+
+\begin_layout Definition
+Let the basic action theory 
+\begin_inset Formula $\Dt$
+\end_inset
+
+ have 
+\begin_inset Formula $n$
+\end_inset
+
+ action terms.
+ Then denote by 
+\begin_inset Formula $\Dt_{\varepsilon}$
+\end_inset
+
+ the extension of 
+\begin_inset Formula $\Dt$
+\end_inset
+
+ with the special action 
+\begin_inset Formula $\varepsilon$
+\end_inset
+
+ as its 
+\begin_inset Formula $(n+1)$
+\end_inset
+
+th action, adding the following definitions to 
+\begin_inset Formula $\Dt_{ad}$
+\end_inset
+
+: 
+\begin_inset Formula \begin{gather*}
+Poss(\varepsilon,s)\equiv\top\\
+obs(agt,\varepsilon,s)=\{\}\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We will use this special action term to simulate agents reasoning about
+ hypothetical futures in which they make no more observations, by inserting
+ these empty actions after the action action in a situation term.
+\end_layout
+
+\begin_layout Definition
+Define 
+\begin_inset Formula $\mathcal{E}^{n}(s)$
+\end_inset
+
+ to be 
+\begin_inset Formula $s$
+\end_inset
+
+ followed by 
+\begin_inset Formula $n$
+\end_inset
+
+ empty actions, as follows:
+\begin_inset Formula \[
+\mathcal{E}^{0}(s)=s\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\mathcal{E}^{1}(s)=do(\varepsilon,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\varepsilon,do(\varepsilon,...,do(\varepsilon,s)))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The intuition here is that we want 
+\begin_inset Formula $\Knows(\pi,\phi)$
+\end_inset
+
+ to hold if 
+\begin_inset Formula $\KnowsZ(\pi,\phi)$
+\end_inset
+
+ holds after allowing for any number of empty actions.
+ Formally, we want to use the following infinite conjunction as the definition
+ of 
+\begin_inset Formula $\Knows(\pi,\phi,do(a,s))$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Reg(\Knows(\pi,\phi,do(a,s)))\isdef\bigwedge_{n\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{n}(do(a,s)))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This section is devoted to establishing the validity of this defnition.
+\end_layout
+
+\begin_layout Lemma
+For any epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+: 
+\begin_inset Formula \[
+\Dt_{\varepsilon}\cup\Dt_{K_{0},\pi}\models\,\KnowsZ(\pi,\phi,\mathcal{E}^{1}(s))\rightarrow\KnowsZ(\pi,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout ProofSketch
+By a case analysis on the definition of 
+\begin_inset Formula $\Trn$
+\end_inset
+
+, we determine that that path 
+\begin_inset Formula $\Trn(\pi,\varepsilon,\varepsilon)$
+\end_inset
+
+ is a superset of the path 
+\begin_inset Formula $\pi$
+\end_inset
+
+.
+ Since 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $\Reg(\phi,\varepsilon)=\phi$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+ always, one of the conjuncts in the regression of 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $\KnowsZ(\pi,\phi,\mathcal{E}^{1}(s))$
+\end_inset
+
+ will be 
+\begin_inset Formula $\KnowsZ(\Trn(\pi,\varepsilon,\varepsilon),\phi,s)$
+\end_inset
+
+.
+ Since the path 
+\begin_inset Formula $\Trn(\pi,\varepsilon,\varepsilon)$
+\end_inset
+
+ is a superset of 
+\begin_inset Formula $\pi$
+\end_inset
+
+, this implies 
+\begin_inset Formula $\KnowsZ(\pi,\phi,s)$
+\end_inset
+
+ as required.
+\end_layout
+
+\begin_layout Lemma
+For any epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+, if there is some 
+\begin_inset Formula $n\in\mathbb{N}$
+\end_inset
+
+ such that:
+\begin_inset Formula \[
+\Dt_{\varepsilon}\cup\Dt_{K_{0},\pi}\models\,\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\rightarrow\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n+1}(s))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then:
+\begin_inset Formula \[
+\Dt_{\varepsilon}\cup\Dt_{K_{0},\pi}\models\,\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\,\equiv\,\bigwedge_{m\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{m}(s))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+By the above lemma, 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n+1}(s))\rightarrow\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))$
+\end_inset
+
+ always.
+ So for this particular 
+\begin_inset Formula $n$
+\end_inset
+
+, the implication is in fact an equivalence.
+ We then have 
+\begin_inset Formula $\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\rightarrow\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{m}(s))$
+\end_inset
+
+ for 
+\begin_inset Formula $m<n$
+\end_inset
+
+, and 
+\begin_inset Formula $\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\equiv\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{m}(s))$
+\end_inset
+
+ for 
+\begin_inset Formula $m\geq n$
+\end_inset
+
+, which is enough to establish the infinite conjunction as required.
+\end_layout
+
+\begin_layout Standard
+We can thus use the following regression definition, knowing that the infinite
+ conjunction can be computed using a fixpoint calculation:
+\begin_inset Formula \[
+\Reg(\Knows(\pi,\phi,do(a,s)))\,\isdef\,\bigwedge_{n\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{n}(do(a,s)))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+The Link with Individual Knowledge
+\end_layout
+
+\begin_layout Standard
+The last remaining link is perhaps most important of all: showing that this
+ new account of knowledge actually captures the knowledge of the agents,
+ according to the semantics of individual knowledge developed in Section
+ 
+\begin_inset LatexCommand eqref
+reference "sec:Obs-Knowledge"
+
+\end_inset
+
+.
+ The following theorem established this important link - that the individual
+ knowledge of an agent is the same using complex epistemic modalities as
+ when using ordinary knowledge:
+\end_layout
+
+\begin_layout Theorem
+Let 
+\begin_inset Formula $\Dt$
+\end_inset
+
+ be an arbitrary basic action theory, then for any 
+\begin_inset Formula $agt$
+\end_inset
+
+, 
+\begin_inset Formula $\phi$
+\end_inset
+
+ and 
+\begin_inset Formula $s$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Theorem
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,obs}\,\models\,\Knows(agt,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Theorem
+if and only if
+\begin_inset Formula \[
+\Dt_{\varepsilon}\cup\Dt_{K_{0},\pi}\,\models\,\Knows(agt,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Begin by considering the sequence of calculations made in regressing 
+\begin_inset Formula $\KnowsZ(agt,\phi,\mathcal{E}^{1}(s))$
+\end_inset
+
+.
+ First, we perform some simplification on 
+\begin_inset Formula $\Trn$
+\end_inset
+
+:
+\begin_inset Formula \begin{align*}
+\Trn(agt,\varepsilon,A_{i}(\vars{x}))=\,\,\, & x_{a}:=\varepsilon\,;\,\exists z\,;\,?obs(agt,x_{a})=z\,;\,\exists x_{a}\\
+ & \,\,\,\,\,\,\,;\, agt\,;\,?obs(agt,x_{a})=z\,;\,?Poss(x_{a})\,;\, x_{a}:=A_{i}(\vars{x})\\
+=\,\,\, & \exists z\,;\,?obs(agt,\varepsilon)=z\,;\, agt\,;\,?objs(agt,A_{i}(\vars{x}))=z\,;\,?Poss(A_{i}(\vars{x}))\\
+=\,\,\, & agt\,;\,?obs(agt,A_{i}(\vars{x}))=\{\}\wedge Poss(A_{i}(\vars{x}))\\
+=\,\,\, & agt\,;\,?PbU(agt,A_{i}(\vars{x}))\end{align*}
+
+\end_inset
+
+ Now we can use this in the regression of 
+\begin_inset Formula $\KnowsZ(agt,\phi,\mathcal{E}^{1}(s))$
+\end_inset
+
+.
+ Note that since this regression is with respect to 
+\begin_inset Formula $\Dt_{\varepsilon}$
+\end_inset
+
+, actions range up the 
+\begin_inset Formula $n$
+\end_inset
+
+ rather than 
+\begin_inset Formula $n-1$
+\end_inset
+
+, with the final action being 
+\begin_inset Formula $\varepsilon$
+\end_inset
+
+
+\begin_inset Formula \begin{align*}
+\KnowsZ(agt,\phi,\mathcal{E}^{1}(s))\equiv\,\, & \bigwedge_{i=0}^{n}\forall\vars{x}:\,\KnowsZ(\Trn(\pi,\varepsilon,A_{i}(\vars{x})),\Reg(\phi,A_{i}(\vars{x})),s)\\
+\equiv\,\, & \bigwedge_{i=0}^{n}\forall\vars{x}:\,\KnowsZ(agt;?PbU(agt,A_{i}(\vars{x})),\Reg(\phi,A_{i}(\vars{x})),s)\\
+\equiv\,\, & \KnowsZ(agt,\phi,s)\,\,\wedge\\
+ & \,\,\,\,\,\,\bigwedge_{i=0}^{n-1}\forall\vars{x}:\,\KnowsZ(agt,PbU(agt,A_{i}(\vars{x}))\rightarrow\Reg(\phi,A_{i}(\vars{x})),s)\\
+\equiv\,\, & \KnowsZ(agt,\phi\wedge\forall a:\, PbU(agt,a)\rightarrow\Reg(\phi,a),s)\\
+\equiv\,\, & \KnowsZ(agt,\Pst^{1}(\phi,PbU(agt)),s)\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Using the same construction, we can show that in general:
+\begin_inset Formula \begin{align*}
+\KnowsZ(agt,\phi,\mathcal{E}^{n}(s))\equiv\,\, & \KnowsZ(agt,\Pst^{1}(\phi,PbU(agt)),\mathcal{E}^{n-1}(s))\\
+\equiv\,\, & \KnowsZ(agt,\Pst^{n}(\phi,PbU(agt)),s)\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Clearly the fixpoint calculation used to find 
+\begin_inset Formula $n$
+\end_inset
+
+ such that 
+\begin_inset Formula $\KnowsZ(agt,\phi,\mathcal{E}^{n}(s))\rightarrow\KnowsZ(agt,\phi\mathcal{E}^{n+1}(s))$
+\end_inset
+
+ is the same as the fixpoint calculation used to find 
+\begin_inset Formula $\Pst(\phi,PbU(agt))$
+\end_inset
+
+.
+ Therefore, we have:
+\begin_inset Formula \[
+\Dt_{\varepsilon}\cup\Dt_{K_{0},\pi}\,\models\,\Knows(agt,\phi,do(a,s))\,\equiv\,\KnowsZ(agt,\Pst(\phi,PbU(agt)),do(a,s))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Regressing the right-hand side:
+\begin_inset Formula \begin{align*}
+\Knows(agt,\phi,do(a,s))\,\equiv\,\, & \bigwedge_{i=0}^{n}\forall\vars{x}:\,\KnowsZ(\Trn(agt,a,A_{i}(\vars{x})),\Reg(\Pst(\phi,PbU(agt)),A_{i}(\vars{x})),s)\\
+\equiv\,\,\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Now, since 
+\begin_inset Formula $\varepsilon$
+\end_inset
+
+ has no preconditions and no effects, the calculation of 
+\begin_inset Formula $\Pst(\phi,PbU(agt))$
+\end_inset
+
+ under 
+\begin_inset Formula $\Dt_{\varepsilon}$
+\end_inset
+
+ will be identical to that under 
+\begin_inset Formula $\Dt$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Section
+Simplifying the Reasoning Procedure
+\begin_inset LatexCommand label
+name "sec:Simplifying-Reasoning"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+reasoning procedure: undecidable in general case! Need a decidable domian.
+ Here are some things we can do to help the situation:
+\end_layout
+
+\begin_layout Subsection
+Propositionality
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $K_{DL}$
+\end_inset
+
+ reduces to the semantics of propositional dynamic logic, which is decidable.
+\end_layout
+
+\begin_layout Subsection
+Synchronicity
+\end_layout
+
+\begin_layout Standard
+By equipping agents with a global clock tick, the persistence condition
+ is no longer required.
+ Since this is the biggest source for computational complexity, that's a
+ big win! 
+\end_layout
+
+\begin_layout Subsection
+Observability
+\end_layout
+
+\begin_layout Standard
+Ensure that the update frame is weakly connected, so that most 
+\begin_inset Formula $\Trn(\pi,a_{i},a_{j})$
+\end_inset
+
+ are vacuously false.
 \newline
+
+\end_layout
+
+\begin_layout Section
+Related Work
+\begin_inset LatexCommand label
+name "sec:Related-Work"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand cite
+key "morgenstern90knowledge"
+
+\end_inset
+
+ - hidden actions, appeals to motivated action theory.
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand cite
+key "delgrande01sitcalc_cleudo"
+
+\end_inset
+
+ - shows that common knowledge is useful, but appeals to a (non-existent)
+ solution from elsewhere
+\end_layout
+
+\begin_layout Standard
+clearly the long lineage of 
+\begin_inset LatexCommand cite
+key "baltag99epi_act_structures"
+
+\end_inset
+
+, 
+\begin_inset LatexCommand cite
+key "vanBenthem06lcc"
+
+\end_inset
+
+ that have developed the basis of these techniques.
+ 
+\begin_inset LatexCommand cite
+key "moss05iter_pal"
+
+\end_inset
+
+ Iterated PAL is undecidable.
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand cite
+key "vanBentham06epi_temporal_logic"
+
+\end_inset
+
+ big discussion and comparison on epistemic temporal logics.
+ defines notion of 
+\begin_inset Quotes eld
+\end_inset
+
+synchronised
+\begin_inset Quotes erd
+\end_inset
+
+ system that we use above.
+\end_layout
+
+\begin_layout Standard
+An alternate formulation due to 
+\begin_inset LatexCommand cite
+key "Lesperance99sitcalc_approach"
+
+\end_inset
+
+ assumes the opposite extreme, that agents are only aware of the actions
+ that they themselves perform:
+\begin_inset Formula \begin{align}
+K(agt,s'',do(a,s))\equiv\,\,\, & \exists s':\, K(agt,s',s)\nonumber \\
+ & \wedge\,(actor(a)\neq agt\,\rightarrow\, s'\leq_{actor(a)\neq agt}s''))\label{eq:k_ssa_exo}\\
+ & \wedge\,(actor(a)=agt\,\rightarrow\,\exists s^{*}:\,\left[s'\leq_{actor(a)=agt}s^{*}\wedge\right.\nonumber \\
+ & \,\,\,\,\,\,\,\,\,\,\,\,\left.s''=do(a,s^{*})\wedge Poss(a,s^{*})\wedge sr(a,s)=sr(a,s^{*}))\right]\nonumber \end{align}
+
+\end_inset
+
+ Here agents consider possible any situation compatible with the actions
+ that they themselves have performed.
+ There may have been an arbitrary sequence of situations between 
+\begin_inset Formula $s'$
+\end_inset
+
+ and 
+\begin_inset Formula $s''$
+\end_inset
+
+ of which the agent was unaware, because they consisted entirely of exogenous
+ actions (that is, actions where 
+\begin_inset Formula $actor(a)\neq agt$
+\end_inset
+
+).
+ Agents are thus totally ignorant of the actions performed by others.
+\end_layout
+
+\begin_layout Definition
+We will denote by 
+\begin_inset Formula $\Dt_{K,exo}$
+\end_inset
+
+ the axioms for the 
+\begin_inset Quotes eld
+\end_inset
+
+total ignorance
+\begin_inset Quotes erd
+\end_inset
+
+ account of knowledge due to 
+\begin_inset LatexCommand citet
+key "Lesperance99sitcalc_approach"
+
+\end_inset
+
+, as detailed in equations (
+\begin_inset LatexCommand ref
+reference "eq:k_ssa_exo"
+
+\end_inset
+
+,
+\begin_inset LatexCommand ref
+reference "eq:k_s0_standard"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+This approach is also limiting, in that agents can 
+\emph on
+never
+\emph default
+ be aware of the actions performed by others.
+ Consider our example of agents occupying a building who are aware of all
+ actions performed in the same room, or even the simple case of an agent
+ being aware that another agent has collided with it; full generality requires
+ that agents can be aware of 
+\emph on
+some
+\emph default
+ of the actions performed by others.
+\end_layout
+
+\begin_layout Standard
+Furthermore, suppose that 
+\begin_inset Formula $agt$
+\end_inset
+
+ has just performed action 
+\begin_inset Formula $a_{1}$
+\end_inset
+
+, so the world is in some situation 
+\begin_inset Formula $do(a_{1},s)$
+\end_inset
+
+.
+ Another agent then performs the action 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+, leaving the world in situation 
+\begin_inset Formula $do(a_{2},do(a_{1},s))$
+\end_inset
+
+.
+ Since it is not aware of the occurrence of 
+\begin_inset Formula $a_{2}$
+\end_inset
+
+, 
+\begin_inset Formula $agt$
+\end_inset
+
+ cannot be aware that the state of the world has changed.
+ Its knowledge should therefore remain unchanged.
+ Unfortunately this is not the case under this formulation:
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,exo}\not\models actor(a_{2})\neq agt\rightarrow K(agt,s',do(a_{2},do(a_{1},s)))\equiv K(agt,s',do(a_{1},s))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To faithfully represent this aspect of knowledge, the successor state axiom
+ for 
+\begin_inset Formula $K$
+\end_inset
+
+ must consider any 
+\emph on
+future
+\emph default
+ that can be brought about by exogenous actions, rather than any 
+\emph on
+past
+\emph default
+ as done in equation (
+\begin_inset LatexCommand ref
+reference "eq:k_ssa_exo"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Section
+Future Work
+\begin_inset LatexCommand label
+name "sec:Future-Work"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Decidability and effectiveness guarantees.
+\end_layout
+
+\begin_layout Standard
+Concurrent actions.
+\end_layout
+
+\begin_layout Section
+Conclusions
+\begin_inset LatexCommand label
+name "sec:Conclusions"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+hooray for us, this is a great paper :-)
+\end_layout
+
+\begin_layout Section
+\start_of_appendix
+Proofs
+\end_layout
+
+\begin_layout Standard
 
 \end_layout
 
@@ -3106,663 +6514,6 @@ reference "eqn:new_k_ssa"
 ) and so the equivalence holds.
 \end_layout
 
-\begin_layout Subsection
-Axiomatizing Observations
-\end_layout
-
-\begin_layout Standard
-Let us begin by considering again the standard account of knowledge due
- to 
-\begin_inset LatexCommand cite
-key "scherl03sc_knowledge"
-
-\end_inset
-
-.
- Its basic assumption that 
-\begin_inset Quotes eld
-\end_inset
-
-all agents are aware of all actions
-\begin_inset Quotes erd
-\end_inset
-
- may be rephrased as 
-\begin_inset Quotes eld
-\end_inset
-
-when an action occurs, all agents will observe that action
-\begin_inset Quotes erd
-\end_inset
-
-.
- Allowing the 
-\noun on
-Observations
-\noun default
- sort to contain 
-\noun on
-Action
-\noun default
- terms, this assumption is akin to the following assertion about the 
-\begin_inset Formula $obs()$
-\end_inset
-
- function:
-\begin_inset Formula \begin{equation}
-a'\in obs(agt,a,s)\equiv a=a'\label{eq:ax_obs_std1}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-What about sensing information? We can extend the 
-\noun on
-Observations
-\noun default
- sort to contain terms of the form 
-\emph on
-
-\begin_inset Formula $(Action=Result)$
-\end_inset
-
-
-\emph default
- and axiomatize like so:
-\begin_inset Formula \begin{equation}
-(a'=r)\in obs(agt,a,s)\equiv a=a'\wedge SR(a,s)=r\wedge agent(a)=agt\label{eq:ax_obs_std2}\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using these definitions, our new account of knowledge will behave identically
- to the standard account:
-\end_layout
-
-\begin_layout Theorem
-Suppose 
-\begin_inset Formula $\mathcal{D}_{K,obs}$
-\end_inset
-
- uses equations (
-\begin_inset LatexCommand ref
-reference "eq:ax_obs_std1"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eq:ax_obs_std2"
-
-\end_inset
-
-) to define the 
-\begin_inset Formula $obs()$
-\end_inset
-
- function, then for any situation terms 
-\begin_inset Formula $s$
-\end_inset
-
- and 
-\begin_inset Formula $s'$
-\end_inset
-
-:
-\begin_inset Formula \[
-\Dt\cup\Dt_{K,std}\models K(agt,s',s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\cup\Dt_{K,obs}\models K(agt,s',s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Proof
-Equations (
-\begin_inset LatexCommand ref
-reference "eq:ax_obs_std1"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eq:ax_obs_std2"
-
-\end_inset
-
-) mean 
-\begin_inset Formula $obs(agt,a,s)$
-\end_inset
-
- cannot be empty, so 
-\begin_inset Formula $s\leq_{PbU(agt)}s'$
-\end_inset
-
- iff 
-\begin_inset Formula $s=s'$
-\end_inset
-
-.
- Equations (
-\begin_inset LatexCommand ref
-reference "eqn:new_k_ssa"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eqn:new_k_s0"
-
-\end_inset
-
-) then amount to simple transformations of equations (
-\begin_inset LatexCommand ref
-reference "eq:k_ssa_standard"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eq:k_s0_standard"
-
-\end_inset
-
-) respectively, meaning that 
-\begin_inset Formula $K$
-\end_inset
-
- behaves the same under both theories.
-\end_layout
-
-\begin_layout Standard
-To generalize this for partial observability of actions we introduce a new
- action description predicate, akin to 
-\begin_inset Formula $Poss$
-\end_inset
-
- but describing when actions will be observed by agents: 
-\begin_inset Formula $CanObs(agt,a,s)$
-\end_inset
-
- indicates that agent 
-\begin_inset Formula $agt$
-\end_inset
-
- would observe action 
-\begin_inset Formula $a$
-\end_inset
-
- being performed in situation 
-\begin_inset Formula $s$
-\end_inset
-
-.
- We can then formulate the 
-\begin_inset Formula $obs()$
-\end_inset
-
- function according to:
-\begin_inset Formula \[
-a'\in obs(agt,a,s)\equiv a'=a\wedge CanObs(agt,a,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-There is an additional assumption in the standard handling of sensing actions:
- only the agent performing a sensing action is aware of its result.
- Such a restriction is common but certainly not universal.
- For example, if an agent waiting for a train activates a speaker to determine
- when it will arrive, the result of this sensing action would be available
- to any other agent within earshot.
- We add an analogous predicate 
-\begin_inset Formula $CanSense(agt,a,s)$
-\end_inset
-
- to indicate when sensing information is available to an agent.
- We then include bare action terms in an agent's observations when it observes
- the action but not its result, and 
-\emph on
-(Action=Result)
-\emph default
- terms when it also senses the result:
-\begin_inset Formula \begin{gather*}
-a'\in obs(agt,a,s)\equiv a=a'\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\\
-(a'=r)\in obs(agt,a,s)\equiv a'=a\wedge SR(a,s)=r\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\begin_layout Subsection
-Observing the Effects of Actions
-\end_layout
-
-\begin_layout Standard
-In many domains it would be infeasible for an agent to observe a particular
- action occurring, but it may be able to observe some of the effects of
- that action.
- For example, suppose that an agent monitors the state of a light in its
- environment, such that it notices it changing from dark to light.
- While it knows that 
-\emph on
-some
-\emph default
- action must have occurred to produce that effect, it may not be sure precisely
- what action took place (e.g.
- precisely 
-\emph on
-who
-\emph default
- turned on the light).
-\end_layout
-
-\begin_layout Standard
-This can be modeled by further extending the 
-\noun on
-Observations
-\noun default
- sort.
- Suppose that the observation term 
-\begin_inset Formula $f_{\phi}$
-\end_inset
-
- indicates that a particular property of the world 
-\begin_inset Formula $\phi$
-\end_inset
-
- has changed from false to true and (for simplicity) that this information
- would be available to all agents.
- The following could be used to include this information in an agent's observati
-ons:
-\begin_inset Formula \[
-f_{\phi}\in obs(agt,a,s)\equiv\neg\phi[s]\wedge\Reg(\phi[do(a,s)])\]
-
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Standard
-Note that since we use 
-\begin_inset Formula $obs()$
-\end_inset
-
- as an action description predicate in equation (
-\begin_inset LatexCommand ref
-reference "eqn:PbU_defn"
-
-\end_inset
-
-), we must use regression to ensure that the right-hand side of this equivalence
- refers only to 
-\begin_inset Formula $s$
-\end_inset
-
-.
- Expanding on the example of the light, we might have an axiom like this:
-\begin_inset Formula \[
-lightCameOn\in obs(agt,a,s)\equiv\neg lightIsOn(s)\wedge\exists agt_{2}:\, a=turnLightOn(agt_{2})\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-When the light is switched on, each agent's observation set will contain
- the term 
-\begin_inset Formula $lightCameOn$
-\end_inset
-
-, and they will know that this change has occurred without necessarily knowing
- the action responsible for the change.
- That this powerful new ability is a straightforward extension of our approach
- highlights the flexibility and robustness of the observation-based semantics.
-\end_layout
-
-\begin_layout Subsection
-An Illustrative Example
-\end_layout
-
-\begin_layout Standard
-Consider again a package-processing facility where agents are required to
- move boxes between various rooms.
- There are three actions (
-\begin_inset Formula $pickup$
-\end_inset
-
-, 
-\begin_inset Formula $drop$
-\end_inset
-
- and 
-\begin_inset Formula $move$
-\end_inset
-
-) and two fluents (
-\begin_inset Formula $Holding$
-\end_inset
-
- and 
-\begin_inset Formula $InRoom$
-\end_inset
-
-) whose meanings should be clear.
- There are no sensing actions.
- 
-\end_layout
-
-\begin_layout Standard
-Agents may pickup a box if they are in the same room and no-one is holding
- it.
- They can drop a box they are holding at any time, and can move freely between
- rooms:
-\begin_inset Formula \begin{multline*}
-Poss(pickup(agt,box),s)\equiv\neg\exists agt\,.\, Holding(agt,box,s)\\
-\wedge\exists rm\,.\, InRoom(agt,rm)\wedge InRoom(box,rm)\end{multline*}
-
-\end_inset
-
-
-\begin_inset Formula \[
-Poss(drop(agt,box),s)\equiv Holding(agt,box,s)\]
-
-\end_inset
-
-
-\begin_inset Formula \[
-Poss(move(agt,room),s)\equiv true\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-An agent is holding a box if they picked it up, or were already holding
- it and didn't put it down:
-\begin_inset Formula \begin{multline*}
-Holding(agt,box,do(a,s))\equiv a=pickup(agt,box)\,\vee\\
-Holding(agt,box,s)\wedge a\neq drop(agt,box)\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-An object is in a room if it was taken there, or it was already in that
- room and it was not taken elsewhere:
-\begin_inset Formula \begin{multline*}
-InRoom(obj,rm,do(a,s))\equiv\exists agt:\, a=move(agt,rm)\wedge\\
-\left[obj=agt\vee Holding(agt,obj,s)\right]\,\,\vee\\
-InRoom(obj,rm,s)\wedge\neg\left(\exists agt,rm_{2}:\, a=move(agt,rm_{2})\wedge\right.\\
-\left.rm_{2}\neq rm\wedge\left[obj=agt\vee Holding(agt,obj,s)\right]\right)\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Agents can observe actions performed by an agent in the same room as themselves,
- and can observe agents entering their room:
-\begin_inset Formula \begin{multline*}
-CanObs(agt,a,s)\equiv\exists rm\,.\, InRoom(agt,rm)\wedge\\
-\left(InRoom(agent(a),rm)\,\vee\,\exists agt_{2}\,.\, a=move(agt_{2},rm)\right)\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Initially, Sam is in Room1 with Box1, Max is in Room2 with Box2, and no-one
- is holding any boxes.
- Everyone has complete knowledge of the initial situation:
-\begin_inset Formula \begin{gather*}
-InRoom(Sam,Room1,S_{0})\\
-InRoom(Box1,Room1,S_{0})\\
-InRoom(Max,Room2,S_{0})\\
-InRoom(Box2,Room2,S_{0})\\
-\neg Holding(agt,box,S_{0})\\
-K_{0}(agt,s,S_{0})\equiv s=S_{0}\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The following are examples of knowledge queries that can be posed in our
- formalism, and a brief explanation of their outcome:
-\begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\models\mathbf{Knows}(Sam,\neg Holding(Max,Box1),S_{0})\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Initially, Sam knows that Max is not holding Box1.
- For 
-\begin_inset Formula $Holding(Max,Box1)$
-\end_inset
-
- to be true, he must have picked Box1 up.
- Since Box1 is in the same room as Sam, she would be able to observe him
- doing so.
- Since she has not observed that, she can conclude that 
-\begin_inset Formula $Holding(Max,Box1)$
-\end_inset
-
- is false.
-\begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\models\mathbf{\neg Knows}(Sam,\neg Holding(Max,Box2),S_{0})\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-By contrast, Sam does 
-\emph on
-not
-\emph default
- know that Max is not holding Box2.
- Since Box2 is in a different room, Max could have picked it up without
- her observing the action.
-\begin_inset Formula \begin{multline*}
-\Dt\cup\Dt_{K,obs}\models\mathbf{Knows}(Sam,Holding(Max,Box1),\\
-do(pickup(Max,Box1),do(move(Max,Room1),S_{0}))\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-For Max to put down Box1 without Sam observing anything, he would have to
- first move to a different room.
- Since the action of moving to a different room would be observed by Sam,
- she knows that he must be holding the box.
-\begin_inset Formula \begin{multline*}
-\Dt\cup\Dt_{K,obs}\models\mathbf{\neg Knows}(Sam,Holding(Max,Box1),\\
-do(move(Max,Room2),do(pickup(Max,Box1),do(move(Max,Room1),S_{0})))\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Once Max takes Box1 into a different room, Sam can no longer be sure that
- he is holding it, since he may put it down without her observing anything.
-\end_layout
-
-\begin_layout Subsection
-Regression
-\end_layout
-
-\begin_layout Standard
-The appearance of the 
-\begin_inset Formula $\leq_{PbU(agt)}$
-\end_inset
-
- ordering over situations in equation (
-\begin_inset LatexCommand ref
-reference "eqn:new_k_ssa"
-
-\end_inset
-
-) means that our new successor state axiom universally quantifies over situation
-s, so standard regression techniques cannot be applied.
- We must appeal to the persistence condition meta-operator to transform
- this quantification into a uniform fomrula, so that regression can be applied.
-\end_layout
-
-\begin_layout Standard
-Assuming that the knowledge fluent 
-\begin_inset Formula $K$
-\end_inset
-
- appears only in the context of a 
-\begin_inset Formula $\Knows$
-\end_inset
-
- macro, we propose the following definition for the regression of 
-\begin_inset Formula $\Knows$
-\end_inset
-
-:
-\begin_inset Formula \begin{multline}
-\Reg(\Knows(agt,\phi,do(a,s)))\,\isdef\,\exists o:\, obs(agt,a,s)=o\,\wedge\,\left[o=\{\}\,\rightarrow\,\Knows(agt,\phi,s)\right]\\
-\wedge\left[o\neq\{\}\,\rightarrow\,\Knows(agt,\forall a':\, obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\right.\\
-\left.\Reg(\Pst(\phi,PbU(agt)),a),s)\right]\label{eqn:R_do_c_s}\end{multline}
-
-\end_inset
-
- As required, this reduces a knowledge query at 
-\begin_inset Formula $do(a,s)$
-\end_inset
-
- to a knowledge query at 
-\begin_inset Formula $s$
-\end_inset
-
-.
- It is also intuitively appealing: to know that 
-\begin_inset Formula $\phi$
-\end_inset
-
- holds, the agent must know that in all situations that agree with its observati
-ons, 
-\begin_inset Formula $\phi$
-\end_inset
-
- cannot become false without it making an observation.
-\end_layout
-
-\begin_layout Standard
-We must also specify the regression of 
-\begin_inset Formula $\Knows$
-\end_inset
-
- in the initial situation, as equation (
-\begin_inset LatexCommand ref
-reference "eqn:new_k_s0"
-
-\end_inset
-
-) also quantifies over situations.
- This clause results in standard first-order modal reasoning over the 
-\begin_inset Formula $K_{0}$
-\end_inset
-
- relation, as required by the procedure in 
-\begin_inset LatexCommand cite
-key "scherl03sc_knowledge"
-
-\end_inset
-
-:
-\begin_inset Formula \begin{multline}
-\Reg(\Knows(agt,\phi,S_{0}))\,\isdef\,\KnowsZ(agt,\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),S_{0})\label{eqn:R_s0}\end{multline}
-
-\end_inset
-
- Regression of the additional predicates we have introduced (
-\begin_inset Formula $CanObs$
-\end_inset
-
-, 
-\begin_inset Formula $Observations$
-\end_inset
-
-, etc) is identical to that of 
-\begin_inset Formula $Poss$
-\end_inset
-
- and requires no special treatment here, except to mention that the restriction
- to a finite number of actions allows regression of such predicates even
- when their arguments are variables.
-\end_layout
-
-\begin_layout Standard
-What follows is a proof that our modified regression operator in equations
- (
-\begin_inset LatexCommand ref
-reference "eqn:R_do_c_s"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eqn:R_s0"
-
-\end_inset
-
-) preserves equivalence.
- It proceeds by expanding the definition for 
-\begin_inset Formula $\Knows$
-\end_inset
-
- using our new successor state axiom for 
-\begin_inset Formula $K$
-\end_inset
-
-, collecting sub-formulae that match the form of the 
-\begin_inset Formula $\Knows$
-\end_inset
-
- macro, and using regression and persistence to render the resulting knowledge
- expression uniform in 
-\begin_inset Formula $s$
-\end_inset
-
-.
- Applying persistence to an expansion of 
-\begin_inset Formula $\Knows$
-\end_inset
-
- at the initial situation completes the proof.
-\end_layout
-
 \begin_layout Theorem
 Given a basic action theory 
 \begin_inset Formula $\Dt\cup\Dt_{K,obs}$
@@ -3778,7 +6529,7 @@ Given a basic action theory
 
 , it is always the case that:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\,\phi[do(a,s)]\equiv Reg(\phi[do(a,s)])\]
+\Dt\cup\Dt_{K,obs}\,\models\,\phi[do(a,s)]\equiv\Reg(\phi[do(a,s)])\]
 
 \end_inset
 
@@ -3798,13 +6549,7 @@ We need only consider applications of
 \begin_inset Formula $\Knows(agt,\phi,s)$
 \end_inset
 
-, as other regression clauses are not modified from 
-\begin_inset LatexCommand citep
-key "scherl03sc_knowledge"
-
-\end_inset
-
-.
+, as other regression clauses have not been modified.
  For clarity we define the abbreviation 
 \begin_inset Formula $\mathbf{PEO}(agt,\phi,o,s)$
 \end_inset
@@ -3836,35 +6581,25 @@ persists under equivalent observations
 
 \end_inset
 
- Combining and rearranging equations (
-\begin_inset LatexCommand ref
-reference "eqn:knows_def"
-
-\end_inset
-
-) and (
+ Combining and rearranging equation (
 \begin_inset LatexCommand ref
 reference "eqn:new_k_ssa"
 
 \end_inset
 
-), the definition of 
+) with the definition of the 
 \begin_inset Formula $\Knows$
 \end_inset
 
- at 
-\begin_inset Formula $do(a,s)$
-\end_inset
-
- can be written in the form: 
-\begin_inset Formula \begin{multline*}
-\Knows(agt,\phi,do(a,s))\equiv\exists o\,.\, obs(agt,a,s)=o\\
-\wedge\,\left[o=\{\}\rightarrow\forall s'\,.\, K(agt,s',s)\rightarrow\phi[s']\right]\\
-\wedge\,\left[o\neq\{\}\rightarrow\forall s'\,.\, K(agt,s',s)\rightarrow\mathbf{PEO}(agt,\phi,o,s')\right]\end{multline*}
+ macro we have:
+\begin_inset Formula \begin{align*}
+\Knows(agt,\phi,do(a,s))\equiv\, & \exists o\,.\, obs(agt,a,s)=o\\
+ & \wedge\,\left[o=\{\}\rightarrow\forall s'\,.\, K(agt,s',s)\rightarrow\phi[s']\right]\\
+ & \wedge\,\left[o\neq\{\}\rightarrow\forall s'\,.\, K(agt,s',s)\rightarrow\mathbf{PEO}(agt,\phi,o,s')\right]\end{align*}
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Proof
@@ -3874,11 +6609,10 @@ Noting that both conjuncts contain sub-formulae matching the form of the
 \end_inset
 
  macro, it can be substituted back in to give:
-\begin_inset Formula \begin{multline*}
-\mathbf{Knows}(agt,\phi,do(c,s))\equiv\\
-\exists o\,.\, Observations(agt,c,s)=o\\
-\wedge\,\left[o=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
-\wedge\,\left[o\neq\{\}\rightarrow\mathbf{Knows}(agt,\mathbf{PEO}(agt,\phi,o,s'),s)\right]\end{multline*}
+\begin_inset Formula \begin{align*}
+\mathbf{Knows}(agt,\phi,do(a,s))\equiv\, & \exists o\,.\, Observations(agt,c,s)=o\\
+ & \wedge\,\left[o=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
+ & \wedge\,\left[o\neq\{\}\rightarrow\mathbf{Knows}(agt,\mathbf{PEO}(agt,\phi,o,s'),s)\right]\end{align*}
 
 \end_inset
 
@@ -3897,26 +6631,12 @@ Noting that both conjuncts contain sub-formulae matching the form of the
 .
  Applying the persistence condition and regressing to make the expression
  uniform, we develop the following equivalence:
-\begin_inset Formula \begin{multline*}
-\mathbf{PEO}(agt,\phi,o,s)\equiv\\
-\forall a'\,.\, obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),a')\end{multline*}
+\begin_inset Formula \[
+\mathbf{PEO}(agt,\phi,o,s)\equiv\forall a':\, obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),a')\]
 
 \end_inset
 
- Finally, since the situation variable inside the formula in a 
-\begin_inset Formula $\mathbf{Knows}$
-\end_inset
-
- macro is renamed when the macro is expanded, we can rename 
-\begin_inset Formula $s'$
-\end_inset
-
- to 
-\begin_inset Formula $s$
-\end_inset
-
- to avoid having an additional variable.
- This gives equation (
+ Suppressing the situation term in this uniform formula gives equation (
 \begin_inset LatexCommand ref
 reference "eqn:R_do_c_s"
 
@@ -3943,15 +6663,15 @@ reference "eqn:new_k_s0"
 \end_inset
 
 ) gives:
-\begin_inset Formula \begin{multline*}
-\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s'\,.\, s\leq_{PbU(agt)}s'\rightarrow\phi[s']\right]\end{multline*}
+\begin_inset Formula \[
+\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s'\,.\, s\leq_{PbU(agt)}s'\rightarrow\phi[s']\right]\]
 
 \end_inset
 
  Applying the persistence condition operator, this can easily be re-written
  as:
-\begin_inset Formula \begin{multline*}
-\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\Pst(\phi,PbU(agt))[s]\end{multline*}
+\begin_inset Formula \[
+\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\Pst(\phi,PbU(agt))[s]\]
 
 \end_inset
 
@@ -3980,2236 +6700,6 @@ reference "eqn:R_s0"
 \end_inset
 
 ), as required.
-\end_layout
-
-\begin_layout Standard
-We can thus handle knowledge queries using regression, the standard technique
- for effective reasoning in the situation calculus.
-\end_layout
-
-\begin_layout Subsection
-Reasoning from Observations
-\end_layout
-
-\begin_layout Standard
-While this reasoning method is suitable for modeling and simulation purposes,
- it would be unreasonable for a situated agent to ask 
-\begin_inset Quotes eld
-\end_inset
-
-do I know 
-\begin_inset Formula $\phi$
-\end_inset
-
- in the current situation?
-\begin_inset Quotes erd
-\end_inset
-
- using the situation calculus query 
-\begin_inset Formula $\Dt\models\mathbf{Knows}(agt,\phi,s)$
-\end_inset
-
-, as it cannot be expected to have the full current situation 
-\begin_inset Formula $s$
-\end_inset
-
-.
- However, it will have its current view 
-\begin_inset Formula $v$
-\end_inset
-
-.
- We define knowledge with respect to a view as follows:
-\begin_inset Formula \[
-\mathbf{Knows}(agt,\phi,v)\,\isdef\,\forall s:\, view(agt,s)=v\wedge root(s)=S_{0}\rightarrow\mathbf{Knows}(agt,\phi,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-It is a straightforward consequence of Theorem 
-\begin_inset LatexCommand ref
-reference "thm:k_obs_equiv"
-
-\end_inset
-
- that this form of knowledge is equivalent to knowledge based on a situation
- term having that observation history and rooted at 
-\begin_inset Formula $S_{0}$
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-Extending the regression rules in equations (
-\begin_inset LatexCommand ref
-reference "eqn:R_do_c_s"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eqn:R_s0"
-
-\end_inset
-
-) to handle formulae of this form is actually simpler than for regression
- over situations, as there are no empty observations in a history.
- The result is: 
-\begin_inset Formula \begin{multline*}
-\mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,o\cdot v))=\\
-\mathbf{Knows}(agt,\forall a\,.\, obs(agt,a,s)=o\\
-\wedge Poss(a,s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),a),v)\end{multline*}
-
-\end_inset
-
-
-\begin_inset Formula \begin{multline*}
-\mathcal{R}_{\mathcal{D}}(\mathbf{Knows}(agt,\phi,\epsilon))=\\
-\KnowsZ(agt,\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),S_{0})\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using regression in this way, agents can reason about their own knowledge
- using only their local information.
- Our work thus makes it possible to include a situation calculus model in
- the implementation of a real-world multi-agent system, even when agents
- have only partial awareness of the actions being performed.
-\end_layout
-
-\begin_layout Section
-Complex Epistemic Modalities
-\begin_inset LatexCommand label
-name "sec:Complex-Epistemic-Modalities"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-So far we have constructed a powerful new account of 
-\emph on
-individual 
-\emph default
-knowledge in a multi-agent setting.
- For rich multi-agent domains, we must also be able to reason about group-level
- knowledge and, in particular, about common knowledge.
- The primary motivation for this section is a formal treatment of common
- knowledge within our framework, but as we shall see, this requires significant
- technical machinery capable of handling much more general epistmic modalities.
-\end_layout
-
-\begin_layout Subsection
-Group-Level Epistemic Modalities
-\end_layout
-
-\begin_layout Standard
-We breifly review the various group-level epistemic modalities found in
- the literature.
- Let 
-\begin_inset Formula $G$
-\end_inset
-
- be a finite group of agents.
- The basic group-level modality is 
-\begin_inset Quotes eld
-\end_inset
-
-everyone knows 
-\begin_inset Formula $\phi$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-, which is defined as:
-\begin_inset Formula \[
-\mathbf{EKnows}(G,\phi,s)\,\isdef\,\bigwedge_{agt\in G}\,\mathbf{Knows}(agt,\phi,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-To assert more complete knowledge by members of the group, one can say that
- 
-\begin_inset Quotes eld
-\end_inset
-
-everyone knows that everyone knows 
-\begin_inset Formula $\phi$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
- by nesting 
-\begin_inset Formula $\mathbf{EKnows}$
-\end_inset
-
- operators.
- In general:
-\begin_inset Formula \begin{gather*}
-\mathbf{EKnows}^{1}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\phi,s)\\
-\mathbf{EKnows}^{n}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The most powerful group-level modality is 
-\begin_inset Quotes eld
-\end_inset
-
-it is common knowledge that 
-\begin_inset Formula $\phi$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-.
- Intuitively this indicates that everyone knows 
-\begin_inset Formula $\phi$
-\end_inset
-
-, everyone knows that everyone knows 
-\begin_inset Formula $\phi$
-\end_inset
-
-, and so on ad infinitum.
- Formally, it can be defined as the infinite conjunction:
-\begin_inset Formula \[
-\mathbf{CKnows}(G,\phi,s)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Common knowledge is an extremely powerful form of knowledge that has deep
- implications for coordinated group behavior 
-\begin_inset LatexCommand citep
-key "halpern90knowledge_distrib"
-
-\end_inset
-
-.
- For example, in the famous 
-\begin_inset Quotes eld
-\end_inset
-
-Coordinated Attack
-\begin_inset Quotes erd
-\end_inset
-
- problem, the proof that the generals cannot coordinate an attack depends
- heavily on their inability to obtain common knowledge.
-\end_layout
-
-\begin_layout Subsection
-The Trouble with Common Knowledge
-\end_layout
-
-\begin_layout Standard
-We are aware of no formal treatments of common knowledge in the situation
- calculus literature, and certainly none in domains as rich as those we
- consider here.
- This can be attributed to the difficulty of handling common knowledge using
- the regression operator.
-\end_layout
-
-\begin_layout Standard
-In the related field of dynamic epistemic logic, a famous result of 
-\begin_inset LatexCommand cite
-key "baltag98pa_ck"
-
-\end_inset
-
- states that:
-\end_layout
-
-\begin_layout Quote
-Epistemic logic with actions and common knowledge is more expressive than
- epistemic logic with common knowledge alone.
-\end_layout
-
-\begin_layout Standard
-In our terminology: unlike the case of individual knowledge, 
-\begin_inset Formula $\Reg(\CKnows(G,\phi,do(a,s)))$
-\end_inset
-
- cannot be defined in terms of 
-\begin_inset Formula $\CKnows$
-\end_inset
-
-.
- Given the deep similarities between the situation caluclus and epistemic
- modal logic 
-\begin_inset LatexCommand citep
-key "vanbentham07ml_sitcalc"
-
-\end_inset
-
-, we should expect this limitation to apply in the situation calculus.
-\end_layout
-
-\begin_layout Standard
-While one could reason about common knowledge by calculating it directly
- as a fixpoint of 
-\begin_inset Formula $\EKnows$
-\end_inset
-
-, this process would be immensely computationally expensive and unlikely
- to terminate.
- Effective reasoning requires a regression rule.
-\end_layout
-
-\begin_layout Standard
-Fortunately, recent work by 
-\begin_inset LatexCommand citet
-key "vanBenthem06lcc"
-
-\end_inset
-
- has shown that this limitation can be overcome by increasing the expressivity
- of the epistemic language in use.
- Their solution rests on three main ideas:
-\end_layout
-
-\begin_layout Itemize
-Use dynamic logic as a more powerful epistemic path language
-\end_layout
-
-\begin_layout Itemize
-During regression, encode the effects of actions within epistemic paths
- as well as in primitive formulae
-\end_layout
-
-\begin_layout Itemize
-Use a variant of Kleene's theorem on finite automata to handle unbounded
- iteration in a finite manner
-\end_layout
-
-\begin_layout Standard
-After introducing these ideas in their original context, we will adapt and
- expand them for use within our framework.
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\begin_layout Subsection
-The Logic of Communication and Change
-\end_layout
-
-\begin_layout Standard
-This section is a brief overview of the Logic of Communication and Change
- (hereafter denoted 
-\begin_inset Quotes eld
-\end_inset
-
-LCC
-\begin_inset Quotes erd
-\end_inset
-
-) developed by 
-\begin_inset LatexCommand cite
-key "vanBenthem06lcc"
-
-\end_inset
-
-, designed to introduce their ideas and contributions to the field.
- The paper on this logic is quite accessible and should be consulted for
- full details.
- This section assumes some familiarity with the syntax and semantics of
- modal logic.
-\end_layout
-
-\begin_layout Standard
-In traditional modal logics of knowledge, there is one accessibility relation
- 
-\begin_inset Formula $K_{agt}$
-\end_inset
-
- for each agent.
- Knowledge is expressed using the modal box operator, as in 
-\begin_inset Formula $[K_{agt}]\phi$
-\end_inset
-
-.
- Common knowledge is handled by introducing additional modalities 
-\begin_inset Formula $[C_{G}]\phi$
-\end_inset
-
- and defining the 
-\begin_inset Formula $C_{G}$
-\end_inset
-
- relation as the transitive closure of inidivual agent's knowledge relations.
- The first major contribution of LCC is to increase the expressiveness of
- the epistemic language by allowing complex 
-\emph on
-path expressions
-\emph default
- in place of theese knowledge operators.
- Path expressions are based on propositional dynamic logic and take the
- following form:
-\begin_inset Formula \begin{gather*}
-\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Table 
-\begin_inset LatexCommand ref
-reference "tbl:knowledge-exprs"
-
-\end_inset
-
- shows some knowledge expressions with their syntax in the situation calculus,
- traditional epistemic logic, and LCC.
- Here we see the first advantage of this approach - there is no need for
- a special-purpose common knowledge operator.
- It is expressed as the transitive closure of 
-\begin_inset Formula $\EKnows$
-\end_inset
-
- using the iteration operator.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Float table
-wide false
-sideways false
-status collapsed
-
-\begin_layout Standard
-\align center
-\begin_inset Tabular
-<lyxtabular version="3" rows="6" columns="3">
-<features>
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" width="0">
-<column alignment="center" valignment="top" leftline="true" rightline="true" width="0">
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Situation Calculus
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-Epistemic Logic
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-LCC
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\Knows(agt,\phi)$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[K_{agt}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[agt]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\Knows(agt_{1},\Knows(agt_{2},\phi))$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[K_{agt_{1}}][K_{agt_{2}}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[agt_{1};agt_{2}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-\begin_inset Formula $\Knows(agt_{1},\phi)\wedge\Knows(agt_{2},\phi)$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[K_{agt_{1}}]\phi\wedge[K_{agt_{2}}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[agt_{1}\cup agt_{2}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\EKnows(G,\phi)$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[E_{G}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[\bigcup_{agt\in G}agt]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-<row topline="true" bottomline="true">
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $\CKnows(G,\phi)$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[C_{G}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
-\begin_inset Text
-
-\begin_layout Standard
-\begin_inset Formula $[(\bigcup_{agt\in G}agt)^{*}]\phi$
-\end_inset
-
-
-\end_layout
-
-\end_inset
-</cell>
-</row>
-</lyxtabular>
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Caption
-
-\begin_layout Standard
-\begin_inset LatexCommand label
-name "tbl:knowledge-exprs"
-
-\end_inset
-
-Some knowledge expressions in the Situation Calculus, Epistemic Logic, and
- LCC
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\end_layout
-
-\begin_layout Standard
-The next major idea is to explicitly represent the epistemic uncertainty
- about the actions that are performed.
- This is done by means of 
-\emph on
-update frames
-\emph default
-, which are a finite set of actions connected by indistinguishability relations.
- The actions are labelled 
-\begin_inset Formula $1$
-\end_inset
-
- through 
-\begin_inset Formula $n$
-\end_inset
-
-.
-\newline
-
-\end_layout
-
-\begin_layout Standard
-Example goes here
-\newline
-
-\end_layout
-
-\begin_layout Standard
-To express what holds after the ocurrence of an action, one specifies an
- update frame along with the specific action from that frame that actually
- occurred.
- This formula says 
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Formula $\phi$
-\end_inset
-
- holds after performing action 
-\begin_inset Formula $i$
-\end_inset
-
- from update frame 
-\begin_inset Formula $\mathrm{U}$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-:
-\begin_inset Formula \[
-[\mathrm{U},i]\phi\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-When 
-\begin_inset Formula $\phi$
-\end_inset
-
- does not contain any epistemic modalities, this is straightforward dynamic
- logic and the update frame is not required.
- The third major contribution of LCC is a technique for handling formulae
- of the form:
-\begin_inset Formula \[
-[\mathrm{U},i][\pi]\phi\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This reads: 
-\begin_inset Quotes eld
-\end_inset
-
-after performing action 
-\begin_inset Formula $i$
-\end_inset
-
- from update frame 
-\begin_inset Formula $\mathrm{U}$
-\end_inset
-
-, it is 
-\begin_inset Formula $\pi$
-\end_inset
-
--known that 
-\begin_inset Formula $\phi$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-.
- This is achieved by performing regression on both the formula 
-\begin_inset Formula $\phi$
-\end_inset
-
- and the epistemic path 
-\begin_inset Formula $\pi$
-\end_inset
-
-.
- A syntactic transformation 
-\begin_inset Formula $\mathcal{T}$
-\end_inset
-
- achieves this according to the following equivalence: 
-\begin_inset Formula \[
-[\mathrm{U},i][\pi]\phi\,\,\,\equiv\,\,\,\bigwedge_{j=1}^{n}[\mathbf{\mathcal{T}}_{ij}^{\mathrm{U}}(\pi)][\mathrm{U},j]\phi\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Basically, this formula says: consider every possible action 
-\begin_inset Formula $j=1$
-\end_inset
-
- to 
-\begin_inset Formula $j=n$
-\end_inset
-
-; determine the epistemic paths that would cause the agents to mistake action
- 
-\begin_inset Formula $i$
-\end_inset
-
- for 
-\begin_inset Formula $j$
-\end_inset
-
-; and determine the effects of 
-\begin_inset Formula $j$
-\end_inset
-
- on the formula in question.
-\end_layout
-
-\begin_layout Standard
-The (partial) definition of the translation function is as follows:
-\begin_inset Formula \begin{alignat*}{1}
-\mathcal{T}_{ij}^{\mathrm{U}}(agt)= & \begin{cases}
-?pre(i);agt & \mathrm{if\, iR(a)j}\\
-?\bot & otherwise\end{cases}\\
-\mathcal{T}_{ij}^{\mathrm{U}}(\pi_{1};\pi_{2})= & \bigcup_{k=1}^{n}\left(\mathcal{T}_{ik}^{\mathrm{U}}(\pi_{1});\mathcal{T}_{kj}^{\mathrm{U}}(\pi_{2})\right)\\
-\mathcal{T}_{ij}^{\mathrm{U}}(\pi^{*})= & \mathcal{K}_{ijn}^{\mathrm{U}}(\pi)\end{alignat*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The most prominent innovation of LCC is the use of a variant of Kleene's
- theorem on finite automata to handle the 
-\begin_inset Formula $\pi^{*}$
-\end_inset
-
- case.
- 
-\begin_inset Formula \begin{alignat*}{1}
-\mathcal{K}_{ij0}^{\mathrm{U}}= & \begin{cases}
-?\top\cup\mathcal{T}_{ij}^{\mathrm{U}}(\pi) & if\, i=j\\
-\mathcal{T}_{ij}^{\mathrm{U}}(\pi) & otherwise\end{cases}\\
-\mathcal{K}_{ij(k+1)}^{\mathrm{U}}= & \begin{cases}
-(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*} & if\, i=k=j\\
-(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*};\mathcal{K}_{kjk}^{\mathrm{U}}(\pi) & if\, i=k\neq j\\
-\mathcal{K}_{ikk}^{\mathrm{U}}(\pi);(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*} & if\, i\neq k=j\\
-\mathcal{K}_{ijk}^{\mathrm{U}}(\pi)\cup\left(\mathcal{K}_{ikk}^{\mathrm{U}}(\pi);(\mathcal{K}_{kkk}^{\mathrm{U}}(\pi))^{*};\mathcal{K}_{kjk}^{\mathrm{U}}(\pi)\right) & otherwise\end{cases}\end{alignat*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Key to understanding this construction is to consider the update frame as
- a finite automaton, and 
-\begin_inset Formula $\mathcal{T}_{ij}^{\mathrm{U}}(\pi)$
-\end_inset
-
- as a regular expression generated by the automaton when travelling a 
-\begin_inset Formula $\pi$
-\end_inset
-
--path from state 
-\begin_inset Formula $i$
-\end_inset
-
- to state 
-\begin_inset Formula $j$
-\end_inset
-
-.
- Then 
-\begin_inset Formula $\mathcal{K}_{ijk}^{\mathrm{U}}(\pi)$
-\end_inset
-
- is the language generated by taking a 
-\begin_inset Formula $\pi^{*}$
-\end_inset
-
--path from 
-\begin_inset Formula $i$
-\end_inset
-
- to 
-\begin_inset Formula $j$
-\end_inset
-
- without stopovers through states labelled higher than 
-\begin_inset Formula $k$
-\end_inset
-
-.
- 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-
-\begin_inset Formula $\mathcal{K}_{ijn}^{\mathrm{U}}(\pi)$
-\end_inset
-
- allows stopovers at any state, and so is the entire language.
-\end_layout
-
-\begin_layout Subsection
-From LCC to the Situation Calculus
-\end_layout
-
-\begin_layout Standard
-In the remainder of this section, we adapt the techniques of LCC to handle
- complex epistemic modalities in our formalism in the situation calculus.
- This is far from straightforward, as LCC domains have two restrictions
- which are entirely inappropriate for the situation calculus:
-\end_layout
-
-\begin_layout Itemize
-LCC is 
-\emph on
-propositional
-\emph default
-: actions do not take arguments and no quantification is required.
-\end_layout
-
-\begin_layout Itemize
-LCC is funamentally 
-\emph on
-synchronous
-\emph default
-:
-\emph on
- 
-\emph default
-reasoning is performed by regressing one action at a time, without the 
-\begin_inset Quotes eld
-\end_inset
-
-all possible futures
-\begin_inset Quotes erd
-\end_inset
-
- approach needed to handle hidden actions.
-\end_layout
-
-\begin_layout Standard
-We also gain a simplification in moving to the situation calculus: we have
- no need for explicit update frames.
- Rather, the epistemic relationships between actions are given implicitly
- by means of the 
-\begin_inset Formula $obs$
-\end_inset
-
- function.
- This will simplify some of the presentation below.
-\end_layout
-
-\begin_layout Standard
-The section proceeds as follows.
- In Subsection 
-\begin_inset LatexCommand ref
-reference "sub:Epistemic-Paths"
-
-\end_inset
-
- we define a variant of first-order dynamic logic for use as an epistemic
- path language, a show how to encode it in the situation calculus.
- Subsection 
-\begin_inset LatexCommand ref
-reference "sub:Synchronous-Epistemic-Fluent"
-
-\end_inset
-
- develops a syncrhonous account of knowledge, assuming that there are no
- hidden actions.
- We develop regression rules for this version and prove that they respect
- the semantics of the epistemic path language.
- Subsection 
-\begin_inset LatexCommand ref
-reference "sub:Introducing-Hidden-Actions"
-
-\end_inset
-
- introduces hidden actions by explicitly representing them as a special
- action term, and shows how a fixpoint construction can reason about arbitrarily
--long sequences of hidden actions.
- We then relate our construction back to the results of Section 
-\begin_inset LatexCommand ref
-reference "sec:Obs-Knowledge"
-
-\end_inset
-
- by showing that in the case of a single agent, this fixpoint construction
- precisely matches that produced by the persistence condition in equation
- 
-\begin_inset LatexCommand ref
-reference "eqn:R_do_c_s"
-
-\end_inset
-
-.
- 
-\end_layout
-
-\begin_layout Subsection
-Epistemic Paths
-\begin_inset LatexCommand label
-name "sub:Epistemic-Paths"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Unlike the work of 
-\begin_inset LatexCommand citet
-key "vanBenthem06lcc"
-
-\end_inset
-
-, we cannot use propositional dynamic logic as our epistemic path language.
- While we have finitely many action types, our action types take arguments
- and we thus have potentially infinitely many individual action instances.
- To handle this we need some form of quantification in our epistemic path
- language - in short, we need 
-\emph on
-first-order dynamic logic
-\emph default
-.
- The variant we use is based on the dynamic term-modal logic of 
-\begin_inset LatexCommand citet
-key "kooi07dyn_termmodal_logic"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-The presentation we use below is standard in the situation calculus, but
- unusual for modal logic: we encode the syntax and semantics of our epistemic
- path language in the language of the situation calculus, using terms to
- represent formulae, substitutions, and other semantic objects of dynamic
- logic.
- The details of this encoding are straightforward but tedious, and are ommitted;
- the standard treatment is by 
-\begin_inset LatexCommand citet
-key "giacomo00congolog"
-
-\end_inset
-
-.
- In the following 
-\begin_inset Formula $\phi$
-\end_inset
-
- will be (the encoding of) a uniform formula, and 
-\begin_inset Formula $\mu$
-\end_inset
-
- will be (the encoding of) a first-order substitution.
-\end_layout
-
-\begin_layout Standard
-First, we must specify the syntax of our epistemic path language.
- We will use 
-\begin_inset Formula $\pi$
-\end_inset
-
- to denote an arbitrary epistemic path expression.
- 
-\end_layout
-
-\begin_layout DefinitionLbld
-Epistemic\InsetSpace ~
-Path Let 
-\begin_inset Formula $agt$
-\end_inset
-
- be an 
-\noun on
-Agent 
-\noun default
-term, 
-\begin_inset Formula $\phi$
-\end_inset
-
- a uniform formula, 
-\begin_inset Formula $x$
-\end_inset
-
- a variable and 
-\begin_inset Formula $t$
-\end_inset
-
- a term, then the epistemic path terms 
-\begin_inset Formula $\pi$
-\end_inset
-
- are the smallest set matching the following structural rules:
-\begin_inset Formula \[
-\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\, x:=t\,|\, x:=?\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The operators 
-\begin_inset Formula $?$
-\end_inset
-
-, 
-\begin_inset Formula $;$
-\end_inset
-
-, 
-\begin_inset Formula $\cup$
-\end_inset
-
- and 
-\begin_inset Formula $^{*}$
-\end_inset
-
- are standard in dynamic logic.
- The assignment operators allow the value of variables to change duringpath
- traversal.
- 
-\begin_inset Formula $x:=t$
-\end_inset
-
- sets the variable 
-\begin_inset Formula $x$
-\end_inset
-
- to the specific term 
-\begin_inset Formula $t$
-\end_inset
-
-, while 
-\begin_inset Formula $x:=?$
-\end_inset
-
- non-deterministically binds 
-\begin_inset Formula $x$
-\end_inset
-
- to some value - it is a kind of existential quantification.
-\end_layout
-
-\begin_layout Standard
-Borrowing from Section 
-\begin_inset LatexCommand ref
-reference "sec:Obs-Knowledge"
-
-\end_inset
-
-, let 
-\begin_inset Formula $K_{0}(agt,s'',s)$
-\end_inset
-
- be the syncrhonous knowledge fluent for individual agents.
- To give semantics to these epistemic paths, we use a new knowledge fluent
- 
-\begin_inset Formula $K_{DL}$
-\end_inset
-
-.
- The semantics of first-order dynamic logic operate over pairs 
-\begin_inset Formula $(s,\mu)$
-\end_inset
-
- where 
-\begin_inset Formula $s$
-\end_inset
-
- is the 
-\begin_inset Quotes eld
-\end_inset
-
-current situation
-\begin_inset Quotes erd
-\end_inset
-
- and 
-\begin_inset Formula $\mu$
-\end_inset
-
- the 
-\begin_inset Quotes eld
-\end_inset
-
-current variable binding
-\begin_inset Quotes erd
-\end_inset
-
-.
-\begin_inset Formula \begin{gather*}
-K_{DL}(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
-K_{DL}(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
-K_{DL}(\pi_{1};\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\exists\mu',s':\, K_{DL}(\pi_{1},\mu',s',\mu,s)\,\wedge\, K_{DL}(\pi_{2},\mu'',s'',\mu',s')\\
-K_{DL}(\pi_{1}\cup\pi_{2},\mu'',s'',\mu,s)\,\equiv\, K_{DL}(\pi_{1},\mu'',s'',\mu,s)\,\vee\, K_{DL}(\pi_{2},\mu'',s'',\mu,s)\\
-K_{DL}(x:=t,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu[x/t]\\
-K_{DL}(x:=?,\mu'',s'',\mu,s)\,\equiv\,\exists z:\, s''=s\,\wedge\,\mu''=\mu[x/z]\\
-\forall P:\,\left[\mathbf{refl}\,\wedge\,\mathbf{tran}\,\wedge\,\mathbf{cont}\right]\rightarrow\left[P(\mu'',s'',\mu,s)\rightarrow K_{DL}(\pi^{*},\mu'',s'',\mu,s)\right]\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Where we use the following abbreviations:
-\begin_inset Formula \begin{align*}
-\mathbf{refl}\isdef & \,\, P(\mu,s,\mu,s)\\
-\mathbf{tran\isdef} & \,\,\forall\mu_{1},s_{1},\mu_{2},s_{2}:\, P(\mu_{1},s_{1},\mu,s)\wedge K_{DL}(\pi,\mu_{2},s_{2},\mu_{1},s_{1})\,\rightarrow\, P(\mu_{2},s_{2},\mu,s)\\
-\mathbf{cont}\isdef & \,\,\forall\mu',s':\, K_{DL}(\pi,\mu',s',\mu,s)\,\rightarrow\, P(\mu',s',\mu,s)\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Note that we require a second-order axiom to express the iteration operator
- as a reflexive transitive closure.
-\end_layout
-
-\begin_layout Subsection
-A Synchronous Epistemic Fluent
-\begin_inset LatexCommand label
-name "sub:Synchronous-Epistemic-Fluent"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Using 
-\begin_inset Formula $K_{DL}$
-\end_inset
-
- for semantics, we can easily extend the synchronous knowledge fluent 
-\begin_inset Formula $K_{0}$
-\end_inset
-
- to take epistemic paths are its first argument, rather than only taking
- agent terms.
- Let 
-\begin_inset Formula $\mu^{\epsilon}$
-\end_inset
-
- be the empty substituion, then:
-\begin_inset Formula \[
-\pi\neq agt\,\rightarrow\,\left[K_{0}(\pi,s'',s)\,\equiv\,\exists\mu:\, K_{DL}(\pi,\mu,s'',\mu^{\epsilon},s)\right]\ \]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The macro 
-\begin_inset Formula $\KnowsZ$
-\end_inset
-
- can also be extended to epistemic paths in the obvious way:
-\begin_inset Formula \[
-\KnowsZ(\pi,\phi,s)\isdef\forall s':\, K_{0}(\pi,s',s)\,\rightarrow\,\phi[s']\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Definition
-We will denote by 
-\begin_inset Formula $\Dt_{K_{0},\pi}$
-\end_inset
-
- the axioms developed above for syncrhonous complex epistemic modalities.
-\end_layout
-
-\begin_layout Standard
-Now, we are in a similar position to that which we were in in Section 
-\begin_inset LatexCommand ref
-reference "sub:Knowledge-and-Observation"
-
-\end_inset
-
-: we have defined a knowledge fluent, and given axioms for how it should
- behave, but these axioms are not in the correct form to include in a basic
- action theory.
- To overcome this, we define a regression rule for 
-\begin_inset Formula $\KnowsZ(\pi,\phi,s)$
-\end_inset
-
- expressions and prove that it respects the semantics of 
-\begin_inset Formula $\Dt_{K_{0},\pi}$
-\end_inset
-
-.
- It is here that we incorporate the remaining ideas from LCC - use a syntactic
- transform to encode the effects of actions within epistemic paths as well
- as in primitive formulae.
- We introduce another meta-operator 
-\begin_inset Formula $\Trn$
-\end_inset
-
- for this purpose.
-\end_layout
-
-\begin_layout Standard
-First, some notation.
- We assume that the domain 
-\begin_inset Formula $\Dt$
-\end_inset
-
- contains 
-\begin_inset Formula $n$
-\end_inset
-
- distinct action types, which we shall denote 
-\begin_inset Formula $a_{0}$
-\end_inset
-
- through 
-\begin_inset Formula $a_{n-1}$
-\end_inset
-
-.
- We will use 
-\begin_inset Formula $\vars{x}$
-\end_inset
-
- to stand for a vector of (enodings of ) variables and use 
-\begin_inset Formula $\vars{x}:=\vars{y}$
-\end_inset
-
- as a syntactic shortcut for a series of individual variable assignments.
-\end_layout
-
-\begin_layout Standard
-To understand the required operation of 
-\begin_inset Formula $\Trn$
-\end_inset
-
-, consider again the role of regression.
- One can think of regression as a 
-\begin_inset Quotes eld
-\end_inset
-
-pre-encoding
-\begin_inset Quotes erd
-\end_inset
-
- of the effects of an action: 
-\begin_inset Formula $\phi$
-\end_inset
-
- will hold in 
-\begin_inset Formula $do(a,s)$
-\end_inset
-
- if and only if 
-\begin_inset Formula $\Reg(\phi,a)$
-\end_inset
-
- holds in 
-\begin_inset Formula $s$
-\end_inset
-
-.
- The transformer 
-\begin_inset Formula $\Trn$
-\end_inset
-
- needs to lift this idea to epistemic paths: there is a 
-\begin_inset Formula $\pi$
-\end_inset
-
--path from 
-\begin_inset Formula $do(a,s)$
-\end_inset
-
- to 
-\begin_inset Formula $do(a',s')$
-\end_inset
-
- if and only if there is a 
-\begin_inset Formula $\Trn(\pi,a,a')$
-\end_inset
-
--path from 
-\begin_inset Formula $s$
-\end_inset
-
- to 
-\begin_inset Formula $s'$
-\end_inset
-
-.
- The following definitions completely capture the behavior of this operator:
-\end_layout
-
-\begin_layout DefinitionLbld
-Epistemic\InsetSpace ~
-Path\InsetSpace ~
-Regressor
-\begin_inset LatexCommand label
-name "def:EpistemicPathRegression"
-
-\end_inset
-
- The path regressor 
-\begin_inset Formula $\Trn$
-\end_inset
-
- operates as defined below, where 
-\begin_inset Formula $\Kln$
-\end_inset
-
- operates according to definition 
-\begin_inset LatexCommand ref
-reference "def:KleenePathRegression"
-
-\end_inset
-
-: 
-\begin_inset Formula \begin{align*}
-\Trn(agt,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & z:=?;?obs(agt,a_{i}(\vars{x}))=z;agt;?obs(agt,a_{j}(\vars{y}))=z;?Poss(a_{j}(\vars{y}))\\
-\Trn(?\phi,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & \begin{cases}
-?\vars{x}=\vars{y}\wedge\Reg(\phi,a_{i}(\vars{x})) & \mathrm{if}\,\, i=j\\
-?\bot & \mathrm{otherwise}\end{cases}\\
-\Trn(z:=?,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & \begin{cases}
-?\vars{x}=\vars{y}\,;\, z:=? & \mathrm{if}\,\, i=j\\
-?\bot & \mathrm{otherwise}\end{cases}\\
-\Trn(z:=t,a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & \begin{cases}
-?\vars{x}=\vars{y}\,;\, z:=t & \mathrm{if}\,\, i=j\\
-?\bot & \mathrm{otherwise}\end{cases}\\
-\Trn(\pi_{1};\pi_{2},a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & \begin{array}{c}
-\bigcup_{k=0}^{n-1}\vars{z}:=?;\Trn(\pi_{1},a_{i}(\vars{x}),a_{k}(\vars{z}))\,;\,\Trn(\pi_{2},a_{k}(\vars{z}),a_{j}(\vars{y}))\end{array}\\
- & \mathrm{where}\,\vars{z}\,\mathrm{are\, fresh\, variables}\\
-\Trn(\pi_{1}\cup\pi_{2},a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & \Trn(\pi_{1},a_{i}(\vars{x}),a_{j}(\vars{y}))\,\cup\,\Trn(\pi_{2},a_{i}(\vars{x}),a_{j}(\vars{y}))\\
-\Trn(\pi^{*},a_{i}(\vars{x}),a_{j}(\vars{y}))\isdef & \Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),n)\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-We then use the variant of Kleene's theorem on finite automata to handle
- the iteration operator.
-\end_layout
-
-\begin_layout DefinitionLbld
-Kleene\InsetSpace ~
-Path\InsetSpace ~
-Regressor 
-\begin_inset LatexCommand label
-name "def:KleenePathRegression"
-
-\end_inset
-
- The Kleene path regressor 
-\begin_inset Formula $\Kln$
-\end_inset
-
- operates as defined below, where 
-\begin_inset Formula $\Trn$
-\end_inset
-
- operates according to definition 
-\begin_inset LatexCommand ref
-reference "def:EpistemicPathRegression"
-
-\end_inset
-
-:
-\begin_inset Formula \begin{align*}
-\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),0)\isdef & \begin{cases}
-?\top\cup\Trn(\pi,a_{i}(\vars{x}),a_{j}(\vars{y})) & \mathrm{if}\, i=j\\
-\Trn(\pi,a_{i}(\vars{x}),a_{j}(\vars{y})) & \mathrm{otherwise}\end{cases}\\
-\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),k+1)\isdef & \begin{cases}
-\mathbf{kLoop}(\pi,\vars{x},\vars{z})\,;\,?\vars{y}=\vars{z} & \mathrm{if}\,\, i=j=k\\
-\mathbf{kLoop}(\pi,\vars{x},\vars{z});\,\Kln(\pi,a_{k}(\vars{z}),a_{j}(\vars{y}),k) & \mathrm{if}\,\, i=j\neq k\\
-\vars{w}:=?;\Kln(\pi,a_{i}(\vars{x}),a_{k}(\vars{w}));\mathbf{kLoop}(\pi,\vars{w},\vars{z});\,?\vars{y}=\vars{z} & \mathrm{if}\,\, i=\neq j=k\\
-\begin{array}{c}
-\Kln(\pi,a_{i}(\vars{x}),a_{j}(\vars{y}),k)\,\cup\,\left[\vars{w}:=?;\Kln(\pi,a_{i}(\vars{x}),a_{k}(\vars{w}));\right.\\
-\left.\mathbf{kLoop}(\pi,\vars{w},\vars{z});\,\Kln(\pi,a_{k}(\vars{z}),a_{j}(\vars{y}))\right]\end{array} & \mathrm{otherwise}\end{cases}\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Where we use the appreviation:
-\begin_inset Formula \[
-\mathbf{kLoop}(\pi,\vars{x},\vars{y})\isdef\left(\vars{y}:=?;\Kln(\pi,a_{k}(\vars{x}),a_{k}(\vars{y}),k);\vars{x}:=\vars{y}\right)^{*}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Theorem
-For any epistemic path 
-\begin_inset Formula $\pi$
-\end_inset
-
- and action 
-\begin_inset Formula $a$
-\end_inset
-
-:
-\begin_inset Formula \begin{gather*}
-\Dt\cup\Dt_{K_{0},\pi}\,\models\, K_{0}(\pi,s'',do(a,s))\,\equiv\,\bigvee_{i=0}^{n-1}\exists\vars{x},s':\, s''=do(a_{i}(\vars{x}),s')\wedge K_{0}(\Trn(\pi,a,a_{i}(\vars{x})),s',s)\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Proof
-Longwinded, but basically mirroring the proofs for LCC.
- TODO.
-\end_layout
-
-\begin_layout Proof
-We can thus use this operator to regress knowledge expressions like so:
-\begin_inset Formula \[
-\Reg(\KnowsZ(\pi,\phi,do(a,s)))\,\isdef\,\bigwedge_{i=0}^{n-1}\forall\vars{x}:\,\KnowsZ(\Trn(\pi,a,a_{i}(\vars{x})),\Reg(\phi,a_{i}(\vars{x})),s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-Introducing Hidden Actions
-\begin_inset LatexCommand label
-name "sub:Introducing-Hidden-Actions"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-We now have a power account of multi-agent knowledge for synchronous domains,
- but it remains to combine this with our handling of arbitrarily-long sequences
- of hidden actions.
- We are going to develop support for hidden actions entirely at the meta-level,
- defining it directly in the regression operator.
-\end_layout
-
-\begin_layout Standard
-First, we introduce a special action term 
-\begin_inset Formula $\varepsilon$
-\end_inset
-
-, which should be read as 
-\begin_inset Quotes eld
-\end_inset
-
-nothing happens
-\begin_inset Quotes erd
-\end_inset
-
-.
- It has no preconditions, no effects, and results in no observations for
- any agent.
-\end_layout
-
-\begin_layout Definition
-Denote by 
-\begin_inset Formula $\Dt_{\varepsilon}$
-\end_inset
-
- the extension of a basic action theory 
-\begin_inset Formula $\Dt$
-\end_inset
-
- with the special action 
-\begin_inset Formula $\varepsilon$
-\end_inset
-
-, according to:
-\begin_inset Formula \begin{gather*}
-Poss(\varepsilon,s)\equiv\top\\
-\Phi(\vars{x},do(\varepsilon,s))\equiv\Phi(\vars{x},s)\,\mathrm{for\, all\, fluents}\,\Phi\\
-obs(agt,\varepsilon,s)=\{\}\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\InsetSpace ~
-
-\end_layout
-
-\begin_layout Definition
-Define 
-\begin_inset Formula $\mathcal{E}^{n}(s)$
-\end_inset
-
- to be 
-\begin_inset Formula $s$
-\end_inset
-
- followed by 
-\begin_inset Formula $n$
-\end_inset
-
- empty actions, as follows:
-\begin_inset Formula \[
-\mathcal{E}^{0}(s)=s\]
-
-\end_inset
-
-
-\begin_inset Formula \[
-\mathcal{E}^{1}(s)=do(\varepsilon,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\varepsilon,do(\varepsilon,...,do(\varepsilon,s)))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The intuition here is that we want 
-\begin_inset Formula $\Knows(\pi,\phi)$
-\end_inset
-
- to hold if 
-\begin_inset Formula $\KnowsZ(\pi,\phi)$
-\end_inset
-
- holds after allowing for any number of empty actions.
- That is, we want to use the following infinite conjunction:
-\begin_inset Formula \[
-\Reg(\Knows(\pi,\phi,do(a,s)))\isdef\bigwedge_{n\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{n}(do(a,s)))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This section is devoted to establishing the validity of this defnition.
-\end_layout
-
-\begin_layout Lemma
-For any epistemic path 
-\begin_inset Formula $\pi$
-\end_inset
-
-:
-\begin_inset Formula \[
-\Trn(\pi,\varepsilon,\varepsilon)=\pi\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Proof
-A straightforward case analysis on the definition of 
-\begin_inset Formula $\Trn$
-\end_inset
-
-, using the fact that 
-\begin_inset Formula $obs(agt,\varepsilon,s)=\{\}$
-\end_inset
-
- and 
-\begin_inset Formula $\Reg(\phi,\varepsilon)=\phi$
-\end_inset
-
- always.
-\end_layout
-
-\begin_layout Lemma
-For any epistemic path 
-\begin_inset Formula $\pi$
-\end_inset
-
-: 
-\begin_inset Formula \[
-\Dt\cup\Dt_{\varepsilon}\,\models\,\KnowsZ(\pi,\phi,\mathcal{E}^{1}(s))\rightarrow\KnowsZ(\pi,\phi,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Proof
-One of the conjuncts in the regression of 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-
-\begin_inset Formula $\KnowsZ(\pi,\phi,\mathcal{E}^{1}(s))$
-\end_inset
-
- will always be 
-\begin_inset Formula $\KnowsZ(\Trn(\pi,\varepsilon,\varepsilon),\Reg(\phi,\varepsilon),s)$
-\end_inset
-
-.
- By the above lemma, this simplifis to 
-\begin_inset Formula $\KnowsZ(\pi,\phi,s)$
-\end_inset
-
- as required.
-\end_layout
-
-\begin_layout Lemma
-For any epistemic path 
-\begin_inset Formula $\pi$
-\end_inset
-
-, if there is some 
-\begin_inset Formula $n\in\mathbb{N}$
-\end_inset
-
- such that:
-\begin_inset Formula \[
-\Dt\cup\Dt_{\varepsilon}\,\models\,\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\rightarrow\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n+1}(s))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Then:
-\begin_inset Formula \[
-\Dt\cup\Dt_{\varepsilon}\,\models\,\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\,\equiv\,\bigwedge_{m\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{m}(s))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Proof
-By the above lemma, 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
-
-\begin_inset Formula $\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n+1}(s))\rightarrow\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))$
-\end_inset
-
- always.
- So for this particular 
-\begin_inset Formula $n$
-\end_inset
-
-, the implication is in fact an equivalence.
- We then have 
-\begin_inset Formula $\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\rightarrow\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{m}(s))$
-\end_inset
-
- for 
-\begin_inset Formula $m<n$
-\end_inset
-
-, and 
-\begin_inset Formula $\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{n}(s))\equiv\mathbf{Knows}_{0}(\pi,\phi,\mathcal{E}^{m}(s))$
-\end_inset
-
- for 
-\begin_inset Formula $m\geq n$
-\end_inset
-
-, which is enough to establish the infinite conjunction as required.
-\end_layout
-
-\begin_layout Standard
-We can thus use the following regression definition, knowing that the infinite
- conjunction can be computed via a fixpoint calculation:
-\begin_inset Formula \[
-\Reg(\Knows(\pi,\phi,do(a,s)))\,\isdef\,\bigwedge_{n\in\mathbb{N}}\KnowsZ(\pi,\phi,\mathcal{E}^{n}(do(a,s)))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-The Link with Individual Knowledge
-\end_layout
-
-\begin_layout Standard
-The last remaining link is perhaps most important of all: showing that this
- new account of knowledge actually captures the knowledge of the agents.
- To do this, we need to show that:
-\begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\,\Knows(agt,\phi,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-if and only if
-\begin_inset Formula \[
-\Dt\cup\Dt_{K,\pi}\,\models\,\Knows(agt,\phi,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Consider the sequence of calculations made in regressing this expression
-\begin_inset Formula \begin{align*}
-\KnowsZ(agt,\phi,\mathcal{E}^{1}(s))\equiv & \bigwedge_{i=0}^{n-1}\forall\vars{x}:\,\KnowsZ(\Trn(\pi,\varepsilon,a_{i}(\vars{x})),\Reg(\phi,a_{i}(\vars{x})),s)\\
-\equiv & \bigwedge_{i=0}^{n-1}\forall\vars{x}:\,\KnowsZ(agt;?obs(agt,a_{i}(\vars{x}))=\{\};?Poss(a_{i}(\vars{x})),\Reg(\phi,a_{i}(\vars{x})),s)\\
-\equiv & \KnowsZ(agt,\phi,s)\wedge\\
- & \,\bigwedge_{i=1}^{n-1}\forall\vars{x}:\,\KnowsZ(agt,obs(agt,a_{i}(\vars{x}))=\{\}\wedge Poss(a_{i}(\vars{x}))\,\rightarrow\,\Reg(\phi,a_{i}(\vars{x})),s)\\
-\equiv & \KnowsZ(agt,\phi\wedge\forall a:\,\mathbf{PbU}(agt,a)\rightarrow\Reg(\phi,a),s)\\
-\equiv & \KnowsZ(agt,\Pst^{1}(\phi,\mathbf{PbU}(agt)),s)\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Continuing this construction we get:
-\begin_inset Formula \[
-\KnowsZ(agt,\phi,\mathcal{E}^{n}(s))=\KnowsZ(agt,\Pst^{n}(\phi,\mathbf{PbU}(agt)),s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Thus the two fixpoint calculations will coincide, producing:
-\begin_inset Formula \[
-\bigwedge_{n\in\mathbb{N}}\KnowsZ(agt,\phi,\mathcal{E}^{n}(do(a,s)))\equiv\KnowsZ(agt,\Pst(\phi,\mathbf{PbU}(agt)),s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-From here, it is a simple matter to correlate the regression rules from
- equations (
-\begin_inset LatexCommand ref
-reference "eqn:R_do_c_s"
-
-\end_inset
-
-) and (
-\begin_inset LatexCommand ref
-reference "eqn:R_s0"
-
-\end_inset
-
-) with our new regression rules.
-\end_layout
-
-\begin_layout Section
-Simplifying the Reasoning Procedure
-\begin_inset LatexCommand label
-name "sec:Simplifying-Reasoning"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-reasoning procedure: undecidable in general case! Need a decidable domian.
- Here are some things we can do to help the situation:
-\end_layout
-
-\begin_layout Subsection
-Propositionality
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula $K_{DL}$
-\end_inset
-
- reduces to the semantics of propositional dynamic logic, which is decidable.
-\end_layout
-
-\begin_layout Subsection
-Synchronicity
-\end_layout
-
-\begin_layout Standard
-By equipping agents with a global clock tick, the persistence condition
- is no longer required.
- Since this is the biggest source for computational complexity, that's a
- big win! 
-\end_layout
-
-\begin_layout Subsection
-Observability
-\end_layout
-
-\begin_layout Standard
-Ensure that the update frame is weakly connected, so that most 
-\begin_inset Formula $\Trn(\pi,a_{i},a_{j})$
-\end_inset
-
- are vacuously false.
-\newline
-
-\end_layout
-
-\begin_layout Section
-Related Work
-\begin_inset LatexCommand label
-name "sec:Related-Work"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand cite
-key "morgenstern90knowledge"
-
-\end_inset
-
- - hidden actions, appeals to motivated action theory.
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand cite
-key "delgrande01sitcalc_cleudo"
-
-\end_inset
-
- - shows that common knowledge is useful, but appeals to a (non-existent)
- solution from elsewhere
-\end_layout
-
-\begin_layout Standard
-clearly the long lineage of 
-\begin_inset LatexCommand cite
-key "baltag99epi_act_structures"
-
-\end_inset
-
-, 
-\begin_inset LatexCommand cite
-key "vanBenthem06lcc"
-
-\end_inset
-
- that have developed the basis of these techniques.
- 
-\begin_inset LatexCommand cite
-key "moss05iter_pal"
-
-\end_inset
-
- Iterated PAL is undecidable.
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand cite
-key "vanBentham06epi_temporal_logic"
-
-\end_inset
-
- big discussion and comparison on epistemic temporal logics.
- defines notion of 
-\begin_inset Quotes eld
-\end_inset
-
-synchronised
-\begin_inset Quotes erd
-\end_inset
-
- system that we use above.
-\end_layout
-
-\begin_layout Standard
-An alternate formulation due to 
-\begin_inset LatexCommand cite
-key "Lesperance99sitcalc_approach"
-
-\end_inset
-
- assumes the opposite extreme, that agents are only aware of the actions
- that they themselves perform:
-\begin_inset Formula \begin{align}
-K(agt,s'',do(a,s))\equiv\,\,\, & \exists s':\, K(agt,s',s)\nonumber \\
- & \wedge\,(actor(a)\neq agt\,\rightarrow\, s'\leq_{actor(a)\neq agt}s''))\label{eq:k_ssa_exo}\\
- & \wedge\,(actor(a)=agt\,\rightarrow\,\exists s^{*}:\,\left[s'\leq_{actor(a)=agt}s^{*}\wedge\right.\nonumber \\
- & \,\,\,\,\,\,\,\,\,\,\,\,\left.s''=do(a,s^{*})\wedge Poss(a,s^{*})\wedge sr(a,s)=sr(a,s^{*}))\right]\nonumber \end{align}
-
-\end_inset
-
- Here agents consider possible any situation compatible with the actions
- that they themselves have performed.
- There may have been an arbitrary sequence of situations between 
-\begin_inset Formula $s'$
-\end_inset
-
- and 
-\begin_inset Formula $s''$
-\end_inset
-
- of which the agent was unaware, because they consisted entirely of exogenous
- actions (that is, actions where 
-\begin_inset Formula $actor(a)\neq agt$
-\end_inset
-
-).
- Agents are thus totally ignorant of the actions performed by others.
-\end_layout
-
-\begin_layout Definition
-We will denote by 
-\begin_inset Formula $\Dt_{K,exo}$
-\end_inset
-
- the axioms for the 
-\begin_inset Quotes eld
-\end_inset
-
-total ignorance
-\begin_inset Quotes erd
-\end_inset
-
- account of knowledge due to 
-\begin_inset LatexCommand citet
-key "Lesperance99sitcalc_approach"
-
-\end_inset
-
-, as detailed in equations (
-\begin_inset LatexCommand ref
-reference "eq:k_ssa_exo"
-
-\end_inset
-
-,
-\begin_inset LatexCommand ref
-reference "eq:k_s0_standard"
-
-\end_inset
-
-).
-\end_layout
-
-\begin_layout Standard
-This approach is also limiting, in that agents can 
-\emph on
-never
-\emph default
- be aware of the actions performed by others.
- Consider our example of agents occupying a building who are aware of all
- actions performed in the same room, or even the simple case of an agent
- being aware that another agent has collided with it; full generality requires
- that agents can be aware of 
-\emph on
-some
-\emph default
- of the actions performed by others.
-\end_layout
-
-\begin_layout Standard
-Furthermore, suppose that 
-\begin_inset Formula $agt$
-\end_inset
-
- has just performed action 
-\begin_inset Formula $a_{1}$
-\end_inset
-
-, so the world is in some situation 
-\begin_inset Formula $do(a_{1},s)$
-\end_inset
-
-.
- Another agent then performs the action 
-\begin_inset Formula $a_{2}$
-\end_inset
-
-, leaving the world in situation 
-\begin_inset Formula $do(a_{2},do(a_{1},s))$
-\end_inset
-
-.
- Since it is not aware of the occurrence of 
-\begin_inset Formula $a_{2}$
-\end_inset
-
-, 
-\begin_inset Formula $agt$
-\end_inset
-
- cannot be aware that the state of the world has changed.
- Its knowledge should therefore remain unchanged.
- Unfortunately this is not the case under this formulation:
-\begin_inset Formula \[
-\Dt\cup\Dt_{K,exo}\not\models actor(a_{2})\neq agt\rightarrow K(agt,s',do(a_{2},do(a_{1},s)))\equiv K(agt,s',do(a_{1},s))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-To faithfully represent this aspect of knowledge, the successor state axiom
- for 
-\begin_inset Formula $K$
-\end_inset
-
- must consider any 
-\emph on
-future
-\emph default
- that can be brought about by exogenous actions, rather than any 
-\emph on
-past
-\emph default
- as done in equation (
-\begin_inset LatexCommand ref
-reference "eq:k_ssa_exo"
-
-\end_inset
-
-).
-\end_layout
-
-\begin_layout Section
-Future Work
-\begin_inset LatexCommand label
-name "sec:Future-Work"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Decidability and effectiveness guarantees.
-\end_layout
-
-\begin_layout Standard
-Concurrent actions.
-\end_layout
-
-\begin_layout Section
-Conclusions
-\begin_inset LatexCommand label
-name "sec:Conclusions"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-hooray for us, this is a great paper :-)
 \end_layout
 
 \begin_layout Standard
