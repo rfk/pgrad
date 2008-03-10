@@ -53,7 +53,7 @@ all: thesis.pdf
 	$(BTX) $* || true
 	$(LTX) $<
 
-# Generate a temporary latex file that will built a single chapter
+# Generate a temporary latex file that will build a single chapter
 %.ch.tex: %.tex
 	echo '\include{preamble}' > $@
 	echo '\begin{document}' >> $@
