@@ -216,6 +216,11 @@ ty, including actions that are completely hidden, by explicitly reifying
 
 
 \begin_inset FormulaMacro
+\newcommand{\EDo}{\mathbf{EDo}}
+\end_inset
+
+
+\begin_inset FormulaMacro
 \newcommand{\vars}[1]{\bar{#1}}
 \end_inset
 
@@ -4974,9 +4979,6 @@ reference "sec:Encoding-Dynamic-Logic"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 \KTrans(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
 \KTrans(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
@@ -6200,17 +6202,158 @@ FODL
 \end_inset
 
 ) into the situation calculus via macro expansion.
- Our encoding is based on the techniques developed for the Golog programming
- language 
+ Our encoding is based on embedding FODL into Golog, a programming language
+ based on the situation calculus 
 \begin_inset LatexCommand citep
 key "levesque97golog"
 
 \end_inset
 
-, which can also be considered an embedding of dynamic logic into the situation
+ that has many similarities to dynamic logic.
+\end_layout
+
+\begin_layout Standard
+This may seem like an unnecessary complication - why not expand FODL directly
+ into sentences of the situation calculus? We find the embedding into Golog
+ simpler and clearer, and expect many readers familiar with the situation
+ calculus will feel likewise.
+ As Golog is well-understood, it relieves some our burden of proof in establishi
+ng that the embedding works as required.
+ Since the semantics of Golog itself it based on macro-expansion, the end-result
+ is the the same: sentences of FODL macro-expand into sentences of the situation
  calculus.
- Unfortunately Golog cannot be used directly as it does not have stateful
- variables, which we require.
+ Finally, our modification to Golog so that it is interpreted over epistemic
+ frames may further elucidadate the intended operation of FODL in this paper.
+\end_layout
+
+\begin_layout Standard
+First, let us introduce the semantics of Golog.
+ In the following, 
+\begin_inset Formula $\delta$
+\end_inset
+
+ will represent an arbitrary Golog program.
+ The semantics are traditionally defined as a macro 
+\begin_inset Formula $\mathbf{Do}(\delta,s,s')$
+\end_inset
+
+ which stands for 
+\begin_inset Quotes eld
+\end_inset
+
+it is possible to execute program 
+\begin_inset Formula $\delta,$
+\end_inset
+
+starting in situation 
+\begin_inset Formula $s$
+\end_inset
+
+, and ending in situation 
+\begin_inset Formula $s'$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\begin_inset LatexCommand citep
+key "levesque97golog"
+
+\end_inset
+
+.
+ Since we intend to interpret Golog over epistemic frames, we will use the
+ macro 
+\begin_inset Formula $\EDo$
+\end_inset
+
+ to make this distinction clear.
+ This requres only one modification to vanilla Golog - the base operators
+ are agent terms, rather than actions.
+\end_layout
+
+\begin_layout DefinitionLbld
+Semantics\InsetSpace ~
+of\InsetSpace ~
+Epistemic\InsetSpace ~
+Golog The semantics of Golog over epistemic frames is
+ given by the macro 
+\begin_inset Formula $\EDo$
+\end_inset
+
+ defined as follows, where 
+\begin_inset Formula $P$
+\end_inset
+
+ names a predicate symbol:
+\begin_inset Formula \[
+\delta::=agt\,|\,?\phi\,|\,\delta_{1};\delta_{2}\,|\,\delta_{1}\cup\delta_{2}\,|\,\pi(x)(\delta(x))\,|\,\delta^{*}\,|\,\mathbf{proc}\, P(\vars{x})\,\delta(\vars{x})\,\mathbf{end}\,;\,\delta\,|\, P(\vars{x})\]
+
+\end_inset
+
+
+\begin_inset Formula \begin{align*}
+\EDo(nil,s,s')\,\isdef\, & s=s'\\
+\EDo(agt,s,s')\,\isdef\,\, & K_{0}(agt,s',s)\\
+\EDo(?\phi,s,s')\,\isdef\,\, & s=s'\wedge\phi[s]\\
+\EDo(\delta_{1}\,;\,\delta_{2},s,s')\,\isdef\,\, & \exists s'':\,\EDo(\delta_{1},s,s'')\,\wedge\,\EDo(\delta_{2},s'',s')\\
+\EDo(\delta_{1}\,\cup\,\delta_{2},s,s')\,\isdef\,\, & \EDo(\delta_{1},s,s')\vee\EDo(\delta_{2},s,s')\\
+\EDo(\pi(x)(\delta(x)),s,s')\,\isdef\,\, & \exists x:\,\EDo(\delta(x),s,s')\\
+\EDo(\delta^{*},s,s')\,\isdef\,\, & \mathrm{refl.\, trans.\, closure\, of}\,\,\EDo(\delta,s,s')\\
+\EDo(P(\vars{x}),s,s')\,\isdef\,\, & P(\vars{x},s,s')\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The final clause identifies a procedure call with arguments 
+\begin_inset Formula $\vars{x}$
+\end_inset
+
+.
+ Defining procedure calls via macro expansion involves a second-order definition
+ corresponding to the standard least-fixed-point semantics for recursive
+ procedures.
+ This operates as follows, taking a list of 
+\begin_inset Formula $n$
+\end_inset
+
+ procedure definitions followed by a main program invocation:
+\begin_inset Formula \begin{multline*}
+\EDo(\{\mathbf{proc}\, P_{1}(\vars{v_{1}})\,\delta_{1}\,\mathbf{end}\,;\dots\,;\,\mathbf{proc}\, P_{n}(\vars{v_{n}})\,\delta_{n}\,\mathbf{end}\,;\,\delta_{0}\}\,\isdef\,\\
+\forall(P_{1},\dots,P_{n})\left[\bigwedge_{i=1}^{n}\forall s_{1},s_{2},\vars{v_{i}}:\,\EDo(\delta_{i},s_{1},s_{2})\,\rightarrow\,\EDo(P_{i}(\vars{v}_{i}),s_{1},s_{2})\right]\\
+\rightarrow\,\,\EDo(\delta_{0},s,s')\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Clearly Golog is a very powerful language, so the question must be asked:
+ why can we not use Golog as our epistemic path language, rather than FODL?
+ What is missing is a notion of 
+\emph on
+state
+\emph default
+ - while the Golog operator 
+\begin_inset Formula $\pi(x)(\delta(x))$
+\end_inset
+
+ is similar to the FODL operator 
+\begin_inset Formula $\exists x$
+\end_inset
+
+, its effect is localised to the contained program 
+\begin_inset Formula $\delta(x)$
+\end_inset
+
+.
+ FODL allows variable assignments to affect the entire remaining program.
 \end_layout
 
 \begin_layout Standard
@@ -6221,18 +6364,12 @@ We review the operators and required semantics of FODL for convenience:
 \end_inset
 
 
-\end_layout
-
-\begin_layout DefinitionLbld
 \begin_inset Formula \[
 \KDo(\pi,s,s')\,\,\equiv\,\,\exists\mu'\,\KTrans(\pi,\mu^{\epsilon},s,\mu',s')\]
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 \KTrans(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
 \KTrans(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
@@ -6278,11 +6415,12 @@ First, note that any epistemic path
 \end_inset
 
 .
- The idea is to translate each component of the path into an 
+ The idea is to translate each component of the path into a Golog procedure
+ with 
 \begin_inset Formula $n$
 \end_inset
 
--ary predicate, where the 
+ arguments, where the 
 \begin_inset Formula $i$
 \end_inset
 
@@ -6291,7 +6429,90 @@ th argument is used to pass in the current value of
 \end_inset
 
 .
- 
+ After performing the necessary operations to encode the semantics of that
+ component, the procudure calls a continuation procedure containing the
+ next path component.
+ This translation is based on the macro 
+\begin_inset Formula $\KDo_{cps}(\pi,N,C)$
+\end_inset
+
+ which passes in the names of the procedure for the given path component
+ (
+\begin_inset Formula $N$
+\end_inset
+
+) and the name of the continuation procedure (
+\begin_inset Formula $C$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+Embedding\InsetSpace ~
+FODL\InsetSpace ~
+into\InsetSpace ~
+Golog The embedding of FODL into Golog is given by the
+ macros 
+\begin_inset Formula $\KDo$
+\end_inset
+
+ and 
+\begin_inset Formula $\KDo_{cps}$
+\end_inset
+
+ defined as follows, where 
+\begin_inset Formula $P_{i}$
+\end_inset
+
+ are fresh procedure names and 
+\begin_inset Formula $\vars{v}$
+\end_inset
+
+ are argument vectors of length 
+\begin_inset Formula $n$
+\end_inset
+
+:
+\begin_inset Formula \begin{align*}
+\KDo(\pi,s,s')\,\isdef\,\,\  & \EDo(\{\KDo_{cps}(\pi,P,Nil)\,;\,\mathbf{proc}\, Nil(\vars{v})\, nil\,\mathbf{end}\,;\,\pi(\vars{v})(P(\vars{v}))\},s,s')\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{align*}
+\KDo_{cps}(agt,N,C)\,\isdef\,\, & \mathbf{proc}\, N(\vars{v})\, agt\,;\, C(\vars{v})\,\mathbf{end}\\
+\KDo_{cps}(?\phi(\vars{x}),N,C)\,\isdef\,\, & \mathbf{proc}\, N(\vars{v})\,?\phi(\vars{v})\,;\, C(\vars{v})\,\ \mathbf{end}\\
+\KDo_{cps}(\exists x_{i},N,C)\,\isdef\,\, & \mathbf{proc}\, N(\vars{v})\,\pi(x)(C(\vars{v}[v_{i}/x]))\,\mathbf{end}\\
+\KDo_{cps}(\pi_{1};\pi_{2},N,C)\,\isdef\,\, & \KDo_{cps}(\pi_{1},N,P)\,;\,\KDo_{cps}(\pi_{2},P,C)\\
+\KDo_{cps}(\pi_{1}\cup\pi_{2},N,C)\,\isdef\,\, & \KDo_{cps}(\pi_{1},P_{1},C)\,;\,\KDo_{cps}(\pi_{2},P_{2},C)\,;\,\mathbf{proc}\, N(\vars{v})\, P_{1}(\vars{v})\cup P_{2}(\vars{v})\,\mathbf{end}\\
+\KDo_{cps}(\pi^{*},N,C)\,\isdef\,\, & \KDo_{cps}(\pi,P,N)\,;\,\mathbf{proc}\, N(\vars{v})\, C(\vars{v})\cup P(\vars{v})\,\mathbf{end}\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Most of these definitions are straightforward translations of equivalent
+ operators in FODL to Golog.
+ The interesting cases are 
+\begin_inset Formula $\exists x_{i}$
+\end_inset
+
+, which simply calls the continuation procedure with a fresh variable in
+ position 
+\begin_inset Formula $i$
+\end_inset
+
+, and 
+\begin_inset Formula $\pi^{*}$
+\end_inset
+
+ which uses recursion to simulate iteration.
 \end_layout
 
 \begin_layout Section
@@ -7111,7 +7332,7 @@ TODO
 \end_layout
 
 \begin_layout Itemize
-formalism the use of 
+formalise the use of 
 \begin_inset Formula $K_{0}$
 \end_inset
 
