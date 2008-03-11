@@ -215,6 +215,16 @@ ty, including actions that are completely hidden, by explicitly reifying
 \end_inset
 
 
+\begin_inset FormulaMacro
+\newcommand{\KTrans}{\mathbf{KTrans}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\KDo}{\mathbf{KDo}}
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -660,7 +670,7 @@ Max knows Sam is holding Box1 initially
 , written formally as:
 \begin_inset Formula \begin{gather*}
 Holding(Sam,Box1,S_{0})\\
-\neg Holding(Sam,Box1,do(drop(Sam,Box1),S_{0}))\\
+\neg Holding(Sam,Box1,do(\{drop(Sam,Box1)\},S_{0}))\\
 \Knows(Max,Holding(Sam,Box1),S_{0})\end{gather*}
 
 \end_inset
@@ -704,7 +714,7 @@ Theory A basic action theory, denoted
 
 ); successor state axioms describing how primitive fluents change between
  situations (
-\begin_inset Formula $\Dt_{ss}$
+\begin_inset Formula $\Dt_{ssa}$
 \end_inset
 
 ); and axioms describing the value of primitive fluents in the initial situation
@@ -730,11 +740,17 @@ key "pirri99contributions_sitcalc"
 \end_inset
 
  for the details.
+ We will typically assume that we are working with an arbitrary, but fixed,
+ basic action theory 
+\begin_inset Formula $\Dt$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
-The ensuing discussion requires the definition of a particular kind of formula
- in this logic: the 
+The discussion below depends heavily on an important type of formula in
+ this logic: the 
 \emph on
 uniform formulae
 \emph default
@@ -759,14 +775,22 @@ Formulae Let
 \begin_inset Formula $F$
 \end_inset
 
- be an arbitrary primitive fluent and 
+ be an arbitrary primitive fluent, 
 \begin_inset Formula $\vars{x}$
 \end_inset
 
- be terms mentioning no situation term other than 
+ be any vector of terms mentioning no situation term other than 
 \begin_inset Formula $s$
 \end_inset
 
+, and 
+\begin_inset Formula $y$
+\end_inset
+
+ be any variable that is not of sort 
+\noun on
+Situation
+\noun default
 .
  Then the formulae uniform in 
 \begin_inset Formula $s$
@@ -774,7 +798,7 @@ Formulae Let
 
  are the smallest set of syntactically-valid formulae satisfying:
 \begin_inset Formula \[
-\phi::=F(\vars{x},s)\,|\,\phi_{1}\wedge\phi_{2}\,|\,\phi_{1}\vee\phi_{2}\,|\,\neg\phi\,|\,\exists\vars{x}:\phi\,|\,\forall\vars{x}:\phi\,|\,\Knows(agt,\phi,s)\]
+\phi::=F(\vars{x},s)\,|\,\phi_{1}\wedge\phi_{2}\,|\,\phi_{1}\vee\phi_{2}\,|\,\neg\phi\,|\,\exists y:\phi\,|\,\forall y:\phi\,|\,\Knows(agt,\phi,s)\]
 
 \end_inset
 
@@ -786,7 +810,7 @@ The meta-variable
 \begin_inset Formula $\phi$
 \end_inset
 
- is used throughout to refer to an arbitrary uniform formula.
+ is used throughout this paper to refer to an arbitrary uniform formula.
  Suppose that 
 \begin_inset Formula $\phi$
 \end_inset
@@ -813,8 +837,8 @@ The meta-variable
 
 .
  This notation means that the particular situation term in a uniform formula
- is often immaterial, so we will sometimes suppress the situation terms
- to simplify the presentation (e.g.
+ is often immaterial, so we can suppress the situation terms to simplify
+ the presentation (e.g.
  using 
 \begin_inset Formula $Holding(Sam,Box1)$
 \end_inset
@@ -824,16 +848,6 @@ The meta-variable
 \end_inset
 
 )
-\end_layout
-
-\begin_layout DefinitionLbld
-Objective\InsetSpace ~
-Formulae The objective formulae are those uniform formulae that
- do not mention the 
-\begin_inset Formula $\Knows$
-\end_inset
-
- macro.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -928,7 +942,7 @@ The axiom set
 \begin_inset Formula $Poss$
 \end_inset
 
- axion for sets of concurrent actions, which in its simplest form is simply:
+ axiom for sets of concurrent actions, which in its simplest form is just:
 \begin_inset Formula \[
 Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\in c:\, Poss(a,s)\]
 
@@ -939,21 +953,25 @@ Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\in c:\, Poss(a,s)\]
 
 \begin_layout Standard
 Note that it is never possibe to perform the empty set of actions; were
- it permitted, we would need axioms stating that 
+ this permitted, we would need axioms stating that 
 \begin_inset Formula $do(\{\},s)=s$
 \end_inset
 
- which would greatly complicate the situations sort.
- In more complex domains, the preconditions of some actions may interact
- so that they cannot be performed concurrently, even if the actions are
- individiually possible.
+ which would greatly complicate the 
+\noun on
+Situation
+\noun default
+ sort.
+ In more complex domains, the preconditions of some actions may interact,
+ so that they cannot be performed concurrently even if the actions are individiu
+ally possible.
  We refer the reader to the work of 
 \begin_inset LatexCommand citet
 key "pinto94temporal"
 
 \end_inset
 
- for a full discussion of this issue; for our purposes, we simply assume
+ for a full discussion of this issue; for our purposes, it suffices to assume
  that 
 \begin_inset Formula $\Dt_{ad}$
 \end_inset
@@ -1092,7 +1110,7 @@ Here
 \end_inset
 
 .
- There is also a second-order induction axiom expressing that the situations
+ There is also a second-order induction axiom expressing that situations
  constructed in this way are, in fact, the only situations available.
  This is needed to prove statements that universally quantify over situations.
 \end_layout
@@ -1151,18 +1169,10 @@ The
 \emph on
 legal situations
 \emph default
- are those in which all actions were actually possible to perform in the
- preceding situation - that is, those situations 
-\begin_inset Formula $s$
-\end_inset
-
- that satisfy 
-\begin_inset Formula $S_{0}\leq_{Poss}s$
-\end_inset
-
-.
+ are those in which every action was possible to perform in the preceding
+ situation.
  These are of fundamental importance, as they are the only situations that
- could possible be brought about in the real world.
+ could actually be brought about in the real world.
 \end_layout
 
 \begin_layout DefinitionLbld
@@ -1320,13 +1330,14 @@ key "scherl03sc_knowledge"
 \end_inset
 
  whose paper is now the canonical reference for these techniques.
- Their technique was extended to handle concurrent actions by 
+ The handling of concurrent actions is due to 
 \begin_inset LatexCommand citet
 key "scherl03conc_knowledge"
 
 \end_inset
 
 .
+ It i these techniques that we will extend in this paper.
 \end_layout
 
 \begin_layout Standard
@@ -1418,7 +1429,7 @@ To allow actions to return sensing information the sensing result function
 \begin_inset Formula $SR$
 \end_inset
 
- is an action description function and therefore is included in 
+ is an action description function and therefore is axiomatized in 
 \begin_inset Formula $\Dt_{ad}$
 \end_inset
 
@@ -1471,7 +1482,7 @@ This axiom ensures that
 \begin_inset Formula $s'$
 \end_inset
 
-, and the sensing results must match for each action tht was carried out
+, and the sensing results must match for each action that was carried out
  by the agent in question.
  Thus an agent's knowledge after the occurrence of an action is completely
  determined by the combination of its knowledge before the action, and the
@@ -1566,7 +1577,7 @@ While powerful, this formalism has an important limitation: it is fundamentally
 synchronous.
  
 \emph default
-Each agent is assumed to be aware of all actions that have occurred.
+Each agent is assumed to have full knowledge of all actions that have occurred.
  Note that this awareness is passive, as the agents perform no explicit
  sensing actions to determine what has occurred.
  Responsibility for generating such awareness in real systems is the responsibil
@@ -1576,7 +1587,7 @@ ity of a lower-level software component, such as a continuous sensing system
  While suitable for some domains, there are clearly many multi-agent domains
  where achieving total awareness of actions would be infeasible.
  A major contribution of this paper is a more flexible formalism for knowledge
- that can be applied to such domains.
+ that can be applied to a much wider range of domains.
 \end_layout
 
 \begin_layout Subsection
@@ -1688,8 +1699,8 @@ Since the initial situation axioms
 \begin_inset Formula $\Dt_{S_{0}}$
 \end_inset
 
- often satisfying the closed-world assumption, provers such as Prolog can
- be employed to handle this type of query quite effectively.
+ often satisfy the closed-world assumption, provers such as Prolog can be
+ employed to handle this type of query quite effectively.
  In general, effective reasoning depends on transforming queries into these
  more easily-handled forms.
 \end_layout
@@ -1720,7 +1731,7 @@ key "pirri99contributions_sitcalc"
 \end_inset
 
  into a formula 
-\begin_inset Formula $\Reg(\phi)$
+\begin_inset Formula $\Reg_{\Dt}(\phi)$
 \end_inset
 
  that is uniform in 
@@ -1770,7 +1781,7 @@ To ensure that formulae are uniform, regression also replaces instaces of
 \begin_inset Formula $Poss(c,s)$
 \end_inset
 
- can be replaced by an enumeration over action types like so:
+ can be replaced by an enumeration over action types such as the following:
 \begin_inset Formula \[
 \forall a\in c:\,\left(a=Act_{1}\wedge\phi_{a}\,\vee\, a=Act_{2}\wedge\phi_{2}\,\vee\dots\,\vee a=Act_{n}\wedge\phi_{n}\right)\]
 
@@ -1780,7 +1791,7 @@ To ensure that formulae are uniform, regression also replaces instaces of
 \end_layout
 
 \begin_layout Standard
-Since regression can always be applied to 
+Since regression can be applied to 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1817,8 +1828,8 @@ compiled in
 \begin_inset Quotes erd
 \end_inset
 
- and so are not required for answering the regressed query, making reasoning
- simpler:
+ to the formula and so are not required for answering the regressed query,
+ making reasoning simpler:
 \begin_inset Formula \[
 \Dt\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\,\,\,\,\,\mathrm{iff}\,\,\,\,\,\Dt_{una}\cup\Dt_{S_{0}}\models\Reg_{\Dt}^{*}(\phi)[S_{0}]\]
 
@@ -1853,9 +1864,9 @@ We use two notational short-cuts to simplify the presentation throughout
 \begin_inset Formula $\Reg$
 \end_inset
 
- for the regression operatr.
- Second, we also introduce a two-argument version of the regression operator
- that takes a (concurrent) action as its second argument.
+ for the regression operator.
+ Second, we introduce a two-argument version of the regression operator
+ that takes a concurrent action as its second argument.
  Suppose that 
 \begin_inset Formula $\phi$
 \end_inset
@@ -1897,7 +1908,14 @@ key "scherl03sc_knowledge"
 
  macro, allowing effective reasoning about epistemic queries using standard
  techniques of the situation calculus.
- Their definition is as follows:
+ Although we have changed the notation somewhat to foreshadow the techniques
+ we will develop in Section 
+\begin_inset LatexCommand ref
+reference "sec:Obs-Knowledge"
+
+\end_inset
+
+, their definition operates as follows::
 \begin_inset Formula \begin{align*}
 \Reg(\Knows(agt,\phi,do(c,s)))\isdef & \,\,\,\exists y:\, y=\{<a,SR(a,s)>|\, a\in c\wedge actor(a)=agt\}\,\,\wedge\\
  & \,\,\,\,\,\,\,\,\Knows(agt,\left[Poss(c)\wedge\{<a,SR(a)>|\, a\in c\wedge actor(a)=agt\}=y\right]\rightarrow\Reg(\phi[do(a,s)]),s)\end{align*}
@@ -1908,7 +1926,7 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-This operates by collecting the sensig results from each action performed
+This works by collecting the sensing results from each action performed
  by the agent into the set 
 \begin_inset Formula $y$
 \end_inset
@@ -1934,10 +1952,10 @@ key "Lesperance99sitcalc_approach"
  However these formulations invariably require universal quantification
  over situation terms, to account for arbitrarily-long sequences of hidden
  actions.
- Such universal quantification is incompatible regression rules like the
- above and these formulations offer no reasoning procedure other than second-ord
-er theorem proving.
- In this paper, we use a new reasoning technique called 
+ Such universal quantification is incompatible with regression rules like
+ the above and these formulations offer no reasoning procedure other than
+ second-order theorem proving.
+ By utilizing a new reasoning technique called 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1945,8 +1963,9 @@ property persistence
 \begin_inset Quotes erd
 \end_inset
 
- to allow universal quantification over situation terms while maintaining
- regression as a reasoning tool.
+ to allow universal quantification over situation terms, our work is the
+ first to provide an account of knowledge with hidden actions while maintaining
+ regression as an effective reasoning tool.
 \end_layout
 
 \begin_layout Subsubsection*
@@ -2008,7 +2027,7 @@ key "kelly07sc_persistence"
 
 \begin_layout Standard
 \begin_inset Formula \[
-\Dt-\Dt_{S_{0}}\,\models\,\Pst_{\Dt}(\phi,\alpha)[s]\,\equiv\,\forall s':\, s\leq_{\alpha}s'\,\rightarrow\,\phi[s']\]
+\Dt\,\models\,\Pst_{\Dt}(\phi,\alpha)[s]\,\equiv\,\forall s':\, s\leq_{\alpha}s'\,\rightarrow\,\phi[s']\]
 
 \end_inset
 
@@ -2016,7 +2035,7 @@ key "kelly07sc_persistence"
 \end_layout
 
 \begin_layout Standard
-As with regression, we will use the simpler notation 
+As before, we will use the simpler notation 
 \begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
@@ -2039,7 +2058,7 @@ As with regression, we will use the simpler notation
 \end_inset
 
  below since we will need some of these details for a later proof; for full
- details consult the reference 
+ details consult our previous work 
 \begin_inset LatexCommand citep
 key "kelly07sc_persistence"
 
@@ -2117,8 +2136,8 @@ Thus the calculation of
 \end_inset
 
  produces a uniform formula, it allows queries that universally quantify
- over situation terms to be used in conjunction with traditional regression
- techniques.
+ over situation terms to be reduced to a form that is compatible with traditiona
+l regression techniques.
 \end_layout
 
 \begin_layout Section
@@ -2166,7 +2185,7 @@ Observations
 
 \begin_layout Standard
 To remove the direct coupling between knowledge and actions, we introduce
- the notion of 
+ an explicit notion of 
 \emph on
 observations
 \emph default
@@ -2286,7 +2305,7 @@ when actions
  Using a set of observations allows an agent to perceive any number of observati
 ons in response to an action occurrence - perhaps several observations,
  perhaps none.
- It also allows us to write 
+ We thus write 
 \begin_inset Formula $obs(agt,c,s)=\{\}$
 \end_inset
 
@@ -2306,6 +2325,7 @@ view
 \emph default
  follows naturally - it is the sequence of all the observations made by
  an agent as the world has evolved.
+ 
 \end_layout
 
 \begin_layout DefinitionLbld
@@ -2476,8 +2496,11 @@ By stating that
 \begin_inset Formula $s\leq_{PbU(agt)}s'$
 \end_inset
 
- we assert that an agent would make no observations were the world to move
- from situation 
+ we assert that 
+\begin_inset Formula $agt$
+\end_inset
+
+ would make no observations were the world to move from situation 
 \begin_inset Formula $s$
 \end_inset
 
@@ -2497,8 +2520,8 @@ By stating that
 \end_inset
 
  possible.
- Following this intuition, the successor state axiom below captures the
- desired dynamics of the knowledge fluent:
+ Following this intuition, we propose the following successor state axiom
+ to capture the desired dynamics of the knowledge fluent:
 \begin_inset Formula \begin{align}
 K(agt,s'',do(c,s))\equiv & \left[\, obs(agt,c,s)=\{\}\rightarrow K(agt,s'',s)\,\right]\nonumber \\
 \wedge & \left[\, obs(agt,c,s)\neq\{\}\rightarrow\exists c',s':\, obs(agt,c',s')=obs(agt,c,s)\right.\nonumber \\
@@ -2524,9 +2547,17 @@ If
 \begin_inset Formula $c'$
 \end_inset
 
- that results in identical observations.
+ that would yield identical observations.
  It also considers possible any future of such a situation in which is would
  make no further observations.
+ To reiterate: unlike the standard successor state axiom from equation 
+\begin_inset LatexCommand eqref
+reference "eq:k_s0_standard"
+
+\end_inset
+
+, our new formalism requires agents to consider any possible future situation
+ in which they would make no further observations.
 \end_layout
 
 \begin_layout Standard
@@ -2551,7 +2582,7 @@ It remains to specify
 \begin_inset Formula $K_{0}$
 \end_inset
 
- to specify each agent's initial knowledge
+ to specify each agent's initial knowledge:
 \begin_inset Formula \begin{gather*}
 K_{0}(agt,s',s)\rightarrow Init(s')\wedge Init(s)\\
 \KnowsZ(agt,\phi,s)\,\isdef\,\forall s'\, K_{0}(agt,s',s)\rightarrow\phi[s']\end{gather*}
@@ -2568,6 +2599,19 @@ Think of
 
  as the agent's knowledge at the beginning of time, where it is guaranteed
  that no actions have occurred.
+ Any knowledge axioms in 
+\begin_inset Formula $\Dt_{S_{0}}$
+\end_inset
+
+ must be updated to use 
+\begin_inset Formula $\KnowsZ$
+\end_inset
+
+ rather than 
+\begin_inset Formula $\Knows$
+\end_inset
+
+.
  We can then use this to define 
 \begin_inset Formula $K$
 \end_inset
@@ -2770,7 +2814,7 @@ Observations
 \noun on
 Action
 \noun default
- terms, this assumption is akin to the following assertion about the 
+ terms, this assumption is akin to the following axiom for the 
 \begin_inset Formula $obs()$
 \end_inset
 
@@ -2975,8 +3019,8 @@ a\in obs(agt,c,s)\equiv a\in c\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)
 
 \begin_layout Standard
 We feel that this formulation provides a good balance between simplicity
- and expressiveness - it allows the obervability of actions to vary in accordanc
-e with the state of the world, but provides agents with a complete description
+ and expressiveness - it allows the obervability of actions to vary according
+ to the state of the world, but provides agents with a complete description
  of each action that they are capable of observing.
  In Section 
 \begin_inset LatexCommand ref
@@ -2984,15 +3028,15 @@ reference "sub:An-Illustrative-Example"
 
 \end_inset
 
- we give an example of using this formalism to model a domain in which agents
- can only observe actions performed in the same room as them.
- In Section 
+ we show how to use this formalism to model a domain in which agents can
+ only observe actions performed in the same room as them.
+ To show the flexibility of the observation-based approach, Section 
 \begin_inset LatexCommand ref
 reference "sub:Observing-Effects"
 
 \end_inset
 
- we outline a more powerful axiomatization of observations, in which agents
+ outlines a more powerful axiomatization of observations in which agents
  may know that some action has occurred without necessarily knowing precisely
  what the action was.
 \end_layout
@@ -3026,16 +3070,16 @@ We propose the following definition for the regression of
 \begin_inset Formula $\Knows$
 \end_inset
 
- under or formalism:
+ under our formalism:
 \begin_inset Formula \begin{align}
 \Reg(\Knows(agt,\phi,do(c,s)))\isdef\,\, & \exists o:\, obs(agt,c,s)=o\nonumber \\
  & \wedge\,\left[o=\{\}\,\rightarrow\,\Knows(agt,\phi,s)\right]\nonumber \\
  & \wedge\,\left[o\neq\{\}\,\rightarrow\,\Knows(agt,\forall c':\, obs(agt,c')=o\right.\nonumber \\
- & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt)),c'),s)\right]\label{eqn:R_do_c_s}\end{align}
+ & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt))[do(c',s)]),s)\right]\label{eqn:R_do_c_s}\end{align}
 
 \end_inset
 
- As required, this reduces a knowledge query at 
+ As required for a regression rule, this reduces a knowledge query at 
 \begin_inset Formula $do(c,s)$
 \end_inset
 
@@ -3058,7 +3102,11 @@ ons,
 \begin_inset Formula $\Pst(\phi,PbU(agt))$
 \end_inset
 
- .
+ evaluated at 
+\begin_inset Formula $do(c',s)$
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Standard
@@ -3072,7 +3120,11 @@ reference "eqn:new_k_s0"
 
 \end_inset
 
-) also quantifies over situations.
+) also uses the 
+\begin_inset Formula $\leq_{PbU(agt)}$
+\end_inset
+
+ ordering.
  This clause produces an expression in 
 \begin_inset Formula $\KnowsZ$
 \end_inset
@@ -3111,15 +3163,15 @@ Given a basic action theory
 
 \begin_layout ProofSketch
 We need only consider the case of 
-\begin_inset Formula $\Reg(\Knows(agt,\phi,s))$
+\begin_inset Formula $\phi=\Knows(agt,\phi,s)$
 \end_inset
 
 .
- In the inductive case of 
+ In the 
 \begin_inset Formula $do(c,s)$
 \end_inset
 
-, we proceed by expanding the definition for 
+ case, we proceed by expanding the definition for 
 \begin_inset Formula $\Knows$
 \end_inset
 
@@ -3200,10 +3252,7 @@ reference "thm:k_obs_equiv"
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-Extending the regression rules in equations (
+ Extending the regression rules in equations (
 \begin_inset LatexCommand ref
 reference "eqn:R_do_c_s"
 
@@ -3600,7 +3649,7 @@ When the light is switched on, each agent's observation set will contain
 \end_layout
 
 \begin_layout Subsection
-Summary
+Discussion
 \end_layout
 
 \begin_layout Standard
@@ -3636,7 +3685,14 @@ Group-Level Epistemic Modalities
 
 \begin_layout Standard
 We breifly review the various group-level epistemic modalities commonly
- found in the literature.
+ found in the literature; an excellent overview and discussion can be found
+ in the work of 
+\begin_inset LatexCommand citet
+key "halpern90knowledge_distrib"
+
+\end_inset
+
+.
  Let 
 \begin_inset Formula $G$
 \end_inset
@@ -3801,8 +3857,8 @@ key "vanbentham07ml_sitcalc"
 
 , we can be confident that this expressivity limitation also holds in the
  situation calculus.
- Rather than trying to prove this limitation, we proceed directly with a
- techniqu for circumventing it.
+ Rather than trying to prove the validity of this limitation in our framework,
+ we proceed directly with a technique for circumventing it.
 \end_layout
 
 \begin_layout Standard
@@ -3860,8 +3916,7 @@ key "vanBenthem06lcc"
 , designed to introduce their ideas and contributions to the field.
  The paper on this logic is quite accessible and should be consulted for
  full details.
- This section assumes some familiarity with the syntax and semantics of
- modal logic.
+ We assume some familiarity with the syntax and semantics of modal logic.
 \end_layout
 
 \begin_layout Standard
@@ -3895,9 +3950,9 @@ The first major contribution of LCC is to increase the expressiveness of
 \emph on
 path expressions
 \emph default
- in place of these knowledge operators.
- Conceptualyly, knowledge is expressed by propositional dynamic logic interprete
-d over an epistemic frame.
+ in place of these basic knowledge operators.
+ Conceptually, knowledge is expressed by propositional dynamic logic interpreted
+ over an epistemic frame.
  An epistemic path expression 
 \begin_inset Formula $\pi$
 \end_inset
@@ -3920,13 +3975,13 @@ reference "tbl:knowledge-exprs"
 
  shows some standard knowledge expressions with their syntax in the situation
  calculus, traditional epistemic logic, and LCC.
- Here we see the first advantage of this approach - there is no need for
- a special-purpose common knowledge operator.
+ Here we see the first advantage of the new approach - there is no need
+ for a special-purpose common knowledge operator.
  It is directly expressed as the transitive closure of 
 \begin_inset Formula $\EKnows$
 \end_inset
 
- using the iteration operator of dynamic logic.
+ using the iteration operator of propositional dynamic logic.
 \end_layout
 
 \begin_layout Standard
@@ -4196,10 +4251,6 @@ Some knowledge expressions in the Situation Calculus, Epistemic Logic, and
 
 \end_layout
 
-\begin_layout Standard
-
-\end_layout
-
 \end_inset
 
 
@@ -4211,8 +4262,8 @@ Actions in LCC are represented using
 update frames
 \emph default
 .
- These are finite directed graphs (actually, Kripke-style modal frames)
- where nodes are labelled from 
+ These are finite directed graphs (more specifically, Kripke-style modal
+ frames) where nodes are labelled from 
 \begin_inset Formula $0$
 \end_inset
 
@@ -4226,7 +4277,7 @@ update frames
  To express what holds after the ocurrence of an action, one specifies an
  update frame along with the specific action from that frame that actually
  occurred.
- This formula says 
+ The following formula says 
 \begin_inset Quotes eld
 \end_inset
 
@@ -4293,7 +4344,7 @@ The semantics of actions are defined in terms of a product update operation
 
 \begin_layout Standard
 The second major contribution of LCC is a regression rule for handling formulae
- of this general form, namely:
+ of the following general form:
 \begin_inset Formula \[
 [\mathrm{U},i][\pi]\phi\]
 
@@ -4340,7 +4391,7 @@ after performing action
 \begin_inset Formula $\mathrm{U}$
 \end_inset
 
-, it is common knowledge amount 
+, it is common knowledge among 
 \begin_inset Formula $G$
 \end_inset
 
@@ -4394,7 +4445,8 @@ Loosly, this formula says: consider every possible action
 \begin_inset Formula $j=n-1$
 \end_inset
 
-; determine the epistemic paths that would cause action 
+; determine the epistemic paths before the action that would cause action
+ 
 \begin_inset Formula $i$
 \end_inset
 
@@ -4423,7 +4475,7 @@ To understand the operation of
 \begin_inset Formula $w$
 \end_inset
 
-, then frame after performing action 
+, then the frame after performing action 
 \begin_inset Formula $[\mathrm{U},i]$
 \end_inset
 
@@ -4449,7 +4501,7 @@ To understand the operation of
 \end_inset
 
 .
- These are the worlds that are picked out by the modal box 
+ Such worlds are precisely those picked out by the modal box 
 \begin_inset Formula $[\pi]$
 \end_inset
 
@@ -4463,8 +4515,8 @@ To understand the operation of
 \end_inset
 
  in some way.
- The translation function allows us to locate such worlds: taking some liberties
- with notation, 
+ The translation function gives us a path corresponding to this relationship,
+ allowing us to locate such worlds: 
 \begin_inset Formula $\mathcal{M}'\models((w,i),(u,j))\in\pi$
 \end_inset
 
@@ -4499,7 +4551,7 @@ Most of the cases are straightforward encodings of the semantics of product
  - it is handled using a variant of Kleene's theorem on finite automata
  to finitely express the transitive closure of the expressions produced
  by 
-\begin_inset Formula $\Trn_{ij}^{*}(\pi)$
+\begin_inset Formula $\Trn_{ij}^{\mathrm{U}}(\pi)$
 \end_inset
 
 .
@@ -4508,6 +4560,12 @@ Most of the cases are straightforward encodings of the semantics of product
 \end_inset
 
  here would take us too far afield.
+\end_layout
+
+\begin_layout Standard
+In summary, LCC handles the regression of common knowledge using two key
+ ideas: use dynamic logic to express epistmic paths, and use regression
+ to encode the effects of actions inside these paths.
 \end_layout
 
 \begin_layout Subsection
@@ -4564,8 +4622,8 @@ We also gain some simplifications in moving to the situation calculus.
 \begin_inset Formula $\pi^{*}$
 \end_inset
 
- without having to employ a Kleene-style argument, which would require us
- to finitely enumerate all the possible actions.
+ paths without having to employ a Kleene-style argument, which would require
+ us to finitely enumerate all the possible actions.
 \end_layout
 
 \begin_layout Standard
@@ -4577,7 +4635,8 @@ reference "sub:Epistemic-Paths"
 \end_inset
 
  we define a variant of first-order dynamic logic for use as an epistemic
- path language, a show how to encode it in the situation calculus.
+ path language, and show how to encode it in the situation calculus via
+ macro expansion.
  Subsection 
 \begin_inset LatexCommand ref
 reference "sub:Synchronous-Epistemic-Fluent"
@@ -4595,8 +4654,8 @@ reference "sub:Introducing-Hidden-Actions"
 \end_inset
 
  introduces hidden actions by explicitly representing them using the empty
- set, and shows how a fixpoint construction can reason about arbitrarily-long
- sequences of hidden actions.
+ action set, and shows how a fixpoint construction can reason about arbitrarily-
+long sequences of hidden actions.
  We then relate our construction back to the results of Section 
 \begin_inset LatexCommand ref
 reference "sec:Obs-Knowledge"
@@ -4626,11 +4685,25 @@ reference "sec:Obs-Knowledge"
 \begin_inset Formula $K_{0}(agt,s'',s)$
 \end_inset
 
- denote the synchronous knowledge of an agent in situation 
+ denote the 
+\emph on
+synchronous
+\emph default
+ knowledge of an agent in situation 
 \begin_inset Formula $s$
 \end_inset
 
 .
+ This is knowledge when the agent knows how many actions have been performed,
+ and so is not required to do any 
+\begin_inset Quotes eld
+\end_inset
+
+all possible futures
+\begin_inset Quotes erd
+\end_inset
+
+ style reasoning.
  Given synchronicity, the successor state axiom for this fluent is straightforwa
 rd:
 \begin_inset Formula \begin{align}
@@ -4708,7 +4781,7 @@ key "vanBenthem06lcc"
 
 \end_inset
 
-, we cannot use propositional dynamic logic as our epistemic path language.
+, we cannot use propositional dynamic logic as an epistemic path language.
  While we have limited ourselves to finitely many primitive action types,
  our use of concurrent actions means there are potentially infinitely many
  different ways in which the world could change.
@@ -4725,32 +4798,7 @@ key "kooi07dyn_termmodal_logic"
 
 \end_inset
 
-.
-\end_layout
-
-\begin_layout Standard
-The presentation we use below is standard in the situation calculus, but
- unusual for modal logic: we encode the syntax and semantics of our epistemic
- path language in the language of the situation calculus, using terms to
- represent formulae, substitutions, and other semantic objects of dynamic
- logic.
- The details of this encoding are straightforward but tedious, and are ommitted;
- the standard treatment is by 
-\begin_inset LatexCommand citet
-key "giacomo00congolog"
-
-\end_inset
-
-.
- In the following 
-\begin_inset Formula $\phi$
-\end_inset
-
- will be (the encoding of) a uniform formula, and 
-\begin_inset Formula $\mu$
-\end_inset
-
- will be (the encoding of) a first-order substitution.
+, with some simplifications.
 \end_layout
 
 \begin_layout Standard
@@ -4791,7 +4839,7 @@ term,
 
  are the smallest set matching the following structural rules:
 \begin_inset Formula \[
-\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\, x:=t\,|\,\exists x\]
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\,\exists x\]
 
 \end_inset
 
@@ -4816,34 +4864,51 @@ The test (
 \end_inset
 
 ) operators are standard in dynamic logic and have the same meaning as in
- LCC.
- The two additional operators allow the value of variables to change during
- path traversal: 
-\begin_inset Formula $x:=t$
-\end_inset
-
- sets the variable 
-\begin_inset Formula $x$
-\end_inset
-
- to the specific term 
-\begin_inset Formula $t$
-\end_inset
-
-, while 
+ LCC, except that test formulae can now contain variables that need to be
+ interpreted.
+ The additional operator 
 \begin_inset Formula $\exists x$
 \end_inset
 
- non-deterministically binds 
+ allows the value of a variable to change during path traversal, by non-determin
+istically re-binding 
 \begin_inset Formula $x$
 \end_inset
 
- to some value (readers may be familar with the alternate notation 
-\begin_inset Formula $x:=?$
+ to some value.
+ To set the variable to a specific value 
+\begin_inset Formula $t$
 \end_inset
 
- for this non-deterministic binding - we find it clutters the presentation
- below).
+, this re-binding can be immediately followed by a test for that value:
+ 
+\begin_inset Formula $\exists x\,;\,?x=t$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In the tradition of the individual-knowledge operator 
+\begin_inset Formula $\Knows$
+\end_inset
+
+, as well as the programming language Golog 
+\begin_inset LatexCommand citet
+key "levesque97golog"
+
+\end_inset
+
+ built on the sitation calculus, we develop our epistemic path language
+ entirely at the meta-level as a series of macro expansions.
+ The full details of this development can be found in Appendix 
+\begin_inset LatexCommand ref
+reference "sec:Encoding-Dynamic-Logic"
+
+\end_inset
+
+, and would complicate the presentation here.
+ Instead, we give a simplified presentation of the semantics of each operator.
 \end_layout
 
 \begin_layout Standard
@@ -4871,50 +4936,68 @@ key "kooi07dyn_termmodal_logic"
 \end_inset
 
 .
- To encode the semantics in the situation calculus, we introduce a new fluent
- 
-\begin_inset Formula $K_{DL}$
+ We will use 
+\begin_inset Formula $\mu$
 \end_inset
 
- that gives a transition-style semantics over pairs 
+ to represent a standard first-order substitution, with 
+\begin_inset Formula $\mu^{\epsilon}$
+\end_inset
+
+ being the empty substituion.
+ Below we present a transition-style semantics over pairs 
 \begin_inset Formula $(\mu,s)$
 \end_inset
 
 .
- As is traditional in the situation calculus, the 
-\begin_inset Quotes eld
-\end_inset
-
-current world
-\begin_inset Quotes erd
-\end_inset
-
- is the final argument to the fluent.
 \end_layout
 
 \begin_layout DefinitionLbld
 Epistemic\InsetSpace ~
 Path\InsetSpace ~
-Semantics The semantics of an epistemic path 
+Semantics A situation 
+\begin_inset Formula $s'$
+\end_inset
+
+ is reachable from situation 
+\begin_inset Formula $s$
+\end_inset
+
+ via epistemic path 
 \begin_inset Formula $\pi$
 \end_inset
 
- are given by the fluent 
-\begin_inset Formula $K_{DL}$
+, denoted 
+\begin_inset Formula $\KDo(\pi,s,s')$
 \end_inset
 
-, defined as follows:
+, according to the following definitions.
+ These semantics are encoded using macro expansion as detailed in Appendix
+ 
+\begin_inset LatexCommand ref
+reference "sec:Encoding-Dynamic-Logic"
+
+\end_inset
+
+.
+ 
+\begin_inset Formula \[
+\KDo(\pi,s,s')\,\,\equiv\,\,\exists\mu'\,\KTrans(\pi,\mu^{\epsilon},s,\mu',s')\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula \begin{gather*}
-K_{DL}(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
-K_{DL}(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
-K_{DL}(\pi_{1};\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\exists\mu',s':\, K_{DL}(\pi_{1},\mu',s',\mu,s)\,\wedge\, K_{DL}(\pi_{2},\mu'',s'',\mu',s')\\
-K_{DL}(\pi_{1}\cup\pi_{2},\mu'',s'',\mu,s)\,\equiv\, K_{DL}(\pi_{1},\mu'',s'',\mu,s)\,\vee\, K_{DL}(\pi_{2},\mu'',s'',\mu,s)\\
-K_{DL}(x:=t,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu[x/t]\\
-K_{DL}(\exists x,\mu'',s'',\mu,s)\,\equiv\,\exists z:\, s''=s\,\wedge\,\mu''=\mu[x/z]\\
-\forall P:\,\left[\mathbf{refl}\,\wedge\,\mathbf{tran}\,\wedge\,\mathbf{cont}\right]\rightarrow\left[P(\mu'',s'',\mu,s)\rightarrow K_{DL}(\pi^{*},\mu'',s'',\mu,s)\right]\end{gather*}
+\KTrans(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
+\KTrans(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
+\KTrans(\pi_{1};\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\exists\mu',s':\,\KTrans(\pi_{1},\mu',s',\mu,s)\,\wedge\,\KTrans(\pi_{2},\mu'',s'',\mu',s')\\
+\KTrans(\pi_{1}\cup\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\KTrans(\pi_{1},\mu'',s'',\mu,s)\,\vee\,\KTrans(\pi_{2},\mu'',s'',\mu,s)\\
+\KTrans(x:=t,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu[x/t]\\
+\KTrans(\exists x,\mu'',s'',\mu,s)\,\equiv\,\exists z:\, s''=s\,\wedge\,\mu''=\mu[x/z]\\
+\forall P:\,\left[\mathbf{refl}\,\wedge\,\mathbf{tran}\,\wedge\,\mathbf{cont}\right]\rightarrow\left[P(\mu'',s'',\mu,s)\rightarrow\KTrans(\pi^{*},\mu'',s'',\mu,s)\right]\end{gather*}
 
 \end_inset
 
@@ -4957,8 +5040,8 @@ contains
 :
 \begin_inset Formula \begin{align*}
 \mathbf{refl}\isdef & \,\, P(\mu,s,\mu,s)\\
-\mathbf{tran\isdef} & \,\,\forall\mu_{1},s_{1},\mu_{2},s_{2}:\, P(\mu_{1},s_{1},\mu,s)\wedge K_{DL}(\pi,\mu_{2},s_{2},\mu_{1},s_{1})\,\rightarrow\, P(\mu_{2},s_{2},\mu,s)\\
-\mathbf{cont}\isdef & \,\,\forall\mu',s':\, K_{DL}(\pi,\mu',s',\mu,s)\,\rightarrow\, P(\mu',s',\mu,s)\end{align*}
+\mathbf{tran\isdef} & \,\,\forall\mu_{1},s_{1},\mu_{2},s_{2}:\, P(\mu_{1},s_{1},\mu,s)\wedge\KTrans(\pi,\mu_{2},s_{2},\mu_{1},s_{1})\,\rightarrow\, P(\mu_{2},s_{2},\mu,s)\\
+\mathbf{cont}\isdef & \,\,\forall\mu',s':\,\KTrans(\pi,\mu',s',\mu,s)\,\rightarrow\, P(\mu',s',\mu,s)\end{align*}
 
 \end_inset
 
@@ -4966,7 +5049,18 @@ contains
 \end_layout
 
 \begin_layout Standard
-Note that we require a second-order axiom to express transitive closure.
+Let us re-iterate: these are 
+\emph on
+not
+\emph default
+ axioms to be included in our basic action theory, but are intended only
+ to demonstrate the semantics of the epistemic path language.
+ Paths 
+\begin_inset Formula $\pi$
+\end_inset
+
+ do not appear in situation calculus terms, but are handled by macro-expansion
+ at the meta-level.
 \end_layout
 
 \begin_layout Subsection
@@ -4990,13 +5084,12 @@ not
 \emph on
 epistemic
 \emph default
- paths, and will be interpreted over the epistemic frame generated by the
- 
+ paths, and is interpreted over the epistemic frame generated by the 
 \begin_inset Formula $K_{0}(agt,s',s)$
 \end_inset
 
  relations.
- We will introduce a new macro 
+ We will be introducing a new macro 
 \begin_inset Formula $\PKnows(\pi,\phi,s)$
 \end_inset
 
@@ -5056,27 +5149,9 @@ In this section, we develop a synchronous version
 \end_inset
 
  relation defined earlier.
-\end_layout
-
-\begin_layout Standard
-Using 
-\begin_inset Formula $K_{DL}$
-\end_inset
-
- for the path semantics, we can easily develop a synchronous knowledge fluent
- 
-\begin_inset Formula $K_{P0}$
-\end_inset
-
- that takes epistemic paths as its first argument, rather than only taking
- agent terms.
- Let 
-\begin_inset Formula $\mu^{\epsilon}$
-\end_inset
-
- denote the empty substituion, then:
+ Its definition is straightforward:
 \begin_inset Formula \[
-K_{P0}(\pi,s'',s)\,\equiv\,\exists\mu:\, K_{DL}(\pi,\mu,s'',\mu^{\epsilon},s)\ \]
+\PKnowsZ(\pi,\phi,s)\isdef\forall s':\,\KDo(\pi,s,s')\,\rightarrow\,\phi[s']\]
 
 \end_inset
 
@@ -5084,49 +5159,21 @@ K_{P0}(\pi,s'',s)\,\equiv\,\exists\mu:\, K_{DL}(\pi,\mu,s'',\mu^{\epsilon},s)\ \
 \end_layout
 
 \begin_layout Standard
-The conrresponding macro 
+But this macro expands to a very complicated second-order formula in the
+ base language of the situation calculus.
+ As with the case of the base 
+\begin_inset Formula $\Knows$
+\end_inset
+
+ macro, we need to treat 
 \begin_inset Formula $\PKnowsZ$
 \end_inset
 
- can then be defined to operate on epistemic paths in the obvious way: 
-\begin_inset Formula \[
-\PKnowsZ(\pi,\phi,s)\isdef\forall s':\, K_{P0}(\pi,s',s)\,\rightarrow\,\phi[s']\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Definition
-We will denote by 
-\begin_inset Formula $\Dt_{K,P0}$
-\end_inset
-
- the axioms developed above for synchronous complex epistemic modalities.
-\end_layout
-
-\begin_layout Standard
-Now, we are in a similar position to Section 
-\begin_inset LatexCommand ref
-reference "sub:Knowledge-and-Observation"
-
-\end_inset
-
-: we have defined a knowledge fluent, and given axioms for how it should
- behave, but these axioms are not in the correct form to include in a basic
- action theory.
- To overcome this, we define a regression rule for 
-\begin_inset Formula $\PKnowsZ(\pi,\phi,s)$
-\end_inset
-
- expressions and prove that it respects the semantics of 
-\begin_inset Formula $\Dt_{K,P0}$
-\end_inset
-
-.
- It is here that we incorporate the second idea from LCC - use of a syntactic
- transform to encode the effects of actions within epistemic paths as well
- as in primitive formulae.
+ syntatcically as a primitive fluent.
+ This means we need a regression rule for such expressions.
+ It is here that we incorporate the second key idea from LCC - use of a
+ syntactic transform to encode the effects of actions within epistemic paths
+ as well as in primitive formulae.
  Mirrorring LCC, we introduce the meta-operator 
 \begin_inset Formula $\Trn$
 \end_inset
@@ -5212,7 +5259,7 @@ current action
 \begin_inset Quotes erd
 \end_inset
 
- was handled at the meta-level by enumrating each potential action in turn,
+ was handled at the meta-level by enumerating each potential action in turn,
  since propositional dynamic logic has no way to express stateful information.
  By moving to first-order dynamic logic, we can use a variable for this
  purpose.
@@ -5246,11 +5293,11 @@ at the beginning of the path, bind
 \end_layout
 
 \begin_layout Itemize
-at the end of the path, bind 
+at the end of the path, assert that 
 \begin_inset Formula $x$
 \end_inset
 
- to the known action 
+ is the known action 
 \begin_inset Formula $c'$
 \end_inset
 
@@ -5295,13 +5342,12 @@ name "def:EpistemicPathRegression"
 
 \begin_layout Standard
 \begin_inset Formula \begin{align*}
-\Trn(agt,c,c')\,\isdef\,\, & x:=c\,;\,\TrnA(\pi,x)\,;\, x:=c'\\
+\Trn(\pi,c,c')\,\isdef\,\, & x:=c\,;\,\TrnA(\pi,x)\,;\,?x=c'\\
 \\\TrnA(agt,x)\,\isdef\,\, & \exists z\,;\,?obs(agt,x)=z\,;\, agt\,;\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,?obs(agt,x)=z\\
 \TrnA(?\phi,x)\isdef\,\, & \Reg(\phi,x)\\
-\TrnA(\exists y,x)\isdef\,\, & \exists z\\
-\TrnA(y:=t,x)\isdef\,\, & y:=t\\
-\TrnA(\pi_{1};\pi_{2},x)\isdef\,\, & \begin{array}{c}
-\TrnA(\pi_{1},x)\,;\,\TrnA(\pi_{2},x)\end{array}\\
+\TrnA(\exists y,x)\isdef\,\, & \exists y\\
+\begin{array}{c}
+\TrnA(\pi_{1};\pi_{2},x)\isdef\,\,\end{array} & \TrnA(\pi_{1},x)\,;\,\TrnA(\pi_{2},x)\\
 \TrnA(\pi_{1}\cup\pi_{2},x)\isdef\,\, & \TrnA(\pi_{1},x)\cup\TrnA(\pi_{2},x)\\
 \TrnA(\pi^{*},x)\isdef\,\, & \TrnA(\pi,x)^{*}\end{align*}
 
@@ -5327,7 +5373,7 @@ For any epistemic path
 
 :
 \begin_inset Formula \begin{gather*}
-\Dt\cup\Dt_{K,P0}\,\models\, K_{P0}(\pi,s'',do(c,s))\,\equiv\,\exists c',s':\,\left(s''=do(c',s')\,\vee\, s''=s'\wedge c=\{\}\right)\wedge K_{P0}(\Trn(\pi,c,c'),s',s)\end{gather*}
+\Dt\models\,\KDo(\pi,s'',do(c,s))\,\equiv\,\exists c',s':\,\left(s''=do(c',s')\,\vee\, s''=s'\wedge c=\{\}\right)\wedge\KDo(\Trn(\pi,c,c'),s',s)\end{gather*}
 
 \end_inset
 
@@ -5336,16 +5382,17 @@ For any epistemic path
 
 \begin_layout ProofSketch
 The proof proceeds by cases, covering each path operator in turn.
- In the case of a single agent the theorem is a direct consequence of equation
- 
+ In the case of an individual agent the theorem is a direct consequence
+ of equation 
 \begin_inset LatexCommand eqref
 reference "eq:K0_ssa"
 
 \end_inset
 
 .
- The other operators are straightforward using the definitions of 
-\begin_inset Formula $K_{DL}$
+ The other operators are straightforward using the semantics specified in
+ 
+\begin_inset Formula $\KTrans$
 \end_inset
 
 .
@@ -5389,7 +5436,7 @@ For any epistemic path
 \end_layout
 
 \begin_layout Proof
-TODO
+TODO, by expanding macros and re-collecting, as before
 \end_layout
 
 \begin_layout Subsection
@@ -5425,8 +5472,8 @@ nothing happens
 
 .
  We simulate agents reasoning about hypothetical futures in which they make
- no more observations by inserting these empty actions after the action
- in a situation term.
+ no more observations by inserting these empty actions onto the head of
+ a situation term.
 \end_layout
 
 \begin_layout Definition
@@ -5443,23 +5490,10 @@ Define
 \end_inset
 
  empty actions, as follows:
-\begin_inset Formula \[
-\mathcal{E}^{0}(s)=s\]
-
-\end_inset
-
-
-\begin_inset Formula \[
-\mathcal{E}^{1}(s)=do(\{\},s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\mathcal{E}^{n}(s)=\mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\{\},do(\{\},...,do(\{\},s)))\]
+\begin_inset Formula \begin{align*}
+\mathcal{E}^{0}(s)\,\isdef\, & s\\
+\mathcal{E}^{1}(s)\,\isdef\, & do(\{\},s)\\
+\mathcal{E}^{n}(s)\,\isdef\, & \mathcal{E}^{1}(\mathcal{E}^{n-1}(s))=do(\{\},do(\{\},...,do(\{\},s)))\end{align*}
 
 \end_inset
 
@@ -5483,7 +5517,7 @@ The intuition here is that we want
 
 :
 \begin_inset Formula \[
-\Reg(\PKnows(\pi,\phi,do(c,s)))\isdef\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(do(c,s)))\]
+\PKnows(\pi,\phi,do(c,s))\isdef\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(do(c,s)))\]
 
 \end_inset
 
@@ -5501,7 +5535,7 @@ For any epistemic path
 
 : 
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,P0}\models\,\PKnowsZ(\pi,\phi,\mathcal{E}^{1}(s))\rightarrow\PKnowsZ(\pi,\phi,s)\]
+\Dt\models\,\PKnowsZ(\pi,\phi,\mathcal{E}^{1}(s))\rightarrow\PKnowsZ(\pi,\phi,s)\]
 
 \end_inset
 
@@ -5569,7 +5603,7 @@ For any epistemic path
 
  such that:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,P0}\models\,\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(s))\rightarrow\PKnowsZ(\pi,\phi,\mathcal{E}^{n+1}(s))\]
+\Dt\models\,\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(s))\rightarrow\PKnowsZ(\pi,\phi,\mathcal{E}^{n+1}(s))\]
 
 \end_inset
 
@@ -5579,7 +5613,7 @@ For any epistemic path
 \begin_layout Standard
 Then:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,P0}\models\,\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(s))\,\equiv\,\bigwedge_{m\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{m}(s))\]
+\Dt\models\,\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(s))\,\equiv\,\bigwedge_{m\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{m}(s))\]
 
 \end_inset
 
@@ -5629,7 +5663,18 @@ By the previous lemma,
 We can thus use the following regression definition, knowing that the infinite
  conjunction can be computed using a fixpoint calculation:
 \begin_inset Formula \[
-\Reg(\PKnows(\pi,\phi,do(c,s)))\,\isdef\,\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(do(c,s)))\]
+\Reg(\PKnows(\pi,\phi,do(c,s)))\,\isdef\,\Reg(\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(do(c,s))))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To make it clear that a fixpoint calculation is taking place, we introduce
+ the following notation:
+\begin_inset Formula \[
+\Reg(\PKnows(\pi,\phi,do(c,s)))\,\isdef\,\Reg(\PKnowsZ(\pi,\phi,\mathcal{E}^{\infty}(do(c,s))))\]
 
 \end_inset
 
@@ -5651,7 +5696,7 @@ reference "sec:Obs-Knowledge"
 \end_inset
 
 .
- The following theorem establishes this important link stating that the
+ The following theorem establishes this important link, stating that the
  individual knowledge of an agent is the same when using complex epistemic
  modalities as when using ordinary knowledge:
 \end_layout
@@ -5684,7 +5729,7 @@ For any
 \begin_layout Theorem
 if and only if
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,P0}\,\models\,\PKnows(agt,\phi,s)\]
+\Dt\cup\Dt_{K,obs}\,\models\,\PKnows(agt,\phi,s)\]
 
 \end_inset
 
@@ -5693,7 +5738,7 @@ if and only if
 
 \begin_layout Proof
 Begin by considering the sequence of calculations made in regressing 
-\begin_inset Formula $\UKnowsZ(agt;?\neg\phi,\mathcal{E}^{1}(s))$
+\begin_inset Formula $\PKnowsZ(agt,\phi,\mathcal{E}^{1}(s))$
 \end_inset
 
 .
@@ -5703,24 +5748,24 @@ Begin by considering the sequence of calculations made in regressing
 
 :
 \begin_inset Formula \begin{align*}
-\Trn(agt,\{\},a')=\,\,\, & x:=\{\}\,;\,\exists z\,;\,?obs(agt,x)=z\,;\, agt\,;\\
- & \,\,\,\,\,\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,\,?obs(agt,x_{a})=z\,;\, x:=a'\\
-=\,\,\, & \exists z\,;\,?obs(agt,\{\})=z\,;\, agt\,;\,?Poss(a')\vee a'=\{\}\,;\,?objs(agt,a')=z\\
-=\,\,\, & agt\,;\,?obs(agt,a')=\{\}\wedge\left(Poss(a')\vee a'=\{\}\right)\\
-=\,\,\, & agt\,;\,\left(?PbU(agt,a')\,\cup\, a'=\{\}\right)\end{align*}
+\Trn(agt,\{\},c')=\,\,\, & x:=\{\}\,;\,\exists z\,;\,?obs(agt,x)=z\,;\, agt\,;\\
+ & \,\,\,\,\,\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,\,?obs(agt,x_{a})=z\,;\, x:=c'\\
+=\,\,\, & \exists z\,;\,?obs(agt,\{\})=z\,;\, agt\,;\,?Poss(c')\vee c'=\{\}\,;\,?obs(agt,c')=z\\
+=\,\,\, & agt\,;\,?obs(agt,c')=\{\}\wedge\left(Poss(c')\vee c'=\{\}\right)\\
+=\,\,\, & agt\,;\,\left(?PbU(agt,c')\,\cup\, c'=\{\}\right)\end{align*}
 
 \end_inset
 
  Now we can use this in the regression of 
-\begin_inset Formula $\UKnowsZ(agt;?\neg\phi,\mathcal{E}^{1}(s))$
+\begin_inset Formula $\PKnowsZ(agt,\phi,\mathcal{E}^{1}(s))$
 \end_inset
 
 , as follows: 
 \begin_inset Formula \begin{align*}
-\UKnowsZ(agt;?\neg\phi,\mathcal{E}^{1}(s))\equiv\,\, & \UKnowsZ(\exists a'\,;\,\Trn(agt;?\neg\phi,\{\},a'),s)\\
-\equiv\,\, & \UKnowsZ(\exists a'\,;\, agt\,;\,\left(?PbU(agt,a')\,\cup\, a'=\{\}\right)\,;\,?\Reg(\neg\phi,a'),s)\\
+\PKnowsZ(agt,\phi,\mathcal{E}^{1}(s))\equiv\,\, & \forall c':\,\PKnowsZ(\Trn(agt,\{\},c'),\Reg(\phi,c'),s)\\
+\equiv\,\, & \PKnowsZ(\exists a'\,;\, agt\,;\,\left(?PbU(agt,c')\,\cup\, c'=\{\}\right),\Reg(\phi,c'),s)\\
 \equiv\,\, & \dots\\
-\equiv\,\, & \UKnowsZ(agt;?\neg\Pst^{1}(\phi,PbU(agt)),s)\end{align*}
+\equiv\,\, & \PKnowsZ(agt,\Pst^{1}(\phi,PbU(agt)),s)\end{align*}
 
 \end_inset
 
@@ -5730,8 +5775,8 @@ Begin by considering the sequence of calculations made in regressing
 \begin_layout Proof
 Using the same construction, we can show that in general:
 \begin_inset Formula \begin{align*}
-\UKnowsZ(agt;?\neg\phi,\mathcal{E}^{n}(s))\equiv\,\, & \UKnowsZ(agt;?\Pst^{1}(\phi,PbU(agt)),\mathcal{E}^{n-1}(s))\\
-\equiv\,\, & \UKnowsZ(agt;?\Pst^{n}(\phi,PbU(agt)),s)\end{align*}
+\PKnowsZ(agt,\phi,\mathcal{E}^{n}(s))\equiv\,\, & \PKnowsZ(agt,\Pst^{1}(\phi,PbU(agt)),\mathcal{E}^{n-1}(s))\\
+\equiv\,\, & \PKnowsZ(agt,\Pst^{n}(\phi,PbU(agt)),s)\end{align*}
 
 \end_inset
 
@@ -5744,7 +5789,7 @@ Clearly the fixpoint calculation used to find an
 \end_inset
 
  such that 
-\begin_inset Formula $\UKnowsZ(agt;?\neg\phi,\mathcal{E}^{n}(s))\rightarrow\UKnowsZ(agt;?\neg\phi,\mathcal{E}^{n+1}(s))$
+\begin_inset Formula $\PKnowsZ(agt,\phi,\mathcal{E}^{n}(s))\rightarrow\PKnowsZ(agt,\phi,\mathcal{E}^{n+1}(s))$
 \end_inset
 
  is the same as the fixpoint calculation used to find 
@@ -5754,7 +5799,7 @@ Clearly the fixpoint calculation used to find an
 .
  Therefore, we have:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K_{0},\pi}\,\models\,\UKnows(agt;?\neg\phi,do(a,s))\,\equiv\,\UKnowsZ(agt;?\neg\Pst(\phi,PbU(agt)),do(a,s))\]
+\Dt\cup\Dt_{K,obs}\,\models\PKnows(agt,\phi,do(c,s))\,\equiv\,\PKnowsZ(agt,\Pst(\phi,PbU(agt)),do(c,s))\]
 
 \end_inset
 
@@ -5764,22 +5809,12 @@ Clearly the fixpoint calculation used to find an
 \begin_layout Proof
 Regressing the right-hand side:
 \begin_inset Formula \begin{align*}
-\UKnows(agt;?\neg\phi,do(a,s))\,\equiv\,\, & \UKnows(\exists a'\,;\,\Trn(agt;?\neg\phi,a,a'),s)\\
+\PKnows(agt,\phi,do(c,s))\,\equiv\,\, & \PKnowsZ(\exists a'\,;\,\Trn(agt;?\neg\phi,a,a'),s)\\
 \equiv\,\, & \dots\mathrm{rearrange\, and\, simplify}\dots\\
-\equiv\,\, & \exists o:\, obs(agt,a,s)=o\wedge\,\\
- & \left[o=\{\}\,\rightarrow\,\UKnows(\exists a';agt;?\neg\phi,s)\right]\\
- & \wedge\,\left[o\neq\{\}\,\rightarrow\,\UKnows(\exists a';agt;?\neg\forall a':\, obs(agt,a')=o\right.\\
- & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(a')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt)),a),s)\right]\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Section
-Simplifying the Reasoning Procedure
-\begin_inset LatexCommand label
-name "sec:Simplifying-Reasoning"
+\equiv\,\, & \exists o:\, obs(agt,c,s)=o\wedge\,\\
+ & \left[o=\{\}\,\rightarrow\,\PKnows(\exists c';agt,\phi,s)\right]\\
+ & \wedge\,\left[o\neq\{\}\,\rightarrow\,\PKnows(\exists c';agt,\forall c':\, obs(agt,c')=o\right.\\
+ & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt)),c'),s)\right]\end{align*}
 
 \end_inset
 
@@ -5787,11 +5822,101 @@ name "sec:Simplifying-Reasoning"
 \end_layout
 
 \begin_layout Standard
+Thus the expressions 
+\begin_inset Formula $\Knows(agt,\phi,s)$
+\end_inset
+
+ and 
+\begin_inset Formula $\PKnows(agt,\phi,s)$
+\end_inset
+
+ are equivalent under out formulation.
+ This link is all this is required to validate the additional complex modalities
+ - for example, to establish that 
+\begin_inset Formula $\PKnows((\bigcup_{a\in G}a)^{*},\phi,s)$
+\end_inset
+
+ is equivalent to 
+\begin_inset Formula $\CKnows(G,\phi,s)$
+\end_inset
+
+ we can now argue as follows: 
+\begin_inset Formula $\PKnows((\bigcup_{a\in G}a)^{*},\phi,s)$
+\end_inset
+
+ is the transitive closure of the union of 
+\begin_inset Formula $\PKnows(a,\phi,s)$
+\end_inset
+
+ for 
+\begin_inset Formula $a\in G$
+\end_inset
+
+, while 
+\begin_inset Formula $\CKnows(G,\phi,s)$
+\end_inset
+
+ is the transitive closure of the union of 
+\begin_inset Formula $\Knows(a,\phi,s)$
+\end_inset
+
+ for 
+\begin_inset Formula $a\in G$
+\end_inset
+
+.
+ Since 
+\begin_inset Formula $\PKnows(a,\phi,s)$
+\end_inset
+
+ is the same relation as 
+\begin_inset Formula $\Knows(a,\phi,s)$
+\end_inset
+
+, it follows that their transitive closures are also the same.
+\end_layout
+
+\begin_layout Subsection
+An illustrative Example
+\end_layout
+
+\begin_layout Standard
+With this technical machinery in place, we are now able to reason about
+ the group-level epistemic modalities of a team of agents.
+ To demonstrate, we revisit our example domain from Subsection 
+\begin_inset LatexCommand ref
+reference "sub:An-Illustrative-Example"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Example
+After Max enters Room1, it is common knowledge between Sam and Max that
+ Max is not holding Box1:
+\begin_inset Formula \[
+\Dt\cup\Dt_{K,obs}\,\models\,\PKnows((Sam\cup Max)^{*},\neg Holding(Max,Box1),do(\{move(Max,Room1\},S_{0}))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Example
+TODO: fill in this example
+\end_layout
+
+\begin_layout Subsection
+Discussion
+\end_layout
+
+\begin_layout Standard
 reasoning procedure: undecidable in general case! Need a decidable domian.
  Here are some things we can do to help the situation:
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection*
 Propositionality
 \end_layout
 
@@ -5802,7 +5927,7 @@ Propositionality
  reduces to the semantics of propositional dynamic logic, which is decidable.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection*
 Synchronicity
 \end_layout
 
@@ -5813,7 +5938,7 @@ By equipping agents with a global clock tick, the persistence condition
  big win! 
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection*
 Observability
 \end_layout
 
@@ -6048,22 +6173,8 @@ reference "eq:k_ssa_exo"
 ).
 \end_layout
 
-\begin_layout Section
-Future Work
-\begin_inset LatexCommand label
-name "sec:Future-Work"
-
-\end_inset
-
-
-\end_layout
-
 \begin_layout Standard
-Decidability and effectiveness guarantees.
-\end_layout
 
-\begin_layout Standard
-Concurrent actions.
 \end_layout
 
 \begin_layout Section
@@ -6083,6 +6194,12 @@ hooray for us, this is a great paper :-)
 \begin_layout Section
 \start_of_appendix
 Encoding Dynamic Logic as a Golog Program
+\begin_inset LatexCommand label
+name "sec:Encoding-Dynamic-Logic"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -6130,22 +6247,16 @@ For the embedding of first-order dynamic logic, we are going to use procedure
 \end_inset
 
 , then we have the following translation:
-\begin_inset Formula \begin{align*}
-FODL(agt,c)\,\isdef\, & \mbox{\mathbf{proc}}\, P(\vars{v})\, agt;\, c(\vars{v})\,\mathbf{end}\\
-FODL(?\phi,c)\,\isdef\, & \mbox{\mathbf{proc}}\, P(\vars{v})\,?\phi;\, c(\vars{v})\,\mathbf{end}\\
-FODL(\exists x_{i},c)\,\isdef\, & \mathbf{proc}\, P(\vars{v})\,\pi(x)(c(\vars{v}[i/x]))\,\mathbf{end}\\
-FODL(x_{i}:=t,c)\,\isdef\, & \mathbf{proc}\, P(\vars{v})\, c(\vars{v}[i/t])\,\mathbf{end}\\
-FODL(\pi_{1}\,;\,\pi_{2},c)\,\isdef\, & FODL(\pi_{2},c)\,;\, FODL(\pi_{1},\#)\\
-FODL(\pi_{1}\,\cup\,\pi_{2},c)\,\isdef\, & FODL(\pi_{1},c)\,;\, FODL(\pi_{2},c)\,;\,\mathbf{proc}\, P(\vars{v})\, P_{1}(\vars{v})\,|\, P_{2}(\vars{v})\,\mathbf{end}\\
-FODL(\pi^{*},c)\,\isdef\, & FODL(\pi,P)\,;\,\mathbf{proc}\, P(\vars{v})\, c(\vars{v})\,|\, P_{1}(\vars{v})\,\mathbf{end}\end{align*}
+\end_layout
+
+\begin_layout Section
+Complete Proofs
+\begin_inset LatexCommand label
+name "sec:Complete-Proofs"
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-Proofs
 \end_layout
 
 \begin_layout Standard
@@ -6948,6 +7059,31 @@ reference "eqn:R_s0"
 \end_inset
 
 ), as required.
+\end_layout
+
+\begin_layout Section
+TODO
+\end_layout
+
+\begin_layout Itemize
+formalism the use of 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+ for initial knowledge across all axiomatizations, so we don't need to explicate
+ it in our proofs
+\end_layout
+
+\begin_layout Itemize
+reference appendix in all 
+\begin_inset Quotes eld
+\end_inset
+
+proof sketch
+\begin_inset Quotes erd
+\end_inset
+
+ environments
 \end_layout
 
 \begin_layout Standard
