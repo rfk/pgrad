@@ -1,4 +1,4 @@
-#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -196,16 +196,6 @@ ty, including actions that are completely hidden, by explicitly reifying
 
 
 \begin_inset FormulaMacro
-\newcommand{\UKnows}{\mathbf{UKnows}}
-\end_inset
-
-
-\begin_inset FormulaMacro
-\newcommand{\UKnowsZ}{\mathbf{UKnows_{0}}}
-\end_inset
-
-
-\begin_inset FormulaMacro
 \newcommand{\PKnowsZ}{\mathbf{PKnows_{0}}}
 \end_inset
 
@@ -225,9 +215,6 @@ ty, including actions that are completely hidden, by explicitly reifying
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset FormulaMacro
 \newcommand{\vars}[1]{\bar{#1}}
 \end_inset
@@ -6193,7 +6180,7 @@ hooray for us, this is a great paper :-)
 
 \begin_layout Section
 \start_of_appendix
-Encoding Dynamic Logic as a Golog Program
+Dynamic Logic via Macro Expansion
 \begin_inset LatexCommand label
 name "sec:Encoding-Dynamic-Logic"
 
@@ -6203,22 +6190,42 @@ name "sec:Encoding-Dynamic-Logic"
 \end_layout
 
 \begin_layout Standard
-We refer readers to the paper by 
-\begin_inset LatexCommand citet
+This appendix develops an encoding of first-order dynamic logic (hereafter
+ denoted 
+\begin_inset Quotes eld
+\end_inset
+
+FODL
+\begin_inset Quotes erd
+\end_inset
+
+) into the situation calculus via macro expansion.
+ Our encoding is based on the techniques developed for the Golog programming
+ language 
+\begin_inset LatexCommand citep
 key "levesque97golog"
 
 \end_inset
 
- for a full definition of the Golog semantics.
- The only change we make is to interpret it over the epistemic frame generated
- by 
-\begin_inset Formula $K_{0}$
+, which can also be considered an embedding of dynamic logic into the situation
+ calculus.
+ Unfortunately Golog cannot be used directly as it does not have stateful
+ variables, which we require.
+\end_layout
+
+\begin_layout Standard
+We review the operators and required semantics of FODL for convenience:
+\begin_inset Formula \[
+\pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\,\exists x\]
+
 \end_inset
 
- rather than over actions.
- So the macro expansion for a basic action becomes:
+
+\end_layout
+
+\begin_layout DefinitionLbld
 \begin_inset Formula \[
-Do(agt,s,s')\isdef K_{0}(agt,s',s)\]
+\KDo(\pi,s,s')\,\,\equiv\,\,\exists\mu'\,\KTrans(\pi,\mu^{\epsilon},s,\mu',s')\]
 
 \end_inset
 
@@ -6226,27 +6233,65 @@ Do(agt,s,s')\isdef K_{0}(agt,s',s)\]
 \end_layout
 
 \begin_layout Standard
-For the embedding of first-order dynamic logic, we are going to use procedure
- definitions and a continuation-passing style.
- The idea is that the arguments to a procedure will stand for the current
- variable bindings.
- Given an epistemic path 
+\begin_inset Formula \begin{gather*}
+\KTrans(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
+\KTrans(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
+\KTrans(\pi_{1};\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\exists\mu',s':\,\KTrans(\pi_{1},\mu',s',\mu,s)\,\wedge\,\KTrans(\pi_{2},\mu'',s'',\mu',s')\\
+\KTrans(\pi_{1}\cup\pi_{2},\mu'',s'',\mu,s)\,\equiv\,\KTrans(\pi_{1},\mu'',s'',\mu,s)\,\vee\,\KTrans(\pi_{2},\mu'',s'',\mu,s)\\
+\KTrans(x:=t,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu[x/t]\\
+\KTrans(\exists x,\mu'',s'',\mu,s)\,\equiv\,\exists z:\, s''=s\,\wedge\,\mu''=\mu[x/z]\\
+\forall P:\,\left[\mathbf{refl}\,\wedge\,\mathbf{tran}\,\wedge\,\mathbf{cont}\right]\rightarrow\left[P(\mu'',s'',\mu,s)\rightarrow\KTrans(\pi^{*},\mu'',s'',\mu,s)\right]\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that the semantics of FODL explicitly use first-order substitutions
+ to manage stateful variables.
+ In order to simulate this via macro expansion, we use what is essentially
+ a continuation-passing transformation to avoid explicitly mentioning substituti
+ons.
+\end_layout
+
+\begin_layout Standard
+First, note that any epistemic path 
 \begin_inset Formula $\pi$
 \end_inset
 
- containing 
+ will be contain only a finite number of FODL variables.
+ Without loss of generality, suppose that 
+\begin_inset Formula $\pi$
+\end_inset
+
+ contains 
 \begin_inset Formula $n$
 \end_inset
 
- variables labelled 
-\begin_inset Formula $x_{0}$
+ such variables named 
+\begin_inset Formula $x_{1}$
 \end_inset
 
  to 
-\begin_inset Formula $x_{n-1}$
+\begin_inset Formula $x_{n}$
 \end_inset
 
-, then we have the following translation:
+.
+ The idea is to translate each component of the path into an 
+\begin_inset Formula $n$
+\end_inset
+
+-ary predicate, where the 
+\begin_inset Formula $i$
+\end_inset
+
+th argument is used to pass in the current value of 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Section
