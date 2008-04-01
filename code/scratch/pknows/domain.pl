@@ -26,25 +26,26 @@ prim_fluent(inroom(object, room)).
 % Enumerates conditions for action description predicate fluents
 adp_fluent(poss,pickup(_,Res),C) :-
     C = ~ (? ([A] : holding(A,Res))).
-adp_fluent(poss,putdown(Agt,Res),C) :-
-    C = holding(Agt,Res).
 adp_fluent(poss,drop(Agt,Res),C) :-
     C = holding(Agt,Res).
+adp_fluent(poss,move(_,_),true).
 
 adp_fluent(canObs(Agt),pickup(Agt2,_),(?([R]:inroom(Agt,R) & inroom(Agt2,R)))).
-adp_fluent(canObs(Agt),putdown(Agt2,_),(Agt=Agt2)).
-adp_fluent(canObs(Agt),drop(Agt2,_),(Agt=Agt2)).
+adp_fluent(canObs(Agt),drop(Agt2,_),(?([R]:inroom(Agt,R) & inroom(Agt2,R)))).
+adp_fluent(canObs(Agt),move(Agt2,Rm),(?([R]:inroom(Agt,R) & inroom(Agt2,R)) | inroom(Agt,Rm))).
 
 % Enumerates the fluents holding in the initial situation
-initially(_) :-
-    fail.
+initially(inroom(sam,room1)).
+initially(inroom(box1,room1)).
+initially(inroom(max,room2)).
+initially(inroom(box2,room2)).
 
 % Causal rules for each fluent/action combo
 causes_true(holding(Agt,Res),pickup(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
-causes_false(holding(Agt,Res),putdown(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
 causes_false(holding(Agt,Res),drop(Agt2,Res2),(Agt=Agt2) & (Res=Res2)).
 
-causes_true(broken(Res),drop(_,Res2),(Res=Res2) & fragile(Res2)).
+causes_true(inroom(Agt,Rm),move(Agt2,Rm2),(Agt=Agt2) & (Rm=Rm2)).
+causes_false(inroom(Agt,Rm),move(Agt2,Rm2),(Agt=Agt2) & (Rm\=Rm2)).
 
 
 % Specify domain constraints as additional background knowledge

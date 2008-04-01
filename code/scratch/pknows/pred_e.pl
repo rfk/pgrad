@@ -5,7 +5,7 @@
 %  perhaps I should convert them to clausal form or something.  Anyway,
 %  the only really interesting interface predicate is entails/2.
 %
-%  We use E's quotes-identifiers-as-unique-objects convention to enforce
+%  We use E's quoted-identifiers-as-unique-objects convention to enforce
 %  UNA on our domain objects.  To succssfully read formulae back from E,
 %  the prolog flag 'double_quotes' must be set to 'atom'.
 %
@@ -50,7 +50,7 @@ eprove(Axioms,Conc,Result) :-
     e_write(Conc2), write(').'), nl,
     told, !,
     % Call E and have it write its conclusions in output file
-    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=512 --cpu-limit=5 --tstp-format -s ~w > ~w',[InFile,OutFile]),
+    sformat(ECmd,'eprover -xAuto -tAuto --memory-limit=512 --cpu-limit --tstp-format -s ~w > ~w',[InFile,OutFile]),
     shell(ECmd,_),
     % Grep output file for "Proof found!" indicating truth
     sformat(TCmd,'grep "Proof found!" ~w > /dev/null',[OutFile]),

@@ -239,8 +239,7 @@ flatten_quant(Q,T,Acc,Vars,Body) :-
 
 %
 %  flatten_quant_and_simp(Q,BodyIn,VarsIn,VarsOut,BodyOut)
-%
-%                  - flatten nested quantifiers, and apply simplification
+%       - flatten nested quantifiers, and apply simplification
 %
 %  Just like flatten_quant/5 above, but applies simplify/2 to the body
 %  when it does not match the quantifier, in case its simplification
@@ -612,7 +611,7 @@ var_valuated(X,P,Q) :-
    rename_vars([X],P,[V],Q), !.
 
 % There's some trickery here, we allow ourselves to distribute
-% the and over an or if the or has a valuation.
+% the & over a | if the | has a valuation.
 var_valuated(X,P & Q,V) :-
    flatten_op('&',[P,Q],Cls),
    select(Cl,Cls,Rest),
@@ -878,6 +877,63 @@ equiv(F1,F2) :-
 equiv(Axs,F1,F2) :-
     entails(Axs,F1 => F2),
     entails(Axs,F2 => F1).
+
+
+write_eqn(P) :-
+    write('\\begin{multline}'),nl,write_latex(P),nl,write('\\end{multline}').
+
+write_latex(P) :-
+  copy_fml(P,Pc),
+  number_vars(Pc),
+  do_write_latex(Pc).
+
+do_write_latex(P) :-
+    var(P), write(P), !.
+do_write_latex(P <=> Q) :-
+    do_write_latex(P), write(' \\equiv '), do_write_latex(Q).
+do_write_latex(P => Q) :-
+    do_write_latex(P), write(' \\rightarrow '), do_write_latex(Q).
+do_write_latex(~P) :-
+    write(' \\neg '), do_write_latex(P).
+do_write_latex(P & Q) :-
+    flatten_op('&',[P & Q],[C|Cs]),
+    write(' \\left( '), do_write_latex(C), reverse(Cs,CsR),
+    do_write_latex_lst(CsR,' \\wedge '), write(' \\right) ').
+do_write_latex(P | Q) :-
+    flatten_op('|',['|'(P,Q)],[C|Cs]),
+    do_write_latex(C), reverse(Cs,CsR),
+    do_write_latex_lst(CsR,' \\vee ').
+do_write_latex(!([X|Xs]:P)) :-
+    write(' \\forall '),
+    do_write_latex(X),
+    do_write_latex_lst(Xs,','),
+    write(' : \\left[ '),
+    do_write_latex(P),
+    write(' \\right] ').
+do_write_latex(?([X|Xs]:P)) :-
+    write(' \\exists '),
+    do_write_latex(X),
+    do_write_latex_lst(Xs,','),
+    write(' : \\left[ '),
+    do_write_latex(P),
+    write(' \\right] ').
+do_write_latex(P) :-
+    is_atom(P), write(P).
+
+do_write_latex_lst([],_).
+do_write_latex_lst([T|Ts],Sep) :-
+    write(Sep), nl, do_write_latex(T), do_write_latex_lst(Ts,Sep).
+
+
+number_vars(X) :-
+    term_variables(X,Vs),
+    number_vars_rec(Vs,0).
+number_vars_rec([],_).
+number_vars_rec([V|Vs],N) :-
+    name(x,N1), name(N,N2), append(N1,N2,Codes),
+    atom_codes(V,Codes),
+    Ns is N + 1,
+    number_vars_rec(Vs,Ns).
 
 %
 %  In conjunction with this file, one requires an implementation of actual

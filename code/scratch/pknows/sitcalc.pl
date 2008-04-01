@@ -44,6 +44,7 @@ domain_tautology(Fml) :-
     domain_axioms(Axs),
     entails(Axs,Fml).
 
+
 %
 %  Define behavior of skolem fluents
 %
@@ -244,27 +245,31 @@ holds(~F,s0) :-
     functor(Ft,S,N), functor(F,S,N),
     \+ initially(F).
 
-%
-%  "definition" version of knows/3
-%  Calculates the entire persistence condition before regressing.
-%  Here for informative purposes only.  The real version regresses
-%  each component of the pcond before calculating the next, to save
-%  calls into entails() for something that cant possibly lead
-%  to a yes answer.
-%
 
-adp_fluent(legUnobs(Agt),A,C) :-
+adp_fluent(pbu(Agt),A,C) :-
     adp_fluent(poss,A,C1),
     adp_fluent(canObs(Agt),A,C2),
     C = C1 & ~C2.
 
 knows(Agt,F,[]) :-
-    pcond(F,legUnobs(Agt),P),
-    holds(P,s0), !.
+    write('CALCULATING PERSISTENCE CONDITION:'), nl,
+    pcond(F,pbu(Agt),P),
+    write_latex(P), nl,
+    write('CHECKING AGAINST D_S_0'), nl,
+    (holds(P,s0) ->
+        write('HOLDS'), nl
+    ;   write('DOESNT HOLD'), nl, fail
+    ), !.
 knows(Agt,F,[A|T]) :-
-    pcond(F,legUnobs(Agt),P),
+    write('CALCULATING PERSISTENCE CONDITION:'), nl,
+    pcond(F,pbu(Agt),P),
+    write_latex(P),
+    write('REGRESSING OVER '), write(A), write(':'), nl,
     regression(P,A,R),
-    % TODO: should this be Poss & CanObs, rather than just Poss ??
-    adp_fluent(poss,A,Poss),
-    knows(Agt,(~Poss | R),T), !.
+    write('NEW QUERY: '), nl,
+    adp_fluent(poss,A,Poss), adp_fluent(canObs(Agt),A,Obs),
+    Q = (Poss & Obs) => R,
+    write(knows(Agt,Q,T)), nl,
+    knows(Agt,Q,T), !.
+
 
