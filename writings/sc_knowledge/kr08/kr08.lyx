@@ -1,0 +1,351 @@
+#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 276
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{aaai}
+\usepackage{times}
+\usepackage{helvet}
+\usepackage{courier}
+\usepackage{tikz}
+\usepackage{amsthm}
+\nocopyright
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{defn}{Definition}
+\end_preamble
+\options letterpaper
+\language british
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\paperfontsize default
+\spacing single
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Complex Epistemic Modalities in the Situation Calculus
+\end_layout
+
+\begin_layout Author
+Tracking Number: 92
+\end_layout
+
+\begin_layout Abstract
+We develop a formal account of complex group-level epistemic modalities
+ in the situation calculus, with a particular focus on reasoning about common
+ knowledge.
+ Unlike individual knowledge, expressions involving common knowledge cannot
+ be handled using standard regression techniques and are thus difficult
+ to reason about effectively.
+ Taking our cue from recent promising work in dynamic epistemic logic, we
+ overcome this limitation by increasing the expressive power of the epistemic
+ language.
+ Complex epistemic modalities are formed using the syntax of first-order
+ dynamic logic, of which common knowledge is a special case (the iteration
+ operator).
+ We develop a regression rule for such modalities and demonstrate how they
+ can be used to reason about common knowledge.
+ The result is a rich multi-agent theory of knowledge and action in which
+ complex group-level epistemic modalities, including common knowledge, are
+ amenable to effective automated reasoning.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset FormulaMacro
+\newcommand{\isdef}{\stackrel{\mbox{\tiny def}}{=}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Dt}{\mathcal{D}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Reg}{\mathcal{R}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Trn}{\mathcal{T}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Kln}{\mathcal{K}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\TrnA}{\Trn_{a}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\EKnows}{\mathbf{EKnows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\Knows}{\mathbf{Knows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\CKnows}{\mathbf{CKnows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\PKnows}{\mathbf{PKnows}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\KTrans}{\mathbf{KTrans}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\KDo}{\mathbf{KDo}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\EDo}{\mathbf{EDo}}
+\end_inset
+
+
+\begin_inset FormulaMacro
+\newcommand{\vars}[1]{\bar{#1}}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+In their landmark paper 
+\emph on
+Knowledge, Action, and the Frame Problem,
+\emph default
+ Scherl and Levesque (2003) extend Reiter's solution to the frame problem
+ in the situation calculus 
+\begin_inset LatexCommand citep
+key "reiter91frameprob,pirri99contributions_sitcalc"
+
+\end_inset
+
+ to handle knowledge-producing actions and explicit reasoning about the
+ knowledge of an agent.
+ Extensions to multiple agents 
+\begin_inset LatexCommand citep
+key "Lesperance01epi_feas_casl"
+
+\end_inset
+
+ and concurrent actions 
+\begin_inset LatexCommand citep
+key "scherl03conc_knowledge"
+
+\end_inset
+
+ have produced an expressive logic of knowledge, action and change that
+ permits an effective reasoning procedure using standard techniques of the
+ situation calculus.
+\end_layout
+
+\begin_layout Standard
+While a powerful technique for reasoning about the knowledge of individual
+ agents, the existing account has a major limitation: it lacks a formal
+ treatment of group-level epistemic modalities.
+ While simple group-level modalities can be expressed as combinations of
+ individual-level knowledge, this is not the case for more complex modalities
+ such as common knowledge.
+ Given the deep connections between common knowledge and coordination 
+\begin_inset LatexCommand cite
+key "halpern90knowledge_distrib"
+
+\end_inset
+
+, this is a serious shortcoming in multi-agent domains.
+\end_layout
+
+\begin_layout Standard
+-- nice quote from 
+\begin_inset LatexCommand cite
+key "delgrande01sitcalc_cleudo"
+
+\end_inset
+
+ that sums up the current situation --
+\end_layout
+
+\begin_layout Standard
+-- it's something about 
+\begin_inset Quotes eld
+\end_inset
+
+assuming an appropriate axiomatisation
+\begin_inset Quotes erd
+\end_inset
+
+ --
+\end_layout
+
+\begin_layout Standard
+This paper provides the first such 
+\begin_inset Quotes eld
+\end_inset
+
+appropriate axiomatisation
+\begin_inset Quotes erd
+\end_inset
+
+ of common knowledge for the situation calculus.
+\end_layout
+
+\begin_layout Standard
+The major difficulty in introducing common knowledge to the situation calculus
+ comes down to an expressivity result from the related field of dynamic
+ epistemic logic 
+\begin_inset LatexCommand citep
+key "baltag98pa_ck"
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Quote
+epistemic logic with actions and common knowledge is more expressive than
+ epistemic logic with common knowledge alone
+\end_layout
+
+\begin_layout Standard
+In the case of individual knowledge, regression allows formulae of the form
+ 
+\begin_inset Formula $\Knows(agt,\phi,do(a,s))$
+\end_inset
+
+ to be re-written to an equivalent expression 
+\begin_inset Formula $\Knows(agt,\varphi,s)$
+\end_inset
+
+ that is easier to reason about.
+ This expressivity limitation means that such re-writing is not possible
+ for common knowledge; 
+\begin_inset Formula $\CKnows(G,\phi,do(a,s))$
+\end_inset
+
+ cannot be reduced to an equivalent formula 
+\begin_inset Formula $\CKnows(G,\varphi,s)$
+\end_inset
+
+, even in extremely simple domains.
+\end_layout
+
+\begin_layout Standard
+Recent advances in dynamic epistemic logic have shown that this limitation
+ can be circumvented by using a more expressive epistemic language, allowing
+ the formulation of a regression rule.
+ In particular, 
+\begin_inset LatexCommand citep
+key "vanBenthem06lcc"
+
+\end_inset
+
+ developed the Logic of Communication and Change (hereafter denoted 
+\begin_inset Quotes eld
+\end_inset
+
+LCC
+\begin_inset Quotes erd
+\end_inset
+
+) using propositional dynamic logic as their epistemic language, and showed
+ that it allows reasoning about common knowledge using techniques similar
+ to regression.
+\end_layout
+
+\begin_layout Standard
+We follow a similar approach to bring complex epistemic modalities to the
+ situation calculus.
+ Given the deep similarities between the situation calculus and modal logic
+ 
+\begin_inset LatexCommand cite
+key "vanbentham07ml_sitcalc"
+
+\end_inset
+
+ our presentation naturally mirrors that of 
+\begin_inset LatexCommand citep
+key "vanBenthem06lcc"
+
+\end_inset
+
+ - however, there are also substantial differences that mean this is not
+ a simple translation of LCC.
+ In particular, we must deal with the many first-order aspects of the situation
+ calculus.
+ yadda yadda more differentiation here.
+\end_layout
+
+\begin_layout Standard
+The pape proceeds as follows: In Section TODO we briefly introduce the situation
+ calculus as we will be using it; Section TODO develops the language of
+ complex epistemic modalities using macro-expansion; Section TODO shows
+ how to regress these modalities and proves that the regression is sound;
+ and so on...
+\end_layout
+
+\begin_layout Standard
+\begin_inset LatexCommand bibtex
+options "aaai"
+bibfiles "/storage/uni/pgrad/library/references"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
+\end_body
+\end_document
