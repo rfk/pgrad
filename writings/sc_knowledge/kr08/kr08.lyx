@@ -1,4 +1,4 @@
-#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -91,7 +91,6 @@ We develop a formal account of complex group-level epistemic modalities
  The result is a rich multi-agent theory of knowledge and action in which
  complex group-level epistemic modalities, including common knowledge, are
  amenable to effective automated reasoning.
- 
 \end_layout
 
 \begin_layout Section
@@ -244,9 +243,9 @@ key "halpern90knowledge_distrib"
 \end_layout
 
 \begin_layout Standard
-Several authors have introduced a common knowledge operator to the situation
- calculus as a direct axiom, using a first-order approximation of its standard
- definition as a transitive closure 
+Several authors have directly introduced a common knowledge operator to
+ the situation calculus as an axiom, using a first-order approximation of
+ its standard transitive-closure definition 
 \begin_inset LatexCommand cite
 key "davis05fo_ma_theory,delgrande01sitcalc_cleudo"
 
@@ -282,20 +281,14 @@ key "vanbentham07ml_sitcalc"
  Rather than mirroring a proof of this limitation, we take our cue from
  recent promising work in dynamic epistemic logic and proceed directly with
  a method for circumventing it.
- 
 \end_layout
 
 \begin_layout Standard
-The main idea is due to 
-\begin_inset LatexCommand citep
-key "vanBenthem06lcc"
-
-\end_inset
-
-: increase the expressive power of the epistemic language so it is strong
- enough to formulate a proper regression rule.
- They have developed a form of dynamic episemic logic called the Logic of
- Communication and Change (
+The main idea here is due to van Bentham, van Eick and Kooi (2006): increase
+ the expressive power of the epistemic language so it is strong enough to
+ formulate a proper regression rule.
+ They have developed a form of dynamic epistemic logic called the Logic
+ of Communication and Change (henceforth 
 \begin_inset Quotes eld
 \end_inset
 
@@ -304,7 +297,7 @@ LCC
 \end_inset
 
 ) using propositional dynamic logic to construct epistemic modalities, and
- shown that it allows reasoning about common knowledge using techniques
+ have shown that it allows reasoning about common knowledge using techniques
  akin to regression.
  We follow a similar approach and introduce complex epistemic modalities
  to the situation calculus.
@@ -323,20 +316,24 @@ nsions and modifications to the regression operator.
 \begin_inset Formula $\PKnows(\pi,\phi,s)$
 \end_inset
 
- expresses knowledge using such a path 
+ expresses knowledge using a path 
 \begin_inset Formula $\pi$
 \end_inset
 
-, and the regression operator is modified to treat 
-\begin_inset Formula $\PKnows$
+, while the regression operator treats 
+\begin_inset Formula $\PKnows(\pi,\phi,do(c,s))$
 \end_inset
 
- expressions as primitive fluents.
- As a brief example, 
+ as a primitive fluent and translates it to an equivalent formula 
+\begin_inset Formula $\PKnows(\varpi,\varphi,s)$
+\end_inset
+
+.
+ For example, 
 \begin_inset Quotes eld
 \end_inset
 
-A knows that B knows 
+A knows that B knows that 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -344,12 +341,24 @@ A knows that B knows
 \begin_inset Quotes erd
 \end_inset
 
- can be written using our syntax as 
+ can be written in this syntax as 
 \begin_inset Formula $\PKnows(A;B,\phi,s)$
 \end_inset
 
 .
- 
+ Common knowledge between 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $B$
+\end_inset
+
+ is expressed using the iteration operator as 
+\begin_inset Formula $\PKnows((A\cup B)^{*},\phi,s)$
+\end_inset
+
+ .
 \end_layout
 
 \begin_layout Standard
@@ -567,45 +576,19 @@ key "pirri99contributions_sitcalc"
 
 \begin_layout Standard
 There is a distinguished fluent predicate 
+\begin_inset Formula $Poss(c,s)$
+\end_inset
+
+ indicating when it is possible to perform actions in a given situation.
+ In simple domains it suffices to specify 
 \begin_inset Formula $Poss(a,s)$
 \end_inset
 
- that indicates when it is possible to perform an action in a given situation.
- For example, it is only possible for an agent to drop an object if they
- are actually holding it:
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-We follow the convention that lower-case roman names indicate variables,
- with free variables being implicitly universally quantified at widest scope.
-\end_layout
-
+ for each individual action type, then let 
+\begin_inset Formula $Poss(c,s)$
 \end_inset
 
- 
-\begin_inset Formula \[
-Poss(drop(agt,obj),s)\equiv Holding(agt,obj,s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula $\mathcal{D}_{ap}$
-\end_inset
-
- contains one 
-\begin_inset Formula $Poss$
-\end_inset
-
- axiom of the above form for each type of action.
- For concurrent actions 
-\begin_inset Formula $Poss$
-\end_inset
-
- can be defined as follows:
+ be defined by:
 \begin_inset Formula \[
 Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\,.\, a\in c\rightarrow Poss(a,s)\]
 
@@ -615,18 +598,27 @@ Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\,.\, a\in c\rightarrow Poss(a,s)\]
 \end_layout
 
 \begin_layout Standard
-This may be insufficient in complex domains where 
+In more complex domains 
 \emph on
 precondition interaction
 \emph default
- is an issue; it can be addressed by several techniques that are well outside
- the scope of this paper 
+ may be an issue; techniques for this are well outside the scope of this
+ paper 
 \begin_inset LatexCommand cite
 key "reiter96sc_nat_conc"
 
 \end_inset
 
 .
+ We require only that the regression operator can rewrite 
+\begin_inset Formula $Poss(c,s)$
+\end_inset
+
+ to a finite combination of primitive fluents even when 
+\begin_inset Formula $c$
+\end_inset
+
+ is a variable.
 \end_layout
 
 \begin_layout Standard
@@ -707,7 +699,7 @@ The truth of a fluent is completely specified by defining its truth in the
 successor state axioms
 \emph default
 .
- Such axioms provide a monotonic solution to the infamous frame problem.
+ Such axioms provide a monotonic solution to the frame problem.
  They have the following general form, asserting the truth of a fluent 
 \begin_inset Formula $F$
 \end_inset
@@ -734,23 +726,6 @@ F(\overrightarrow{x},do(c,s))\equiv\Phi(\overrightarrow{x},c,s)\]
 \end_layout
 
 \begin_layout Standard
-Here 
-\begin_inset Formula $\Phi$
-\end_inset
-
- is a formula uniform in 
-\begin_inset Formula $s$
-\end_inset
-
-.
- 
-\begin_inset Formula $\mathcal{D}_{ss}$
-\end_inset
-
- contains one such axiom for each fluent.
-\end_layout
-
-\begin_layout Standard
 Epistemic reasoning was first introduced to the situation calculus by 
 \begin_inset LatexCommand citet
 key "moore80know_act"
@@ -764,19 +739,19 @@ key "scherl03sc_knowledge"
 \end_inset
 
  whose paper is now the canonical reference for these techniques.
- Their work has been further extended to include concurrent actions 
+ It has been further extended to include concurrent actions 
 \begin_inset LatexCommand citep
 key "scherl03conc_knowledge"
 
 \end_inset
 
- multiple agents 
+, multiple agents 
 \begin_inset LatexCommand citep
 key "Lesperance01epi_feas_casl"
 
 \end_inset
 
- and partial observability 
+ and partial observability of actions 
 \begin_inset LatexCommand cite
 key "kelly07sc_know_obs"
 
@@ -864,8 +839,7 @@ To allow actions to return sensing information the sensing result function
 \begin_inset Formula $Obs$
 \end_inset
 
- is used to determine what information an agent perceives when an action
- is performed.
+ specifies what information an agent perceives when an action is performed.
  A simple axiomatisation might have agents observe all actions performed,
  and all sensing results from their own actions:
 \begin_inset Formula \begin{gather*}
@@ -874,8 +848,14 @@ a\in Obs(agt,c,s)\,\equiv a\in c\\
 
 \end_inset
 
-The standard dynamics of knowledge are given by the successor state axiom
- for 
+For simplicity we assume that the domain is synchronised, so that agents
+ are always aware that 
+\emph on
+some
+\emph default
+ action has occurred even if they are uncertain as to its precise details.
+ The dynamics of knowledge are then given by the following successor state
+ axiom for 
 \begin_inset Formula $K$
 \end_inset
 
@@ -944,13 +924,9 @@ Init(s)\rightarrow\left(K(agt,s',s)\rightarrow Init(s')\right)\label{eq:k_s0_sta
 
 \end_layout
 
-\begin_layout Subsubsection*
-
-\end_layout
-
 \begin_layout Standard
-The principle tool for effective reasoning in the situation calculus is
- the regression meta-operator 
+Effective reasoning in the situation calculus depends on the regression
+ meta-operator 
 \begin_inset Formula $\Reg_{\Dt}$
 \end_inset
 
@@ -995,7 +971,12 @@ key "pirri99contributions_sitcalc"
 \end_layout
 
 \begin_layout Standard
-This is achieved by replacing primitive fluents 
+Since we assume a fixed action theory, we drop the 
+\begin_inset Formula $\Dt$
+\end_inset
+
+ subscript throughout this paper.
+ This is achieved by replacing primitive fluents 
 \begin_inset Formula $F(\vars{x},do(c,s))$
 \end_inset
 
@@ -1013,7 +994,7 @@ This is achieved by replacing primitive fluents
 \end_inset
 
 , repeated applications of the regression operator (denoted by 
-\begin_inset Formula $\Reg_{\Dt}^{*}$
+\begin_inset Formula $\Reg^{*}$
 \end_inset
 
 ) can transform it into an equivalent formula uniform in the initial situation.
@@ -1027,8 +1008,10 @@ compiled in
 
  to the formula and so are not required for answering the regressed query,
  making reasoning simpler:
-\begin_inset Formula \[
-\Dt\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\,\,\,\,\,\mathrm{iff}\,\,\,\,\,\Dt_{una}\cup\Dt_{S_{0}}\models\Reg_{\Dt}^{*}(\phi)[S_{0}]\]
+\begin_inset Formula \begin{gather*}
+\Dt\models\phi[do(c_{n},do(c_{n-1},\dots,do(c_{1},S_{0}))]\\
+\mathrm{iff}\\
+\Dt_{una}\cup\Dt_{S_{0}}\models\Reg^{*}(\phi)[S_{0}]\end{gather*}
 
 \end_inset
 
@@ -1037,7 +1020,7 @@ compiled in
 
 \begin_layout Standard
 The trade-off is that the length of 
-\begin_inset Formula $\Reg_{\Dt}^{*}(\phi)$
+\begin_inset Formula $\Reg^{*}(\phi)$
 \end_inset
 
  may be exponential in the length of 
@@ -1047,15 +1030,6 @@ The trade-off is that the length of
 .
  While an efficiency gain is not guaranteed, regression has proven a very
  effective technique in practice.
- Since we assume we are dealing with a fixed basic action theory 
-\begin_inset Formula $\Dt$
-\end_inset
-
-, we will drop the subscript and simply use 
-\begin_inset Formula $\Reg$
-\end_inset
-
- for the regression operator.
 \end_layout
 
 \begin_layout Standard
@@ -1072,7 +1046,7 @@ key "scherl03sc_knowledge"
  macro syntactically, as if it were a primitive fluent.
  This allows epistemic queries to be approached using standard reasoning
  techniques of the situation calculus.
- The definition operates as follows:
+ Regression of knowledge expressions operates as follows:
 \end_layout
 
 \begin_layout Standard
@@ -1086,7 +1060,7 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-We briefly review the various group-level epistemic modalities commonly
+We next briefly review the some group-level epistemic modalities commonly
  found in the literature; an excellent overview and discussion can be found
  in the work of 
 \begin_inset LatexCommand citet
@@ -1122,7 +1096,13 @@ everyone knows
 \end_layout
 
 \begin_layout Standard
-To assert more complete knowledge by members of the group, one can say 
+Since the definition is finite, 
+\begin_inset Formula $\EKnows$
+\end_inset
+
+ can be handled in the situation calculus using simple macro-expansion.
+ To assert more complete knowledge by members of the group, one can say
+ 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1214,23 +1194,33 @@ key "halpern90knowledge_distrib"
 \end_layout
 
 \begin_layout Standard
-We are aware of no formal treatments of common knowledge in the situation
- calculus literature, let alone in domains as rich as those we consider
- here.
- This can be attributed to the difficulty of reasoning about common knowledge
- using techniques such as regression.
- In the related field of dynamic epistemic logic, a famous result of 
+Since its definition is infinitary, common knowledge cannot simply be reduced
+ to individual knowledge to perform reasoning.
+ The only formal treatments of common knowledge in the situation calculus
+ and related literature introduce it via a separate, explicit axiom 
+\begin_inset LatexCommand cite
+key "davis05fo_ma_theory,delgrande01sitcalc_cleudo"
+
+\end_inset
+
+.
+ This makes reasoning difficult as regression can no longer be used.
+\end_layout
+
+\begin_layout Standard
+The difficulties here are highlighted by a famous expressivity result from
+ the related field of dynamic epistemic logic:
+\end_layout
+
+\begin_layout Quote
+Epistemic logic with actions and common knowledge is more expressive than
+ epistemic logic with common knowledge alone 
 \begin_inset LatexCommand cite
 key "baltag98pa_ck"
 
 \end_inset
 
- states that:
-\end_layout
 
-\begin_layout Quote
-Epistemic logic with actions and common knowledge is more expressive than
- epistemic logic with common knowledge alone.
 \end_layout
 
 \begin_layout Standard
@@ -1254,18 +1244,6 @@ key "vanbentham07ml_sitcalc"
  situation calculus.
  Rather than trying to prove the validity of this limitation in our framework,
  we proceed directly with a technique for circumventing it.
-\end_layout
-
-\begin_layout Standard
-One alternative technique for reasoning about common knowledge would be
- to calculate it directly as a fixpoint of 
-\begin_inset Formula $\EKnows$
-\end_inset
-
-.
- This process would be immensely computationally expensive, and in complex
- domains would be unlikely to finitely terminate.
- Effective reasoning requires a regression rule.
 \end_layout
 
 \begin_layout Standard
@@ -1330,7 +1308,7 @@ First, we must specify the syntax of our epistemic path language.
  
 \end_layout
 
-\begin_layout Standard
+\begin_layout Description
 Epistemic\InsetSpace ~
 Path Let 
 \begin_inset Formula $agt$
@@ -1451,7 +1429,7 @@ key "kooi07dyn_termmodal_logic"
 .
 \end_layout
 
-\begin_layout Standard
+\begin_layout Description
 Epistemic\InsetSpace ~
 Path\InsetSpace ~
 Semantics A situation 
@@ -1560,16 +1538,6 @@ sion of
 \end_inset
 
  into a proper sentence of the situation calculus.
-\end_layout
-
-\begin_layout Subsection
-A Synchronous Epistemic Fluent
-\begin_inset LatexCommand label
-name "sub:Synchronous-Epistemic-Fluent"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -2026,7 +1994,7 @@ name "sec:Conclusions"
 \begin_layout Standard
 \begin_inset LatexCommand bibtex
 options "aaai"
-bibfiles "/storage/uni/pgrad/library/references"
+bibfiles "../../../library/references"
 
 \end_inset
 
