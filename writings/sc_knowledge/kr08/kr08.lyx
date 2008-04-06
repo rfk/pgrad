@@ -85,7 +85,7 @@ We develop a formal account of complex group-level epistemic modalities
  Common knowledge is a special case of this syntax, using the unbounded
  iteration operator.
  We develop a regression rule for these complex modalities and demonstrate
- how its use to reason about common knowledge in an example domain.
+ its use to reason about common knowledge in an example domain.
  The result is a rich multi-agent theory of knowledge and action in which
  complex group-level epistemic modalities are amenable to effective automated
  reasoning.
@@ -1821,8 +1821,8 @@ For any epistemic path
 
 :
 \begin_inset Formula \begin{multline*}
-\Dt\models\,\KDo(\pi,s'',do(c,s))\,\equiv\\
-\exists c',s':\,\, s''=do(c',s')\wedge\KDo(\Trn(\pi,c,c'),s',s)\end{multline*}
+\Dt\models\,\KDo(\pi,do(c,s),s'')\,\equiv\\
+\exists c',s':\,\, s''=do(c',s')\wedge\KDo(\Trn(\pi,c,c'),s,s')\end{multline*}
 
 \end_inset
 
@@ -1900,19 +1900,22 @@ key "scherl03sc_knowledge"
 \begin_inset Formula $\PKnows$
 \end_inset
 
- macro, re-arrange to eliminate existential quantifiers, then collect terms
- back into forms that match 
-\begin_inset Formula $\PKnows$
-\end_inset
-
-.
- Using the equivalence from Theorem 
+ macro, apply Theorem 
 \begin_inset LatexCommand ref
 reference "thm:Trn-respects-epi-paths"
 
 \end_inset
 
- completes the proof.
+ as a successor state axiom for 
+\begin_inset Formula $\KDo$
+\end_inset
+
+, re-arrange to eliminate existential quantifiers, then collect terms back
+ into forms that match 
+\begin_inset Formula $\PKnows$
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -2509,7 +2512,7 @@ Appendix
 \end_layout
 
 \begin_layout Subsection
-Dynamic Logic via Macro Expansion
+Dynamic Logic using Macro Expansion
 \end_layout
 
 \begin_layout Standard
@@ -2825,68 +2828,194 @@ Proofs
 \end_layout
 
 \begin_layout Standard
-This appendix provides additional details for the proofs found in the paper.
+This appendix provides additional details for the proofs found throughout
+ the paper.
 \end_layout
 
 \begin_layout TheoremExt
-\begin_inset LatexCommand label
-name "thm:Trn-respects-epi-paths"
+\begin_inset LatexCommand ref
+reference "thm:Trn-respects-epi-paths"
 
 \end_inset
 
- any epistemic path 
+ For any epistemic path 
 \begin_inset Formula $\pi$
 \end_inset
 
 :
 \begin_inset Formula \begin{multline*}
-\Dt\models\,\KDo(\pi,s'',do(c,s))\,\equiv\\
-\exists c',s':\,\, s''=do(c',s')\wedge\KDo(\Trn(\pi,c,c'),s',s)\end{multline*}
+\Dt\models\,\KDo(\pi,do(c,s),s'')\,\equiv\\
+\exists c',s':\,\, s''=do(c',s')\wedge\KDo(\Trn(\pi,c,c'),s,s')\end{multline*}
 
 \end_inset
 
 
 \end_layout
 
-\begin_layout ProofSketch
-The proof proceeds by cases, covering each path operator in turn.
- In the case of an individual agent the theorem is a direct consequence
- of the successor state axiom for 
+\begin_layout Proof
+Proceed by cases, covering each path operator in turn.
+ We will ommit the enclosing 
+\begin_inset Formula $\Reg()$
+\end_inset
+
+ from 
+\begin_inset Formula $Poss$
+\end_inset
+
+ and 
+\begin_inset Formula $Obs$
+\end_inset
+
+ in the definition of 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ to simpilfy the presentation.
+ For the base case of an individual agent, we have:
+\begin_inset Formula \begin{align*}
+\KDo(\pi,do(c,s),s'')\,\equiv\, & K(agt,s'',do(c,s))\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+\Trn(agt,c,c')\Rightarrow\\
+\exists x\,;\,?x=c\,;\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
+\exists x\,;\,?Poss(x)\,\wedge\, Obs(agt,x)=z\,;\,?x=c'\end{multline*}
+
+\end_inset
+
+Then expanding 
+\begin_inset Formula $\KDo(\Trn(agt,c,c'),s,s')$
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+ we get:
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+
+\begin_inset Formula \begin{multline*}
+\KDo(\Trn(agt,c,c'),s,s')\equiv\\
+\exists x:\, x=c\wedge\exists z:\, Obs(agt,x,s)=z\,\wedge\,\exists s'':\, K(agt,s'',s)\\
+\wedge\exists x:\, Poss(x,s'')\,\wedge\, Obs(agt,x,s'')=z\,\wedge\, x=c'\wedge s''=s'\end{multline*}
+
+\end_inset
+
+Which can be simplified dramatically to:
+\begin_inset Formula \begin{multline*}
+\KDo(\Trn(agt,c,c'),s,s')\equiv K(agt,s,s')\,\wedge\, Poss(c',s')\\
+\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
+
+\end_inset
+
+Substituting these back into the hypothesis, we get:
+\begin_inset Formula \begin{multline*}
+\Dt\models K(agt,s'',do(c,s))\equiv\exists c',s':\,\, s''=do(c',s')\\
+\shoveright{\wedge K(agt,s,s')\,\wedge\, Poss(c',s')}\\
+\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
+
+\end_inset
+
+This is simply the successor state axiom for 
 \begin_inset Formula $K$
 \end_inset
 
 .
- The other operators are straightforward using their semantics as specified
- in Definition 
-\begin_inset LatexCommand ref
-reference "def:KDo"
+\newline
 
+\end_layout
+
+\begin_layout Proof
+For the 
+\begin_inset Formula $?\phi$
+\end_inset
+
+ case, we have:
+\begin_inset Formula \begin{eqnarray*}
+\KDo(?\phi,do(c,s),s'') & \equiv & \phi[do(c,s)]\wedge s''=do(c,s)\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula \begin{align*}
+\Trn(?\phi,c,c')\Rightarrow & \exists x\,;\,?x=c\,;\,?\Reg(\phi,x)\,;\,?x=c'\\
+\Rightarrow & ?\Reg(\phi,c)\wedge c=c'\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Giving:
+\begin_inset Formula \[
+\KDo(\Trn(?\phi,c,c'),s,s')\equiv\Reg(\phi,c)\wedge c=c'\wedge s=s'\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Coupled with 
+\begin_inset Formula $s''=do(c',s')$
+\end_inset
+
+ from the hypothesis, and 
+\begin_inset Formula $\Reg(\phi,c)\equiv\phi[do(c,s)]$
+\end_inset
+
+ by definition, the hypothesis is clearly entailed.
+\end_layout
+
+\begin_layout Proof
+The case for 
+\begin_inset Formula $\exists y$
+\end_inset
+
+ is trivial as 
+\begin_inset Formula $\KDo(\exists y,s,s')\equiv s=s'$
 \end_inset
 
 .
 \end_layout
 
-\begin_layout Standard
-With this result in hand, we can justify the use of equation 
-\begin_inset LatexCommand eqref
-reference "eq:reg_pknows"
-
+\begin_layout Proof
+The inductive cases are straightforward as 
+\begin_inset Formula $\Trn_{a}$
 \end_inset
 
- for regressing 
-\begin_inset Formula $\PKnows$
-\end_inset
-
- expressions.
+ is simply pushed inside each operator.
 \end_layout
 
-\begin_layout Theorem
-\begin_inset LatexCommand label
-name "thm:Reg_PKnowsZ"
+\begin_layout Standard
+\InsetSpace ~
+
+\newline
+
+\end_layout
+
+\begin_layout TheoremExt
+\begin_inset LatexCommand ref
+reference "thm:Reg_PKnowsZ"
 
 \end_inset
 
-For any epistemic path 
+ For any epistemic path 
 \begin_inset Formula $\pi$
 \end_inset
 
@@ -2908,30 +3037,89 @@ For any epistemic path
 
 \end_layout
 
-\begin_layout ProofSketch
+\begin_layout Proof
 The mechanics of this proof mirror the corresponding proof from 
 \begin_inset LatexCommand cite
 key "scherl03sc_knowledge"
 
 \end_inset
 
-: we expand the 
-\begin_inset Formula $\PKnows$
-\end_inset
-
- macro, re-arrange to eliminate existential quantifiers, then collect terms
- back into forms that match 
-\begin_inset Formula $\PKnows$
-\end_inset
-
 .
- Using the equivalence from Theorem 
+ First we expand the 
+\begin_inset Formula $\PKnows$
+\end_inset
+
+ macro to produce:
+\begin_inset Formula \begin{multline*}
+\PKnows(\pi,\phi,do(c,s))\,\equiv\\
+\forall s'':\,\KDo(\pi,do(c,s),s'')\rightarrow\phi[s'']\end{multline*}
+
+\end_inset
+
+Using Theorem 
 \begin_inset LatexCommand ref
 reference "thm:Trn-respects-epi-paths"
 
 \end_inset
 
- completes the proof.
+ as a kind of pseudo-successor-state-axiom for 
+\begin_inset Formula $\KDo$
+\end_inset
+
+, we may write:
+\begin_inset Formula \begin{multline*}
+\PKnows(\pi,\phi,do(c,s))\,\equiv\forall s'':\\
+(\exists c',s':s''=do(c',s')\wedge\KDo(\Trn(\pi,c,c'),s,s'))\rightarrow\phi[s'']\end{multline*}
+
+\end_inset
+
+Bringing the existential variables outside of the implication produces:
+\begin_inset Formula \begin{multline*}
+\PKnows(\pi,\phi,do(c,s))\,\equiv\forall s'',c',s':\\
+s''=do(c',s')\wedge\KDo(\Trn(\pi,c,c'),s,s')\rightarrow\phi[s'']\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+The variable 
+\begin_inset Formula $s''$
+\end_inset
+
+ is now doing no work in this formula, so it can be removed:
+\begin_inset Formula \begin{multline*}
+\PKnows(\pi,\phi,do(c,s))\,\equiv\forall c',s':\\
+\KDo(\Trn(\pi,c,c'),s,s')\rightarrow\phi[do(c',s')]\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+The use of variable 
+\begin_inset Formula $s'$
+\end_inset
+
+ now matches the form of the 
+\begin_inset Formula $\PKnows$
+\end_inset
+
+ macro.
+ Capturing it, and using regression on the 
+\begin_inset Formula $\phi$
+\end_inset
+
+ term , we have the hypothesis as required:
+\begin_inset Formula \begin{multline*}
+\PKnows(\pi,\phi,do(c,s))\,\equiv\\
+\forall c':\,\PKnows(\Trn(\pi,c,c'),\Reg(\phi,c'),s)\end{multline*}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
