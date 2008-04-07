@@ -169,15 +169,15 @@ In their landmark paper
 \emph on
 Knowledge, Action, and the Frame Problem,
 \emph default
- Scherl and Levesque (2003) extend Reiter's solution to the frame problem
- in the situation calculus 
+ Scherl and Levesque (2003) adapt Reiter's solution to the frame problem
+ in the situation calculus to allow reasoning about the knowledge of an
+ agent using regression 
 \begin_inset LatexCommand cite
 key "pirri99contributions_sitcalc"
 
 \end_inset
 
- to handle knowledge-producing actions and reasoning about the knowledge
- of an agent.
+.
  Extensions to concurrent actions 
 \begin_inset LatexCommand citep
 key "scherl03conc_knowledge"
@@ -201,8 +201,9 @@ key "kelly07sc_know_obs"
 \end_layout
 
 \begin_layout Standard
-While powerful, the existing account also has a serious shortcoming in multi-age
-nt domains: it lacks a formal treatment of group-level epistemic modalities.
+While powerful, the existing account has a shortcoming that limits its utility
+ in multi-agent domains: it lacks a formal treatment of group-level epistemic
+ modalities.
  Simple group-level modalities such as 
 \begin_inset Quotes eld
 \end_inset
@@ -232,8 +233,8 @@ it is common knowledge that
 \end_layout
 
 \begin_layout Standard
-Several authors have introduced common knowledge to the situation calculus
- as a separate axiom 
+Common knowledge is typically introduced to the situation calculus as a
+ separate axiom 
 \begin_inset LatexCommand cite
 key "davis05fo_ma_theory,ghaderi07sc_joint_ability"
 
@@ -242,16 +243,14 @@ key "davis05fo_ma_theory,ghaderi07sc_joint_ability"
 .
  While logically sound, this approach means regression can no longer be
  used for effective automated reasoning.
- Our work is the first situation calculus theory that combines a rich group-leve
-l epistemic language - including common knowledge, concurrent actions, and
- partial observability - with an effective reasoning procedure based on
- regression.
+ Our work offers a new approach by combining a rich group-level epistemic
+ language with a regression rule for effective reasoning.
 \end_layout
 
 \begin_layout Standard
-To do so we must overcome a fundamental expressivity limitation, as the
- regression of common knowledge cannot be expressed in terms of common knowledge
- alone 
+To achieve this we must overcome a fundamental expressivity limitation,
+ as the regression of common knowledge cannot be expressed in terms of common
+ knowledge alone 
 \begin_inset LatexCommand citep
 key "baltag98pa_ck"
 
@@ -270,15 +269,21 @@ LCC
 \begin_inset Quotes erd
 \end_inset
 
-) which constructs epistemic modalities using propositional dynamic logic,
- and have shown that it allows reasoning about common knowledge using techniques
+) using propositional dynamic logic to express epistemic modalities, and
+ have shown that it allows reasoning about common knowledge using techniques
  akin to regression.
  We follow a similar approach in this paper and introduce complex epistemic
  modalities to the situation calculus.
- While our presentation naturally parallels the development of LCC, the
- richer ontology of the situation calculus (e.g.
- first-order logic, concurrent actions) means there are also substantial
- differences.
+ 
+\end_layout
+
+\begin_layout Standard
+While our development naturally parallels that of LCC, the richer ontology
+ of the situation calculus also means there are substantial differences.
+ Our formalism captures first-order effects, quantifying-in and de-dicto/de-re,
+ and arbitrary sets of concurrent actions, while providing a regression
+ rule for automated reasoning and integrating smoothly with existing techniques
+ based on the situation calculus.
 \end_layout
 
 \begin_layout Standard
@@ -297,23 +302,6 @@ key "scherl03sc_knowledge"
 \end_inset
 
  expresses knowledge using a path.
- As a brief example, 
-\begin_inset Quotes eld
-\end_inset
-
-A knows that B knows that 
-\begin_inset Formula $\phi$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
- can be written in this syntax as 
-\begin_inset Formula $\PKnows(A;B,\phi,s)$
-\end_inset
-
-.
  Common knowledge between 
 \begin_inset Formula $A$
 \end_inset
@@ -322,7 +310,7 @@ A knows that B knows that
 \begin_inset Formula $B$
 \end_inset
 
- is expressed using the iteration operator as 
+ can be expressed in this syntax using the iteration operator: 
 \begin_inset Formula $\PKnows((A\cup B)^{*},\phi,s)$
 \end_inset
 
@@ -331,21 +319,20 @@ A knows that B knows that
 \begin_inset Formula $\PKnows(\pi,\phi,do(c,s))$
 \end_inset
 
- as a primitive fluent, translating it to an equivalent formula 
+ as a primitive fluent, producing an equivalent formula 
 \begin_inset Formula $\PKnows(\Trn(\pi),\Reg(\phi),s)$
 \end_inset
 
 .
- The result is a rich multi-agent theory of knowledge and action in which
- complex group-level epistemic modalities are amenable to effective automated
- reasoning.
+ This paper thus contributes a rich multi-agent theory of knowledge and
+ action in which complex group-level epistemic modalities are amenable to
+ effective automated reasoning.
 \end_layout
 
 \begin_layout Standard
-The paper proceeds as follows: Section 2 briefly introduces the situation
- calculus and related background material; Section 3 adapts first-order
- dynamic logic for use as an epistemic path language and defines the macro
- 
+The paper proceeds as follows: Section 2 introduces the situation calculus
+ and related background material; Section 3 adopts dynamic logic as an epistemic
+ path language and defines the macro 
 \begin_inset Formula $\PKnows$
 \end_inset
 
@@ -492,11 +479,22 @@ key "pirri99contributions_sitcalc"
 \begin_inset Formula $\mathcal{D}_{S_{0}}$
 \end_inset
 
-).
+):
+\begin_inset Formula \[
+\Dt=\Sigma\cup\Dt_{una}\cup\Dt_{ap}\cup\Dt_{ss}\cup\Dt_{S_{0}}\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-There is a distinguished fluent predicate 
+We assume a fixed 
+\begin_inset Formula $\Dt$
+\end_inset
+
+ throughout the paper.
+ There is a distinguished fluent predicate 
 \begin_inset Formula $Poss(c,s)$
 \end_inset
 
@@ -584,7 +582,7 @@ properties
 \begin_inset Formula $\phi[s]$
 \end_inset
 
- represents the uniform formula 
+ represents 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -858,12 +856,11 @@ The sensing result function
 \end_inset
 
 , allowing additional information to be obtained at run-time.
- Partial observability of actions is specified by the function 
+ Partial observability of actions is accounted for by the function 
 \begin_inset Formula $Obs(agt,c,s)$
 \end_inset
 
-, which determines what information an agent perceives when actions are
- performed.
+, which specifies what information an agent perceives when actions are performed.
  A simple axiomatisation might have agents observe all actions performed,
  and all sensing results from their own actions:
 \begin_inset Formula \begin{align*}
@@ -982,9 +979,8 @@ Note that regression must be able to replace
 \end_layout
 
 \begin_layout Standard
-We next briefly review some group-level epistemic modalities commonly found
- in the literature; for a comprehensive treatment see the classic work of
- 
+We next review some group-level epistemic modalities commonly found in the
+ literature; for a comprehensive treatment see the classic work of 
 \begin_inset LatexCommand citet
 key "halpern90knowledge_distrib"
 
@@ -1120,7 +1116,7 @@ key "davis05fo_ma_theory,ghaderi07sc_joint_ability"
 \end_inset
 
 .
- This makes reasoning difficult as regression cannot be used.
+ This makes reasoning difficult as regression cannot be applied.
 \end_layout
 
 \begin_layout Standard
@@ -1183,7 +1179,7 @@ We apply these ideas to perform epistemic reasoning in the situation calculus,
  allowing common knowledge to be handled using regression.
  While the development naturally parallels that of LCC, the much richer
  ontology of the situation calculus means there are also substantial differences.
- A detailed description of LCC would take us too far afield at this point.
+ A full description of LCC would take us too far afield in this paper.
 \end_layout
 
 \begin_layout Section
@@ -1288,7 +1284,7 @@ The test (
 \end_layout
 
 \begin_layout Standard
-Let us re-iterate the purpose of this path language.
+Let us reiterate the purpose of this path language.
  Despite using the syntax of dynamic logic, it is 
 \emph on
 not
@@ -1387,7 +1383,7 @@ current variable binding
 \end_inset
 
 .
- The semantics below operate over pairs 
+ The semantics below operate over such pairs 
 \begin_inset Formula $(\mu,s)$
 \end_inset
 
@@ -1463,45 +1459,53 @@ Like its single-agent counterpart
 \end_layout
 
 \begin_layout Standard
+An advantage of this macro-expansion approach is that 
+\begin_inset Formula $\PKnows$
+\end_inset
+
+ expressions can be nested and quantified-into without any ontological difficult
+ies; it all simply expands to a formula of the base language.
+ The de-dicto/de-re distinction is explicated by placing quantifiers inside/outs
+ide the scope of the macro.
+ The situation calculus also settles other semantic issues that might arise
+ in a modal formalism (e.g.
+ rigid vs non-rigid designators).
+\end_layout
+
+\begin_layout Standard
 These definitions provide the required expressiveness boost for our epistemic
  language.
  Of course, they should not be used directly for reasoning purposes as they
  expand to complicated second-order expressions.
-\end_layout
-
-\begin_layout Standard
-A noteworthy advantage of this macro-expansion approach is that 
-\begin_inset Formula $\PKnows$
-\end_inset
-
- expressions can be nested and quantified-into without any ontological uncertain
-ties; it all simply expands to a formula of the base language, as long as
- suppressed situation terms are correctly reinstated.
- The de-dicto/de-re distinction is explicated by placing quantifiers inside/outs
-ide the scope of the macro.
-\end_layout
-
-\begin_layout Standard
-We close this section with a formal statement of the validity of our new
+ We close this section with a formal statement of the validity of our new
  formalism in relation to the standard account.
 \end_layout
 
 \begin_layout Theorem
+\begin_inset LatexCommand label
+name "thm:PKnows-works"
+
+\end_inset
+
 The identities in equation 
 \begin_inset LatexCommand eqref
 reference "eq:pknows_identities"
 
 \end_inset
 
- hold, where CKnows is the transitive closure of EKnows.
+ are entailed by 
+\begin_inset Formula $\Dt$
+\end_inset
+
+, where CKnows is the transitive closure of EKnows.
 \end_layout
 
-\begin_layout Proof
+\begin_layout ProofSketch
 Each is a straightforward matter of expanding the 
 \begin_inset Formula $\PKnows$
 \end_inset
 
- definition, using the relevant identity from definition 
+ definition, using the relevant identities from Definition 
 \begin_inset LatexCommand ref
 reference "def:KDo"
 
@@ -1515,13 +1519,7 @@ reference "def:KDo"
 \end_layout
 
 \begin_layout Section
-Effective Reasoning
-\begin_inset LatexCommand label
-name "sec:Effective-Reasoning"
-
-\end_inset
-
-
+Epistemic Path Regression
 \end_layout
 
 \begin_layout Standard
@@ -1539,11 +1537,11 @@ As with the case of the standard
 \end_inset
 
  syntactically as a primitive fluent.
- This can be achieved by performing regression on the epistemic path 
+ This can be achieved by regressing both the epistemic path 
 \begin_inset Formula $\pi$
 \end_inset
 
- as well as the enclosed formulae 
+ and the enclosed formulae 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1552,8 +1550,7 @@ As with the case of the standard
 \begin_inset Formula $\Trn$
 \end_inset
 
- for this purpose.
- The desired regression rule is:
+ for this purpose and define the following regression rule:
 \begin_inset Formula \begin{multline}
 \Reg(\PKnows(\pi,\phi,do(c,s)))\isdef\\
 \forall c':\,\PKnows(\Trn(\pi,c,c'),\Reg(\phi,c'),s)\label{eq:reg_pknows}\end{multline}
@@ -1564,7 +1561,7 @@ As with the case of the standard
 \end_layout
 
 \begin_layout Standard
-Let us consider the required operation of 
+Let us consider the operation of the path-regressor 
 \begin_inset Formula $\Trn$
 \end_inset
 
@@ -1630,133 +1627,113 @@ pre-encoding
 \end_layout
 
 \begin_layout Standard
-Note that 
-\begin_inset Formula $c$
-\end_inset
-
- and 
-\begin_inset Formula $c'$
-\end_inset
-
- must be proper situation calculus variables rather than path variables,
- as they are used outside the path expression.
- The intuitive operation of 
-\begin_inset Formula $\Trn$
-\end_inset
-
- is as follows:
-\end_layout
-
-\begin_layout Itemize
-introduce a fresh variable 
-\begin_inset Formula $x$
-\end_inset
-
- to hold the action that, prior to regression, was performed in the current
- situation
-\end_layout
-
-\begin_layout Itemize
-at the beginning of the path, bind 
-\begin_inset Formula $x$
-\end_inset
-
- to the known action 
-\begin_inset Formula $c$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Itemize
-when making a step to a new situation for agent 
+To achieve this, every 
 \begin_inset Formula $agt$
 \end_inset
 
-:
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-use a fresh variable 
-\begin_inset Formula $z$
+-step from 
+\begin_inset Formula $s_{1}$
 \end_inset
 
- to hold current 
-\begin_inset Formula $Obs(agt,x)$
+ to 
+\begin_inset Formula $s_{2}$
 \end_inset
 
- 
-\end_layout
+ along the regressed path 
+\begin_inset Formula $\Trn(\pi)$
+\end_inset
 
-\begin_layout Itemize
-move to the new situation via the 
+ must correspond to an 
 \begin_inset Formula $agt$
 \end_inset
 
- step
-\end_layout
-
-\begin_layout Itemize
-select a new action using 
-\begin_inset Formula $\exists x$
+-step from 
+\begin_inset Formula $do(c_{1},s_{1})$
 \end_inset
 
-
-\end_layout
-
-\begin_layout Itemize
-assert that 
-\begin_inset Formula $Poss(x)$
+ to 
+\begin_inset Formula $do(c_{2},s_{2})$
 \end_inset
 
- and 
-\begin_inset Formula $Obs(agt,x)=z$
-\end_inset
-
-
-\end_layout
-
-\end_deeper
-\begin_layout Itemize
-at the end of the path, assert that 
-\begin_inset Formula $x$
-\end_inset
-
- is the known action 
-\begin_inset Formula $c'$
-\end_inset
-
- 
-\end_layout
-
-\begin_layout Standard
-To achieve this we use an auxiliary operator 
-\begin_inset Formula $\TrnA(\pi,x)$
-\end_inset
-
-, which regresses 
+ along the original path 
 \begin_inset Formula $\pi$
 \end_inset
 
- under the assumption that variable 
+.
+ The path regressor uses a fresh variable 
 \begin_inset Formula $x$
 \end_inset
 
- contains the action to be performed in the current situation.
- We use 
+ to track the action corresponding to the current situation.
+ It adds several tests to encode the successor state axiom for 
+\begin_inset Formula $K$
+\end_inset
+
+ in the regressed path:
+\end_layout
+
+\begin_layout Itemize
+action 
+\begin_inset Formula $x$
+\end_inset
+
+ must always be possible in the current situation
+\end_layout
+
+\begin_layout Itemize
+when making an 
+\begin_inset Formula $agt$
+\end_inset
+
+-step, 
+\begin_inset Formula $Obs(agt,x)$
+\end_inset
+
+ before making the step must match 
+\begin_inset Formula $Obs(agt,x)$
+\end_inset
+
+ after making the step
+\end_layout
+
+\begin_layout Standard
+Contrast with the regression rule for 
+\begin_inset Formula $\Knows$
+\end_inset
+
+, which encodes this information within the enclosed formula.
+ Note that 
 \begin_inset Formula $\Reg$
 \end_inset
 
- to reduce 
-\begin_inset Formula $Obs$
+ is used to ensure tests are proper uniform formulae.
+ Note also that 
+\begin_inset Formula $c$
 \end_inset
 
  and 
-\begin_inset Formula $Poss$
+\begin_inset Formula $c'$
 \end_inset
 
- to uniform formulae in tests.
+ must be situation calculus variables rather than path variables, as they
+ are used outside the path expression.
+ 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ simply asserts that 
+\begin_inset Formula $x$
+\end_inset
+
+ is equal to 
+\begin_inset Formula $c$
+\end_inset
+
+ at the beginning of the path, and equal to 
+\begin_inset Formula $c'$
+\end_inset
+
+ at the end.
 \end_layout
 
 \begin_layout Definition
@@ -1789,23 +1766,17 @@ name "def:EpistemicPathRegression"
 \TrnA(?\phi,x)\isdef\,\, & ?\Reg(\phi,x)\\
 \TrnA(\exists y,x)\isdef\,\, & \exists y\\
 \begin{array}{c}
-\TrnA(\pi_{1};\pi_{2},x)\isdef\,\,\end{array} & \TrnA(\pi_{1},x)\,;\,\TrnA(\pi_{2},x)\\
+\TrnA(\pi_{1};\pi_{2},x)\end{array}\isdef\,\, & \TrnA(\pi_{1},x)\,;\,\TrnA(\pi_{2},x)\\
 \TrnA(\pi_{1}\cup\pi_{2},x)\isdef\,\, & \TrnA(\pi_{1},x)\cup\TrnA(\pi_{2},x)\\
 \TrnA(\pi^{*},x)\isdef\,\, & \TrnA(\pi,x)^{*}\end{align*}
 
 \end_inset
 
-
+ 
 \end_layout
 
 \begin_layout Standard
-Note that the path itself is updated to reflect information about the possibilit
-y and observability of the actions; in the regression of 
-\begin_inset Formula $\Knows$
-\end_inset
-
-, this information is pushed inside the enclosed formula.
- The following theorem states that these definitions behave has desired,
+The following theorem states that these definitions behave has desired,
  respecting the semantics of epistemic paths:
 \end_layout
 
@@ -1942,10 +1913,8 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-However, we should note that the increased expressiveness of our formalism
- has come at a price.
- Our variant of dynamic logic is highly undecidable in general - validity
- is 
+However, we should note that validity in first-order dynamic logic is undecidabl
+e; in fact it is 
 \begin_inset Formula $\Pi_{1}^{1}$
 \end_inset
 
@@ -1955,10 +1924,12 @@ key "kooi07dyn_termmodal_logic"
 
 \end_inset
 
- - so we must assume the agents' initial knowledge is restricted enough
- to allow reasoning to be performed.
- Fortunately there are some special cases that can simplify answering the
- regressed query.
+.
+ As with previous work in the situation calculus, we must assume that axioms
+ about the initial situation are in a restricted form amenable to effective
+ reasoning.
+ There are several special cases that can simplify answering the regressed
+ query.
 \end_layout
 
 \begin_layout Standard
@@ -2004,11 +1975,8 @@ As we shall see in the next section, the epistemic paths resulting from
 \begin_inset Formula $\Trn$
 \end_inset
 
- can be simplified away as it will always contain the actions 
-\begin_inset Formula $c$
-\end_inset
-
-.
+ can be simplified away as it will always contain the actions that actually
+ occurred.
 \end_layout
 
 \begin_layout Standard
@@ -2136,13 +2104,12 @@ Inserting the definitions of
 
  and applying some straightforward simplifications, we get:
 \begin_inset Formula \begin{multline*}
-\Trn(B,read(B),c')\,\Rightarrow\\
-\exists z\,;\,?z=read(B)\#loc\,;\, B\,;\,?z=read(B)\#loc\end{multline*}
+\Trn(B,read(B),c')\,\Rightarrow\exists z\,;\,?z=read(B)\#loc\,;\, B\,;\\
+\,?z=read(B)\#loc\,;\,?c'=read(B)\end{multline*}
 
 \end_inset
 
-Examining the two test conditions in this path, we see that the value of
- 
+Examining the test conditions in this path, we see that the value of 
 \begin_inset Formula $loc$
 \end_inset
 
@@ -2156,8 +2123,9 @@ Examining the two test conditions in this path, we see that the value of
 
  before it.
  We can in fact simplify this to:
-\begin_inset Formula \[
-\Trn(B,read(B),c')\Rightarrow\exists z\,;\,?z=loc\,;\, B\,;\,?z=loc\]
+\begin_inset Formula \begin{multline*}
+\Trn(B,read(B),c')\Rightarrow\\
+\exists z\,;\,?z=loc\,;\, B\,;\,?z=loc\,;\,?c'=read(B)\end{multline*}
 
 \end_inset
 
@@ -2204,7 +2172,7 @@ To calculate
 
  we need the following result:
 \begin_inset Formula \begin{multline*}
-\Trn(A,read(B),c')\,\Rightarrow\\
+\Trn_{a}(A,read(B))\,\Rightarrow\\
 \exists z\,;\,?z=read(B)\,;\, A\,;\,?read(B)=z\end{multline*}
 
 \end_inset
@@ -2217,50 +2185,21 @@ Since Alice does not observe any sensing results from
 \begin_inset Formula $Poss(read(B))$
 \end_inset
 
- is always true, the tests in this regressed path provide no new information.
- If the variable 
-\begin_inset Formula $z$
+ is always true, the tests in this regressed path provide no new information
+ and Alice's knowledge is not changed.
+ Using this, the regression of the entire epistemic path can be simplified
+ to:
+\begin_inset Formula \begin{multline*}
+\Trn((A\cup B)^{*},read(B),c')\,\Rightarrow\\
+\left[A\cup\,\exists z\,;\,?z=loc\,;\, B\,;\,?z=loc\right]^{*};?c'=read(B)\end{multline*}
+
 \end_inset
 
- is not subsequently used, the path can be simplified to just 
+Since this path permits 
 \begin_inset Formula $A$
 \end_inset
 
- and Alice's knowledge is not changed.
- Since the 
-\begin_inset Formula $read$
-\end_inset
-
- action is publicly observable, the assertions that 
-\begin_inset Formula $\Trn_{a}$
-\end_inset
-
- makes about 
-\begin_inset Formula $Obs(A,x)$
-\end_inset
-
-/
-\begin_inset Formula $Obs(B,x)$
-\end_inset
-
- will ensure that 
-\begin_inset Formula $x$
-\end_inset
-
- never takes on a value other than 
-\begin_inset Formula $read(B)$
-\end_inset
-
-.
- Using this to simplify things, the regression of the entire epistemic path
- is:
-\begin_inset Formula \begin{multline*}
-\Trn((A\cup B)^{*},read(B),c')\,\Rightarrow\\
-\left[A\cup\,\exists z\,;\,?z=loc\,;\, B\,;\,?z=loc\right]^{*}\end{multline*}
-
-\end_inset
-
-Since Alice considers 
+ steps, and Alice considers 
 \begin_inset Formula $loc=D$
 \end_inset
 
@@ -2282,19 +2221,50 @@ do(read(B),S_{0}))\end{multline*}
 \end_layout
 
 \begin_layout Standard
-This example is deceptively simple.
- The inner expression can be regressed analogously to example 1, but the
- existential quantification makes it a tautology:
-\begin_inset Formula \[
-\Reg(\exists x:\PKnows(B,loc=x),read(B))\Rightarrow true\]
+Regressing the inner expression over the variable 
+\begin_inset Formula $c'$
+\end_inset
+
+ gives:
+\begin_inset Formula \begin{multline*}
+\Reg(\exists x:\PKnows(B,loc=x),c')\Rightarrow\\
+\exists x:\PKnows(B,loc=x)\vee c'=read(B)\end{multline*}
 
 \end_inset
 
-This makes the expansion of the outer 
-\begin_inset Formula $\PKnows$
+So when regressing the outer expression, we get:
+\begin_inset Formula \begin{multline*}
+\forall c':\,\PKnows(\Trn((A\cup B)^{*},read(B),c'),\\
+\exists x:\PKnows(B,loc=x)\vee c'=read(B),S_{0})\end{multline*}
+
 \end_inset
 
- macro a trivial tautology of the domain.
+From the previous example, 
+\begin_inset Formula $\Trn((A\cup B)^{*},read(B),c')$
+\end_inset
+
+ asserts that 
+\begin_inset Formula $c'=read(B)$
+\end_inset
+
+.
+ This is due to the public observability of 
+\begin_inset Formula $read$
+\end_inset
+
+.
+ The enclosing 
+\begin_inset Formula $\forall c'$
+\end_inset
+
+ can thus be simplified away and the result is a simple tautology.
+ If the 
+\begin_inset Formula $read$
+\end_inset
+
+ action were not publicly observable, common knowledge would not be obtained;
+ a proof of this would mirror example 2.
+ 
 \newline
 
 \end_layout
@@ -2312,7 +2282,11 @@ do(read(A),do(read(B),S_{0})))\end{multline*}
 \end_layout
 
 \begin_layout Standard
-Applying regression over the first action, we reduce this query to:
+Applying regression over the first action, and simplifying with 
+\begin_inset Formula $c'=read(B)$
+\end_inset
+
+ as before, we reduce this query to:
 \begin_inset Formula \begin{multline*}
 \PKnows(\left[\exists z\,;\,?z=loc\,;\, A\,;\,?z=loc\,\cup\, B\right]^{*},\\
 loc=C,do(read(B),S_{0}))\end{multline*}
@@ -2341,6 +2315,11 @@ loc=C,S_{0})\end{multline*}
 
 By a similar argument to the first example, this query is entailed by the
  domain.
+ Again, the public observability of 
+\begin_inset Formula $read$
+\end_inset
+
+ is the key to obtaining common knowledge in this case.
 \end_layout
 
 \begin_layout Section
@@ -2516,8 +2495,8 @@ Dynamic Logic using Macro Expansion
 \end_layout
 
 \begin_layout Standard
-This appendix develops an encoding of first-order dynamic logic (hereafter
- denoted 
+This appendix develops an encoding of first-order dynamic logic (henceforth
+ 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2559,7 +2538,7 @@ We make one modification to the semantics of Golog, so that it is interpreted
 \begin_inset Formula $\EDo(\delta,s,s')$
 \end_inset
 
- to make this distinction clear.
+ to distinguish it from vanilla action-based Golog.
 \end_layout
 
 \begin_layout Definition
@@ -2604,7 +2583,14 @@ The final clause identifies a procedure call with arguments
  Defining procedure calls via macro expansion involves a second-order definition
  corresponding to the standard least-fixed-point semantics for recursive
  procedures.
- We will not repeat the definition here.
+ We will not repeat the definition here, but note that the invocation of
+ a Golog program using procedure definitions appears as:
+\begin_inset Formula \[
+\{\mathbf{proc}\, P_{1}(\vars{x})\,\delta_{1}(\vars{x})\,\mathbf{end}\,;\dots;\,\mathbf{proc}\, P_{n}(\vars{x})\,\delta_{n}(\vars{x})\,\mathbf{end}\,;\,\delta\}\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -2629,8 +2615,7 @@ state
 .
  FODL allows variable assignments to affect the entire remaining program.
  In order to simulate this via macro expansion, we use what is essentially
- a continuation-passing transformation to avoid explicitly mentioning substituti
-ons.
+ a continuation-passing transformation to pass state among the operators.
 \end_layout
 
 \begin_layout Standard
@@ -2677,7 +2662,7 @@ th argument is used to pass in the current value of
 \begin_inset Formula $\KDo_{c}(\pi,N,C)$
 \end_inset
 
- which is passed the name to use for the procedure encoing the given path
+ which is passed the name to use for the procedure encoding the given path
  component (
 \begin_inset Formula $N$
 \end_inset
@@ -2695,7 +2680,7 @@ The embedding of FODL into Golog is given by the macros
 \end_inset
 
  and 
-\begin_inset Formula $\KDo_{cps}$
+\begin_inset Formula $\KDo_{c}$
 \end_inset
 
  defined as follows, where 
@@ -2713,7 +2698,7 @@ The embedding of FODL into Golog is given by the macros
 :
 \begin_inset Formula \begin{multline*}
 \KDo(\pi,s,s')\,\isdef\,\,\EDo(\{\KDo_{c}(\pi,P,End)\,\\
-;\,\mathbf{proc}\, End(\vars{v})\,?\top\,\mathbf{end}\,;\,\pi(\vars{v})(P(\vars{v}))\},s,s')\end{multline*}
+;\,\mathbf{proc}\, End(\vars{v})\,?\top\,\mathbf{end}\,;\,\pi(\vars{v})P(\vars{v})\},s,s')\end{multline*}
 
 \end_inset
 
@@ -2736,7 +2721,13 @@ The embedding of FODL into Golog is given by the macros
 \end_layout
 
 \begin_layout Standard
-Most of these definitions are straightforward translations of equivalent
+This translation generates one procedure for each operator in the path,
+ plus the procedure 
+\begin_inset Formula $End$
+\end_inset
+
+ used to successfully terminate execution.
+ Most of these definitions are straightforward translations of equivalent
  operators in FODL to Golog.
  One interesting case is 
 \begin_inset Formula $\exists x_{i}$
@@ -2824,12 +2815,110 @@ reference "def:KDo"
 \end_layout
 
 \begin_layout Subsection
-Proofs
+Extended Proofs
+\newline
+
+\end_layout
+
+\begin_layout TheoremExt
+\begin_inset LatexCommand ref
+reference "thm:PKnows-works"
+
+\end_inset
+
+ The identities in equation 
+\begin_inset LatexCommand eqref
+reference "eq:pknows_identities"
+
+\end_inset
+
+ are entailed by 
+\begin_inset Formula $\Dt$
+\end_inset
+
+, where CKnows is the transitive closure of EKnows.
+\end_layout
+
+\begin_layout Proof
+Each is a straightforward matter of expanding the 
+\begin_inset Formula $\PKnows$
+\end_inset
+
+ definition, using the relevant identities from Definition 
+\begin_inset LatexCommand ref
+reference "def:KDo"
+
+\end_inset
+
+, and collecting back together components matching the form of the 
+\begin_inset Formula $\Knows$
+\end_inset
+
+ macro.
+ We take the 
+\begin_inset Formula $A\cup B$
+\end_inset
+
+ case as an example:
+\begin_inset Formula \begin{multline*}
+\PKnows(A\cup B,\phi,s)\Rightarrow\\
+\forall s':\,\KDo(A\cup B,s,s')\rightarrow\phi[s']\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Using the semantics of the 
+\begin_inset Formula $\cup$
+\end_inset
+
+ operator:
+\begin_inset Formula \begin{multline*}
+\PKnows(A\cup B,\phi,s)\Rightarrow\\
+\forall s':\,\left[\KDo(A,s,s')\vee\KDo(B,s,s')\right]\rightarrow\phi[s']\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Using the semantics of the 
+\begin_inset Formula $agt$
+\end_inset
+
+ operator, this expands to:
+\begin_inset Formula \begin{multline*}
+\PKnows(A\cup B,\phi,s)\Rightarrow\\
+\forall s':\, K(A,s,s')\rightarrow\phi[s']\,\wedge\, K(B,s,s')\rightarrow\phi[s']\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Which matches the form of 
+\begin_inset Formula $\Knows$
+\end_inset
+
+, giving the required:
+\begin_inset Formula \begin{multline*}
+\PKnows(A\cup B,\phi,s)\Rightarrow\\
+\Knows(A,\phi,s)\,\wedge\,\Knows(B,\phi,s)\end{multline*}
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-This appendix provides additional details for the proofs found throughout
- the paper.
+\InsetSpace ~
+
+\newline
+
 \end_layout
 
 \begin_layout TheoremExt
@@ -2854,7 +2943,7 @@ reference "thm:Trn-respects-epi-paths"
 
 \begin_layout Proof
 Proceed by cases, covering each path operator in turn.
- We will ommit the enclosing 
+ We will omit the enclosing 
 \begin_inset Formula $\Reg()$
 \end_inset
 
@@ -2870,7 +2959,7 @@ Proceed by cases, covering each path operator in turn.
 \begin_inset Formula $\Trn$
 \end_inset
 
- to simpilfy the presentation.
+ to simplify the presentation.
  For the base case of an individual agent, we have:
 \begin_inset Formula \begin{align*}
 \KDo(\pi,do(c,s),s'')\,\equiv\, & K(agt,s'',do(c,s))\end{align*}
@@ -3004,6 +3093,8 @@ The inductive cases are straightforward as
 
 \begin_layout Standard
 \InsetSpace ~
+
+\newline
 
 \newline
 
