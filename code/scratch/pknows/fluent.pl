@@ -190,7 +190,7 @@ fml_compare(Ord,F1,F2) :-
 %  ncontains_var(A,V)  -  formula A does not contain variable V
 %
 
-%  Since we know that B is a variable, we do this test by making a copy,
+%  Since we know that V is a variable, we do this test by making a copy,
 %  grounding the copied variable, then checking for structural equivalence
 %  with the original term.
 %
@@ -273,7 +273,7 @@ ismember(E,[H|T]) :-
     ).
 
 %
-%  vdelete(List,Elem,Result) - like delete/3 but for variable lists
+%  vdelete(List,Elem,Result) - like delete/3 but for lists of variables
 %
 vdelete([],_,[]).
 vdelete([H|T],E,Res) :-
@@ -339,48 +339,22 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  This predicate applies some basic simplification rules to a formula
 %  to eliminate redundancy and (hopefully) speed up future reasoning.
 %  For maximum simplification, apply normalize/2 first.
-%
-%  
-%  simplify_c(F1,F2)  -  simplify a formula, with verification
-%
-%  This predicate acts as simplify/2, but checks that F1 and F2 are in
-%  fact equivalent.  If not, it raises an exception.
 %  
 simplify(P,P) :-
     is_atom(P), P \= (_ = _), P \= (_ \= _).
 simplify(P & Q,S) :-
     flatten_op('&',[P,Q],TermsT),
-    maplist(simplify_c,TermsT,TermsS),
-    sublist(\=(true),TermsS,TermsF),
-    predsort(fml_compare,TermsF,Terms),
-    (
-        member(false,Terms) -> S=false
-    ;
-        length(Terms,0) -> S=true
-    ;
-        pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false
-    %;
-    %   IDEA: valuate to eliminate variables 
-    ;
-        joinlist('&',Terms,S)
-    ).
+    simplify_conjunction(TermsT,TermsS),
+    predsort(fml_compare,TermsS,Terms),
+    joinlist('&',Terms,S).
 simplify(P | Q,S) :-
     flatten_op('|',[P,Q],TermsT),
-    maplist(simplify_c,TermsT,TermsS),
-    sublist(\=(false),TermsS,TermsF),
-    predsort(fml_compare,TermsF,Terms),
-    (
-        member(true,Terms) -> S=true
-    ;
-        length(Terms,0) -> S=false
-    ;
-        pairfrom(Terms,F1,F2), struct_oppos(F1,F2) -> S=true
-    ;
-        joinlist('|',Terms,S)
-    ).
+    simplify_disjunction(TermsT,TermsS),
+    predsort(fml_compare,TermsS,Terms),
+    joinlist('&',Terms,S).
 simplify(P => Q,S) :-
-    simplify_c(P,Sp),
-    simplify_c(Q,Sq),
+    simplify(P,Sp),
+    simplify(Q,Sq),
     (
         Sp=false -> S=true
     ;
@@ -393,8 +367,8 @@ simplify(P => Q,S) :-
         S = (Sp => Sq)
     ).
 simplify(P <=> Q,S) :-
-    simplify_c(P,Sp),
-    simplify_c(Q,Sq),
+    simplify(P,Sp),
+    simplify(Q,Sq),
     (
         struct_equiv(P,Q) -> S=true
     ;
@@ -411,7 +385,7 @@ simplify(P <=> Q,S) :-
         S = (Sp <=> Sq)
     ).
 simplify(~P,S) :-
-    simplify_c(P,SP),
+    simplify(P,SP),
     (
         SP=false -> S=true
     ;
@@ -466,7 +440,7 @@ simplify(!(Xs:P),S) :-
         S = S2
     )).
 simplify(?(Xs:P),S) :-
-   ( Xs = [] -> simplify_c(P,S)
+   ( Xs = [] -> simplify(P,S)
    ;
    flatten_quant_and_simp('?',P,Xs,VarsT,Body),
    sort(VarsT,Vars),
@@ -477,7 +451,7 @@ simplify(?(Xs:P),S) :-
    ;
        % Remove vars that are assigned a specific value, therefore useless
        member(T1,Vars), var_valuated(T1,Body,Body2) ->
-           vdelete(Vars,T1,Vars2), simplify_c(?(Vars2:Body2),S)
+           vdelete(Vars,T1,Vars2), simplify(?(Vars2:Body2),S)
    ;
        % Remove any useless variables
        split_matching(Vars,ncontains_varterm(Body),_,Vars2),
@@ -527,44 +501,30 @@ simplify((A\=B),S) :-
        normalize((A\=B),S)
    ).
 
+simplify_conjunction(CSIn,BG,CSOut) :-
+    simplify_conjunction_acc(CSIn,BG,[],CSOut).
+    length(Terms,0) -> S=true
+    pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false.
 
-simplify_c(F1,F2) :-
-    !, simplify(F1,F2).
-
-simplify_c(F1,F2) :-
-    % Make sure there's no var sharing initially
-    copy_term(F1,F1c),
-    ( vars_are_unique(F1) ->
-        true
+simplify_conjunction_acc([],_,CSAcc,CSAcc) :-
+simplify_conjunction_acc([C|CSIn],BG,CSAcc,CSOut) :-
+    joinlist('&',[BG|CSAcc],BG2),
+    simplify_bg(C,BG2,S),
+    ( S=true ->
+        simplify_conjunction_acc(CSIn,BG,CSAcc,CSOut)
+    ; S=false ->
+        CSOut=[false]
     ;
-        write(F1), nl,
-        write('input fml has nonunique vars'),nl,nl,
-        throw(simp_inonuniq)
-    ),
-    % Check that the two formulae remain equivalent, if we can do so safely
-    ( F1 \= ?([]:_), F1 \= !([]:_) ->
-        simplify(F1,F2),
-        ( equiv(F1,F2) ->
-            true
-       ;
-            write(F1), nl,
-            write('simplifies to:'), nl,
-            write(F2), nl,
-            write('which is *NOT* equivalent'), nl, nl, throw(simp_unequiv)
-        )
-    ;
-        simplify(F1,F2)
-    ),
-    % Ensure that we havent produced any variable sharing.
-    ( vars_are_unique(F2) ->
-        true
-    ;
-        write('introduced non-unique vars'), nl,
-        write(F1c), nl,
-        write(F2), nl,
-        nl, nl, throw(simp_nonuniq)
+        simplify_conjunction_acc(CSIn,BG,[S|CSAcc],CSOut)
     ).
+    
 
+simplify_disjunction(TermsIn,TermsOut) :-
+    maplist(simplify,TermsT,TermsS),
+    sublist(\=(true),TermsS,TermsF),
+    member(false,Terms) -> S=false
+    length(Terms,0) -> S=true
+    pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false.
 
 %
 %  var_given_value(X,P,V)  -  variable X is uniformly given the value V
