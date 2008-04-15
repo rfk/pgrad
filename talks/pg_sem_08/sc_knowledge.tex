@@ -1,0 +1,522 @@
+%\documentclass[handout,a4paper]{beamer}
+\documentclass{beamer}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+\newcommand{\isdef}{\hbox{$\stackrel{\mbox{\tiny def}}{=}$}}
+
+\mode<presentation>{\usetheme{Dresden}}
+
+\title{Knowledge, Observation,\\ and the Frame Problem}
+\author[Ryan Kelly (rfk@csse.unimelb.edu.au)]{Ryan Kelly \and Adrian Pearce}
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+
+\begin{frame}
+\frametitle{Motivation}
+What do we want?
+\begin{itemize}
+\item A powerful account of multi-agent knowledge
+  \begin{itemize}
+  \item Concurrent Actions
+  \item Partial Observability
+  \end{itemize}
+\item that supports complex symbolic reasoning
+\item that allows agents to reason about their own world
+\item but is still computationally feasible
+\end{itemize}
+\end{frame}
+
+
+\section{Knowledge}
+
+\begin{frame}
+\frametitle{Knowledge}
+
+Knowledge is a modal operator
+\begin{itemize}
+\item Typically represented as: $\mathbf{Knows}(\phi)$ or $\mathbf{Knows}(Thomas,\phi)$
+\item $\neg\mathbf{Knows}(\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(\neg\phi)$
+\end{itemize}
+\ \\
+\ \\
+Knowledge is "true belief":
+\[ \mathbf{Knows}(\phi)\ \rightarrow\ \phi \]
+\ \\
+\ \\
+Typically approached using modal logic.
+Knowledge is given semantics in terms of "possible worlds".
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Worlds Semantics}
+
+If an agent is unsure about the state of the world, there must be several
+different states of the world that it considers possible.
+
+\begin{center}
+  \includegraphics[scale=0.4]{poss_worlds.png}
+\end{center}
+
+The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge and Action}
+"Possible worlds" works well for reasoning about a static knowledge base,
+but what if the world itself is changing?
+\begin{itemize}
+\item  Does the agent \emph{know} that the world has changed?
+\item  How should the worlds considered possible change in response?
+\item  What of all the associated reasoning-about-actions problems? (frame, quantification, ramification, ...)
+\end{itemize}
+\ \\
+\ \\
+Need to integrate with a powerful \emph{theory of action}.
+\pause
+\ \\
+\ \\
+I happen to know just the thing...
+\end{frame}
+
+\section{Knowledge \& Action}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+\emph{Actions} are instantaneous events causing the world to change
+\begin{itemize}
+  \item $pickup(Thomas,Bowl)$, $beginTask(Richard,mix(Bowl,1))$
+\end{itemize}
+\emph{Situations} are histories of actions that have been performed
+\begin{itemize}
+  \item $S_0$, $do(pickup(Harriet,Knife),S_0)$
+\end{itemize}
+\emph{Fluents} are situation-dependent properties of the world
+\begin{itemize}
+  \item $Poss(a,s)$, $Holding(Harriet,Knife,s)$
+\end{itemize}
+\emph{Successor State Axioms} define what holds after an action in terms of what held before the action
+\begin{itemize}
+  \item $Holding(agt,obj,do(a,s)) \equiv a = pickup(agt,obj)$ \\
+        $\,\,\,\,\,\,\,\,\,\,\,\,\,\vee Holding(agt,obj,s) \wedge \neg\left(a = drop(agt,obj)\right)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge in the Situation Calculus}
+
+Why the situation calculus?
+\begin{itemize}
+\item Elegant monotonic solution to the frame problem
+\item Effective reasoning procedure
+\item "situations" provide a direct analog to "possible worlds"
+\end{itemize}
+\ \\
+\ \\
+Approach due (mainly) to Scherl and Levesque:\\
+"Knowledge, Action and the Frame Problem", AI, 2003
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Situations}
+Recall that all statements about the world are relative to a situation.
+So, we must talk about the knowledge of an agent in a particular situation.
+\begin{equation*}
+\mathbf{Knows}(agt,\phi,s)
+\end{equation*}
+\pause
+Replace "possible worlds" with "possible situations".  Introduce a fluent
+$K(agt,s',s)$ meaning that "in situation $s$, the agent $agt$ considers it
+possible that the world may be in situation $s'$".
+\end{frame}
+
+\begin{frame}
+\frametitle{Possible Situations}
+\begin{center}
+  \includegraphics[scale=0.5]{k_relation.png}
+\end{center}
+
+We can then define knowledge as a simple macro:
+\[ \mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\left[K(agt,s',s)\rightarrow \phi(s')\right] \]
+\end{frame}
+
+\begin{frame}
+\frametitle{The Frame Problem}
+To specify what the agent knows initially, restrict the properties of situations
+K-related to $S_0$:
+\begin{gather*}
+  \mathbf{Knows}(Richard,\neg Holding(Thomas,Knife),S_0) \\
+  \Rightarrow \ \ \forall s \left[K(Richard,s,S_0) \rightarrow \neg Holding(Thomas,Knife,s) \right]
+\end{gather*}
+
+\pause
+Since $K$ is just a fluent, we specify how it changes  between situations
+with a successor state axiom:
+\begin{equation*}
+ K(agt,s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s')
+ \wedge K(agt,s',s) \wedge Poss(a,s')
+\end{equation*}
+
+Automatically inherits the solution to the frame problem!
+\end{frame}
+
+\begin{frame}
+\frametitle{The Frame Solution}
+\begin{center}
+  \includegraphics[scale=0.5]{frame_soln.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Sensing}
+Agents can acquire additional information about their environment by performing
+"sensing actions" which return a result.  The relationships between actions
+and their sensing results are captured by a new function $SR$:
+\begin{equation*}
+SR(isNiceDay,s) = "YES" \equiv \neg Raining(s) \wedge \neg Windy(s)
+\end{equation*}
+These are easily incorporated into the successor state axiom:
+\begin{multline*}
+ K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
+ \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Effective Reasoning}
+The standard tool for effective reasoning in the S.C. is the
+regression operator $\mathcal{R}$. If fluent $F$ has the successor state axiom
+$F(do(a,s)) \equiv \Phi(a,s)$, then:
+
+\[ \mathcal{R}[F(do(a,s))] = \Phi(a,s) \]
+
+\pause
+In general:
+
+\[  \mathcal{D} \models \phi(do(a,s)) \equiv \mathcal{R}[\phi(do(a,s))] \]
+
+But the regressed term refers to $s$ rather than $do(a,s)$.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Regression}
+By repeatedly applying $\mathcal{R}$, we reach a fluent expression referring
+only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$:
+\begin{equation*}
+  \Sigma \cup \mathcal{D}_{S_0} \cup \mathcal{D}_{Poss} \cup \mathcal{D}_{ssa} \cup \mathcal{D}_{una} \models \phi(s)
+\end{equation*}
+\begin{center}
+iff
+\end{center}
+\begin{equation*}
+  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}[\phi(s)](S_0)
+\end{equation*}
+This is usually easier to answer, since regression has already done some
+of the reasoning for us.
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Knowledge}
+Unfortunately, $\mathcal{R}$ cannot be applied to formulae that quantify
+over situations.  We must therefore special-case
+$\mathcal{R}[\mathbf{Knows}(\phi,s)]$.
+\ \\
+\ \\
+Based on the successor state axiom for $K$, Scherl and Levesque develop
+the following regression rule:
+\begin{multline*}
+  \mathcal{R}[\mathbf{Knows}(\phi,do(a,s))]\ =\ 
+    \exists y . SR(a,s) = y \wedge \\
+    \mathbf{Knows}(Poss(a) \wedge SR(a)=y\ \rightarrow\ \mathcal{R}[\phi(do(a,s))],s)
+\end{multline*}
+
+We can thus transform a query about knowledge in an arbitrary situation to
+a query about knowledge in the initial situation, which can (as before) be
+tackled more effectively.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Shortcomings}
+This is a very powerful framework...but:
+\begin{itemize}
+ \item Does not handle concurrent actions
+ \item Agents are assumed to be aware of \emph{all} actions that occur
+ \item Requires omniscient viewpoint
+\end{itemize}
+\ \\
+\ \\
+\pause
+In short, it's not suitable for complex multi-agent domains.
+\ \\
+\ \\
+Can we do better, while maintaining the theoretical and practical elegance
+of this approach?
+\end{frame}
+
+\section{Observations}
+
+\begin{frame}
+\frametitle{Concurrent Actions}
+Basically, replace actions with sets of actions that all occur at the same
+instant:
+\begin{equation*}
+  do(\left\{pickup(Richard,Knife),drop(Thomas,Bowl)\right\},s)
+\end{equation*}
+Agents may not be aware of all actions that have ocurred.  In fact, they
+may not even be aware that \emph{any} actions have occurred.
+\ \\
+\ \\
+When a set of actions occurs, what will each agent observe?
+\end{frame}
+
+\begin{frame}
+\frametitle{Observations}
+Well, let's talk about it explicitly:
+\begin{equation*}
+  Obs(agt,c,s) = \{o1,o2,...\}
+\end{equation*}
+Note that it's possible for $Obs(agt,c,s) = \{\}$. In any situation, each
+agent will have made some sequence of observations:
+\begin{multline*}
+  ObsHist(agt,S_0) = \epsilon \\
+  \shoveleft{ObsHist(agt,do(c,s)) = h \,\equiv\, \exists o . Obs(agt,c,s) = o}\\
+  \shoveright{\wedge\, \left(o = \{\} \rightarrow h = ObsHist(agt,s)\right)}\\
+  \wedge\, \left(o \neq \{\} \rightarrow h = o \cdot ObsHist(agt,s)\right)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Global vs Local Perspective}
+\begin{itemize}
+\item \emph{Action}: global event, changes state of world
+\item \emph{Observation}: local event, changes state of agent's knowledge\\
+\ \\
+\item \emph{Situation}: history of actions, omniscient viewpoint
+\item \emph{Obs Hist}: history of observations, local viewpoint
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge follows  Observation}
+Halpern \& Moses, 1990:\\
+"an agent's knowledge at a given time must depend only on its local history:
+the information that it started out with combined with the events it has
+observed since then"
+\pause
+\ \\
+\ \\
+Clearly, we require:
+\begin{equation*}
+K(agt,s',s)\ \equiv\ ObsHist(agt,s') = ObsHist(agt,s)
+\end{equation*}
+We must enforce this in the successor state axiom for $K$.
+\end{frame}
+
+\begin{frame}
+\frametitle{K Graphically}
+\begin{center}
+  \includegraphics[scale=0.5]{k_unobs.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{SSA for Knowledge}
+First, some notation:
+\begin{equation*}
+  s <_{\alpha} do(c,s')\ \equiv\ s \leq_{\alpha} s' \wedge \alpha(c,s')
+\end{equation*}
+\begin{equation*}
+  PbU(agt,c,s)\ \isdef\ Poss(c,s) \wedge Obs(agt,c,s) = \{\}
+\end{equation*}
+\pause
+Then the following successor state axiom captures the intended dynamics of
+knowledge update:
+\begin{multline*}
+  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
+  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
+  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Axiomatizing Observations}
+But what are these "observations" really?  In the simplest case, they
+can just be actions that the agent is aware of, e.g:
+\begin{equation*}
+a \in Obs(agt,c,s)\ \equiv\ a \in c \wedge actor(a) = agt
+\end{equation*}
+\begin{equation*}
+a \in Obs(agt,c,s)\ \equiv\ a \in c \wedge InSameRoomAs(agt,actor(a))
+\end{equation*}
+\ \\
+\ \\
+\pause
+To handle sensing information, we can use $(action = result)$ pairs:
+\begin{equation*}
+(a=r) \in Obs(agt,c,s)\ \equiv\ a \in c \wedge actor(a) = agt \wedge SR(a,s) = r
+\end{equation*}
+\ \\
+\ \\
+More complex scenarios are also possible.
+\end{frame}
+
+\begin{frame}
+\frametitle{SSA Comparison}
+We've gone from this:
+\begin{multline*}
+ K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
+ \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+\end{multline*}
+\pause
+To this:
+\begin{multline*}
+  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
+  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
+  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
+\end{multline*}
+\pause
+It's messier, but it's also hiding a much bigger problem...
+\end{frame}
+
+\section{Reasoning}
+
+\begin{frame}
+\frametitle{Regression}
+Recall that $\leq_{PbU(agt)}$ is defined by (implicitly) quantifying over
+situations. So regression cannot be applied to the RHS of our successor state
+axiom.
+\ \\
+\ \\
+Observation-based knowledge \alert{cannot} be approached using
+the standard regression operator.
+\ \\
+\ \\
+\pause
+In fact, universal quantification over situations requires a
+second-order induction axiom.
+Must we abandon hope of an effective reasoning procedure?
+\end{frame}
+
+\begin{frame}
+\frametitle{Property Persistence}
+Suppose we could "factor out" the quantification. Then we could get
+on with the business of doing regression. 
+\ \\
+\ \\
+Define the \emph{persistence condition} $\mathcal{P}[\phi,\alpha]$ of a formula
+ $\phi$ and action conditions $\alpha$ to mean: assuming all future actions
+satisfy $\alpha$, $\phi$ will remain true.
+\begin{equation*}
+  \mathcal{P}[\alpha,\phi](s)\ \equiv\ \forall s' . s \leq_{\alpha} s' \rightarrow \phi(s')
+\end{equation*}
+Like $\mathcal{R}$, the idea is to transform a query into a form that is easier
+to deal with.
+\end{frame}
+
+\begin{frame}
+\frametitle{$\mathcal{R}$ Graphically}
+\begin{center}
+  \includegraphics[scale=0.5]{k_unobs_highlighted.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regression using Persistence}
+It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
+\begin{multline*}
+  \mathcal{R}[\mathbf{Knows}(agt,\phi,do(c,s))] = \\
+     \left[ Obs(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
+     \wedge \left[ \exists o . Obs(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
+     \mathbf{Knows}(agt,\forall c' . Obs(agt,c',now)=o \rightarrow \\
+     \left.\mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],s)\right]
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Reasoning from Observations}
+We, the omniscient designer, can determine whether an agent knows something
+ in any given situation:
+\begin{equation*}
+  \mathcal{D} \models \mathbf{Knows}(agt,\phi,s)
+\end{equation*}
+\begin{equation*}
+  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}[\mathbf{Knows}(agt,\phi,s)]
+\end{equation*}
+But the agent cannot use this to reason about its own knowledge, as it doesn't
+know the current situation.  It needs to be able to reason from a local
+viewpoint:
+\begin{equation*}
+  \mathcal{D} \models \mathbf{Knows}(agt,\phi,h)
+\end{equation*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Over Observations}
+The regression operator can be modified to act over observation histories,
+instead of over situations:
+\begin{multline*}
+  \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
+  \mathbf{Knows}(agt,\forall c' . Obs(agt,c',s')=o \rightarrow \\
+     \mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],h)
+\end{multline*}
+We can equip agents with a situation calculus model of their own environment.
+\end{frame}
+
+\begin{frame}
+\frametitle{Demonstration}
+Simple test domain: three agents and several objects which they can pickup,
+putdown and drop.
+\ \\
+\ \\
+Agents can only observe their own actions.
+\end{frame}
+
+\section{Conclusions}
+
+\begin{frame}
+\frametitle{Conclusions}
+What did we want?
+\begin{itemize}
+\item A powerful account of multi-agent knowledge
+  \begin{itemize}
+  \item Concurrent Actions
+  \item Partial Observability
+  \end{itemize}
+\item that supports complex symbolic reasoning
+\item that allows agents to reason about their own world
+\item but is still computationally feasible
+\end{itemize}
+\ \\
+\ \\
+\pause
+Future work:
+\begin{itemize}
+  \item Data Structures for efficient computation
+  \item Interactions between concurrent actions
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\centering \large Thank You\\
+\end{frame}
+\end{document}
+
