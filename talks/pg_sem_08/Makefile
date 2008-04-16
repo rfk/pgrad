@@ -7,7 +7,7 @@ GRAPHICS = frame_soln.png poss_worlds.png k_unobs.png k_unobs_highlighted.png \
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm
 GARBAGE = $(LATEX_GARBAGE) *~
 
-PDF = sc_knowledge.pdf
+PDF = ck_ha_fp.pdf
 
 # Default target makes all doc types
 all: $(PDF)
@@ -17,11 +17,13 @@ all: $(PDF)
 
 %.pdf: %.tex
 	$(TEX2PDF) $<
+	$(TEX2PDF) $<
+	$(TEX2PDF) $<
 
 view:	$(PDF)
 	evince $(PDF)
 
-sc_knowledge.pdf:  $(GRAPHICS)
+ck_ha_fp.pdf:  $(GRAPHICS)
 
 ##  Cleanup Commands
 
