@@ -48,16 +48,17 @@ What do we want?\ \\
 
 Knowledge is a modal operator
 \begin{itemize}
-\item Written like this:\ \ \  $\mathbf{Knows}(Ryan,\phi)$
-\item $\neg\mathbf{Knows}(Ryan,\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(Ryan,\neg\phi)$
+\item Written like this:\ \ \  $\mathbf{Knows}(agt,\phi)$
+\item $\neg\mathbf{Knows}(agt,\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(agt,\neg\phi)$
 \end{itemize}
 \ \\
 \ \\
 Knowledge is "true belief":
-\[ \mathbf{Knows}(\phi)\ \rightarrow\ \phi \]
+\[ \mathbf{Knows}(agt,\phi)\ \rightarrow\ \phi \]
 \ \\
 \ \\
 Typically approached using modal logic.
+
 Knowledge is given semantics in terms of "possible worlds".
 
 \end{frame}
@@ -150,15 +151,22 @@ K(agt,s',s)
 \end{center}
 
 We can then define knowledge as a simple macro:
-\[ \mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\left[K(agt,s',s)\rightarrow \phi(s')\right] \]
+\[ \mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s':\left[K(agt,s',s)\rightarrow \phi(s')\right] \]
 \end{frame}
 
 \begin{frame}
 \frametitle{The Frame Problem}
+\begin{center}
+  \includegraphics[scale=0.5]{frame_soln.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Frame Solution}
 Since $K$ is just a fluent, we specify how it changes  between situations
 with a successor state axiom:
 \begin{equation*}
- K(agt,s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s')
+ K(agt,s'',do(a,s)) \equiv \exists s': \ s''=do(a,s')
  \wedge K(agt,s',s) \wedge Poss(a,s')
 \end{equation*}
 
@@ -166,7 +174,7 @@ To specify what the agent knows initially, restrict the properties of situations
 K-related to $S_0$:
 \begin{gather*}
   \mathbf{Knows}(Richard,\neg Holding(Thomas,Knife),S_0) \\
-  \Rightarrow \ \ \forall s \left[K(Richard,s,S_0) \rightarrow \neg Holding(Thomas,Knife,s) \right]
+  \Rightarrow \ \ \forall s: \left[K(Richard,s,S_0) \rightarrow \neg Holding(Thomas,Knife,s) \right]
 \end{gather*}
 
 Automatically inherits the solution to the frame problem!
@@ -174,90 +182,68 @@ Automatically inherits the solution to the frame problem!
 
 \begin{frame}
 \frametitle{The Frame Solution}
-\begin{center}
-  \includegraphics[scale=0.5]{frame_soln.png}
-\end{center}
-\end{frame}
+We can then reason about knowledge using \emph{regression}.
 
-\begin{frame}
-\frametitle{Sensing}
-Agents can acquire additional information about their environment by performing
-"sensing actions" which return a result.  The relationships between actions
-and their sensing results are captured by a new function $SR$:
+This is a syntactic transformation denoted by $\mathcal{R}$:
 \begin{equation*}
-SR(isNiceDay,s) = "YES" \equiv \neg Raining(s) \wedge \neg Windy(s)
+\mathcal{D} \models\ \ \phi[do(a,s)]\ \equiv\ \mathcal{R}\{\phi\}[s]
 \end{equation*}
-These are easily incorporated into the successor state axiom:
+
+\pause
+For knowledge, the rule is:
 \begin{multline*}
- K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
- \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+  \mathcal{R}\{\mathbf{Knows}(agt,\phi,do(a,s))\}\ \Rightarrow\ \\
+    \mathbf{Knows}(agt,Poss(a) \rightarrow\ \mathcal{R}\{\phi[do(a,s)]\},s)
 \end{multline*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Effective Reasoning}
-The standard tool for effective reasoning in the S.C. is the
-regression operator $\mathcal{R}$. If fluent $F$ has the successor state axiom
-$F(do(a,s)) \equiv \Phi(a,s)$, then:
+\frametitle{Why Regression?}
+By repeatedly applying $\mathcal{R}$, we reach an expression at $S_0$.
 
-\[ \mathcal{R}[F(do(a,s))] = \Phi(a,s) \]
-
-\pause
-In general:
-
-\[  \mathcal{D} \models \phi(do(a,s)) \equiv \mathcal{R}[\phi(do(a,s))] \]
-
-But the regressed term refers to $s$ rather than $do(a,s)$.
-
-\end{frame}
-
-\begin{frame}
-\frametitle{Regression}
-By repeatedly applying $\mathcal{R}$, we reach a fluent expression referring
-only to $S_0$.  This can be decided without many of the axioms in $\mathcal{D}$:
+This can be decided without many of the axioms in $\mathcal{D}$:
 \begin{equation*}
-  \Sigma \cup \mathcal{D}_{S_0} \cup \mathcal{D}_{Poss} \cup \mathcal{D}_{ssa} \cup \mathcal{D}_{una} \models \phi(s)
+  \Sigma \cup \mathcal{D}_{S_0} \cup \mathcal{D}_{Poss} \cup \mathcal{D}_{ssa} \cup \mathcal{D}_{una} \models \phi[s]
 \end{equation*}
 \begin{center}
 iff
 \end{center}
 \begin{equation*}
-  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}[\phi(s)](S_0)
+  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}\{\phi\}[S_0]
 \end{equation*}
 This is usually easier to answer, since regression has already done some
 of the reasoning for us.
 \end{frame}
 
 \begin{frame}
-\frametitle{Regressing Knowledge}
-Unfortunately, $\mathcal{R}$ cannot be applied to formulae that quantify
-over situations.  We must therefore special-case
-$\mathcal{R}[\mathbf{Knows}(\phi,s)]$.
-\ \\
-\ \\
-Based on the successor state axiom for $K$, Scherl and Levesque develop
-the following regression rule:
-\begin{multline*}
-  \mathcal{R}[\mathbf{Knows}(\phi,do(a,s))]\ =\ 
-    \exists y . SR(a,s) = y \wedge \\
-    \mathbf{Knows}(Poss(a) \wedge SR(a)=y\ \rightarrow\ \mathcal{R}[\phi(do(a,s))],s)
-\end{multline*}
+\frametitle{Extensions}
+Can easily add several powerful extensions:
 
-We can thus transform a query about knowledge in an arbitrary situation to
-a query about knowledge in the initial situation, which can (as before) be
-tackled more effectively.
+\begin{itemize}
+\item Sensing Actions
+\end{itemize}
+\begin{equation*}
+SR(a,s)=r\ \equiv\ \Phi(a,r,s)
+\end{equation*}
 
+\begin{itemize}
+\item Concurrent Actions
+\end{itemize}
+\begin{equation*}
+  do(\left\{pickup(Richard,Knife),drop(Thomas,Bowl)\right\},s)
+\end{equation*}
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Shortcomings}
 This is a very powerful framework, but it was designed for single-agent systems:
 \begin{itemize}
- \item Does not handle concurrent actions
  \item Agents must be aware of \emph{all} actions that occur
  \item No formal treatment of group-level knowledge operators
  \item Requires omniscient viewpoint for reasoning
 \end{itemize}
+\pause
 \ \\
 \ \\
 In short, it's not suitable for complex multi-agent domains.
@@ -268,225 +254,215 @@ of this approach?
 \end{frame}
 
 \begin{frame}
-\frametitle{Concurrent Actions}
-Basically, replace actions with sets of actions that all occur at the same
-instant:
-\begin{equation*}
-  do(\left\{pickup(Richard,Knife),drop(Thomas,Bowl)\right\},s)
-\end{equation*}
-Agents may not be aware of all actions that have ocurred.  In fact, they
-may not even be aware that \emph{any} actions have occurred.
-\ \\
-\ \\
-When a set of actions occurs, what will each agent observe?
-\end{frame}
-
-\begin{frame}
 \frametitle{Observations}
-Well, let's talk about it explicitly:
-\begin{equation*}
-  Obs(agt,c,s) = \{o1,o2,...\}
-\end{equation*}
-Note that it's possible for $Obs(agt,c,s) = \{\}$. In any situation, each
-agent will have made some sequence of observations:
-\begin{multline*}
-  ObsHist(agt,S_0) = \epsilon \\
-  \shoveleft{ObsHist(agt,do(c,s)) = h \,\equiv\, \exists o . Obs(agt,c,s) = o}\\
-  \shoveright{\wedge\, \left(o = \{\} \rightarrow h = ObsHist(agt,s)\right)}\\
-  \wedge\, \left(o \neq \{\} \rightarrow h = o \cdot ObsHist(agt,s)\right)
-\end{multline*}
+
+With multiple agents:
+\begin{itemize}
+\item might not know all actions that have occurred
+\item might not know all sensing results
+\item but might have \emph{partial} knowledge of these things
+\end{itemize}
+\ \\
+\ \\
+\pause
+Capture all this with the notion of \emph{Observations}:
+\begin{gather*}
+  Obs(agt,c,s) = \{o1,o2,...\} \\
+  View(agt,do(c,s)) = Obs(agt,c,s) \cdot View(agt,s)
+\end{gather*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Global vs Local Perspective}
+\frametitle{The Local Perspective}
 \begin{itemize}
 \item \emph{Action}: global event, changes state of world
 \item \emph{Observation}: local event, changes state of agent's knowledge\\
 \ \\
 \item \emph{Situation}: history of actions, omniscient viewpoint
-\item \emph{Obs Hist}: history of observations, local viewpoint
+\item \emph{View}: history of observations, local viewpoint
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Knowledge follows  Observation}
-Halpern \& Moses, 1990:\\
-"an agent's knowledge at a given time must depend only on its local history:
-the information that it started out with combined with the events it has
-observed since then"
-\pause
 \ \\
 \ \\
 Clearly, we require:
 \begin{equation*}
-K(agt,s',s)\ \equiv\ ObsHist(agt,s') = ObsHist(agt,s)
+K(agt,s',s)\ \equiv\ View(agt,s') = View(agt,s)
 \end{equation*}
-We must enforce this in the successor state axiom for $K$.
 \end{frame}
 
 \begin{frame}
-\frametitle{K Graphically}
-\begin{center}
-  \includegraphics[scale=0.5]{k_unobs.png}
-\end{center}
-\end{frame}
+\frametitle{Knowledge and Observation}
 
-\begin{frame}
-\frametitle{SSA for Knowledge}
-First, some notation:
+For the moment, assume a \emph{synchronous} domain:
 \begin{equation*}
-  s <_{\alpha} do(c,s')\ \equiv\ s \leq_{\alpha} s' \wedge \alpha(c,s')
+Obs(agt,c,s)\ \neq\ \{\}
 \end{equation*}
-\begin{equation*}
-  PbU(agt,c,s)\ \isdef\ Poss(c,s) \wedge Obs(agt,c,s) = \{\}
-\end{equation*}
-\pause
-Then the following successor state axiom captures the intended dynamics of
-knowledge update:
+Then individual knowledge is straightforward:
 \begin{multline*}
-  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
-  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
-  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
-  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
-\end{multline*}
-\end{frame}
-
-\begin{frame}
-\frametitle{Axiomatizing Observations}
-But what are these "observations" really?  In the simplest case, they
-can just be actions that the agent is aware of, e.g:
-\begin{equation*}
-a \in Obs(agt,c,s)\ \equiv\ a \in c \wedge actor(a) = agt
-\end{equation*}
-\begin{equation*}
-a \in Obs(agt,c,s)\ \equiv\ a \in c \wedge InSameRoomAs(agt,actor(a))
-\end{equation*}
-\ \\
-\ \\
-\pause
-To handle sensing information, we can use $(action = result)$ pairs:
-\begin{equation*}
-(a=r) \in Obs(agt,c,s)\ \equiv\ a \in c \wedge actor(a) = agt \wedge SR(a,s) = r
-\end{equation*}
-\ \\
-\ \\
-More complex scenarios are also possible.
-\end{frame}
-
-\begin{frame}
-\frametitle{SSA Comparison}
-We've gone from this:
-\begin{multline*}
- K(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
- \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
-\end{multline*}
-\pause
-To this:
-\begin{multline*}
-  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
-  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
-  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
-  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
-\end{multline*}
-\pause
-It's messier, but it's also hiding a much bigger problem...
-\end{frame}
-
-\begin{frame}
-\frametitle{Regression}
-Recall that $\leq_{PbU(agt)}$ is defined by (implicitly) quantifying over
-situations. So regression cannot be applied to the RHS of our successor state
-axiom.
-\ \\
-\ \\
-Observation-based knowledge \alert{cannot} be approached using
-the standard regression operator.
-\ \\
-\ \\
-\pause
-In fact, universal quantification over situations requires a
-second-order induction axiom.
-Must we abandon hope of an effective reasoning procedure?
-\end{frame}
-
-\begin{frame}
-\frametitle{Property Persistence}
-Suppose we could "factor out" the quantification. Then we could get
-on with the business of doing regression. 
-\ \\
-\ \\
-Define the \emph{persistence condition} $\mathcal{P}[\phi,\alpha]$ of a formula
- $\phi$ and action conditions $\alpha$ to mean: assuming all future actions
-satisfy $\alpha$, $\phi$ will remain true.
-\begin{equation*}
-  \mathcal{P}[\alpha,\phi](s)\ \equiv\ \forall s' . s \leq_{\alpha} s' \rightarrow \phi(s')
-\end{equation*}
-Like $\mathcal{R}$, the idea is to transform a query into a form that is easier
-to deal with.
-\end{frame}
-
-\begin{frame}
-\frametitle{$\mathcal{R}$ Graphically}
-\begin{center}
-  \includegraphics[scale=0.5]{k_unobs_highlighted.png}
-\end{center}
-\end{frame}
-
-\begin{frame}
-\frametitle{Regression using Persistence}
-It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
-\begin{multline*}
-  \mathcal{R}[\mathbf{Knows}(agt,\phi,do(c,s))] = \\
-     \left[ Obs(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
-     \wedge \left[ \exists o . Obs(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
-     \mathbf{Knows}(agt,\forall c' . Obs(agt,c',now)=o \rightarrow \\
-     \left.\mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],s)\right]
+\mathcal{R}\{\mathbf{Knows_0}(agt,\phi,do(c,s))\}\ \Rightarrow \\
+\exists o: Obs(agt,c,s)=o\ \wedge\\
+\forall c': \mathbf{Knows_0}(agt,Poss(c') \wedge Obs(agt,c')=o \rightarrow \mathcal{R}\{\phi[do(c',s)]\},s)
 \end{multline*}
 \end{frame}
 
 \section{Common Knowledge}
+\begin{frame}
+\frametitle{Group-Level Knowledge}
+The basic group-level operator is "Everyone Knows":
+\begin{gather*}
+\mathbf{EKnows}(G,\phi,s)\ \isdef \bigwedge_{agt \in G} \mathbf{Knows}(agt,\phi,s)\\
+\mathbf{EKnows}^{2}(G,\phi,s)\ \isdef\ \mathbf{EKnows}(G,\mathbf{EKnows}(G,\phi),s)\\
+\dots \\
+\mathbf{EKnows}^{n}(G,\phi,s)\ \isdef\ \mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)
+\end{gather*}
+Eventually, we get "Common Knowledge":
+\begin{gather*}
+\mathbf{CKnows}(G,\phi,s)\ \isdef\ \bigwedge_{n\in\mathbb{N}} \mathbf{EKnows}^{n}(agt,\phi,s)
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Graphically}
+\begin{center}
+  \includegraphics[scale=0.55]{pk_relation.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Group Knowledge}
+Since $\mathbf{EKnows}$ is finite, it can be expanded to perform regression.
+\ \\
+\ \\
+$\mathbf{CKnows}$ is infinitary, so this won't work for common knowledge.
+
+We need to regress it directly.  Maybe like this?
+\begin{multline*}
+\mathcal{R}\{\mathbf{CKnows}(G,\phi,do(c,s))\}\ \Rightarrow \\
+\exists o: \mathbf{CObs}(G,c,s)=o\ \wedge\\
+\forall c': \mathbf{CKnows}(G,Poss(c') \wedge \mathbf{CObs}(agt,c')=o \rightarrow \mathcal{R}\{\phi[do(c',s)]\},s)
+\end{multline*}
+\ \\
+\ \\
+\pause
+It is \alert{impossible} to express $\mathcal{R}\{\mathbf{CKnows}\}$ in terms of $\mathbf{CKnows}$
+\end{frame}
+
+\begin{frame}
+\frametitle{Graphically}
+\begin{center}
+  \includegraphics[scale=0.55]{pk_relation.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Epistemic Paths}
+We can interpret Dynamic Logic epistemically:
+\begin{gather*}
+\mathbf{KDo}(agt,s,s')\ \isdef\ K(agt,s',s)\\
+\mathbf{KDo}(?\phi,s,s')\ \isdef\ s'=s \wedge \phi[s]\\
+\mathbf{KDo}(\pi_1;\pi_2,s,s')\ \isdef\ \exists s'': \mathbf{KDo}(\pi_1,s,s'') \wedge \mathbf{KDo}(\pi_2,s'',s')\\
+\mathbf{KDo}(\pi_1\cup\pi_2,s,s')\ \isdef\ \mathbf{KDo}(\pi_1,s,s'') \vee \mathbf{KDo}(\pi_2,s,s')\\
+\mathbf{KDo}(\pi^*,s,s')\ \isdef\ \mathrm{refl. tran. clos.}\left[\mathbf{KDo}(\pi,s,s'')\right]\\
+\end{gather*}
+
+Idea from van Bentham, van Eijck and Kooi\\
+"Logics of Communication and Change", Info. \& Comp., 2006
+\end{frame}
+
+\begin{frame}
+\frametitle{Epistemic Paths}
+New macro for path-based knowledge:
+\begin{equation*}
+\mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \forall s': \mathbf{KDo}(\pi,s,s') \rightarrow \phi[s']
+\end{equation*}
+Used like so:
+\begin{gather*}
+\mathbf{Knows}(agt,\phi,s)\ \equiv\ \mathbf{PKnows}(agt,\phi,s)\\
+\mathbf{Knows}(agt_1,\mathbf{Knows}(agt_2,\phi),s)\ \equiv\ \mathbf{PKnows}(agt_1 ; agt_2,\phi,s)\\
+\mathbf{EKnows}(G,\phi,s)\ \equiv\ \mathbf{PKnows}(\bigcup_{agt \in G}agt,\phi,s)\\
+\mathbf{CKnows}(G,\phi,s)\ \equiv\ \mathbf{PKnows}((\bigcup_{agt \in G}agt)^*,\phi,s)
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Epistemic Paths}
+It's now possible to formulate a regression rule for $\mathbf{PKnows}$ in synchronous domains:
+\begin{multline*}
+\mathcal{R}\{\mathbf{PKnows_0}(\pi,\phi,do(c,s))\} \Rightarrow \\
+ \forall c': \mathbf{PKnows_0}(\mathcal{T}\{\pi,c,c'\},\mathcal{R}\{\phi[c']\},s)
+\end{multline*}
+$\mathcal{T}$ basically encodes the semantics of $K$ and $\mathbf{KDo}$
+\begin{gather*}
+\mathcal{T}\{agt\}\ \isdef\ \mathrm{s.s.a.\ for}\ K\ \mathrm{fluent} \\
+\mathcal{T}\{?\phi\}\ \isdef\ ?\mathcal{R}\{\phi\} \\
+\mathcal{T}\{\pi_1\cup\pi_2\}\ \isdef\ \mathcal{T}\{\pi_1\}\cup\mathcal{T}\{\pi_2\} \\
+\mathcal{T}\{\pi^*\} \isdef\ \mathcal{T}\{\pi\}^*
+\end{gather*}
+\end{frame}
 
 \section{Hidden Actions}
+
+\begin{frame}
+\frametitle{Hidden Actions}
+What if the domain is asynchronous?\\
+How do we handle actions that are possible but unobservable?
+\begin{equation*}
+\mathbf{PbU}(agt,c,s)\ \isdef\ Poss(c,s) \wedge Obs(agt,c,s)=\{\}
+\end{equation*}
+\ \\
+\ \\
+There may be arbitrarily-long sequences of such hidden actions.\\
+We cannot use standard regression for this.
+\end{frame}
+
+\begin{frame}
+\frametitle{Hidden Actions}
+For individual knowledge, we can use \emph{property persistence}:
+\begin{equation*}
+\mathcal{P}\{\phi,\alpha\}\ \equiv\ \forall s': s \leq_{\alpha} s' \rightarrow \phi[s']
+\end{equation*}
+Combined with regression, we get:
+\begin{multline*}
+\mathcal{R}\{\mathbf{Knows}(agt,\phi,do(c,s))\}\ \Rightarrow \\
+\exists o: Obs(agt,c,s)=o\ \wedge\\
+\forall c': \mathbf{Knows}(agt,Poss(c') \wedge Obs(agt,c')=o \rightarrow \\
+ \mathcal{R}\{\mathcal{P}\{\phi,\mathbf{PbU}(agt)\}[do(c',s)]\},s)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Hidden Actions}
+For $\mathbf{PKnows}$, we fake it using $\mathbf{PKnows_0}$ and a stack of empty actions:
+\begin{gather*}
+\mathcal{E}\{do(c,s)\}\ \isdef\ do(\{\},do(c,\mathcal{E}\{s\})) \\
+\mathcal{E}^n\{s\}\ \isdef\ \mathcal{E}\{\mathcal{E}^{n-1}\{s\}\}
+\end{gather*}
+Using a fixpoint of this construction:
+\begin{equation*}
+\mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \mathbf{PKnows_0}(\pi,\phi,\mathcal{E}^{\infty}\{s\})
+\end{equation*}
+We can prove $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$ using these definitions.
+\end{frame}
 
 \section{The Frame Problem}
 
 \begin{frame}
-\frametitle{Reasoning from Observations}
-We, the omniscient designer, can determine whether an agent knows something
- in any given situation:
-\begin{equation*}
-  \mathcal{D} \models \mathbf{Knows}(agt,\phi,s)
-\end{equation*}
-\begin{equation*}
-  \mathcal{D}_{S_0} \cup \mathcal{D}_{una} \models \mathcal{R}^{*}[\mathbf{Knows}(agt,\phi,s)]
-\end{equation*}
-But the agent cannot use this to reason about its own knowledge, as it doesn't
-know the current situation.  It needs to be able to reason from a local
-viewpoint:
-\begin{equation*}
-  \mathcal{D} \models \mathbf{Knows}(agt,\phi,h)
-\end{equation*}
-\end{frame}
-
-\begin{frame}
-\frametitle{Regressing Over Observations}
-The regression operator can be modified to act over observation histories,
-instead of over situations:
-\begin{multline*}
-  \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
-  \mathbf{Knows}(agt,\forall c' . Obs(agt,c',s')=o \rightarrow \\
-     \mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],h)
-\end{multline*}
-We can equip agents with a situation calculus model of their own environment.
-\end{frame}
-
-\begin{frame}
-\frametitle{Demonstration}
-Simple test domain: three agents and several objects which they can pickup,
-putdown and drop.
+\frametitle{The Frame Problem}
+Representational Frame Problem:
+\begin{itemize}
+\item Knowledge evolves based on the effects of actions, without requiring additional axioms
+\end{itemize}
 \ \\
 \ \\
-Agents can only observe their own actions.
+Inferential Frame Problem:
+\begin{itemize}
+\item Regression can be used for more effective reasoning
+\end{itemize}
+\ \\
+\ \\
+Omniscient Viewpoint Problem:
+\begin{itemize}
+\item Regression can be applied using a view rather than a full situation term
+\end{itemize}
 \end{frame}
 
 \section{Conclusions}
@@ -495,24 +471,16 @@ Agents can only observe their own actions.
 \frametitle{Conclusions}
 What did we want?
 \begin{itemize}
-\item A powerful account of multi-agent knowledge
+\item A powerful account of \emph{multi-agent knowledge and action}:
   \begin{itemize}
-  \item Concurrent Actions
-  \item Partial Observability
+    \item with \emph{Common Knowledge} and other group-level operators
+    \item with partial observability and potential for \emph{Hidden Actions}
+    \item using regression to deal with the \emph{Frame Problem}
   \end{itemize}
 \item that supports complex symbolic reasoning
 \item that allows agents to reason about their own world
 \item but is still computationally feasible
 \end{itemize}
-\ \\
-\ \\
-\pause
-Future work:
-\begin{itemize}
-  \item Data Structures for efficient computation
-  \item Interactions between concurrent actions
-\end{itemize}
-
 \end{frame}
 
 \begin{frame}
