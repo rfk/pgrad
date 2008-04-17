@@ -17,8 +17,8 @@ all: $(PDF)
 
 %.pdf: %.tex
 	$(TEX2PDF) $<
-	#$(TEX2PDF) $<
-	#$(TEX2PDF) $<
+	$(TEX2PDF) $<
+	$(TEX2PDF) $<
 
 view:	$(PDF)
 	evince $(PDF)
