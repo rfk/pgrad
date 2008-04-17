@@ -2,7 +2,7 @@
 TEX2PDF = pdflatex
 
 GRAPHICS = frame_soln.png poss_worlds.png k_unobs.png k_unobs_highlighted.png \
-           k_relation.png pk_relation.png
+           k_relation.png pk_relation.png pk_regression.png
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm
 GARBAGE = $(LATEX_GARBAGE) *~
