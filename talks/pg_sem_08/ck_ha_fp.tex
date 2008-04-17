@@ -25,13 +25,14 @@
 
 \begin{frame}
 \frametitle{Motivation}
-What do we want?
+What do we want?\ \\
+\ \\
 \begin{itemize}
-\item A powerful account of multi-agent knowledge
+\item A powerful account of \emph{multi-agent knowledge and action}:
   \begin{itemize}
-  \item Concurrent Actions
-  \item Partial Observability
-  \item Group-level Knowledge Operators
+    \item with \emph{Common Knowledge} and other group-level operators
+    \item with partial observability and potential for \emph{Hidden Actions}
+    \item using regression to deal with the \emph{Frame Problem}
   \end{itemize}
 \item that supports complex symbolic reasoning
 \item that allows agents to reason about their own world
@@ -40,15 +41,15 @@ What do we want?
 \end{frame}
 
 
-\section{Knowledge}
+\section{Knowledge \& Action}
 
 \begin{frame}
 \frametitle{Knowledge}
 
 Knowledge is a modal operator
 \begin{itemize}
-\item Typically represented as: $\mathbf{Knows}(\phi)$ or $\mathbf{Knows}(Thomas,\phi)$
-\item $\neg\mathbf{Knows}(\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(\neg\phi)$
+\item Written like this:\ \ \  $\mathbf{Knows}(Ryan,\phi)$
+\item $\neg\mathbf{Knows}(Ryan,\phi)\ \ \not\rightarrow\ \ \mathbf{Knows}(Ryan,\neg\phi)$
 \end{itemize}
 \ \\
 \ \\
@@ -93,8 +94,6 @@ Need to integrate with a powerful \emph{theory of action}.
 I happen to know just the thing...
 \end{frame}
 
-\section{Knowledge \& Action}
-
 \begin{frame}
 \frametitle{The Situation Calculus}
 \emph{Actions} are instantaneous events causing the world to change
@@ -127,22 +126,21 @@ Why the situation calculus?
 \end{itemize}
 \ \\
 \ \\
-Approach due (mainly) to Scherl and Levesque:\\
+Standard approach due (mainly) to Scherl and Levesque:\\
 "Knowledge, Action and the Frame Problem", AI, 2003
 
 \end{frame}
 
 \begin{frame}
 \frametitle{Possible Situations}
-Recall that all statements about the world are relative to a situation.
-So, we must talk about the knowledge of an agent in a particular situation.
+We want to say "$agt$ knows $\phi$ in situation $s$":
 \begin{equation*}
 \mathbf{Knows}(agt,\phi,s)
 \end{equation*}
-\pause
-Replace "possible worlds" with "possible situations".  Introduce a fluent
-$K(agt,s',s)$ meaning that "in situation $s$, the agent $agt$ considers it
-possible that the world may be in situation $s'$".
+To do this, we introduce a fluent meaning that "in situation $s$, $agt$ considers it possible that the world may be in situation $s'$":
+\begin{equation*}
+K(agt,s',s)
+\end{equation*}
 \end{frame}
 
 \begin{frame}
@@ -157,20 +155,19 @@ We can then define knowledge as a simple macro:
 
 \begin{frame}
 \frametitle{The Frame Problem}
-To specify what the agent knows initially, restrict the properties of situations
-K-related to $S_0$:
-\begin{gather*}
-  \mathbf{Knows}(Richard,\neg Holding(Thomas,Knife),S_0) \\
-  \Rightarrow \ \ \forall s \left[K(Richard,s,S_0) \rightarrow \neg Holding(Thomas,Knife,s) \right]
-\end{gather*}
-
-\pause
 Since $K$ is just a fluent, we specify how it changes  between situations
 with a successor state axiom:
 \begin{equation*}
  K(agt,s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s')
  \wedge K(agt,s',s) \wedge Poss(a,s')
 \end{equation*}
+
+To specify what the agent knows initially, restrict the properties of situations
+K-related to $S_0$:
+\begin{gather*}
+  \mathbf{Knows}(Richard,\neg Holding(Thomas,Knife),S_0) \\
+  \Rightarrow \ \ \forall s \left[K(Richard,s,S_0) \rightarrow \neg Holding(Thomas,Knife,s) \right]
+\end{gather*}
 
 Automatically inherits the solution to the frame problem!
 \end{frame}
@@ -254,23 +251,21 @@ tackled more effectively.
 
 \begin{frame}
 \frametitle{Shortcomings}
-This is a very powerful framework...but:
+This is a very powerful framework, but it was designed for single-agent systems:
 \begin{itemize}
  \item Does not handle concurrent actions
- \item Agents are assumed to be aware of \emph{all} actions that occur
- \item Requires omniscient viewpoint
+ \item Agents must be aware of \emph{all} actions that occur
+ \item No formal treatment of group-level knowledge operators
+ \item Requires omniscient viewpoint for reasoning
 \end{itemize}
 \ \\
 \ \\
-\pause
 In short, it's not suitable for complex multi-agent domains.
 \ \\
 \ \\
 Can we do better, while maintaining the theoretical and practical elegance
 of this approach?
 \end{frame}
-
-\section{Observations}
 
 \begin{frame}
 \frametitle{Concurrent Actions}
@@ -397,8 +392,6 @@ To this:
 It's messier, but it's also hiding a much bigger problem...
 \end{frame}
 
-\section{Reasoning}
-
 \begin{frame}
 \frametitle{Regression}
 Recall that $\leq_{PbU(agt)}$ is defined by (implicitly) quantifying over
@@ -450,6 +443,12 @@ It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
      \left.\mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],s)\right]
 \end{multline*}
 \end{frame}
+
+\section{Common Knowledge}
+
+\section{Hidden Actions}
+
+\section{The Frame Problem}
 
 \begin{frame}
 \frametitle{Reasoning from Observations}
