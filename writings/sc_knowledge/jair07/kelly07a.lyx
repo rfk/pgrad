@@ -7,7 +7,7 @@
 
 \jairheading{0}{0000}{0-0}{0/0}{0/0}
 \ShortHeadings{Common Knowledge, Hidden Actions, and the Frame Problem}{R. F. Kelly \& A. R. Pearce}
-\firstpageno{0}
+\firstpageno{1}
 
  \renewenvironment{proofsketch}{\begin{proof}[Proof Sketch]}{\\ For the complete proof, see Appendix \ref{sec:Complete-Proofs} \end{proof}}
 \end_preamble
@@ -128,7 +128,7 @@ We present a powerful new account of multi-agent knowledge in the situation
  A key contribution of our approach is the ability to handle partial observabili
 ty, including actions that are completely hidden, by explicitly reifying
  the observations made by each agent as the world evolves.
- We also formally treat complex epistemic modalities such as common knowledge,
+ The work formally treats complex epistemic modalities such as common knowledge,
  which are not available in the standard account of knowledge in the situation
  calculus.
  By using the persistence condition meta-operator to augment traditional
@@ -136,8 +136,7 @@ ty, including actions that are completely hidden, by explicitly reifying
  using only their internal history of observations, rather than requiring
  a full history of the world.
  The result is a more robust and flexible account of knowledge in the situation
- calculus suitable for use in asynchronous, partially-observable multi-agent
- domains.
+ calculus suitable for asynchronous, partially-observable multi-agent domains.
  
 \end_layout
 
@@ -251,8 +250,8 @@ key "reiter91frameprob,pirri99contributions_sitcalc"
 
 \end_inset
 
- to handle knowledge-producing actions and explicit reasoning about the
- knowledge of an agent.
+ to handle knowledge-producing actions and use regression to reason about
+ the knowledge of an agent.
  Extensions to multiple agents 
 \begin_inset LatexCommand citep
 key "Lesperance01epi_feas_casl"
@@ -336,7 +335,6 @@ about,
 in,
 \emph default
  asynchronous, partially-observable multi-agent domains.
- 
 \end_layout
 
 \begin_layout Standard
@@ -352,6 +350,12 @@ key "shapiro01casl_feat_inter,shapiro02casl"
 ; theories of communication 
 \begin_inset LatexCommand citep
 key "shapiro98specifying_ma_systems"
+
+\end_inset
+
+, coordination 
+\begin_inset LatexCommand citep
+key "ghaderi07sc_joint_ability"
 
 \end_inset
 
@@ -385,13 +389,20 @@ key "kelly06hlp_dps"
 \end_layout
 
 \begin_layout Standard
-After some introductory material on the situation calculus in Section 
+We begin by reviewing the standard account of multi-agent knowledge in the
+ situation calculus in Section 
 \begin_inset LatexCommand ref
 reference "sec:The-Multi-Agent-Situation"
 
 \end_inset
 
-, we develop our new formalism in two parts:
+.
+ TODO: More on exactly what's important here.
+\end_layout
+
+\begin_layout Standard
+We then develop our new formalism in two parts, first introducing individual
+ knowledge with hidden actions, then adding complex epistemic modalities.
 \end_layout
 
 \begin_layout Subsection*
@@ -413,8 +424,8 @@ observations
 \emph default
  made by each agent as the world evolves, and formulate each agent's knowledge
  in terms of what it has observed.
- Briefly, each occurrence of an action results in an agent making a (possibly
- empty) set of observations.
+ Each occurrence of an action results in an agent making a (possibly empty)
+ set of observations.
  Every situation then has a corresponding 
 \emph on
 view
@@ -440,12 +451,12 @@ key "kelly07sc_know_obs"
 \end_layout
 
 \begin_layout Standard
-The main challenge in this section is dealing with arbitrarily long sequences
- of hidden actions.
+The main challenge we overcome in this section is dealing with arbitrarily
+ long sequences of hidden actions.
  To ensure their knowledge is valid, each agent must take into account all
  possible future situations compatible with what they have observed.
- However, queries that universally quantify over situations are not supported
- by the standard tools for effective reasoning in the situation calculus.
+ However, traditional regression techniques cannot handle queries that universal
+ly quantify over situation terms.
 
 \emph on
  
@@ -469,8 +480,9 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-We also show how our regression rules can be applied using an agent's individual
- view, rather than requiring a full situation term.
+Further demonstrating the power of our approach, we show how our regression
+ rules can be applied using an agent's individual view, rather than requiring
+ a full situation term.
  Agents can thus use our techniques to reason about their own knowledge
  using only their local information, making our formalism suitable both
  for reasoning 
@@ -499,10 +511,37 @@ reference "sec:Complex-Epistemic-Modalities"
 
 \end_inset
 
- builds on our account of individual knowledge by introducing complex epistemic
- modalities.
- The primary motivation is a formal account of common knowledge, but we
- are bound by the following expressivity result from modal logic 
+ builds on our account of individual knowledge by introducing complex group-leve
+l epistemic modalities.
+ The primary motivation is a formal account of common knowledge, but this
+ turns out to require a significantly more general formalism.
+\end_layout
+
+\begin_layout Standard
+Simple group-level modalities such as 
+\begin_inset Quotes eld
+\end_inset
+
+everyone knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+ can be expressed as finite combinations of individual-level knowledge operators
+, but common knowledge is infinitary and cannot be handled in this way.
+ Instead, common knowledge is typically introduced to the situation calculus
+ using a separate second-order axiom 
+\begin_inset LatexCommand cite
+key "davis05fo_ma_theory,ghaderi07sc_joint_ability"
+
+\end_inset
+
+.
+ While logically sound, this approach is bound by the following expressivity
+ result from modal logic 
 \begin_inset LatexCommand citep
 key "baltag98pa_ck"
 
@@ -517,25 +556,47 @@ epistemic logic with actions and common knowledge is more expressive than
 \end_layout
 
 \begin_layout Standard
-In situation calculus terms, this means that the regression of common knowledge
- cannot be defined in terms of common knowledge, but requires a more powerful
- epistemic language.
- Recent advances in dynamic epistemic logic have shown that this limitation
- can be circumvented by utilizing dynamic logic as an epistemic path language,
- increasing the expressive power of the logic and allowing a regression
- rule to be formulated 
-\begin_inset LatexCommand citep
+This means it is impossible to formulate a regression rule for effective
+ reasoning about common knowledge in such a formalism, instead requring
+ a general-purpose theorem prover.
+ Our work offers a new approach that combines a rich group-level epistemic
+ language with a regression rule for effective reasoning.
+\end_layout
+
+\begin_layout Standard
+We take our cue from recent promising work in the related field of dynamic
+ epistemic logic, with the main idea due to 
+\begin_inset LatexCommand citet
 key "vanBenthem06lcc"
 
 \end_inset
 
-.
+: increase the expressive power of the epistemic language so it is strong
+ enough to formulate a proper regression rule.
+ They have developed the Logic of Communication and Change (henceforth 
+\begin_inset Quotes eld
+\end_inset
+
+LCC
+\begin_inset Quotes erd
+\end_inset
+
+) using propositional dynamic logic to form epistemic modalities, and have
+ shown that it allows reasoning about common knowledge using techniques
+ akin to regression.
+ We follow a similar approach in this paper and introduce complex epistemic
+ modalities to the situation calculus.
+ 
 \end_layout
 
 \begin_layout Standard
-The original framework for this technique is the propositional, synchronous
- setting of modal logic.
- We adapt it to the much richer formalism of the situation calculus by lifting
+However, LCC is built within the propositional, synchronous setting of modal
+ logic.
+ To adapt these techniques to the situation calculus TODO: rework this.
+\end_layout
+
+\begin_layout Standard
+We adapt it to the much richer formalism of the situation calculus by lifting
  the regression of epistemic paths to first-order logic, and combining it
  with the techniques for handling sequences of hidden actions developed
  in Section 
@@ -550,6 +611,56 @@ reference "sec:Obs-Knowledge"
  situation calculus.
  The result is a truly multi-agent account of knowledge suitable for rich
  multi-agent domains.
+\end_layout
+
+\begin_layout Standard
+Our formalism captures first-order effects, quantifying-in and de-dicto/de-re,
+ and arbitrary sets of concurrent actions, while providing a regression
+ rule for automated reasoning and integrating smoothly with existing techniques
+ based on the situation calculus.
+\end_layout
+
+\begin_layout Standard
+Following the tradition of 
+\begin_inset LatexCommand cite
+key "scherl03sc_knowledge"
+
+\end_inset
+
+ we develop our formalism as a series of macro-expansions, with no changes
+ to the underlying situation calculus theory.
+ We adopt the language of first-order dynamic logic to construct complex
+ epistemic paths.
+ The macro 
+\begin_inset Formula $\PKnows(\pi,\phi,s)$
+\end_inset
+
+ expresses knowledge using a path.
+ Common knowledge between 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $B$
+\end_inset
+
+ can be expressed in this syntax using the iteration operator: 
+\begin_inset Formula $\PKnows((A\cup B)^{*},\phi,s)$
+\end_inset
+
+.
+ Regression is modified to treat 
+\begin_inset Formula $\PKnows(\pi,\phi,do(c,s))$
+\end_inset
+
+ as a primitive fluent, producing an equivalent formula 
+\begin_inset Formula $\PKnows(\Trn(\pi),\Reg(\phi),s)$
+\end_inset
+
+.
+ This paper thus contributes a rich multi-agent theory of knowledge and
+ action in which complex group-level epistemic modalities are amenable to
+ effective automated reasoning.
 \end_layout
 
 \begin_layout Section
@@ -597,6 +708,12 @@ key "scherl03sc_knowledge"
  fluent to action description predicates, our use of the single-step variant
  of the regression operator, and the material on the persistence condition
  meta-operator.
+\end_layout
+
+\begin_layout Standard
+TODO: why the situation calculus, other formalisms, 
+\backslash
+cite{paper that compares three formalisms}.
 \end_layout
 
 \begin_layout Subsection
@@ -6468,6 +6585,18 @@ name "sec:Conclusions"
 hooray for us, this is a great paper :-)
 \end_layout
 
+\begin_layout Standard
+\begin_inset LatexCommand bibtex
+options "theapa"
+bibfiles "../../../library/references"
+
+\end_inset
+
+
+\newpage
+
+\end_layout
+
 \begin_layout Section
 \start_of_appendix
 Dynamic Logic via Macro Expansion
@@ -7864,16 +7993,6 @@ name "sec:Execution-Traces"
 
 \begin_layout Standard
 \InsetSpace ~
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset LatexCommand bibtex
-options "theapa"
-bibfiles "../../../library/references"
-
-\end_inset
-
 
 \end_layout
 
