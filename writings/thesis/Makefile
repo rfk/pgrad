@@ -9,13 +9,13 @@
 #    all:  create PDF for the entire thesis document
 #    <chapter>.ch.pdf:  create PDF for a specific chapter
 #
+#    view: built entire thesis, then view it as a pdf
+#
 #    sp:   spell-check the entire thesis
 #    sp-<chapter>: spell-check a specific chapter
 #
 #    wc:   count words over the entire thesis
 #    wc-<chapter>:   count words in a specific chapter
-#
-#    view: built entire thesis, then view it as a pdf
 #
 #  Note that these wordcounts are not terribly accurate. I'll
 #  try to work on that in the future...
@@ -29,7 +29,7 @@ GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex
 
 CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf
 
-CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex discussion.tex conclusion.tex 
+CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
 
 ## Additional variables
@@ -42,7 +42,7 @@ VIEWER = evince
 ## Basic Dependencies
 
 all: thesis.pdf
-#
+
 # Run LaTeX a few times to generate DVI file, and get refs etc correct
 %.dvi: %.tex
 	$(LTX) $<
@@ -55,12 +55,10 @@ all: thesis.pdf
 
 # Generate a temporary latex file that will build a single chapter
 %.ch.tex: %.tex
-	echo '\include{preamble}' > $@
+	cat preamble.tex > $@
 	echo '\begin{document}' >> $@
-	echo -n '\include{' >> $@
-	echo -n $* >> $@
-	echo '}' >> $@
-	echo '\include{bibcmds}' >> $@
+	cat $< >> $@
+	cat bibcmds.tex >> $@
 	echo '\end{document}' >> $@
 
 # Generate a temporary latex file that will build a single chapter,
@@ -114,6 +112,18 @@ view: thesis.pdf
 view-%: %.ch.pdf
 	cp $< $<.tmp.pdf
 	$(VIEWER) $<.tmp.pdf &
+
+# easy editing of chapters in lyx
+edit-%: %.tex
+	# Generate lyx file from the latex
+	rm -rf $*.ed.ly $*.ed.tex
+	tex2lyx $< $*.ed.lyx
+	# Run lyx for editing, then export back to latex
+	lyx $*.ed.lyx
+	lyx --export latex $*.ed.lyx
+	# Strip out surrounding begin/end document
+
+	cp $*.ed.tex $<
 
 # publish latest versions to my website
 publish:
