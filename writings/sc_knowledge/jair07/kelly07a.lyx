@@ -1,4 +1,4 @@
-#LyX 1.5.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.5.3 created this file. For more info see http://www.lyx.org/
 \lyxformat 276
 \begin_document
 \begin_header
@@ -124,20 +124,18 @@ Victoria, 3010, Australia
 
 \begin_layout Abstract
 We present a powerful new account of multi-agent knowledge in the situation
- calculus, and an effective reasoning procedure for knowledge queries.
- A key contribution of our approach is the ability to handle partial observabili
-ty, including actions that are completely hidden, by explicitly reifying
- the observations made by each agent as the world evolves.
- The work formally treats complex epistemic modalities such as common knowledge,
- which are not available in the standard account of knowledge in the situation
- calculus.
+ calculus and an effective reasoning procedure for knowledge queries.
+ Our approach handles partial observability of actions, including actions
+ that are completely hidden, by explicitly reifying the observations made
+ by each agent as the world evolves.
+ It formally treats complex group-level epistemic modalities such as common
+ knowledge, which were previously difficult to handle in the situation calculus.
  By using the persistence condition meta-operator to augment traditional
- regression techniques, we allow agents to effectively reason about knowledge
+ regression techniques, we allow agents to reason about their own knowledge
  using only their internal history of observations, rather than requiring
  a full history of the world.
  The result is a more robust and flexible account of knowledge in the situation
  calculus suitable for asynchronous, partially-observable multi-agent domains.
- 
 \end_layout
 
 \begin_layout Standard
@@ -226,6 +224,11 @@ ty, including actions that are completely hidden, by explicitly reifying
 \end_inset
 
 
+\begin_inset FormulaMacro
+\newcommand{\PbU}{\mathbf{PbU}}
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -243,15 +246,19 @@ key "scherl03sc_knowledge"
 
 \end_inset
 
- extend Reiter's solution to the frame problem in the situation calculus
- 
+ incorporate knowledge-producing actions into the situation calculus 
 \begin_inset LatexCommand citep
-key "reiter91frameprob,pirri99contributions_sitcalc"
+key "pirri99contributions_sitcalc"
 
 \end_inset
 
- to handle knowledge-producing actions and use regression to reason about
- the knowledge of an agent.
+ and use Reiter's regression operator 
+\begin_inset LatexCommand citep
+key "reiter91frameprob"
+
+\end_inset
+
+ to reason about the changing knowledge of an agent.
  Extensions to multiple agents 
 \begin_inset LatexCommand citep
 key "Lesperance01epi_feas_casl"
@@ -264,9 +271,8 @@ key "scherl03conc_knowledge"
 
 \end_inset
 
- have produced an expressive logic of knowledge, action and change that
- permits an effective reasoning procedure using standard techniques of the
- situation calculus.
+ have produced an expressive logic of knowledge, action and change in which
+ regression provides an effective reasoning procedure.
 \end_layout
 
 \begin_layout Standard
@@ -279,15 +285,8 @@ know
  that an action has occurred.
  This demands a level of synchronicity that is unreasonable in many multi-agent
  domains.
- Second, there is no account of group-level epistemic modalities such as
- common knowledge, which is difficult to formalise effectively in a dynamic
- setting 
-\begin_inset LatexCommand citep
-key "baltag98pa_ck"
-
-\end_inset
-
-.
+ Second, there is no effective technique for handling group-level epistemic
+ modalities such as common knowledge.
  Given the deep connections between common knowledge and coordination, this
  is a serious shortcoming in multi-agent domains.
 \end_layout
@@ -302,7 +301,7 @@ a formal account of
 Common Knowledge
 \emph default
  and other complex epistemic modalities, including a regression rule for
- reasoning about common knowledge
+ reasoning about common knowledge.
 \end_layout
 
 \begin_layout Itemize
@@ -311,7 +310,7 @@ support for
 Hidden Actions
 \emph default
  and actions that are partially observable, including a reasoning technique
- to deal with arbitrarily-long sequences of hidden actions
+ to deal with arbitrarily-long sequences of hidden actions.
 \end_layout
 
 \begin_layout Itemize
@@ -321,7 +320,7 @@ Frame Problem
 \emph default
  for knowledge, built on the successor state axioms for primitive actions,
  maintaining regression as the primary reasoning tool, and allowing agents
- to reason about their own knowledge using only their local information
+ to reason about their own knowledge using only their local information.
 \end_layout
 
 \begin_layout Standard
@@ -335,25 +334,14 @@ about,
 in,
 \emph default
  asynchronous, partially-observable multi-agent domains.
-\end_layout
-
-\begin_layout Standard
-Some application areas utilizing multi-agent knowledge in the sitation calculus,
- and therefore standing to gain directly from our new techniques, include:
- the Cognitive Agents Specification Language for modelling multi-agent systems
- 
+ Work that could immediately benefit from our approach includes: specification
+ and verification of multi-agent systems 
 \begin_inset LatexCommand citep
-key "shapiro01casl_feat_inter,shapiro02casl"
+key "shapiro02casl"
 
 \end_inset
 
-; theories of communication 
-\begin_inset LatexCommand citep
-key "shapiro98specifying_ma_systems"
-
-\end_inset
-
-, coordination 
+; theories of coordination 
 \begin_inset LatexCommand citep
 key "ghaderi07sc_joint_ability"
 
@@ -384,25 +372,46 @@ key "kelly06hlp_dps"
 \end_inset
 
 .
- More generally, our formalism opens the door for applying techniques from
- the situation calculus in more complex multi-agent settings.
 \end_layout
 
 \begin_layout Standard
-We begin by reviewing the standard account of multi-agent knowledge in the
- situation calculus in Section 
+The paper begins by reviewing the standard account of multi-agent knowledge
+ in the situation calculus in Section 
 \begin_inset LatexCommand ref
 reference "sec:The-Multi-Agent-Situation"
 
 \end_inset
 
 .
- TODO: More on exactly what's important here.
+ Readers familiar with the situation calculus are encouraged to review this
+ section, as we extend some of the standard notation in preparation for
+ later sections.
+ Our new formalism is then developed in two parts: first by axiomatising
+ individual knowledge in the face of hidden actions in Section 
+\begin_inset LatexCommand ref
+reference "sec:Obs-Knowledge"
+
+\end_inset
+
+, then by adding complex epistemic modalities to model common knowledge
+ in Section 
+\begin_inset LatexCommand ref
+reference "sec:Complex-Epistemic-Modalities"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
-We then develop our new formalism in two parts, first introducing individual
- knowledge with hidden actions, then adding complex epistemic modalities.
+The challenge in both cases is to increase the expressive power of the logic
+ while still allowing regression to be performed - that is, allowing an
+ epistemic query about the state of the world after an action to be translated
+ into a query about the state of the world before that action.
+ This is achieved using new reasoning techniques to augement the standard
+ regression operator, and by carefully constructing our extensions to be
+ compatible with these techniques.
+ 
 \end_layout
 
 \begin_layout Subsection*
@@ -418,7 +427,7 @@ reference "sec:Obs-Knowledge"
 
  treats the individual knowledge of each agent in the face of hidden actions,
  by decoupling knowledge from the specific actions that have taken place.
- We develop an explicit reification of the 
+ We explicitly reify the 
 \emph on
 observations
 \emph default
@@ -430,8 +439,8 @@ observations
 \emph on
 view
 \emph default
- for each agent: the sequence of observations the agent has made in that
- situation, excluding cases where the set of observations was empty.
+ for each agent: the sequence of all observations made by the agent, excluding
+ cases where the set of observations was empty.
  An agent knows something if it is true in all situations matching its current
  view.
 \end_layout
@@ -441,42 +450,43 @@ Decoupling knowledge in this manner makes it easy to express various degrees
  of observability of actions, from public actions through to actions that
  are completely hidden.
  This section is a greatly expanded version of our conference paper on the
- same topic 
+ same topic, and stands as a significant new account of knowledge in its
+ own right 
 \begin_inset LatexCommand citep
 key "kelly07sc_know_obs"
 
 \end_inset
 
- and stands as a significant new account of knowledge in its own right.
+.
 \end_layout
 
 \begin_layout Standard
-The main challenge we overcome in this section is dealing with arbitrarily
- long sequences of hidden actions.
- To ensure their knowledge is valid, each agent must take into account all
- possible future situations compatible with what they have observed.
- However, traditional regression techniques cannot handle queries that universal
-ly quantify over situation terms.
+The main challenge we overcome in this section is handling arbitrarily long
+ sequences of hidden actions.
+ To ensure its knowledge is valid, an agent must reason about all future
+ situations compatible with what it has observed.
+ However, the regression meta-operator cannot handle queries that universally
+ quantify over situation terms.
 
 \emph on
  
 \emph default
 In previous work we have developed the persistence condition meta-operator
- 
+ to support a limited form of universally quantified query 
 \begin_inset LatexCommand citep
 key "kelly07sc_persistence"
 
 \end_inset
 
- to support a limited form of universally quantified query.
+.
  Using this operator to augment the regression techniques developed by 
 \begin_inset LatexCommand citet
 key "scherl03sc_knowledge"
 
 \end_inset
 
-, we maintain their elegant solution to the frame problem despite dealing
- with arbitrarily long sequences of hidden actions.
+, we maintain their elegant solution to the frame problem while handling
+ arbitrarily long sequences of hidden actions.
 \end_layout
 
 \begin_layout Standard
@@ -513,8 +523,8 @@ reference "sec:Complex-Epistemic-Modalities"
 
  builds on our account of individual knowledge by introducing complex group-leve
 l epistemic modalities.
- The primary motivation is a formal account of common knowledge, but this
- turns out to require a significantly more general formalism.
+ The primary motivation is a formal account of common knowledge, but to
+ achieve this a significantly more general formalism is required.
 \end_layout
 
 \begin_layout Standard
@@ -534,37 +544,39 @@ everyone knows
 , but common knowledge is infinitary and cannot be handled in this way.
  Instead, common knowledge is typically introduced to the situation calculus
  using a separate second-order axiom 
-\begin_inset LatexCommand cite
+\begin_inset LatexCommand citep
 key "davis05fo_ma_theory,ghaderi07sc_joint_ability"
 
 \end_inset
 
 .
- While logically sound, this approach is bound by the following expressivity
- result from modal logic 
-\begin_inset LatexCommand citep
-key "baltag98pa_ck"
-
-\end_inset
-
-:
-\end_layout
-
-\begin_layout Quote
-epistemic logic with actions and common knowledge is more expressive than
- epistemic logic with common knowledge alone
-\end_layout
-
-\begin_layout Standard
-This means it is impossible to formulate a regression rule for effective
- reasoning about common knowledge in such a formalism, instead requring
- a general-purpose theorem prover.
+ While logically sound, this approach forgoes regression as a reasoning
+ tool and in the general case requires a second-order theorem prover to
+ answer knowledge queries.
  Our work offers a new approach that combines a rich group-level epistemic
  language with a regression rule for effective reasoning.
 \end_layout
 
 \begin_layout Standard
-We take our cue from recent promising work in the related field of dynamic
+To achieve this, we must overcome the following expressivity result from
+ modal logic:
+\end_layout
+
+\begin_layout Quote
+epistemic logic with actions and common knowledge is more expressive than
+ epistemic logic with common knowledge alone 
+\begin_inset LatexCommand citep
+key "baltag98pa_ck"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This means it is impossible to express the regression of common knowledge
+ using only the knowledge and common-knowledge operators.
+ We take our cue from recent promising work in the related field of dynamic
  epistemic logic, with the main idea due to 
 \begin_inset LatexCommand citet
 key "vanBenthem06lcc"
@@ -590,52 +602,38 @@ LCC
 \end_layout
 
 \begin_layout Standard
-However, LCC is built within the propositional, synchronous setting of modal
- logic.
- To adapt these techniques to the situation calculus TODO: rework this.
-\end_layout
-
-\begin_layout Standard
-We adapt it to the much richer formalism of the situation calculus by lifting
- the regression of epistemic paths to first-order logic, and combining it
- with the techniques for handling sequences of hidden actions developed
- in Section 
+While this section naturally parallels the development of LCC, there are
+ also substantial differences.
+ LCC is built on modal logic and so handles only propositional, synchronous
+ domains.
+ The richer ontology of the situation calculus means our formalism must
+ capture first-order preconditions and effects, quantifying-in and de-dicto/de-r
+e, and arbitrary sets of concurrent actions, along with the techniques for
+ handling hidden actions developed in Section 
 \begin_inset LatexCommand ref
 reference "sec:Obs-Knowledge"
 
 \end_inset
 
 .
- We demonstrate the effectiveness of our technique with an example of reasoning
- about common knowledge in a partially-observable domain, a first for the
- situation calculus.
- The result is a truly multi-agent account of knowledge suitable for rich
- multi-agent domains.
-\end_layout
-
-\begin_layout Standard
-Our formalism captures first-order effects, quantifying-in and de-dicto/de-re,
- and arbitrary sets of concurrent actions, while providing a regression
- rule for automated reasoning and integrating smoothly with existing techniques
- based on the situation calculus.
+ 
 \end_layout
 
 \begin_layout Standard
 Following the tradition of 
-\begin_inset LatexCommand cite
+\begin_inset LatexCommand citet
 key "scherl03sc_knowledge"
 
 \end_inset
 
  we develop our formalism as a series of macro-expansions, with no changes
  to the underlying situation calculus theory.
- We adopt the language of first-order dynamic logic to construct complex
- epistemic paths.
- The macro 
+ Complex epistemic paths are constructed using the language of first-order
+ dynamic logic, with the macro 
 \begin_inset Formula $\PKnows(\pi,\phi,s)$
 \end_inset
 
- expresses knowledge using a path.
+ expressing knowledge using a path.
  Common knowledge between 
 \begin_inset Formula $A$
 \end_inset
@@ -644,7 +642,7 @@ key "scherl03sc_knowledge"
 \begin_inset Formula $B$
 \end_inset
 
- can be expressed in this syntax using the iteration operator: 
+ is expressed in this syntax using the unbounded iteration operator: 
 \begin_inset Formula $\PKnows((A\cup B)^{*},\phi,s)$
 \end_inset
 
@@ -657,10 +655,20 @@ key "scherl03sc_knowledge"
 \begin_inset Formula $\PKnows(\Trn(\pi),\Reg(\phi),s)$
 \end_inset
 
-.
- This paper thus contributes a rich multi-agent theory of knowledge and
- action in which complex group-level epistemic modalities are amenable to
- effective automated reasoning.
+ where 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ is a new meta-operator called the epistemic path regressor.
+ 
+\end_layout
+
+\begin_layout Standard
+We demonstrate the effectiveness of our technique with an example of reasoning
+ about common knowledge in a partially-observable domain, a first for the
+ situation calculus.This paper thus contributes a rich multi-agent theory
+ of knowledge and action in which complex group-level epistemic modalities
+ are amenable to effective automated reasoning.
 \end_layout
 
 \begin_layout Section
@@ -711,9 +719,19 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-TODO: why the situation calculus, other formalisms, 
-\backslash
-cite{paper that compares three formalisms}.
+There is also a rather wide range of related formalisms for reasoning about
+ knowledge, action and change.
+ We find the notation and meta-theory of the situation calculus to be particular
+ly suitable for expressing the ideas found in this paper.
+ Moreover, the strong underlying similarities between many action formalisms
+ should allow the main ideas to transcend the specifics of the situation
+ calculus 
+\begin_inset LatexCommand citep
+key "thielscher06reconcile_sc_fc,thielscher07unifying_action_calculus,vanbentham07ml_sitcalc"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Subsection
@@ -791,20 +809,39 @@ fluents.
 
 \begin_layout Standard
 Throughout the paper we will present examples from a simple multi-agent
- domain, a packing facility in which two agents 
-\begin_inset Formula $Sam$
+ domain, in which two agents Ann and Bob are attending a party.
+ The location of the party (the fluent 
+\begin_inset Formula $loc(s)$
+\end_inset
+
+) is either 
+\begin_inset Formula $C$
+\end_inset
+
+ or 
+\begin_inset Formula $D$
+\end_inset
+
+ but they do not know which, and they have just received an invitation telling
+ them the location of the party.
+ Each agent may read the inviation (the action 
+\begin_inset Formula $read$
+\end_inset
+
+) and leave/enter the room (actions 
+\begin_inset Formula $leave$
 \end_inset
 
  and 
-\begin_inset Formula $Max$
+\begin_inset Formula $enter$
 \end_inset
 
- move boxes between a number of rooms.
- Some example formulae from this domain are 
+) at any time.
+ Some example formulae from this domain are: 
 \begin_inset Quotes eld
 \end_inset
 
-Sam is holding Box1 initially
+Ann is in the room initially
 \begin_inset Quotes erd
 \end_inset
 
@@ -812,7 +849,7 @@ Sam is holding Box1 initially
 \begin_inset Quotes eld
 \end_inset
 
-Sam is not holding Box1 after dropping Box1
+Bob is not in the room after leaving it
 \begin_inset Quotes erd
 \end_inset
 
@@ -820,15 +857,19 @@ Sam is not holding Box1 after dropping Box1
 \begin_inset Quotes eld
 \end_inset
 
-Max knows Sam is holding Box1 initially
+Bob knows the location of the party after reading the invitiaion
 \begin_inset Quotes erd
 \end_inset
 
-, written formally as:
+.
+ Written formally:
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \begin{gather*}
-Holding(Sam,Box1,S_{0})\\
-\neg Holding(Sam,Box1,do(\{drop(Sam,Box1)\},S_{0}))\\
-\Knows(Max,Holding(Sam,Box1),S_{0})\end{gather*}
+InRoom(Ann,S_{0})\\
+\neg InRoom(Bob,do(leave(Bob),S_{0}))\\
+\exists x:\,\Knows(Bob,x=loc,do(read(Bob),S_{0}))\end{gather*}
 
 \end_inset
 
@@ -854,13 +895,13 @@ Theory A basic action theory, denoted
 \end_inset
 
 , is a set of situation calculus sentences (with a specific syntactic form
- outlined below) that describes a particular dynamic world.
+ outlined below) describing a particular dynamic world.
  It consists of the following disjoint sets: the foundational axioms of
  the situation calculus (
 \begin_inset Formula $\Sigma$
 \end_inset
 
-); unique names axioms ensuring that action terms are distinct (
+); unique names axioms for actions (
 \begin_inset Formula $\Dt_{una}$
 \end_inset
 
@@ -1730,7 +1771,7 @@ reference "eq:k_s0_standard"
 
 \end_inset
 
-).
+) above.
 \end_layout
 
 \begin_layout Standard
@@ -1830,7 +1871,7 @@ Let
 \begin_inset Formula $\Sigma$
 \end_inset
 
-:
+ (the foundational axioms):
 \begin_inset Formula \[
 \Dt\models_{SOL}\psi\]
 
@@ -2068,24 +2109,30 @@ The trade-off is that the length of
 
 .
  While an efficiency gain is not guaranteed, regression has proven a very
- effective technique in practice.
+ effective technique in practice (e.g.
+ 
+\begin_inset LatexCommand citealp
+key "levesque97golog"
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Standard
 We use two notational short-cuts to simplify the presentation throughout
  the paper.
- First, since we assume we are dealing with a fixed basic action theory
- 
+ First, since 
 \begin_inset Formula $\Dt$
 \end_inset
 
-, we will drop the subscript and simply use 
+ is fixed the subscript is dropped and a plain 
 \begin_inset Formula $\Reg$
 \end_inset
 
- for the regression operator.
- Second, we introduce a two-argument version of the regression operator
- that takes a concurrent action as its second argument.
+ is used for the regression operator.
+ Second, a two-argument version of regression is defined that takes a concurrent
+ action as its second argument.
  Suppose that 
 \begin_inset Formula $\phi$
 \end_inset
@@ -2802,7 +2849,7 @@ While a wonderfully succinct definition of how knowledge should behave,
 \begin_layout Standard
 For notational convenience, let us first introduce an action description
  predicate 
-\begin_inset Formula $PbU$
+\begin_inset Formula $\PbU$
 \end_inset
 
  (for 
@@ -2827,7 +2874,7 @@ possible but unobservable
 
  if they are performed:
 \begin_inset Formula \begin{equation}
-PbU(agt,c,s)\isdef Poss(c,s)\wedge Obs(agt,c,s)=\{\}\label{eqn:PbU_defn}\end{equation}
+\PbU(agt,c,s)\isdef Poss(c,s)\wedge Obs(agt,c,s)=\{\}\label{eqn:PbU_defn}\end{equation}
 
 \end_inset
 
@@ -2836,7 +2883,7 @@ PbU(agt,c,s)\isdef Poss(c,s)\wedge Obs(agt,c,s)=\{\}\label{eqn:PbU_defn}\end{equ
 
 \begin_layout Standard
 By stating that 
-\begin_inset Formula $s\leq_{PbU(agt)}s'$
+\begin_inset Formula $s\leq_{\PbU(agt)}s'$
 \end_inset
 
  we assert that 
@@ -2868,7 +2915,7 @@ By stating that
 \begin_inset Formula \begin{align}
 K(agt,s'',do(c,s))\equiv & \left[\, Obs(agt,c,s)=\{\}\rightarrow K(agt,s'',s)\,\right]\nonumber \\
 \wedge & \left[\, Obs(agt,c,s)\neq\{\}\rightarrow\exists c',s':\, Obs(agt,c',s')=Obs(agt,c,s)\right.\nonumber \\
- & \left.\,\,\,\,\,\,\,\,\wedge\, Poss(c',s')\wedge K(agt,s',s)\wedge do(c',s')\leq_{PbU(agt)}s''\,\right]\label{eqn:new_k_ssa}\end{align}
+ & \left.\,\,\,\,\,\,\,\,\wedge\, Poss(c',s')\wedge K(agt,s',s)\wedge do(c',s')\leq_{\PbU(agt)}s''\,\right]\label{eqn:new_k_ssa}\end{align}
 
 \end_inset
 
@@ -2915,7 +2962,7 @@ It remains to specify
 
  defines knowledge before any actions have occurred, but we must also include
  situations such that 
-\begin_inset Formula $root(s)\leq_{PbU(agt)}s$
+\begin_inset Formula $root(s)\leq_{\PbU(agt)}s$
 \end_inset
 
  in the 
@@ -2924,7 +2971,7 @@ It remains to specify
 
 -relation for initial situations:
 \begin_inset Formula \begin{gather}
-Init(s)\rightarrow\left[K(agt,s'',s)\equiv\exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{PbU(agt)}s'')\right]\label{eqn:new_k_s0}\end{gather}
+Init(s)\rightarrow\left[K(agt,s'',s)\equiv\exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{\PbU(agt)}s'')\right]\label{eqn:new_k_s0}\end{gather}
 
 \end_inset
 
@@ -3031,7 +3078,7 @@ reference "eqn:new_k_s0"
 \end_inset
 
  case relies on the fact that 
-\begin_inset Formula $PbU$
+\begin_inset Formula $\PbU$
 \end_inset
 
  implies 
@@ -3043,7 +3090,7 @@ reference "eqn:new_k_s0"
 \end_inset
 
  case relies on the fact that 
-\begin_inset Formula $s\leq_{PbU}s'\rightarrow View(s)=View(s')$
+\begin_inset Formula $s\leq_{\PbU}s'\rightarrow View(s)=View(s')$
 \end_inset
 
 .
@@ -3224,7 +3271,7 @@ reference "eq:ax_obs_std2"
 \end_inset
 
 , so 
-\begin_inset Formula $s\leq_{PbU(agt)}s'$
+\begin_inset Formula $s\leq_{\PbU(agt)}s'$
 \end_inset
 
  iff 
@@ -3364,7 +3411,7 @@ The final aspect of our new account of knowledge is to extend the techniques
  for effective reasoning in the situation calculus to handle action theories
  based on our formalism.
  The appearance of the 
-\begin_inset Formula $\leq_{PbU(agt)}$
+\begin_inset Formula $\leq_{\PbU(agt)}$
 \end_inset
 
  ordering over situations in equation (
@@ -3389,7 +3436,7 @@ We propose the following definition for the regression of
 \Reg(\Knows(agt,\phi,do(c,s)))\isdef\,\, & \exists o:\, Obs(agt,c,s)=o\nonumber \\
  & \wedge\,\left[o=\{\}\,\rightarrow\,\Knows(agt,\phi,s)\right]\nonumber \\
  & \wedge\,\left[o\neq\{\}\,\rightarrow\,\Knows(agt,\forall c':\, Obs(agt,c')=o\right.\nonumber \\
- & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt))[do(c',s)]),s)\right]\label{eqn:R_do_c_s}\end{align}
+ & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,\PbU(agt))[do(c',s)]),s)\right]\label{eqn:R_do_c_s}\end{align}
 
 \end_inset
 
@@ -3413,7 +3460,7 @@ ons,
 
  cannot become false without it making an observation (this is the meaning
  of 
-\begin_inset Formula $\Pst(\phi,PbU(agt))$
+\begin_inset Formula $\Pst(\phi,\PbU(agt))$
 \end_inset
 
  evaluated at 
@@ -3435,7 +3482,7 @@ reference "eqn:new_k_s0"
 \end_inset
 
 ) also uses the 
-\begin_inset Formula $\leq_{PbU(agt)}$
+\begin_inset Formula $\leq_{\PbU(agt)}$
 \end_inset
 
  ordering.
@@ -3450,7 +3497,7 @@ reference "eqn:new_k_s0"
 , meaning that it can be handled by epistemic reasoning about the initial
  situation only:
 \begin_inset Formula \begin{equation}
-\Reg(\Knows(agt,\phi,S_{0}))\,\isdef\,\KnowsZ(agt,\Pst(\phi,PbU(agt)),S_{0})\label{eqn:R_s0}\end{equation}
+\Reg(\Knows(agt,\phi,S_{0}))\,\isdef\,\KnowsZ(agt,\Pst(\phi,\PbU(agt)),S_{0})\label{eqn:R_s0}\end{equation}
 
 \end_inset
 
@@ -3592,8 +3639,8 @@ reference "eqn:R_s0"
  The result is:
 \begin_inset Formula \begin{align*}
 \Reg(\mathbf{Knows}(agt,\phi,o\cdot v))\isdef\,\, & \mathbf{Knows}(agt,\forall c:\, Obs(agt,c)=o\\
- & \,\,\,\,\,\,\,\,\wedge Poss(c)\rightarrow\Reg(\Pst(\phi,PbU(agt)),c),v)\\
-\Reg(\mathbf{Knows}(agt,\phi,\epsilon))\isdef\,\, & \KnowsZ(agt,\Pst(\phi,PbU(agt)),S_{0})\end{align*}
+ & \,\,\,\,\,\,\,\,\wedge Poss(c)\rightarrow\Reg(\Pst(\phi,\PbU(agt)),c),v)\\
+\Reg(\mathbf{Knows}(agt,\phi,\epsilon))\isdef\,\, & \KnowsZ(agt,\Pst(\phi,\PbU(agt)),S_{0})\end{align*}
 
 \end_inset
 
@@ -3612,7 +3659,7 @@ Using regression in this way, agents can reason about their own knowledge
 It is worth re-iterating that this regression rule is no longer a straightforwar
 d syntactic transformation - rather, it involves a fixpoint calculation
  using static domain reasoning to generate 
-\begin_inset Formula $\Pst(\phi,PbU(agt))$
+\begin_inset Formula $\Pst(\phi,\PbU(agt))$
 \end_inset
 
 .
@@ -3644,7 +3691,7 @@ Simpler axiomatisations of
 
 .
  The simpler the formulae produced by expanding the definition of 
-\begin_inset Formula $PbU(agt)$
+\begin_inset Formula $\PbU(agt)$
 \end_inset
 
 , the fewer iterations will be needed for the fixpoint calculation to terminate.
@@ -3817,7 +3864,7 @@ For
 Regressing this query gives the following expansion:
 \begin_inset Formula \begin{multline*}
 \Reg(\mathbf{Knows}(Sam,\neg Holding(Max,Box1),S_{0}))\,=\,\\
-\KnowsZ(agt,\Pst(\neg Holding(Max,Box1),PbU(Sam)),S_{0})\end{multline*}
+\KnowsZ(agt,\Pst(\neg Holding(Max,Box1),\PbU(Sam)),S_{0})\end{multline*}
 
 \end_inset
 
@@ -3827,7 +3874,7 @@ Regressing this query gives the following expansion:
 \begin_layout Standard
 And the persistence condition can be calculated to be:
 \begin_inset Formula \begin{multline*}
-\Pst(\neg Holding(Max,Box1),PbU(Sam))\,=\,\,\neg Holding(Max,Box1)\,\wedge\\
+\Pst(\neg Holding(Max,Box1),\PbU(Sam))\,=\,\,\neg Holding(Max,Box1)\,\wedge\\
 \exists rm:\, InRoom(Sam,rm)\wedge\left(InRoom(Max,rm)\vee InRoom(Box1,rm)\right)\end{multline*}
 
 \end_inset
@@ -3872,7 +3919,7 @@ not
  The regression and persistence condition calculation are analogous, this
  time yielding:
 \begin_inset Formula \begin{multline*}
-\Pst(\neg Holding(Max,Box2),PbU(Sam))\,=\,\,\neg Holding(Max,Box2)\,\wedge\\
+\Pst(\neg Holding(Max,Box2),\PbU(Sam))\,=\,\,\neg Holding(Max,Box2)\,\wedge\\
 \exists rm:\, InRoom(Sam,rm)\wedge\left(InRoom(Max,rm)\vee InRoom(Box2,rm)\right)\end{multline*}
 
 \end_inset
@@ -4218,6 +4265,20 @@ everyone knows
 \end_inset
 
 , which is defined as:
+\begin_inset Formula \[
+\EKnows(G,\phi,s)\isdef\forall agt\in G:\,\Knows(agt,\phi,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since 
+\begin_inset Formula $G$
+\end_inset
+
+ is a finite set, this can be written equivaently as:
 \begin_inset Formula \[
 \mathbf{EKnows}(G,\phi,s)\,\isdef\,\bigwedge_{agt\in G}\,\mathbf{Knows}(agt,\phi,s)\]
 
@@ -6309,7 +6370,7 @@ Begin by considering the sequence of calculations made in regressing
  & \,\,\,\,\,\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,\,?Obs(agt,x_{a})=z\,;\, x:=c'\\
 =\,\,\, & \exists z\,;\,?Obs(agt,\{\})=z\,;\, agt\,;\,?Poss(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\\
 =\,\,\, & agt\,;\,?Obs(agt,c')=\{\}\wedge\left(Poss(c')\vee c'=\{\}\right)\\
-=\,\,\, & agt\,;\,\left(?PbU(agt,c')\,\cup\, c'=\{\}\right)\end{align*}
+=\,\,\, & agt\,;\,\left(?\PbU(agt,c')\,\cup\, c'=\{\}\right)\end{align*}
 
 \end_inset
 
@@ -6320,9 +6381,9 @@ Begin by considering the sequence of calculations made in regressing
 , as follows: 
 \begin_inset Formula \begin{align*}
 \PKnowsZ(agt,\phi,\mathcal{E}^{1}(s))\equiv\,\, & \forall c':\,\PKnowsZ(\Trn(agt,\{\},c'),\Reg(\phi,c'),s)\\
-\equiv\,\, & \PKnowsZ(\exists a'\,;\, agt\,;\,\left(?PbU(agt,c')\,\cup\, c'=\{\}\right),\Reg(\phi,c'),s)\\
+\equiv\,\, & \PKnowsZ(\exists a'\,;\, agt\,;\,\left(?\PbU(agt,c')\,\cup\, c'=\{\}\right),\Reg(\phi,c'),s)\\
 \equiv\,\, & \dots\\
-\equiv\,\, & \PKnowsZ(agt,\Pst^{1}(\phi,PbU(agt)),s)\end{align*}
+\equiv\,\, & \PKnowsZ(agt,\Pst^{1}(\phi,\PbU(agt)),s)\end{align*}
 
 \end_inset
 
@@ -6332,8 +6393,8 @@ Begin by considering the sequence of calculations made in regressing
 \begin_layout Proof
 Using the same construction, we can show that in general:
 \begin_inset Formula \begin{align*}
-\PKnowsZ(agt,\phi,\mathcal{E}^{n}(s))\equiv\,\, & \PKnowsZ(agt,\Pst^{1}(\phi,PbU(agt)),\mathcal{E}^{n-1}(s))\\
-\equiv\,\, & \PKnowsZ(agt,\Pst^{n}(\phi,PbU(agt)),s)\end{align*}
+\PKnowsZ(agt,\phi,\mathcal{E}^{n}(s))\equiv\,\, & \PKnowsZ(agt,\Pst^{1}(\phi,\PbU(agt)),\mathcal{E}^{n-1}(s))\\
+\equiv\,\, & \PKnowsZ(agt,\Pst^{n}(\phi,\PbU(agt)),s)\end{align*}
 
 \end_inset
 
@@ -6350,13 +6411,13 @@ Clearly the fixpoint calculation used to find an
 \end_inset
 
  is the same as the fixpoint calculation used to find 
-\begin_inset Formula $\Pst(\phi,PbU(agt))$
+\begin_inset Formula $\Pst(\phi,\PbU(agt))$
 \end_inset
 
 .
  Therefore, we have:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\PKnows(agt,\phi,do(c,s))\,\equiv\,\PKnowsZ(agt,\Pst(\phi,PbU(agt)),do(c,s))\]
+\Dt\cup\Dt_{K,obs}\,\models\PKnows(agt,\phi,do(c,s))\,\equiv\,\PKnowsZ(agt,\Pst(\phi,\PbU(agt)),do(c,s))\]
 
 \end_inset
 
@@ -6371,7 +6432,7 @@ Regressing the right-hand side:
 \equiv\,\, & \exists o:\, Obs(agt,c,s)=o\wedge\,\\
  & \left[o=\{\}\,\rightarrow\,\PKnows(\exists c';agt,\phi,s)\right]\\
  & \wedge\,\left[o\neq\{\}\,\rightarrow\,\PKnows(\exists c';agt,\forall c':\, Obs(agt,c')=o\right.\\
- & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,PbU(agt)),c'),s)\right]\end{align*}
+ & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,\PbU(agt)),c'),s)\right]\end{align*}
 
 \end_inset
 
@@ -6975,7 +7036,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, Legal(s)\wedge s\leq_{PbU(agt)}s'\,\rightarrow\, Legal(s')\]
+\Dt\cup\Dt_{K,obs}\,\models\, Legal(s)\wedge s\leq_{\PbU(agt)}s'\,\rightarrow\, Legal(s')\]
 
 \end_inset
 
@@ -6984,7 +7045,7 @@ For situation terms
 
 \begin_layout Proof
 Trivial, since 
-\begin_inset Formula $PbU$
+\begin_inset Formula $\PbU$
 \end_inset
 
  implies 
@@ -7027,7 +7088,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, s\leq_{PbU(agt)}s'\,\rightarrow\, View(agt,s')=View(agt,s)\]
+\Dt\cup\Dt_{K,obs}\,\models\, s\leq_{\PbU(agt)}s'\,\rightarrow\, View(agt,s')=View(agt,s)\]
 
 \end_inset
 
@@ -7168,7 +7229,7 @@ All
 
  are initial and therefore legal.
  So in the base case we have 
-\begin_inset Formula $s'\leq_{PbU(agt)}s''$
+\begin_inset Formula $s'\leq_{\PbU(agt)}s''$
 \end_inset
 
  by equation (
@@ -7203,7 +7264,7 @@ reference "eqn:new_k_ssa"
 \end_inset
 
 ) ensures that 
-\begin_inset Formula $do(c',s')\leq_{PbU(agt)}s''$
+\begin_inset Formula $do(c',s')\leq_{\PbU(agt)}s''$
 \end_inset
 
  for some 
@@ -7277,7 +7338,7 @@ For the base case, there must be an
 \end_inset
 
  and 
-\begin_inset Formula $s'\leq_{PbU(agt)}s''$
+\begin_inset Formula $s'\leq_{\PbU(agt)}s''$
 \end_inset
 
 .
@@ -7381,7 +7442,7 @@ Alternately, suppose
 \noun off
 \color none
 
-\begin_inset Formula $do(c',s')\leq_{PbU(agt)}s''$
+\begin_inset Formula $do(c',s')\leq_{\PbU(agt)}s''$
 \end_inset
 
 , 
@@ -7583,7 +7644,7 @@ For this to be the case, and since
 \end_inset
 
  and 
-\begin_inset Formula $do(c',s')\leq_{PbU(agt)}s''$
+\begin_inset Formula $do(c',s')\leq_{\PbU(agt)}s''$
 \end_inset
 
  .
@@ -7673,7 +7734,7 @@ persists under equivalent observations
 :
 \begin_inset Formula \begin{multline*}
 \mathbf{PEO}(agt,\phi,o,s)\,\isdef\,\\
-\forall a':\, Obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\left[\forall s':\, do(a',s)\leq_{PbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
+\forall a':\, Obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\left[\forall s':\, do(a',s)\leq_{\PbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
 
 \end_inset
 
@@ -7728,7 +7789,7 @@ Noting that both conjuncts contain sub-formulae matching the form of the
  Applying the persistence condition and regressing to make the expression
  uniform, we develop the following equivalence:
 \begin_inset Formula \[
-\mathbf{PEO}(agt,\phi,o,s)\equiv\forall a':\, Obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,PbU(agt)),a')\]
+\mathbf{PEO}(agt,\phi,o,s)\equiv\forall a':\, Obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,\PbU(agt)),a')\]
 
 \end_inset
 
@@ -7760,14 +7821,14 @@ reference "eqn:new_k_s0"
 
 ) gives:
 \begin_inset Formula \[
-\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s'\,.\, s\leq_{PbU(agt)}s'\rightarrow\phi[s']\right]\]
+\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s'\,.\, s\leq_{\PbU(agt)}s'\rightarrow\phi[s']\right]\]
 
 \end_inset
 
  Applying the persistence condition operator, this can easily be re-written
  as:
 \begin_inset Formula \[
-\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\Pst(\phi,PbU(agt))[s]\]
+\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\Pst(\phi,\PbU(agt))[s]\]
 
 \end_inset
 
@@ -7781,7 +7842,7 @@ This matches the form of the definition for
 
 , which we can substitute in to give:
 \begin_inset Formula \[
-\Knows(agt,\phi,S_{0})\equiv\KnowsZ(agt,\Pst(\phi,PbU(agt)),S_{0})\]
+\Knows(agt,\phi,S_{0})\equiv\KnowsZ(agt,\Pst(\phi,\PbU(agt)),S_{0})\]
 
 \end_inset
 
