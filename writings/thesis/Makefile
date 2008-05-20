@@ -116,14 +116,14 @@ view-%: %.ch.pdf
 # easy editing of chapters in lyx
 edit-%: %.tex
 	# Generate lyx file from the latex
-	rm -rf $*.ed.ly $*.ed.tex
+	rm -rf $*.ed.lyx $*.ed.tex
 	tex2lyx $< $*.ed.lyx
 	# Run lyx for editing, then export back to latex
 	lyx $*.ed.lyx
 	lyx --export latex $*.ed.lyx
-	# Strip out surrounding begin/end document
-
-	cp $*.ed.tex $<
+	# Strip out surrounding begin/end document stuff
+	# and write back to original file
+	BN=`grep -n 'begin{document}' $*.ed.tex | head -n 1 | cut -f 1 -d ':'` && EN=`grep -n 'end{document}' $*.ed.tex | head -n 1 | cut -f 1 -d ':'` && cat $*.ed.tex | head -n `expr $$EN - 1` | tail -n `expr $$EN - $$BN - 1` > $<
 
 # publish latest versions to my website
 publish:
