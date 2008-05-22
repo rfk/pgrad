@@ -1078,7 +1078,7 @@ successor state axiom
 
  that were performed: 
 \begin_inset Formula \[
-F(\vars{x},do(c,s))\equiv\Phi^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi^{-}(\vars{x},c,s)\]
+F(\vars{x},do(c,s))\equiv\Phi_{F}^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},c,s)\]
 
 \end_inset
 
@@ -1880,7 +1880,7 @@ Since the axioms
 \begin_layout Standard
 The principle tool for effective reasoning in the situation calculus is
  the regression meta-operator 
-\begin_inset Formula $\Reg_{\Dt}$
+\begin_inset Formula $\Reg$
 \end_inset
 
  
@@ -1889,25 +1889,17 @@ key "pirri99contributions_sitcalc"
 
 \end_inset
 
-, a syntactic manipulation that can transform a formula 
-\begin_inset Formula $\phi$
-\end_inset
-
- uniform in 
+, a syntactic manipulation that can transform a formula uniform in 
 \begin_inset Formula $do(c,s)$
 \end_inset
 
- into an equivalent formula 
-\begin_inset Formula $\Reg_{\Dt}(\phi,c)$
-\end_inset
-
- that is uniform in 
+ into an equivalent formula that is uniform in 
 \begin_inset Formula $s$
 \end_inset
 
 :
 \begin_inset Formula \[
-\Dt\,\models\,\phi[do(c,s)]\equiv\Reg_{\Dt}(\phi,c)[s]\]
+\Dt\,\models\,\phi[do(c,s)]\equiv\Reg_{\Dt}(\phi[do(c,s)])[s]\]
 
 \end_inset
 
@@ -1926,7 +1918,23 @@ ns from
 \end_inset
 
 .
- Repeated applications of this operator can transform a query about some
+ Its operation is defined by a set of 
+\emph on
+regression rules
+\emph default
+ such as those shown below:
+\begin_inset Formula \begin{align*}
+\Reg(\phi_{1}\wedge\phi_{2})\isdef & \Reg(\phi_{1})\wedge\Reg(\phi_{2})\\
+\Reg(Poss(a,s))\isdef & a=Act_{1}\wedge\Reg(\Phi_{1}[s])\,\vee\,\dots\,\vee\, a=Act_{n}\wedge\Reg(\Phi_{n}[s])\\
+\Reg(F(\vars{x},do(c,s)))\isdef & \Phi_{F}^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},c,s)\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Repeated applications of this operator can transform a query about some
  future situation to a query about the initial situation only, which can
  be answered effectively using initial situation reasoning.
  The axioms 
@@ -2017,8 +2025,8 @@ results
 \begin_layout Standard
 This definition is then used to formulate a regression rule as follows:
 \begin_inset Formula \begin{multline*}
-\Reg(\Knows(agt,\phi),c)\isdef\\
-\exists y:\, y=\mathbf{res}(agt,c,s)\,\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi,a))\end{multline*}
+\Reg(\Knows(agt,\phi,do(c,s))\isdef\\
+\exists y:\, y=\mathbf{res}(agt,c,s)\,\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi[do(c,s)]),s)\end{multline*}
 
 \end_inset
 
@@ -2197,7 +2205,7 @@ First, the one-step-persistence operator
 
  and all its immediate successors:
 \begin_inset Formula \[
-\Pst^{1}(\phi,\alpha)[s]\,\isdef\,\phi[s]\wedge\forall c:\,\alpha(c,s)\rightarrow\Reg(\phi,s)[s]\]
+\Pst^{1}(\phi,\alpha)[s]\,\isdef\,\phi[s]\wedge\forall c:\,\alpha(c,s)\rightarrow\Reg(\phi,c)[s]\]
 
 \end_inset
 
