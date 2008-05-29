@@ -29,6 +29,7 @@ KR08KellyR92.tar.gz: kr08.pdf
 	cp $(TEXLIVE)/psnfss/helvet.sty ./KR08KellyR92/helvet.sty
 	cp $(TEXLIVE)/psnfss/courier.sty ./KR08KellyR92/courier.sty
 	cp $(TEXLIVE)/base/article.sty ./KR08KellyR92/article.sty
+	cp $(TEXLIVE)/graphics/graphicx.sty ./KR08KellyR92/graphicx.sty
 	cp $(TEXMF)/aaai/aaai.sty ./KR08KellyR92/aaai.sty
 	# OK, tar them up
 	tar -czvf KR08KellyR92.tar.gz KR08KellyR92/

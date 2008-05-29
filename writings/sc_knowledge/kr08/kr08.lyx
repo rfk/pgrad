@@ -9,6 +9,10 @@
 \usepackage{helvet}
 \usepackage{courier}
 
+% This magically makes pdflatex use the correct paper size.
+% We don't actually have graphics in the paper...
+\usepackage{graphicx}
+
 \author{Ryan F. Kelly \and Adrian R. Pearce\\
 NICTA Victoria Laboratory\\
  Department of Computer Science and Software Engineering\\
@@ -310,9 +314,8 @@ key "scherl03sc_knowledge"
 \end_inset
 
 .
- This paper thus contributes a rich multi-agent theory of knowledge and
- action in which complex group-level epistemic modalities are amenable to
- effective automated reasoning.
+ The result is a rich theory of knowledge and action in which group-level
+ epistemic modalities are amenable to effective automated reasoning.
 \end_layout
 
 \begin_layout Standard
@@ -326,9 +329,8 @@ The paper proceeds as follows: Sections 2-3 review the necessary background
 \begin_inset Formula $\PKnows$
 \end_inset
 
- expressions; Section 6 demonstrates the formalism in action by reasoning
- about common knowledge in an example domain; and Sections 7-8 complete
- the paper with related work, future work and conclusions.
+ expressions; Section 6 demonstrates this technique with an example; and
+ Sections 7-9 complete the paper with related work, future work and conclusions.
 \end_layout
 
 \begin_layout Section
@@ -361,7 +363,7 @@ key "scherl03sc_knowledge"
 \end_inset
 
 .
- A brief overview is presented below
+ Below is a brief overview.
 \end_layout
 
 \begin_layout Standard
@@ -563,22 +565,23 @@ properties
 \end_inset
 
  is used throughout to refer to an arbitrary uniform formula.
- It is often useful to determine the truth of a uniform formula at an alternate
- situation term, and 
+ As it is often useful to evaluate such formulae at serval different situations,
+ we will suppress the situation terms in uniform formulae to simplify the
+ presentation.
+ The notation 
+\begin_inset Formula $\phi^{-1}$
+\end_inset
+
+ represents a uniform formula with the situation argument removed from all
+ its fluents, while 
 \begin_inset Formula $\phi[s]$
 \end_inset
 
- represents 
-\begin_inset Formula $\phi$
-\end_inset
-
- with all occurrences of its unique situation term replaced by 
+ represents a uniform formula with the particular situation 
 \begin_inset Formula $s$
 \end_inset
 
-.
- Where no confusion can arise, we suppress the situation terms in uniform
- formulae to simplify the presentation.
+ inserted into all its fluents.
 \end_layout
 
 \begin_layout Standard
@@ -677,15 +680,16 @@ Regression operates by replacing primitive fluents
 \end_inset
 
  subscript throughout this paper.
- We also write 
+ For situation-suppressed formulae, we will simplify the presentation by
+ writing 
 \begin_inset Formula $\Reg(\phi,c)$
 \end_inset
 
  for 
-\begin_inset Formula $\Reg(\phi[do(c,s)])$
+\begin_inset Formula $\Reg(\phi[do(c,s)])^{-1}$
 \end_inset
 
- where it simplifies the presentation.
+.
 \end_layout
 
 \begin_layout Standard
@@ -964,7 +968,7 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-Note that this definition uses regression replace replace 
+Note that this definition uses regression to replace 
 \begin_inset Formula $Poss(c')$
 \end_inset
 
@@ -1215,6 +1219,13 @@ epistemic path
 : 
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace smallskip
+\end_inset
+
+
+\end_layout
+
 \begin_layout Definition
 Let 
 \begin_inset Formula $agt$
@@ -1305,6 +1316,13 @@ path-knows
  To make this clear, here is how some different kinds of knowledge would
  be expressed using the standard account of knowledge, and how we intend
  to express them using epistemic paths:
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace smallskip
+\end_inset
+
+
 \begin_inset Formula \begin{gather}
 \Knows(A,\phi)\equiv\PKnows(A,\phi)\nonumber \\
 \Knows(A,\Knows(B,\phi))\equiv\PKnows(A;B,\phi)\nonumber \\
@@ -1380,11 +1398,11 @@ current variable binding
 \begin_inset Formula $\mu(\phi)$
 \end_inset
 
- replacing variables in 
+ applying the substitution to the variables in 
 \begin_inset Formula $\phi$
 \end_inset
 
- with their values and 
+ and 
 \begin_inset Formula $\mu[x/z]$
 \end_inset
 
@@ -1496,6 +1514,13 @@ These definitions provide the required expressiveness boost for our epistemic
  formalism in relation to the standard account.
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
 \begin_layout Theorem
 \begin_inset LatexCommand label
 name "thm:PKnows-works"
@@ -1533,6 +1558,13 @@ reference "def:KDo"
  macro.
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 Epistemic Path Regression
 \end_layout
@@ -1556,7 +1588,7 @@ As with the case of the standard
 \begin_inset Formula $\pi$
 \end_inset
 
- and the enclosed formulae 
+ and the enclosed formula 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1721,7 +1753,15 @@ Contrast with the regression rule for
 \begin_inset Formula $\Reg$
 \end_inset
 
- is used to ensure tests are proper uniform formulae.
+ is used to replace 
+\begin_inset Formula $Poss$
+\end_inset
+
+ and 
+\begin_inset Formula $Obs$
+\end_inset
+
+ with their definitions, ensuring that the tests are proper uniform formulae.
  Note also that 
 \begin_inset Formula $c$
 \end_inset
@@ -2353,10 +2393,6 @@ By a similar argument to the first example, this query is entailed by the
 \end_layout
 
 \begin_layout Section
-Comparison with LCC
-\end_layout
-
-\begin_layout Section
 Related Work
 \begin_inset LatexCommand label
 name "sec:Related-Work"
@@ -2368,8 +2404,9 @@ name "sec:Related-Work"
 
 \begin_layout Standard
 Existing work using group-level epistemics in the situation calculus has,
- when common knowledge is included at all, used an explicit axiom to define
- it and has thus forgone the use of regression for effective reasoning 
+ when common knowledge is included at all, used an explicit second-order
+ axiom to define it and has thus forgone the use of regression for effective
+ reasoning 
 \begin_inset LatexCommand cite
 key "davis05fo_ma_theory,ghaderi07sc_joint_ability"
 
@@ -2436,13 +2473,34 @@ key "vanBenthem06lcc"
  On the other, it actually simplifies some aspects of our presentation.
  We do not need explicit update frames, and the definition of our path regressor
  does not require an auxiliary Kleene-style operator to handle iteration.
- We echo the sentiment of 
+\end_layout
+
+\begin_layout Standard
+In domains with a finite state-space the situation calculus may not offer
+ a gain in expressiveness (e.g.
+ the party-invitation domain could be formluated equivalently in LCC) but
+ it can certainly provide a more succinct axiomatisation.
+ Moving beyond such domains, our formalism offers the potential to incorporate
+ other rich domain features that have been developed for the situation calculus,
+ such as continuous time and actions with duration 
+\begin_inset LatexCommand cite
+key "reiter96sc_nat_conc"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+We echo the sentiment of 
 \begin_inset LatexCommand cite
 key "vanbentham07ml_sitcalc"
 
 \end_inset
 
- and look forward to continued cross-pollination between these two disciplines.
+ and look forward to continued cross-pollination between these two related
+ disciplines.
 \end_layout
 
 \begin_layout Section
@@ -2456,7 +2514,32 @@ name "sec:Future-Work"
 \end_layout
 
 \begin_layout Standard
-Our ongoing work extends this approach to asynchronous domains, where some
+As noted above, the expressiveness of our epistemic path language means
+ that answering a regressed knowledge query can be difficult in the general
+ case.
+ However, starting from the expression for common knowledge, the epistemic
+ path regressor 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ will generate only a fragment of the full epistemic language - for example,
+ it will not generate nested iteration operators.
+ Restricting the domain can weaken this generated fragment, as shown in
+ 
+\begin_inset LatexCommand cite
+key "vanBenthem06lcc"
+
+\end_inset
+
+ where a relativised common-knowledge operator is proven sufficient for
+ domains in which all actions are publicly observable.
+ Identifying restrictions such as this that can simplify the reasoning procudure
+ is a promising avenue for future research.
+ 
+\end_layout
+
+\begin_layout Standard
+Our ongoing work extends the formalism to asynchronous domains, where some
  action occurrences may be completely hidden from an agent.
  Accounting for arbitrarily-long sequences of hidden actions requires a
  more complex reasoning procedure that builds on the techniques of 
@@ -2476,12 +2559,6 @@ key "reiter96sc_nat_conc"
 .
  A journal paper presenting the extended version of our formalism is currently
  in preparation.
-\end_layout
-
-\begin_layout Standard
-Another promising avenue of future work would be to identify special-cases
- in which the epistemic language is decidable.
- TODO more here.
 \end_layout
 
 \begin_layout Section
@@ -2522,10 +2599,12 @@ The end result is a rich multi-agent theory of knowledge and action in which
 \begin_layout Standard
 \start_of_appendix
 
+\newpage
+
 \end_layout
 
 \begin_layout Section
-Appendix: Dynamic Logic using Macros
+Appendix: Encoding Dynamic Logic
 \end_layout
 
 \begin_layout Standard
@@ -2539,7 +2618,7 @@ FODL
 \end_inset
 
 ) into the situation calculus via macro expansion.
- Our encoding is based on embedding FODL into Golog, a programming language
+ Our encoding operates by embedding FODL into Golog, a programming language
  based on the situation calculus that has many similarities to dynamic logic.
 \end_layout
 
@@ -2550,7 +2629,7 @@ This may seem like an unnecessary complication - why not expand FODL directly
  calculus will feel likewise.
  As Golog is well-understood, it relieves some our burden of proof that
  the embedding works as required.
- Since the semantics of Golog itself it based on macro-expansion, the end
+ Since the semantics of Golog itself is based on macro-expansion, the end
  result is the the same: sentences of FODL macro-expand into sentences of
  the situation calculus.
  Finally, our modification to Golog so that it is interpreted over epistemic
@@ -2657,7 +2736,7 @@ First, note that any epistemic path
 \begin_inset Formula $\pi$
 \end_inset
 
- will be contain only a finite number of FODL variables.
+ will contain only a finite number of FODL variables.
  Without loss of generality, suppose that 
 \begin_inset Formula $\pi$
 \end_inset
@@ -3077,7 +3156,7 @@ For the
 \begin_layout Proof
 Giving:
 \begin_inset Formula \[
-\KDo(\Trn(?\phi,c,c'),s,s')\equiv\Reg(\phi,c)\wedge c=c'\wedge s=s'\]
+\KDo(\Trn(?\phi,c,c'),s,s')\equiv\Reg(\phi,c)[s]\wedge c=c'\wedge s=s'\]
 
 \end_inset
 
@@ -3090,7 +3169,7 @@ Coupled with
 \end_inset
 
  from the hypothesis, and 
-\begin_inset Formula $\Reg(\phi,c)\equiv\phi[do(c,s)]$
+\begin_inset Formula $\Reg(\phi,c)[s]\equiv\phi[do(c,s)]$
 \end_inset
 
  by definition, the hypothesis is clearly entailed.
