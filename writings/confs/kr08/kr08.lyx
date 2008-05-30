@@ -565,8 +565,8 @@ properties
 \end_inset
 
  is used throughout to refer to an arbitrary uniform formula.
- As it is often useful to evaluate such formulae at serval different situations,
- we will suppress the situation terms in uniform formulae to simplify the
+ As it is often useful to evaluate such formulae at several different situations
+, we will suppress the situation terms in uniform formulae to simplify the
  presentation.
  The notation 
 \begin_inset Formula $\phi^{-1}$
@@ -675,17 +675,16 @@ Regression operates by replacing primitive fluents
 \end_inset
 
  with their corresponding definitions.
- Since we assume a fixed action theory, we drop the 
+ We will omit the subscript since 
 \begin_inset Formula $\Dt$
 \end_inset
 
- subscript throughout this paper.
- For situation-suppressed formulae, we will simplify the presentation by
- writing 
+ is constant throughout the paper, and will simplify the presentation of
+ situation-suppressed formulae by using 
 \begin_inset Formula $\Reg(\phi,c)$
 \end_inset
 
- for 
+ to denote 
 \begin_inset Formula $\Reg(\phi[do(c,s)])^{-1}$
 \end_inset
 
@@ -885,6 +884,11 @@ We assume that the domain is synchronised, so agents always know when
  
 \emph default
 an action has occurred even if they are uncertain as to its precise details.
+ In other words, we assume that 
+\begin_inset Formula $Obs(agt,c,s)$
+\end_inset
+
+ is never the empty set.
  The dynamics of knowledge are specified by a successor state axiom for
  
 \begin_inset Formula $K$
@@ -937,7 +941,7 @@ This axiom ensures that
 .
  Thus an agent's knowledge after the occurrence of an action is completely
  determined by the combination of its knowledge before the action, and the
- sensing results returned by the action.
+ information it observed about the action.
  
 \end_layout
 
@@ -978,7 +982,8 @@ Note that this definition uses regression to replace
 
  with their definitions, which must be expressible using a finite combination
  of primitive fluents.
- The simplest way to ensure this is by having finitely many action types.
+ The simplest way to ensure this is possible is by having finitely many
+ action types.
 \end_layout
 
 \begin_layout Standard
@@ -1095,7 +1100,7 @@ key "halpern90knowledge_distrib"
 
 , e.g.:
 \begin_inset Formula \[
-\mathbf{CKnows}(G,\phi,s)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi,s)\]
+\mathbf{CKnows}(G,\phi)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi)\]
 
 \end_inset
 
@@ -1220,7 +1225,7 @@ epistemic path
 \end_layout
 
 \begin_layout Standard
-\begin_inset VSpace smallskip
+\begin_inset VSpace bigskip
 \end_inset
 
 
@@ -1251,6 +1256,13 @@ term,
 \begin_inset Formula \[
 \pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\,\exists x\]
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
 \end_inset
 
 
@@ -1330,6 +1342,13 @@ path-knows
 \EKnows(G,\phi)\equiv\PKnows(\bigcup_{a\in G}a,\phi)\nonumber \\
 \CKnows(G,\phi)\equiv\PKnows((\bigcup_{a\in G}a)^{*},\phi)\label{eq:pknows_identities}\end{gather}
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace smallskip
 \end_inset
 
 
@@ -1497,7 +1516,7 @@ An advantage of this macro-expansion approach is that
 \end_inset
 
  expressions can be nested and quantified-into without any ontological difficult
-ies; it all simply expands to a formula of the base language.
+ies, as it all simply expands to a formula of the base language.
  The de-dicto/de-re distinction is explicated by placing quantifiers inside/outs
 ide the scope of the macro.
  The situation calculus also settles other semantic issues that might arise
@@ -1510,11 +1529,22 @@ These definitions provide the required expressiveness boost for our epistemic
  language.
  Of course, they should not be used directly for reasoning purposes as they
  expand to complicated second-order expressions.
- We close this section with a formal statement of the validity of our new
- formalism in relation to the standard account.
+ The next section will demonstrate that regression can treat these macros
+ as if they were primitive fluents, facilitating an effective reasoning
+ procedure for knowledge queries.
 \end_layout
 
 \begin_layout Standard
+We close this section with a formal statement of the validity of our new
+ formalism.
+ The identifies in equation 
+\begin_inset LatexCommand eqref
+reference "eq:pknows_identities"
+
+\end_inset
+
+ demonstrate that our complex epistemic modalities subsume the modalities
+ used in existing accounts of knowledge in the situation calculus.
 \begin_inset VSpace medskip
 \end_inset
 
@@ -1533,11 +1563,11 @@ reference "eq:pknows_identities"
 
 \end_inset
 
- are entailed by 
+ are entailed by any basic action theory 
 \begin_inset Formula $\Dt$
 \end_inset
 
-, where CKnows is the transitive closure of EKnows.
+, where CKnows is defined as the transitive closure of EKnows.
 \end_layout
 
 \begin_layout ProofSketch
@@ -1559,7 +1589,7 @@ reference "def:KDo"
 \end_layout
 
 \begin_layout Standard
-\begin_inset VSpace bigskip
+\begin_inset VSpace vfill
 \end_inset
 
 
@@ -1570,7 +1600,7 @@ Epistemic Path Regression
 \end_layout
 
 \begin_layout Standard
-As with the case of the standard 
+As with the standard 
 \begin_inset Formula $\Knows$
 \end_inset
 
@@ -1674,7 +1704,7 @@ pre-encoding
 \end_layout
 
 \begin_layout Standard
-To achieve this, every 
+To ensure this, every 
 \begin_inset Formula $agt$
 \end_inset
 
@@ -1728,15 +1758,15 @@ action
 \end_layout
 
 \begin_layout Itemize
-when making an 
-\begin_inset Formula $agt$
-\end_inset
-
--step, 
+the value of 
 \begin_inset Formula $Obs(agt,x)$
 \end_inset
 
- before making the step must match 
+ before making an 
+\begin_inset Formula $agt$
+\end_inset
+
+-step must match the value of 
 \begin_inset Formula $Obs(agt,x)$
 \end_inset
 
@@ -1791,6 +1821,13 @@ Contrast with the regression rule for
  at the end.
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
 \begin_layout Definition
 \begin_inset LatexCommand label
 name "def:EpistemicPathRegression"
@@ -1816,7 +1853,7 @@ name "def:EpistemicPathRegression"
  :
 \begin_inset Formula \begin{align*}
 \Trn(\pi,c,c')\,\isdef\,\, & \exists x\,;\,?x=c\,;\,\TrnA(\pi,x)\,;\,?x=c'\\
-\TrnA(agt,x)\,\isdef\,\, & \exists z\,;\,?\Reg(Obs(agt,x)=z)\,;\, agt\,;\\
+\\\TrnA(agt,x)\,\isdef\,\, & \exists z\,;\,?\Reg(Obs(agt,x)=z)\,;\, agt\,;\\
  & \,\,\exists x\,;?\Reg(Poss(x)\,\wedge\, Obs(agt,x)=z)\\
 \TrnA(?\phi,x)\isdef\,\, & ?\Reg(\phi,x)\\
 \TrnA(\exists y,x)\isdef\,\, & \exists y\\
@@ -1828,6 +1865,13 @@ name "def:EpistemicPathRegression"
 \end_inset
 
  
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1902,6 +1946,13 @@ reference "eq:reg_pknows"
  expressions:
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
 \begin_layout Theorem
 \begin_inset LatexCommand label
 name "thm:Reg_PKnowsZ"
@@ -1916,7 +1967,7 @@ For any epistemic path
 \begin_inset Formula $\phi$
 \end_inset
 
- and actions 
+ and set of actions 
 \begin_inset Formula $c$
 \end_inset
 
@@ -2045,8 +2096,8 @@ As we shall see in the next section, the epistemic paths resulting from
 \begin_inset Formula $\Trn$
 \end_inset
 
- can be simplified away as it will always contain the actions that actually
- occurred.
+ can be simplified away as it will always contain the actions that were
+ actually performed.
 \end_layout
 
 \begin_layout Standard
@@ -2076,7 +2127,7 @@ lice and
 \end_inset
 
 ob, are attending a party.
- They know that its location, the fluent 
+ They know that its location, the functional fluent 
 \begin_inset Formula $loc$
 \end_inset
 
@@ -2101,6 +2152,9 @@ athy's house.
  is publicly observable and returns the location of the party.
  All of this is common knowledge.
  This domain can be summarised as follows:
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 loc(S_{0})=C\\
 Poss(read(agt),s)\equiv true\\
@@ -2110,9 +2164,11 @@ SR(read(agt),s)=r\equiv r=loc(s)\\
 \end_inset
 
 
-\end_layout
+\newline
 
-\begin_layout Standard
+\begin_inset VSpace smallskip
+\end_inset
+
 Using the techniques developed in this paper, we can prove several interesting
  facts about this domain.
 \newline
@@ -2124,6 +2180,13 @@ After Bob reads the invitation, he knows that the party is at Cathy's house:
 \begin_inset Formula \[
 \Dt\,\models\,\PKnows(B,loc=C,do(read(B),S_{0}))\]
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
 \end_inset
 
 
@@ -2214,7 +2277,11 @@ We can thus use the following when evaluating
 \end_inset
 
 , the query is entailed.
-\newline
+\end_layout
+
+\begin_layout Standard
+
+\newpage
 
 \end_layout
 
@@ -2230,7 +2297,23 @@ After Bob reads the invitation, it is not common knowledge that the party
 \end_layout
 
 \begin_layout Standard
-This query regresses to:
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Intuitively, since Alice does not observe the sensing results from the 
+\begin_inset Formula $read(B)$
+\end_inset
+
+ action she should still consider 
+\begin_inset Formula $loc=D$
+\end_inset
+
+ a possibility.
+ Formally, the query regresses to:
 \begin_inset Formula \[
 \forall c':\,\PKnows(\Trn((A\cup B)^{*},read(B),c'),loc=C,S_{0})\]
 
@@ -2247,18 +2330,28 @@ To calculate
 
 \end_inset
 
-Since Alice does not observe any sensing results from 
+The tests in this regressed path are 
+\emph on
+rigid
+\emph default
+ - they don't contain any fluents and so do not restrict the path in any
+ way.
+ It is thus equivalent to the original path 
+\begin_inset Formula $A$
+\end_inset
+
+.
+ This is as expected, since Alice does not observe any sensing results from
+ 
 \begin_inset Formula $read(B)$
 \end_inset
 
-, and since 
+ and 
 \begin_inset Formula $Poss(read(B))$
 \end_inset
 
- is always true, the tests in this regressed path provide no new information
- and Alice's knowledge is not changed.
- Using this, the regression of the entire epistemic path can be simplified
- to:
+ is always true, so her knowledge should not change.
+ The regression of the entire epistemic path is then:
 \begin_inset Formula \begin{multline*}
 \Trn((A\cup B)^{*},read(B),c')\,\Rightarrow\\
 \left[A\cup\,\exists z\,;\,?z=loc\,;\, B\,;\,?z=loc\right]^{*};?c'=read(B)\end{multline*}
@@ -2278,6 +2371,13 @@ Since this path permits
 
 \end_layout
 
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
 \begin_layout Example
 After Bob reads the invitation, it is common knowledge that Bob knows where
  the party is:
@@ -2291,11 +2391,18 @@ do(read(B),S_{0}))\end{multline*}
 \end_layout
 
 \begin_layout Standard
-Regressing the inner expression over the variable 
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We begin by regressing the inner expression over the fresh variable 
 \begin_inset Formula $c'$
 \end_inset
 
- gives:
+, which produces:
 \begin_inset Formula \begin{multline*}
 \Reg(\exists x:\PKnows(B,loc=x),c')\Rightarrow\\
 \exists x:\PKnows(B,loc=x)\vee c'=read(B)\end{multline*}
@@ -2318,24 +2425,29 @@ From the previous example,
 \end_inset
 
 .
- This is due to the public observability of 
+ This is due to the public observability of the 
 \begin_inset Formula $read$
 \end_inset
 
-.
+ action.
  The enclosing 
 \begin_inset Formula $\forall c'$
 \end_inset
 
  can thus be simplified away and the result is a simple tautology.
- If the 
+\newline
+
+\end_layout
+
+\begin_layout Standard
+If the 
 \begin_inset Formula $read$
 \end_inset
 
  action were not publicly observable, common knowledge would not be obtained;
  a proof of this would mirror example 2.
  
-\newline
+\newpage
 
 \end_layout
 
@@ -2368,7 +2480,7 @@ When we apply regression a second time, the
 \end_inset
 
  and test components in this path are not modified.
- The resulting query is:
+ The result is:
 \begin_inset Formula \begin{multline*}
 \PKnows(\left[\exists z\,;\,?z=loc\,;\, A\,;\,?z=loc\,\cup\right.\\
 \left.\exists z\,;\,?z=loc\,;\, B\,;\,?z=loc\right]^{*},\\
@@ -2478,7 +2590,7 @@ key "vanBenthem06lcc"
 \begin_layout Standard
 In domains with a finite state-space the situation calculus may not offer
  a gain in expressiveness (e.g.
- the party-invitation domain could be formluated equivalently in LCC) but
+ the party-invitation domain could be formulates equivalently in LCC) but
  it can certainly provide a more succinct axiomatisation.
  Moving beyond such domains, our formalism offers the potential to incorporate
  other rich domain features that have been developed for the situation calculus,
@@ -2514,16 +2626,15 @@ name "sec:Future-Work"
 \end_layout
 
 \begin_layout Standard
-As noted above, the expressiveness of our epistemic path language means
- that answering a regressed knowledge query can be difficult in the general
- case.
+The expressiveness of our epistemic path language means that answering a
+ regressed knowledge query can be difficult in the general case.
  However, starting from the expression for common knowledge, the epistemic
  path regressor 
 \begin_inset Formula $\Trn$
 \end_inset
 
- will generate only a fragment of the full epistemic language - for example,
- it will not generate nested iteration operators.
+ will generate only a fragment of the full epistemic language.
+ For example, it will not generate nested iteration operators.
  Restricting the domain can weaken this generated fragment, as shown in
  
 \begin_inset LatexCommand cite
@@ -2533,8 +2644,8 @@ key "vanBenthem06lcc"
 
  where a relativised common-knowledge operator is proven sufficient for
  domains in which all actions are publicly observable.
- Identifying restrictions such as this that can simplify the reasoning procudure
- is a promising avenue for future research.
+ Identifying restrictions such as this that can simplify reasoning in the
+ epistemic language is a promising avenue for future research.
  
 \end_layout
 
@@ -2618,14 +2729,17 @@ FODL
 \end_inset
 
 ) into the situation calculus via macro expansion.
+ Unlike the simplified semantics presented in the body of the paper, these
+ macros do not require substitutions to be encoded as terms in the logic.
  Our encoding operates by embedding FODL into Golog, a programming language
- based on the situation calculus that has many similarities to dynamic logic.
+ built on the situation calculus.
+ 
 \end_layout
 
 \begin_layout Standard
 This may seem like an unnecessary complication - why not expand FODL directly
- into sentences of the situation calculus? We find the embedding into Golog
- simpler and clearer, and expect many readers familiar with the situation
+ into sentences of the base situation calculus? We find the embedding into
+ Golog simpler and clearer, and expect many readers familiar with the situation
  calculus will feel likewise.
  As Golog is well-understood, it relieves some our burden of proof that
  the embedding works as required.
@@ -2693,8 +2807,8 @@ The final clause identifies a procedure call with arguments
 \end_inset
 
 .
- Defining procedure calls via macro expansion involves a second-order definition
- corresponding to the standard least-fixed-point semantics for recursive
+ Implementing procedure calls via macro expansion requires a second-order
+ formula encoding the standard least-fixed-point semantics for recursive
  procedures.
  We will not repeat the definition here, but note that the invocation of
  a Golog program using procedure definitions appears as:
@@ -2917,7 +3031,7 @@ The most complex case is
 \begin_layout Standard
 It should be clear that the expansion of each operator satisfies the relevant
  identity from Definition 
-\begin_inset LatexCommand eqref
+\begin_inset LatexCommand ref
 reference "def:KDo"
 
 \end_inset
@@ -2930,7 +3044,9 @@ Appendix: Extended Proofs
 \end_layout
 
 \begin_layout Standard
-\InsetSpace ~
+\begin_inset VSpace smallskip
+\end_inset
+
 
 \end_layout
 
@@ -2946,11 +3062,11 @@ reference "eq:pknows_identities"
 
 \end_inset
 
- are entailed by 
+ are entailed by any basic action theory 
 \begin_inset Formula $\Dt$
 \end_inset
 
-, where CKnows is the transitive closure of EKnows.
+, where CKnows is defined as the transitive closure of EKnows.
 \end_layout
 
 \begin_layout Proof
@@ -3028,9 +3144,250 @@ Which matches the form of
 
 \end_layout
 
-\begin_layout Standard
-\InsetSpace ~
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:TrnA_works"
 
+\end_inset
+
+For any epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+:
+\begin_inset Formula \begin{multline*}
+\Dt\models\,\KDo(\pi,do(c,s),s'')\,\equiv\\
+\exists\mu,\mu',c',s':\,\mu(x)=c\wedge\mu'(x)=c'\wedge\\
+s''=do(c',s')\wedge\KDo(\Trn_{a}(\pi,x),\mu,s,\mu,'s')\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Proceed by cases, covering each path operator in turn.
+ We will omit the use of 
+\begin_inset Formula $\Reg()$
+\end_inset
+
+ in the definition of 
+\begin_inset Formula $\TrnA$
+\end_inset
+
+ to simplify the presentation.
+ For the base case of an individual agent, we have:
+\begin_inset Formula \begin{align*}
+\KDo(\pi,do(c,s),s'')\,\equiv\, & K(agt,s'',do(c,s))\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+\TrnA(agt,x)\Rightarrow\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
+\exists x\,;\,?Poss(x)\,\wedge\, Obs(agt,x)=z\end{multline*}
+
+\end_inset
+
+Expanding 
+\begin_inset Formula $\KDo(\TrnA(agt,x),\mu,s,\mu',s')$
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+ thus produces:
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+
+\begin_inset Formula \begin{multline*}
+\KDo(\TrnA(agt,x),\mu,s,\mu',s')\equiv\\
+\exists z:\, Obs(agt,\mu(x),s)=z\,\wedge\,\exists s'':\, K(agt,s'',s)\,\wedge\\
+Poss(\mu'(x),s'')\,\wedge\, Obs(agt,\mu'(x),s'')=z\,\wedge\, s''=s'\end{multline*}
+
+\end_inset
+
+Note that 
+\begin_inset Formula $\mu$
+\end_inset
+
+ and 
+\begin_inset Formula $\mu'$
+\end_inset
+
+ are never applied to a variable other than 
+\begin_inset Formula $x$
+\end_inset
+
+.
+ When we substitute this into the RHS of the hypothesis, 
+\begin_inset Formula $\mu(x)$
+\end_inset
+
+ and 
+\begin_inset Formula $\mu'(x)$
+\end_inset
+
+ are asserted to be 
+\begin_inset Formula $c$
+\end_inset
+
+ and 
+\begin_inset Formula $c'$
+\end_inset
+
+ respectively, so they can be simplified away to give:
+\begin_inset Formula \begin{multline*}
+\Dt\models K(agt,s'',do(c,s))\equiv\exists c',s':\,\, s''=do(c',s')\\
+\shoveright{\wedge K(agt,s,s')\,\wedge\, Poss(c',s')}\\
+\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
+
+\end_inset
+
+This is the successor state axiom for 
+\begin_inset Formula $K$
+\end_inset
+
+, which is trivially entailed by the domain.
+\newline
+
+\end_layout
+
+\begin_layout Proof
+For the 
+\begin_inset Formula $?\phi$
+\end_inset
+
+ case, we have:
+\begin_inset Formula \[
+\KDo(?\phi,do(c,s),s'')\equiv\phi[do(c,s)]\wedge s''=do(c,s)\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\TrnA(?\phi,x)\Rightarrow?\Reg(\phi,x)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Giving:
+\begin_inset Formula \begin{multline*}
+\KDo(\TrnA(?\phi,x),\mu,s,\mu',s')\equiv\\
+\Reg(\phi,x)[s]\wedge s=s'\wedge\mu=\mu'\end{multline*}
+
+\end_inset
+
+Substituting into the RHS of the hypothesis, this asserts that 
+\begin_inset Formula $c=c'$
+\end_inset
+
+ and hence 
+\begin_inset Formula $s''=do(c,s)$
+\end_inset
+
+, so the hypothesis is clearly entailed.
+\newline
+
+\end_layout
+
+\begin_layout Proof
+The case for 
+\begin_inset Formula $\exists y$
+\end_inset
+
+ is trivial as 
+\begin_inset Formula $\KDo(\exists y,s,s')\equiv s=s'$
+\end_inset
+
+.
+\newline
+
+\end_layout
+
+\begin_layout Proof
+The inductive cases are straightforward as 
+\begin_inset Formula $\Trn_{a}$
+\end_inset
+
+ is simply pushed inside each operator.
+ We will take the 
+\begin_inset Formula $\pi^{*}$
+\end_inset
+
+ case as an example.
+ The inductive hypothesis gives us:
+\begin_inset Formula \begin{multline*}
+\KDo(\pi,do(c,s),s'')\,\equiv\\
+\exists\mu,\mu',c',s':\,\mu(x)=c\wedge\mu'(x)=c'\wedge\\
+s''=do(c',s')\wedge\KDo(\Trn_{a}(\pi,x),\mu,s,\mu,'s')\end{multline*}
+
+\end_inset
+
+We can apply 
+\begin_inset Formula $RTC$
+\end_inset
+
+ to both sides of this equivalence, along with two rearrangements: the LHS
+ is expanded to put 
+\begin_inset Formula $\exists\mu,\mu''$
+\end_inset
+
+ at its front, and the rigid tests on the RHS are taken outside the 
+\begin_inset Formula $RTC$
+\end_inset
+
+ operation.
+ The result is:
+\begin_inset Formula \begin{multline*}
+\exists\mu,\mu'':\, RTC[\KDo(\pi,\mu,do(c,s),\mu'',s'')]\,\equiv\\
+\exists\mu,\mu',c',s':\,\mu(x)=c\wedge\mu'(x)=c'\wedge\\
+s''=do(c',s')\wedge RTC[\KDo(\Trn_{a}(\pi,x),\mu,s,\mu,'s')]\end{multline*}
+
+\end_inset
+
+Using the definitions of 
+\begin_inset Formula $\KDo$
+\end_inset
+
+ and 
+\begin_inset Formula $\TrnA$
+\end_inset
+
+ we have:
+\begin_inset Formula \begin{multline*}
+\KDo(\pi^{*},do(c,s),s'')\equiv\\
+\exists\mu,\mu'':\, RTC[\KTrans(\pi,\mu,do(c,s),\mu'',s'')]\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+\KDo(\TrnA(\pi^{*},x),\mu,s,\mu',s')\equiv\\
+RTC[\KDo(\TrnA(\pi,x),\mu,s,\mu',s')]\end{multline*}
+
+\end_inset
+
+Substituting these into the 
+\begin_inset Formula $RTC$
+\end_inset
+
+ of the inductive hypothesis completes the proof.
 \end_layout
 
 \begin_layout TheoremExt
@@ -3054,109 +3411,13 @@ reference "thm:Trn-respects-epi-paths"
 \end_layout
 
 \begin_layout Proof
-Proceed by cases, covering each path operator in turn.
- We will omit the use of 
-\begin_inset Formula $\Reg()$
+Recall the rule for 
+\begin_inset Formula $\Trn(\pi,c,c')$
 \end_inset
 
- in the definition of 
-\begin_inset Formula $\Trn$
-\end_inset
-
- to simplify the presentation.
- For the base case of an individual agent, we have:
-\begin_inset Formula \begin{align*}
-\KDo(\pi,do(c,s),s'')\,\equiv\, & K(agt,s'',do(c,s))\end{align*}
-
-\end_inset
-
-
-\begin_inset Formula \begin{multline*}
-\Trn(agt,c,c')\Rightarrow\\
-\exists x\,;\,?x=c\,;\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
-\exists x\,;\,?Poss(x)\,\wedge\, Obs(agt,x)=z\,;\,?x=c'\end{multline*}
-
-\end_inset
-
-Then expanding 
-\begin_inset Formula $\KDo(\Trn(agt,c,c'),s,s')$
-\end_inset
-
-
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\noun off
-\color none
- we get:
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\noun default
-\color inherit
-
-\begin_inset Formula \begin{multline*}
-\KDo(\Trn(agt,c,c'),s,s')\equiv\\
-\exists x:\, x=c\wedge\exists z:\, Obs(agt,x,s)=z\,\wedge\,\exists s'':\, K(agt,s'',s)\\
-\wedge\exists x:\, Poss(x,s'')\,\wedge\, Obs(agt,x,s'')=z\,\wedge\, x=c'\wedge s''=s'\end{multline*}
-
-\end_inset
-
-Which can be simplified dramatically to:
-\begin_inset Formula \begin{multline*}
-\KDo(\Trn(agt,c,c'),s,s')\equiv K(agt,s,s')\,\wedge\, Poss(c',s')\\
-\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
-
-\end_inset
-
-Substituting these back into the hypothesis, we get:
-\begin_inset Formula \begin{multline*}
-\Dt\models K(agt,s'',do(c,s))\equiv\exists c',s':\,\, s''=do(c',s')\\
-\shoveright{\wedge K(agt,s,s')\,\wedge\, Poss(c',s')}\\
-\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
-
-\end_inset
-
-This is simply the successor state axiom for 
-\begin_inset Formula $K$
-\end_inset
-
-.
-\newline
-
-\end_layout
-
-\begin_layout Proof
-For the 
-\begin_inset Formula $?\phi$
-\end_inset
-
- case, we have:
-\begin_inset Formula \begin{eqnarray*}
-\KDo(?\phi,do(c,s),s'') & \equiv & \phi[do(c,s)]\wedge s''=do(c,s)\end{eqnarray*}
-
-\end_inset
-
-
-\begin_inset Formula \begin{align*}
-\Trn(?\phi,c,c')\Rightarrow & \exists x\,;\,?x=c\,;\,?\Reg(\phi,x)\,;\,?x=c'\\
-\Rightarrow & ?\Reg(\phi,c)\wedge c=c'\end{align*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Proof
-Giving:
+:
 \begin_inset Formula \[
-\KDo(\Trn(?\phi,c,c'),s,s')\equiv\Reg(\phi,c)[s]\wedge c=c'\wedge s=s'\]
+\Trn(\pi,c,c')\Rightarrow\exists x\,;\,?x=c\,;\,\TrnA(\pi,x)\,;\,?x=c'\]
 
 \end_inset
 
@@ -3164,39 +3425,37 @@ Giving:
 \end_layout
 
 \begin_layout Proof
-Coupled with 
-\begin_inset Formula $s''=do(c',s')$
+Expanding 
+\begin_inset Formula $\KDo$
 \end_inset
 
- from the hypothesis, and 
-\begin_inset Formula $\Reg(\phi,c)[s]\equiv\phi[do(c,s)]$
+ for this rule:
+\begin_inset Formula \begin{multline*}
+\KDo(\Trn(\pi,c,c'),s,s')\equiv\exists\mu,\mu':\,\mu(x)=c\,\wedge\\
+\mu'(x)=c'\wedge\KDo(\TrnA(\pi,x),\mu,s,\mu',s')\end{multline*}
+
 \end_inset
 
- by definition, the hypothesis is clearly entailed.
+
 \end_layout
 
 \begin_layout Proof
-The case for 
-\begin_inset Formula $\exists y$
+We can trivially substitute 
+\begin_inset Formula $\KDo(\Trn(\pi,c,c'),s,s')$
 \end_inset
 
- is trivial as 
-\begin_inset Formula $\KDo(\exists y,s,s')\equiv s=s'$
+ into the RHS of Lemma 
+\begin_inset LatexCommand ref
+reference "lem:TrnA_works"
+
 \end_inset
 
-.
-\end_layout
-
-\begin_layout Proof
-The inductive cases are straightforward as 
-\begin_inset Formula $\Trn_{a}$
-\end_inset
-
- is simply pushed inside each operator.
+ to get the required result.
 \end_layout
 
 \begin_layout Standard
-\InsetSpace ~
+
+\newpage
 
 \end_layout
 
