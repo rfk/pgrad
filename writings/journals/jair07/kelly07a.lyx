@@ -5106,8 +5106,8 @@ For any epistemic path
 
 :
 \begin_inset Formula \begin{multline*}
-\Dt\cup\Dt_{K}^{obs}\models\,\KDo(\pi,s'',do(c,s))\,\equiv\\
-\exists c',s':\,\left(s''=do(c',s')\,\vee\, s''=s'\wedge c=\{\}\right)\wedge\KDo(\Trn(\pi,c,c'),s',s)\end{multline*}
+\Dt\cup\Dt_{K}^{obs}\models\,\KDo(\pi,do(c,s),s'')\,\equiv\\
+\exists c',s':\,\left(s''=do(c',s')\,\vee\, s''=s'\wedge c=\{\}\right)\wedge\KDo(\Trn(\pi,c,c'),s,s')\end{multline*}
 
 \end_inset
 
@@ -6184,6 +6184,11 @@ name "sec:Conclusions"
 
 \end_layout
 
+\begin_layout Standard
+We now conclude with a summary of our achievements in this paper, and a
+ discussion of related and future work.
+\end_layout
+
 \begin_layout Subsection
 Summary
 \end_layout
@@ -6756,7 +6761,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, Legal(s)\wedge s\leq_{\PbU(agt)}s'\,\rightarrow\, Legal(s')\]
+\Dt\cup\Dt_{K}^{obs}\,\models\, Legal(s)\wedge s\leq_{\PbU(agt)}s'\,\rightarrow\, Legal(s')\]
 
 \end_inset
 
@@ -6810,7 +6815,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, s\leq_{\PbU(agt)}s'\,\rightarrow\, View(agt,s')=View(agt,s)\]
+\Dt\cup\Dt_{K}^{obs}\,\models\, s\leq_{\PbU(agt)}s'\,\rightarrow\, View(agt,s')=View(agt,s)\]
 
 \end_inset
 
@@ -6819,7 +6824,7 @@ For situation terms
 
 \begin_layout Proof
 Trivial, by induction on the definition of 
-\begin_inset Formula $view$
+\begin_inset Formula $View$
 \end_inset
 
  from equation (
@@ -6858,7 +6863,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, K(agt,s'',s)\,\rightarrow\, K(agt,root(s''),root(s))\]
+\Dt\cup\Dt_{K}^{obs}\,\models\, K(agt,s'',s)\,\rightarrow\, K(agt,root(s''),root(s))\]
 
 \end_inset
 
@@ -6866,12 +6871,16 @@ For situation terms
 \end_layout
 
 \begin_layout Proof
-Trivial in the base case.
+Trivial in the base case of 
+\begin_inset Formula $Init(s)$
+\end_inset
+
+.
  For the 
 \begin_inset Formula $do(c,s)$
 \end_inset
 
- case, suppose that 
+ case, suppose that we have 
 \begin_inset Formula $K(agt,s'',do(c,s))$
 \end_inset
 
@@ -6907,7 +6916,7 @@ reference "eqn:new_k_ssa"
 \begin_inset Formula $K(root(s'),root(s))$
 \end_inset
 
- by the inductive hypothesis.
+ by the inductive hypothesis, giving the required result.
 \end_layout
 
 \begin_layout Standard
@@ -6937,7 +6946,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, K(agt,s'',s)\,\rightarrow\, Legal(s'')\]
+\Dt\cup\Dt_{K}^{obs}\,\models\, K(agt,s'',s)\,\rightarrow\, Legal(s'')\]
 
 \end_inset
 
@@ -6954,32 +6963,32 @@ All
 \end_inset
 
  are initial and therefore legal.
- So in the base case we have 
-\begin_inset Formula $s'\leq_{\PbU(agt)}s''$
-\end_inset
-
- by equation (
+ So using equation (
 \begin_inset LatexCommand ref
 reference "eqn:new_k_s0"
 
 \end_inset
 
-), making 
+) in the base case, there must be a legal 
+\begin_inset Formula $s'$
+\end_inset
+
+ such that 
+\begin_inset Formula $s'\leq_{\PbU(agt)}s''$
+\end_inset
+
+, making 
 \begin_inset Formula $s''$
 \end_inset
 
- is legal by lemma 
+ legal by lemma 
 \begin_inset LatexCommand ref
 reference "lem:pbu-implies-legal"
 
 \end_inset
 
 .
- 
-\end_layout
-
-\begin_layout Proof
-For the 
+ For the 
 \begin_inset Formula $do(c,s)$
 \end_inset
 
@@ -7010,15 +7019,15 @@ reference "eqn:new_k_ssa"
 \end_inset
 
 .
- Since 
+ So 
 \begin_inset Formula $s'$
 \end_inset
 
- is legal by the inductive hypothesis, 
+ is legal by the inductive hypothesis, making 
 \begin_inset Formula $s''$
 \end_inset
 
- must be legal.
+ legal as required.
  
 \end_layout
 
@@ -7026,6 +7035,8 @@ reference "eqn:new_k_ssa"
 \begin_inset VSpace medskip
 \end_inset
 
+
+\newpage
 
 \end_layout
 
@@ -7049,7 +7060,7 @@ For situation terms
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\, K(agt,s'',s)\,\rightarrow View(agt,s'')=View(agt,s)\]
+\Dt\cup\Dt_{K}^{obs}\,\models\, K(agt,s'',s)\,\rightarrow View(agt,s'')=View(agt,s)\]
 
 \end_inset
 
@@ -7057,7 +7068,21 @@ For situation terms
 \end_layout
 
 \begin_layout Proof
-For the base case, there must be an 
+For the base case of 
+\begin_inset Formula $Init(s)$
+\end_inset
+
+, using equation 
+\begin_inset LatexCommand eqref
+reference "eqn:new_k_s0"
+
+\end_inset
+
+, 
+\begin_inset Formula $K(agt,s'',s)$
+\end_inset
+
+ implies that there must be an 
 \begin_inset Formula $s'$
 \end_inset
 
@@ -7086,7 +7111,7 @@ For the base case, there must be an
 \begin_inset Formula $View(s)$
 \end_inset
 
-, as required.
+ as required.
 \end_layout
 
 \begin_layout Proof
@@ -7099,7 +7124,7 @@ For the
 \end_inset
 
 .
- Then 
+ Then we have 
 \begin_inset Formula $View(agt,do(c,s))$
 \end_inset
 
@@ -7125,13 +7150,13 @@ For the
 \begin_inset Formula $View(agt,s)$
 \end_inset
 
-, while equation (
-\begin_inset LatexCommand ref
+, while equation 
+\begin_inset LatexCommand eqref
 reference "eqn:new_k_ssa"
 
 \end_inset
 
-) gives us 
+ gives us 
 \begin_inset Formula $K(agt,s'',s)$
 \end_inset
 
@@ -7152,7 +7177,13 @@ Alternately, suppose
 \begin_inset Formula $Obs(agt,c,s)\neq\{\}$
 \end_inset
 
-, then we have 
+, then equation 
+\begin_inset LatexCommand eqref
+reference "eqn:new_k_ssa"
+
+\end_inset
+
+ gives us 
 \begin_inset Formula $s'$
 \end_inset
 
@@ -7237,7 +7268,7 @@ reference "thm:k_obs_equiv"
 
 :
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models K(agt,s'',s)\equiv K(root(s''),root(s))\wedge Legal(s'')\wedge View(agt,s'')=View(agt,s)\]
+\Dt\cup\Dt_{K}^{obs}\,\models K(agt,s'',s)\equiv K(root(s''),root(s))\wedge Legal(s'')\wedge View(agt,s'')=View(agt,s)\]
 
 \end_inset
 
@@ -7268,15 +7299,15 @@ reference "lem:K-implies-view"
 \end_inset
 
 .
- 
-\end_layout
-
-\begin_layout Proof
-For the 
+ For the 
 \emph on
 only-if
 \emph default
- base case, the 
+ base case of 
+\begin_inset Formula $Init(s)$
+\end_inset
+
+, the 
 \begin_inset Formula $\exists s'$
 \end_inset
 
@@ -7290,7 +7321,7 @@ reference "eqn:new_k_s0"
 \begin_inset Formula $root(s'')$
 \end_inset
 
- and so the equivalence holds.
+ and the equivalence holds as required.
 \end_layout
 
 \begin_layout Proof
@@ -7388,7 +7419,7 @@ reference "eqn:new_k_ssa"
 
 \end_inset
 
-) and so the equivalence holds.
+) and so the equivalence holds as required.
 \end_layout
 
 \begin_layout Standard
@@ -7405,20 +7436,16 @@ reference "thm:Reg_Knows"
 \end_inset
 
  Given a basic action theory 
-\begin_inset Formula $\Dt\cup\Dt_{K,obs}$
+\begin_inset Formula $\Dt\cup\Dt_{K}^{obs}$
 \end_inset
 
- and a formula 
+ and a uniform formula 
 \begin_inset Formula $\phi$
 \end_inset
 
- uniform in 
-\begin_inset Formula $do(c,s)$
-\end_inset
-
-, it is always the case that:
+:
 \begin_inset Formula \[
-\Dt\cup\Dt_{K,obs}\,\models\,\phi[do(c,s)]\equiv\Reg(\phi,c)[s])\]
+\Dt\cup\Dt_{K}^{obs}\,\models\,\phi[do(c,s)]\equiv\Reg(\phi,c)[s])\]
 
 \end_inset
 
@@ -7438,8 +7465,28 @@ We need only consider applications of
 \begin_inset Formula $\Knows(agt,\phi,s)$
 \end_inset
 
-, as other regression clauses have not been modified.
- For clarity we define the abbreviation 
+, as other regression rules have not been modified.
+ We must establish that our new regression rules in equations 
+\begin_inset LatexCommand eqref
+reference "eqn:R_do_c_s"
+
+\end_inset
+
+ and 
+\begin_inset LatexCommand eqref
+reference "eqn:R_s0"
+
+\end_inset
+
+ are equivalences under the theory of action 
+\begin_inset Formula $\Dt\cup\Dt_{K}^{obs}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Proof
+For notational clarity we define the abbreviation 
 \begin_inset Formula $\mathbf{PEO}(agt,\phi,o,s)$
 \end_inset
 
@@ -7466,23 +7513,23 @@ persists under equivalent observations
 :
 \begin_inset Formula \begin{multline*}
 \mathbf{PEO}(agt,\phi,o,s)\,\isdef\,\\
-\forall a':\, Obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\left[\forall s':\, do(a',s)\leq_{\PbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
+\forall c':\, Obs(agt,c',s)=o\wedge Poss(c',s)\rightarrow\left[\forall s':\, do(c',s)\leq_{\PbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
 
 \end_inset
 
- Combining and rearranging equation (
-\begin_inset LatexCommand ref
+ Combining and rearranging equation 
+\begin_inset LatexCommand eqref
 reference "eqn:new_k_ssa"
 
 \end_inset
 
-) with the definition of the 
+ with the definition of the 
 \begin_inset Formula $\Knows$
 \end_inset
 
  macro we have:
 \begin_inset Formula \begin{align*}
-\Knows(agt,\phi,do(a,s))\equiv\, & \exists o\,.\, Obs(agt,a,s)=o\\
+\Knows(agt,\phi,do(c,s))\equiv\, & \exists o\,.\, Obs(agt,c,s)=o\\
  & \wedge\,\left[o=\{\}\rightarrow\forall s'\,.\, K(agt,s',s)\rightarrow\phi[s']\right]\\
  & \wedge\,\left[o\neq\{\}\rightarrow\forall s'\,.\, K(agt,s',s)\rightarrow\mathbf{PEO}(agt,\phi,o,s')\right]\end{align*}
 
@@ -7499,7 +7546,7 @@ Noting that both conjuncts contain sub-formulae matching the form of the
 
  macro, it can be substituted back in to give:
 \begin_inset Formula \begin{align*}
-\mathbf{Knows}(agt,\phi,do(a,s))\equiv\, & \exists o\,.\, Observations(agt,c,s)=o\\
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\, & \exists o\,.\, Obs(agt,c,s)=o\\
  & \wedge\,\left[o=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
  & \wedge\,\left[o\neq\{\}\rightarrow\mathbf{Knows}(agt,\mathbf{PEO}(agt,\phi,o,s'),s)\right]\end{align*}
 
@@ -7521,17 +7568,17 @@ Noting that both conjuncts contain sub-formulae matching the form of the
  Applying the persistence condition and regressing to make the expression
  uniform, we develop the following equivalence:
 \begin_inset Formula \[
-\mathbf{PEO}(agt,\phi,o,s)\equiv\forall a':\, Obs(agt,a',s)=o\wedge Poss(a',s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,\PbU(agt)),a')\]
+\mathbf{PEO}(agt,\phi,o,s)\equiv\forall c':\, Obs(agt,c',s)=o\wedge Poss(c',s)\rightarrow\mathcal{R}_{\mathcal{D}}(\mathcal{P}_{\mathcal{D}}(\phi,\PbU(agt)),c')\]
 
 \end_inset
 
- Suppressing the situation term in this uniform formula gives equation (
-\begin_inset LatexCommand ref
+ Suppressing the situation term in this uniform formula gives equation 
+\begin_inset LatexCommand eqref
 reference "eqn:R_do_c_s"
 
 \end_inset
 
-) as required.
+ as required.
 \end_layout
 
 \begin_layout Proof
@@ -7539,19 +7586,19 @@ For
 \begin_inset Formula $S_{0}$
 \end_inset
 
-, a straightforward transformation of equations (
-\begin_inset LatexCommand ref
+, a straightforward transformation of equations 
+\begin_inset LatexCommand eqref
 reference "eqn:knows_def"
 
 \end_inset
 
-) and (
-\begin_inset LatexCommand ref
+ and 
+\begin_inset LatexCommand eqref
 reference "eqn:new_k_s0"
 
 \end_inset
 
-) gives:
+ gives:
 \begin_inset Formula \[
 \mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s'\,.\, s\leq_{\PbU(agt)}s'\rightarrow\phi[s']\right]\]
 
@@ -7582,13 +7629,256 @@ This matches the form of the definition for
 \end_layout
 
 \begin_layout Proof
-This is equation (
-\begin_inset LatexCommand ref
+This is equation 
+\begin_inset LatexCommand eqref
 reference "eqn:R_s0"
 
 \end_inset
 
-), as required.
+, as required.
+ Our modified regression rules are thus equivalences under the theory 
+\begin_inset Formula $\Dt\cup\Dt_{K}^{obs}$
+\end_inset
+
+, and the theorem holds.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace medskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Lemma
+\begin_inset LatexCommand label
+name "lem:TrnA_works"
+
+\end_inset
+
+For any epistemic path 
+\begin_inset Formula $\pi$
+\end_inset
+
+:
+\begin_inset Formula \begin{multline*}
+\Dt\cup\Dt_{K}^{obs}\models\,\KDo(\pi,do(c,s),s'')\,\equiv\,\exists\mu,\mu',c',s':\\
+\mu(x)=c\wedge\mu'(x)=c'\wedge\left(s''=do(c',s')\,\vee\, s''=s'\wedge c'=\{\}\right)\wedge\KDo(\Trn_{a}(\pi,c,c'),\mu,s,\mu',s')\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Proceed by cases, covering each path operator in turn.
+ For the base case of an individual agent, we have:
+\begin_inset Formula \begin{align*}
+\KDo(\pi,do(c,s),s'')\,\equiv\, & K_{0}(agt,s'',do(c,s))\end{align*}
+
+\end_inset
+
+
+\begin_inset Formula \[
+\TrnA(agt,x)\Rightarrow\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,?Obs(agt,x)=z\]
+
+\end_inset
+
+Expanding 
+\begin_inset Formula $\KDo(\TrnA(agt,x),\mu,s,\mu',s')$
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+ thus produces:
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+
+\begin_inset Formula \begin{multline*}
+\KDo(\TrnA(agt,x),\mu,s,\mu',s')\equiv\exists z:\, Obs(agt,\mu(x),s)=z\,\wedge\,\exists s'':\, K_{0}(agt,s'',s)\,\wedge\\
+\left(Poss(\mu'(x),s'')\vee\mu'(x)=\{\}\right)\,\wedge\, Obs(agt,\mu'(x),s'')=z\,\wedge\, s''=s'\end{multline*}
+
+\end_inset
+
+Note that 
+\begin_inset Formula $\mu$
+\end_inset
+
+ and 
+\begin_inset Formula $\mu'$
+\end_inset
+
+ are never applied to a variable other than 
+\begin_inset Formula $x$
+\end_inset
+
+.
+ When we substitute this into the RHS of the hypothesis, 
+\begin_inset Formula $\mu(x)$
+\end_inset
+
+ and 
+\begin_inset Formula $\mu'(x)$
+\end_inset
+
+ are asserted to be 
+\begin_inset Formula $c$
+\end_inset
+
+ and 
+\begin_inset Formula $c'$
+\end_inset
+
+ respectively, so they can be simplified away to give:
+\begin_inset Formula \begin{multline*}
+\Dt\models K(agt,s'',do(c,s))\equiv\exists c',s':\left(s''=do(c',s')\,\vee\, s''=s'\wedge c'=\{\}\right)\\
+\wedge K_{0}(agt,s,s')\,\wedge\,\left(Poss(c',s')\vee c'=\{\}\right)\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
+
+\end_inset
+
+This is the successor state axiom for 
+\begin_inset Formula $K_{0}$
+\end_inset
+
+, which is trivially entailed by the domain.
+\newline
+
+\end_layout
+
+\begin_layout Proof
+For the 
+\begin_inset Formula $?\phi$
+\end_inset
+
+ case, we have:
+\begin_inset Formula \[
+\KDo(?\phi,do(c,s),s'')\equiv\phi[do(c,s)]\wedge s''=do(c,s)\]
+
+\end_inset
+
+
+\begin_inset Formula \[
+\TrnA(?\phi,x)\Rightarrow?\Reg(\phi,x)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Proof
+Giving:
+\begin_inset Formula \[
+\KDo(\TrnA(?\phi,x),\mu,s,\mu',s')\equiv\Reg(\phi,x)[s]\wedge s=s'\wedge\mu=\mu'\]
+
+\end_inset
+
+Substituting into the RHS of the hypothesis, this asserts that 
+\begin_inset Formula $c=c'$
+\end_inset
+
+ and hence 
+\begin_inset Formula $s''=do(c,s)$
+\end_inset
+
+, so the hypothesis is clearly entailed.
+\newline
+
+\end_layout
+
+\begin_layout Proof
+The case for 
+\begin_inset Formula $\exists y$
+\end_inset
+
+ is trivial as 
+\begin_inset Formula $\KDo(\exists y,s,s')\equiv s=s'$
+\end_inset
+
+.
+\newline
+
+\end_layout
+
+\begin_layout Proof
+The inductive cases are straightforward as 
+\begin_inset Formula $\Trn_{a}$
+\end_inset
+
+ is simply pushed inside each operator.
+ We will take the 
+\begin_inset Formula $\pi^{*}$
+\end_inset
+
+ case as an example.
+ The inductive hypothesis gives us:
+\begin_inset Formula \begin{multline*}
+\KDo(\pi,do(c,s),s'')\,\equiv\exists\mu,\mu',c',s':\\
+\mu(x)=c\wedge\mu'(x)=c'\wedge\left(s''=do(c',s')\,\vee\, s''=s'\wedge c'=\{\}\right)\wedge\KDo(\Trn_{a}(\pi,x),\mu,s,\mu,'s')\end{multline*}
+
+\end_inset
+
+We can apply 
+\begin_inset Formula $RTC$
+\end_inset
+
+ to both sides of this equivalence, along with two rearrangements: the LHS
+ is expanded to put 
+\begin_inset Formula $\exists\mu,\mu''$
+\end_inset
+
+ at its front, and the rigid tests on the RHS are taken outside the 
+\begin_inset Formula $RTC$
+\end_inset
+
+ operation.
+ The result is:
+\begin_inset Formula \begin{multline*}
+\exists\mu,\mu'':\, RTC[\KDo(\pi,\mu,do(c,s),\mu'',s'')]\,\equiv\\
+\exists\mu,\mu',c',s':\,\mu(x)=c\wedge\mu'(x)=c'\wedge\\
+s''=do(c',s')\wedge RTC[\KDo(\Trn_{a}(\pi,x),\mu,s,\mu,'s')]\end{multline*}
+
+\end_inset
+
+Using the definitions of 
+\begin_inset Formula $\KDo$
+\end_inset
+
+ and 
+\begin_inset Formula $\TrnA$
+\end_inset
+
+ we have:
+\begin_inset Formula \begin{multline*}
+\KDo(\pi^{*},do(c,s),s'')\equiv\\
+\exists\mu,\mu'':\, RTC[\KTrans(\pi,\mu,do(c,s),\mu'',s'')]\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula \begin{multline*}
+\KDo(\TrnA(\pi^{*},x),\mu,s,\mu',s')\equiv\\
+RTC[\KDo(\TrnA(\pi,x),\mu,s,\mu',s')]\end{multline*}
+
+\end_inset
+
+Substituting these into the 
+\begin_inset Formula $RTC$
+\end_inset
+
+ of the inductive hypothesis completes the proof.
 \end_layout
 
 \begin_layout Standard
@@ -7610,8 +7900,8 @@ reference "thm:Trn-respects-epi-paths"
 
 :
 \begin_inset Formula \begin{multline*}
-\Dt\cup\Dt_{K}^{obs}\models\,\KDo(\pi,s'',do(c,s))\,\equiv\\
-\exists c',s':\,\left(s''=do(c',s')\,\vee\, s''=s'\wedge c=\{\}\right)\wedge\KDo(\Trn(\pi,c,c'),s',s)\end{multline*}
+\Dt\cup\Dt_{K}^{obs}\models\,\KDo(\pi,do(c,s),s'')\,\equiv\\
+\exists c',s':\,\left(s''=do(c',s')\,\vee\, s''=s'\wedge c=\{\}\right)\wedge\KDo(\Trn(\pi,c,c'),s,s')\end{multline*}
 
 \end_inset
 
@@ -7619,25 +7909,46 @@ reference "thm:Trn-respects-epi-paths"
 \end_layout
 
 \begin_layout Proof
-TODO: complete this proof.
+Recall the rule for 
+\begin_inset Formula $\Trn(\pi,c,c')$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Trn(\pi,c,c')\Rightarrow\exists x\,;\,?x=c\,;\,\TrnA(\pi,x)\,;\,?x=c'\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Proof
-The proof proceeds by cases, covering each path operator in turn.
- In the case of an individual agent the theorem is a direct consequence
- of equation 
-\begin_inset LatexCommand eqref
-reference "eq:K0_ssa"
+Expanding 
+\begin_inset Formula $\KDo$
+\end_inset
+
+ for this rule:
+\begin_inset Formula \begin{multline*}
+\KDo(\Trn(\pi,c,c'),s,s')\equiv\exists\mu,\mu':\,\mu(x)=c\,\wedge\\
+\mu'(x)=c'\wedge\KDo(\TrnA(\pi,x),\mu,s,\mu',s')\end{multline*}
 
 \end_inset
 
-.
- The other operators are straightforward using their semantics as specified
- in 
-\begin_inset Formula $\KTrans$
+
+\end_layout
+
+\begin_layout Proof
+We can trivially substitute 
+\begin_inset Formula $\KDo(\Trn(\pi,c,c'),s,s')$
 \end_inset
 
-.
+ into the RHS of Lemma 
+\begin_inset LatexCommand ref
+reference "lem:TrnA_works"
+
+\end_inset
+
+ to get the required result.
 \end_layout
 
 \begin_layout Standard
