@@ -250,7 +250,7 @@ flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
       append(V,VarsIn,Vars2),
       flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
     ;
-      simplify_c(T,Tsimp),
+      simplify(T,Tsimp),
       ( Tsimp =.. [Q,(V : T2)] ->
           append(V,VarsIn,Vars2),
           flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
@@ -398,7 +398,7 @@ simplify(~P,S) :-
         S = ~SP
     ).
 simplify(!(Xs:P),S) :-
-    ( Xs = [] -> simplify_c(P,S)
+    ( Xs = [] -> simplify(P,S)
     ;
     flatten_quant_and_simp('!',P,Xs,VarsT,Body),
     sort(VarsT,Vars),
@@ -501,12 +501,12 @@ simplify((A\=B),S) :-
        normalize((A\=B),S)
    ).
 
+simplify_conjunction(TermsIn,TermsOut) :-
+    simplify_conjunction_acc(TermsIn,nil,TermsOut).
 simplify_conjunction(CSIn,BG,CSOut) :-
-    simplify_conjunction_acc(CSIn,BG,[],CSOut).
-    length(Terms,0) -> S=true
-    pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false.
+    simplify_conjunction_acc(CSIn,BG,nil,CSOut).
 
-simplify_conjunction_acc([],_,CSAcc,CSAcc) :-
+simplify_conjunction_acc(nil,_,CSAcc,CSAcc).
 simplify_conjunction_acc([C|CSIn],BG,CSAcc,CSOut) :-
     joinlist('&',[BG|CSAcc],BG2),
     simplify_bg(C,BG2,S),
@@ -520,11 +520,11 @@ simplify_conjunction_acc([C|CSIn],BG,CSAcc,CSOut) :-
     
 
 simplify_disjunction(TermsIn,TermsOut) :-
-    maplist(simplify,TermsT,TermsS),
-    sublist(\=(true),TermsS,TermsF),
-    member(false,Terms) -> S=false
-    length(Terms,0) -> S=true
-    pairfrom(Terms,F1,F2), contradictory(F1,F2) -> S=false.
+    maplist(simplify,TermsIn,TermsS),
+    sublist(\=(true),TermsS,TermsT),
+    member(false,Terms) -> TermsOut=[false] ;
+    length(Terms,0) -> TermsOut=[true] ;
+    pairfrom(Terms,F1,F2), contradictory(F1,F2) -> TermsOut=[false].
 
 %
 %  var_given_value(X,P,V)  -  variable X is uniformly given the value V

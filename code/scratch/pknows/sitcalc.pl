@@ -46,22 +46,6 @@ domain_tautology(Fml) :-
 
 
 %
-%  Define behavior of skolem fluents
-%
-
-skolem_fluent(F,Nm,Sit,Id,Args) :-
-    F =.. [Nm,Sit,Id|Args],
-    length(Args,Arity),
-    concat_atom([skol,Arity],Nm).
-
-func_fluent(F) :-
-    skolem_fluent(F,_,_,_,_).
-
-causes_value(F,A,X,(X=F2)) :-
-    skolem_fluent(F,Nm,Sit,Id,Args),
-    skolem_fluent(F2,Nm,do(A,Sit),Id,Args).
-
-%
 %  regression(+F,+A,-Fr) - Fr is the regression of F over action A
 %
 %  This predicate calculates the regression of a fluent F with respect to
