@@ -88,6 +88,8 @@ test(knows2) :-
     holds(knows(ann,inroom(bob)),s0), !.
 test(knows3) :-
     holds(knows(bob,~inroom(ann)),do(leave(ann),s0)), !.
+test(knows3) :-
+    holds(~knows(bob,inroom(ann)),do(leave(ann),s0)), !.
 
 :- end_tests(domain).
 
