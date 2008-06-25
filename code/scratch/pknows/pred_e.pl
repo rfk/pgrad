@@ -122,16 +122,20 @@ e_write(~P) :-
     e_write(P).
 e_write(!(V:P)) :-
     write('( ! '),
-    write(V),
+    maplist(strip_var_type,V,V2),
+    write(V2),
     write(' : ('),
     e_write(P),
     write('))').
 e_write(?(V:P)) :-
     write('( ? '),
-    write(V),
+    maplist(strip_var_type,V,V2),
+    write(V2),
     write(' : ('),
     e_write(P),
     write('))').
+
+strip_var_type(V^_,V).
 
 e_write_terms([T]) :-
     e_write_term(T), !.

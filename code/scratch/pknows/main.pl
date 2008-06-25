@@ -9,6 +9,8 @@
 
 :- set_prolog_flag(double_quotes,atom).
 
+:- use_module(library(plunit)).
+
 :- [fluent].
 :- [pred_e].
 :- [domain].
@@ -27,10 +29,4 @@ main :-
   write_eqn(Pd1),
   nl, nl,
   write('\\end{document}').
-
-example1 :-
-  knows(sam,~holding(max,box1),[]).
-
-example2 :-
-  knows(sam,~holding(max,box2),[]).
 

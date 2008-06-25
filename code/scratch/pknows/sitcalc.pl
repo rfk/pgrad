@@ -12,8 +12,8 @@ action_with_vars(A,Vs) :-
     A =.. [F|Args].
 
 awv_collect([],[],[]).
-awv_collect([_|T],[Y|TA],[Y|TV]) :-
-    awv_collect(T,TA,TV).
+awv_collect([T|Ts],[Y|Ys],[Y^T|Vs]) :-
+    awv_collect(Ts,Ys,Vs).
 
 
 %
@@ -36,13 +36,28 @@ domain_axioms(Axs) :-
 constraint(true).
 constraint(~false).
 
-
 domain_falsehood(Fml) :-
     domain_axioms(Axs),
     entails(Axs,~Fml).
 domain_tautology(Fml) :-
     domain_axioms(Axs),
     entails(Axs,Fml).
+
+
+%
+%  Useful ADPs that can be defined in terms of other, simpler ADPs
+%
+
+adp_fluent(pbu(Agt),A,C) :-
+    adp_fluent(poss,A,C1),
+    adp_fluent(canObs(Agt),A,C2),
+    C = C1 & ~C2.
+
+adp_fluent(obs(Agt,O),A,C) :-
+    adp_fluent(canObs(Agt),A,CO),
+    adp_fluent(canSense(Agt),A,CS),
+    adp_fluent(sr(R),A,CR),
+    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R^result]: CR & O=(A^R)))).
 
 
 %
@@ -57,47 +72,56 @@ domain_tautology(Fml) :-
 regression(F,A,Fr) :-
     nonvar(A), !,
     regression1(F,A,Frt),
-    simplify_c(Frt,Fr).
+    simplify(Frt,Fr).
 
 %  If A is free, find all actions which could affect F.
 regression(F,A,Fr) :-
     var(A),
     (bagof(Ft,B^regression_bagof(F,A,B,Ft),Fts) ->
         joinlist((|),Fts,Ftmp),
-        simplify_c(Ftmp,Fr)
+        simplify(Ftmp,Fr)
     ;
         Fr=F
     ).
 
 regression_bagof(F,A,B,Ft) :-
-    action_with_vars(B,_),
-    regression1(F,B,Ftp),
-    Ft=(Ftp & (A=B)).
+    action_with_vars(B,V),
+    regression1(F,B,Ftr),
+    Ft = ?(V : (Ftr & (A=B))).
 
 
+% Regression base case, a primitive fluent.
+% Build successor state axiom from causes_true/cases_false
 regression1(F,A,Fr) :-
-    is_atom(F), F \= (_ = _), F \= (_ \= _),
-    ( extract_func_fluents(F,F2) ->
-        regression1(F2,A,Fr)
-    ;
-        (causes_true(F,A,Ep) -> true ; Ep = false),
-        (causes_false(F,A,En) -> true ; En = false),
-        simplify_c(Ep | (F & ~En),Fr)
-    ).
-regression1(T1=T2,A,Fr) :-
-   ( nonvar(T1), causes_value(T1,A,X1,C1) -> 
-        ( nonvar(T2), causes_value(T2,A,X2,C2) ->
-            simplify_c(?([X1,X2] : (C1 & C2 & (X1=X2))),Fr)
-        ;
-            simplify_c(?([X1] : (C1 & (X1=T2))),Fr)
-        )
-   ; nonvar(T2), causes_value(T2,A,X2,C2) ->
-        simplify_c(?([X2] : (C2 & (T1=X2))),Fr)
-   ;
-        Fr = (T1=T2)
-   ).
-regression1(T1\=T2,A,Fr) :-
-    regression1(~(T1=T2),A,Fr).
+    is_atom(F), F \= (_ = _), F \= (_ \= _), F \= knows(_,_),
+    (causes_true(F,A,Ep) -> true ; Ep = false),
+    (causes_false(F,A,En) -> true ; En = false),
+    simplify(Ep | (F & ~En),Fr).
+
+% Regression of a knowledge expression.
+%
+% Since we're defining obs() in terms of canObs() and canSense(), we
+% can make the following simplifications:
+%
+%    * replace obs()=nil with CanObs
+%    * avoid quantifying over actions inside knows(), since only A
+%      can ever match the observations for A
+%
+regression1(knows(Agt,P),A,Fr) :-
+    Fr = ?([O^observation]: (ObsDefn & (~CanObs => knows(Agt,P)) & (CanObs => KR))),
+    KR = ((Poss & ObsDefn) => Ppr),
+    pcond(P,pbu(Agt),Pp),
+    regression(Pp,A,Ppr),
+    adp_fluent(obs(Agt,O),A,ObsDefn),
+    adp_fluent(canObs(Agt),A,CanObs),
+    adp_fluent(poss,A,Poss).
+    
+
+% No functional fluents, so equality is rigid
+regression1(T1=T2,_,T1=T2).
+regression1(T1\=T2,_,T1\=T2).
+
+% Regression is pushed inside the logical operators
 regression1(!(X : P),A,!(X : R)) :-
     regression1(P,A,R).
 regression1(?(X : P),A,?(X : R)) :-
@@ -113,57 +137,8 @@ regression1((P | Q),A,(R | S)) :-
 
 
 %
-%  extract_func_fluents(F,P)  -  extract function fluents from an atom
-%
-%  This predicate is used to re-write an atom that contains functional
-%  fluents into a equivalent expression in which the functional fluents
-%  are all applied to equality.
-%
-%  This in turn allows such expressions to actually be regressed.
-%
-
-extract_func_fluents(F,P) :-
-    is_atom(F),
-    F =.. [Pred|Args],
-    extract_func_fluents_rec(Args,Vars,Eqs,Args2),
-    % fail if we didnt extract anything
-    Vars \= [], Eqs \= [],
-    F2 =.. [Pred|Args2],
-    joinlist('&',[F2|Eqs],Body),
-    P = ?(Vars : Body).
-
-% Use difference lists to build up list of Variables, Equality
-% statements, and Predicate arguments to be used when extracting
-% functional fluents.
-%
-extract_func_fluents_rec([],[],[],[]).
-extract_func_fluents_rec([A|As],VSoFar,ESoFar,ASoFar) :-
-    ( var(A) ->
-        ASoFar = [A|ASF2],
-        extract_func_fluents_rec(As,VSoFar,ESoFar,ASF2)
-    ;
-        ( is_func_fluent(A) ->
-            ASoFar = [V|ASF2],
-            VSoFar = [V|VSF2],
-            ESoFar = [V=A|ESF2],
-            extract_func_fluents_rec(As,VSF2,ESF2,ASF2)
-        ;
-            ASoFar = [A|ASF2],
-            extract_func_fluents_rec(As,VSoFar,ESoFar,ASF2)
-        )
-    ).
-
-
-%
 %  Test whether a given term is a fluent or action
 %
-is_func_fluent(F) :-
-    F =.. [Fn|Args],
-    length(Args,N),
-    length(TArgs,N),
-    Ff =.. [Fn|TArgs],
-    func_fluent(Ff).
-
 is_prim_fluent(F) :-
     F =.. [Fn|Args],
     length(Args,N),
@@ -192,6 +167,12 @@ holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
 
+% holds(F,s0) is implemented in such a way as to allow open-world reasoning.
+% We must push negation down onto the individual literals, so we can test
+% then using initially_true(F) and initially_false(F).
+%
+% First, we case-split the boolean operators:
+%
 holds(F1 => F2,s0) :-
     holds(~F1,s0) ; holds(F2,s0).
 holds(F1 <=> F2,s0) :-
@@ -202,12 +183,6 @@ holds(F1 & F2,s0) :-
     holds(F1,s0), holds(F2,s0).
 holds(F1 | F2,s0) :-
     holds(F1,s0) ; holds(F2,s0).
-holds(!(V : F),s0) :-
-    holds(~exists(V : ~F),s0).
-holds(?([] : F),s0) :-
-    holds(F,s0).
-holds(?([V|T] : F),s0) :-
-    subs(V,_,F,F1), holds(?(T : F1),s0).
 holds(~(F1 => F2),s0) :- 
     holds((F1 & (~F2)),s0).
 holds(~(F1 <=> F2),s0) :- 
@@ -216,44 +191,49 @@ holds(~(F1 & F2),s0) :-
     holds((~F1) | (~F2),s0).
 holds(~(F1 | F2),s0) :-
     holds((~F1) & (~F2),s0).
+%
+% Re-write quantifiers to be in positive form
+%
 holds(~!(V : F),s0) :-
-    holds(?(V : F),s0).
+    holds(?(V : ~F),s0).
 holds(~?(V : F),s0) :-
-    \+ holds(?(V : F),s0).
+    holds(!(V : ~F),s0).
+%
+%  Handle positive quantifiers by binding free variables.
+%  For ? prolog does the hard work for us.
+%  For ! we determine type of var and enumerate it into a conjunction.
+%
+holds(?([] : F),s0) :-
+    holds(F,s0).
+holds(?([V^_|Vs] : F),s0) :-
+    subs(V,_,F,F1), holds(?(Vs : F1),s0).
+holds(!([] : F),s0) :-
+    holds(F,s0).
+holds(!([V^T|Vs] : F),s0) :-
+    bagof(Fb,(Val^(call(T,Val),subs(V,Val,!(Vs:F),Fb))),Fbs),
+    joinlist('&',Fbs,Enum),
+    holds(Enum,s0).
+
+%
+%  For knowledge, apply persistence condition then just call holds() again.
+%  We assume every agent's initial knowledge is identical, and equal to the
+%  facts specified by initially_true/initially_false
+%
+holds(knows(Agt,F),s0) :-
+    pcond(F,pbu(Agt),P),
+    holds(P,s0).
+holds(~knows(Agt,F),s0) :-
+    pcond(F,pbu(Agt),P),
+    \+ holds(P,s0).
+%
+%  Finally, handle primitive fluents using initially_true/initially_false
+%
 holds(F,s0) :-
     prim_fluent(Ft),
     functor(Ft,S,N), functor(F,S,N),
-    initially(F).
+    initially_true(F).
 holds(~F,s0) :-
     prim_fluent(Ft),
     functor(Ft,S,N), functor(F,S,N),
-    \+ initially(F).
-
-
-adp_fluent(pbu(Agt),A,C) :-
-    adp_fluent(poss,A,C1),
-    adp_fluent(canObs(Agt),A,C2),
-    C = C1 & ~C2.
-
-knows(Agt,F,[]) :-
-    write('CALCULATING PERSISTENCE CONDITION:'), nl,
-    pcond(F,pbu(Agt),P),
-    write_latex(P), nl,
-    write('CHECKING AGAINST D_S_0'), nl,
-    (holds(P,s0) ->
-        write('HOLDS'), nl
-    ;   write('DOESNT HOLD'), nl, fail
-    ), !.
-knows(Agt,F,[A|T]) :-
-    write('CALCULATING PERSISTENCE CONDITION:'), nl,
-    pcond(F,pbu(Agt),P),
-    write_latex(P),
-    write('REGRESSING OVER '), write(A), write(':'), nl,
-    regression(P,A,R),
-    write('NEW QUERY: '), nl,
-    adp_fluent(poss,A,Poss), adp_fluent(canObs(Agt),A,Obs),
-    Q = (Poss & Obs) => R,
-    write(knows(Agt,Q,T)), nl,
-    knows(Agt,Q,T), !.
-
+    initially_false(F).
 
