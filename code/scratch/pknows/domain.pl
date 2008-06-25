@@ -2,8 +2,17 @@
 agent(ann).
 agent(bob).
 
-place(c).
-place(d).
+location(c).
+location(d).
+
+result(R) :-
+  location(R).
+
+observation(nil).
+observation(A) :-
+    is_prim_action(A).
+observation(A^R) :-
+    is_prim_action(A), result(R).
 
 % Enumerates primitive actions, and the domains of their arguments.
 prim_action(read(agent)).
@@ -11,7 +20,7 @@ prim_action(leave(agent)).
 prim_action(enter(agent)).
 
 % Enumerates primitive fluents, and domains of arguments
-prim_fluent(loc(place)).
+prim_fluent(loc(location)).
 prim_fluent(inroom(agent)).
 
 % Enumerates conditions for action description predicate fluents
@@ -38,8 +47,14 @@ adp_fluent(sr(ok),enter(_),true).
 %
 initially_true(inroom(ann)).
 initially_true(inroom(bob)).
+initially_true(loc(c)).
 
-initially_false(_) :- fail.
+initially_false(loc(d)).
+
+initially_knownT(inroom(ann)).
+initially_knownT(inroom(bob)).
+
+initially_knownF(_) :- fail.
 
 
 % Causal rules for each fluent/action combo
@@ -80,6 +95,8 @@ test(holds6) :-
     holds(!([X^agent] : inroom(X)),s0), !.
 test(holds7) :-
     \+ holds(!([X^agent] : inroom(X)),do(leave(bob),s0)).
+test(holds8) :-
+    holds(loc(c),s0), !.
 
 
 test(knows1) :-
@@ -90,6 +107,18 @@ test(knows3) :-
     holds(knows(bob,~inroom(ann)),do(leave(ann),s0)), !.
 test(knows3) :-
     holds(~knows(bob,inroom(ann)),do(leave(ann),s0)), !.
+test(knows4) :-
+    holds(~knows(bob,loc(c)),s0), !.
+
+
+%test(example1) :-
+%    holds(~?([L:location]:knows(ann,loc(L))),s0).
+%test(example2) :-
+%    holds(knows(bob,loc(c)),do(read(bob),s0)).
+%test(example3) :-
+%    holds(knows(bob,~?([L:location]:knows(ann,loc(L)))),s0).
+%test(example4) :-
+%    holds(~knows(bob,~?([L:location]:knows(ann,loc(L)))),do(leave(bob),s0)).
 
 :- end_tests(domain).
 

@@ -109,10 +109,11 @@ regression1(F,A,Fr) :-
 %
 regression1(knows(Agt,P),A,Fr) :-
     Fr = ?([O^observation]: (ObsDefn & (~CanObs => knows(Agt,P)) & (CanObs => KR))),
-    KR = ((Poss & ObsDefn) => Ppr),
+    KR = knows(Agt,((Poss & ObsDefn2) => Ppr)),
     pcond(P,pbu(Agt),Pp),
     regression(Pp,A,Ppr),
     adp_fluent(obs(Agt,O),A,ObsDefn),
+    adp_fluent(obs(Agt,O),A,ObsDefn2),
     adp_fluent(canObs(Agt),A,CanObs),
     adp_fluent(poss,A,Poss).
     
@@ -215,16 +216,14 @@ holds(!([V^T|Vs] : F),s0) :-
     holds(Enum,s0).
 
 %
-%  For knowledge, apply persistence condition then just call holds() again.
-%  We assume every agent's initial knowledge is identical, and equal to the
-%  facts specified by initially_true/initially_false
+%  For knowledge, apply persistence condition then just call into knows0.
 %
 holds(knows(Agt,F),s0) :-
     pcond(F,pbu(Agt),P),
-    holds(P,s0).
+    knows0(P).
 holds(~knows(Agt,F),s0) :-
     pcond(F,pbu(Agt),P),
-    \+ holds(P,s0).
+    \+ knows0(P).
 %
 %  Finally, handle primitive fluents using initially_true/initially_false
 %
@@ -237,3 +236,53 @@ holds(~F,s0) :-
     functor(Ft,S,N), functor(F,S,N),
     initially_false(F).
 
+%
+%  knows0(Fml) is handled as per holds(Fml,s0), but using
+%  initially_knownT/initially_knownF for primitive fluents.
+%
+knows0(F1 => F2) :-
+    knows0(~F1) ; knows0(F2).
+knows0(F1 <=> F2) :-
+    knows0(F1) , knows0(F2)
+    ;
+    knows0(~F1) , knows0(~F2).
+knows0(F1 & F2) :-
+    knows0(F1), knows0(F2).
+knows0(F1 | F2) :-
+    knows0(F1) ; knows0(F2).
+knows0(~(F1 => F2)) :- 
+    knows0((F1 & (~F2))).
+knows0(~(F1 <=> F2)) :- 
+    knows0((F1 & (~F2) | ((~F1) & F2))).
+knows0(~(F1 & F2)) :- 
+    knows0((~F1) | (~F2)).
+knows0(~(F1 | F2)) :-
+    knows0((~F1) & (~F2)).
+knows0(~!(V : F)) :-
+    knows0(?(V : ~F)).
+knows0(~?(V : F)) :-
+    knows0(!(V : ~F)).
+knows0(?([] : F)) :-
+    knows0(F).
+knows0(?([V^_|Vs] : F)) :-
+    subs(V,_,F,F1), knows0(?(Vs : F1)).
+knows0(!([] : F)) :-
+    knows0(F,s0).
+knows0(!([V^T|Vs] : F)) :-
+    bagof(Fb,(Val^(call(T,Val),subs(V,Val,!(Vs:F),Fb))),Fbs),
+    joinlist('&',Fbs,Enum),
+    knows0(Enum).
+knows0(knows(Agt,F)) :-
+    pcond(F,pbu(Agt),P),
+    knows0(P).
+knows0(~knows(Agt,F)) :-
+    pcond(F,pbu(Agt),P),
+    \+ knows0(P).
+knows0(F) :-
+    prim_fluent(Ft),
+    functor(Ft,S,N), functor(F,S,N),
+    initially_knownT(F).
+knows0(~F) :-
+    prim_fluent(Ft),
+    functor(Ft,S,N), functor(F,S,N),
+    initially_knownT(F).
