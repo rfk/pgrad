@@ -19,17 +19,20 @@
 
 
 %
-%  Our logical operators are almost the standard TSTP format operators:
+%  Our logical operators are almost the standard TSTP format operators,
+%  along with knows() and pknows() modalities:
 % 
 %     P & Q       -   logical and
 %     P | Q       -   logical or
 %     P => Q      -   implication
 %     P <=> Q     -   equivalence
 %     ~P          -   negation
-%     !([X^T]:P)    -   universal quantification
-%     ?([X^T]:P)    -   existential quantification
+%     !([X^T]:P)  -   universal quantification
+%     ?([X^T]:P)  -   existential quantification
 %     A = B       -   object equality
 %     A \= B      -   object inequality
+%     knows(A,P)  -   individual-level knowledge modality
+%     pknows(E,P) -   complex epistemic modality
 %
 %  If I can make prolog accept '!=' as an operator, I'll use that for
 %  inequality as well.
@@ -91,6 +94,10 @@ normalize((P1 => Q1),(P2 => Q2)) :-
 normalize((P1 <=> Q1),(P2 <=> Q2)) :-
     normalize(P1,P2),
     normalize(Q1,Q2), !.
+normalize(knows(A,P),knows(A,Q)) :-
+    normalism(P,Q), !.
+normalize(pknows(E,P),pknows(E,Q)) :-
+    normalism(P,Q), !.
 normalize(P,P). 
 
 
@@ -423,7 +430,8 @@ simplify(?(Xs:P),S) :-
    ;
        Body=true -> S=true
    ;
-       % Remove vars that are assigned a specific value, therefore useless
+       % Remove vars that are assigned a specific value, simply replacing
+       % them with their value in the Body formula
        member(V1^T1,Vars), var_valuated(V1,Body,Body2) ->
            vdelete(Vars,V1^T1,Vars2), simplify(?(Vars2:Body2),S)
    ;
@@ -462,7 +470,7 @@ simplify((A=B),S) :-
        A == B -> S=true
    ;
        % Utilising the unique names assumption
-       ground(A), ground(B), A \= B -> S=false
+       (\+ unifiable(A,B,_)) -> S=false
    ;
        normalize((A=B),S)
    ).
@@ -474,6 +482,18 @@ simplify((A\=B),S) :-
        (\+ unifiable(A,B,_)) -> S=true
    ;
        normalize((A\=B),S)
+   ).
+simplify(knows(A,P),S) :-
+   simplify(P,Ps),
+   ( Ps=true -> S=true
+   ; Ps=false -> S=false
+   ; S = knows(A,Ps)
+   ).
+simplify(pknows(E,P),S) :-
+   simplify(P,Ps),
+   ( Ps=true -> S=true
+   ; Ps=false -> S=false
+   ; S = pknows(E,Ps)
    ).
 
 
@@ -540,6 +560,10 @@ var_given_value(X,P | Q,V) :-
 var_given_value(X,!(_:P),V) :-
     var_given_value(X,P,V).
 var_given_value(X,?(_:P),V) :-
+    var_given_value(X,P,V).
+var_given_value(X,knows(_,P),V) :-
+    var_given_value(X,P,V).
+var_given_value(X,pknows(_,P),V) :-
     var_given_value(X,P,V).
 
 var_given_value_list(_,[],_).
@@ -659,6 +683,10 @@ fml2nnf(!(X:P),!(X:N)) :-
     fml2nnf(P,N), !.
 fml2nnf(?(X:P),?(X:N)) :-
     fml2nnf(P,N), !.
+fml2nnf(knows(A,P),knows(A,N)) :-
+    fml2nnf(P,N), !.
+fml2nnf(pknows(E,P),pknows(E,N)) :-
+    fml2nnf(P,N), !.
 fml2nnf(P,P).
 
 
@@ -699,7 +727,9 @@ is_atom(P) :-
     P \= (_ & _),
     P \= (_ | _),
     P \= ?(_:_),
-    P \= !(_:_).
+    P \= !(_:_),
+    P \= knows(_,_),
+    P \= pknows(_,_).
 
 
 %
@@ -732,6 +762,10 @@ copy_fml(!(VarsP:P),!(VarsQ:Q)) :-
 copy_fml(?(VarsP:P),?(VarsQ:Q)) :-
     rename_vars(VarsP,P,VarsQ,P2),
     copy_fml(P2,Q).
+copy_fml(knows(A,P),knows(A,Q)) :-
+    copy_fml(P,Q).
+copy_fml(pknows(E,P),pknows(E,Q)) :-
+    copy_fml(P,Q).
 
 %
 %  rename_vars(Vars,F,NewVars,NewF)  -  rename the given variables to new
@@ -785,39 +819,11 @@ terms_in_fml(!(_:P),Terms) :-
     terms_in_fml(P,Terms).
 terms_in_fml(?(_:P),Terms) :-
     terms_in_fml(P,Terms).
+terms_in_fml(knows(_,P),Terms) :-
+    terms_in_fml(P,Terms).
+terms_in_fml(pknows(_,P),Terms) :-
+    terms_in_fml(P,Terms).
 
-
-%
-%  vars_are_unique(F)  -  check that each quantified var in F is unique
-%
-
-vars_are_unique(Fml) :-
-    vars_are_unique(Fml,[],_).
-
-vars_are_unique(P,SoFar,SoFar) :-
-    is_atom(P).
-vars_are_unique(~P,SoFar,SoFar2) :-
-    vars_are_unique(P,SoFar,SoFar2).
-vars_are_unique(P & Q,SoFar,SoFar2) :-
-    vars_are_unique(P,SoFar,SoFar1),
-    vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(P | Q,SoFar,SoFar2) :-
-    vars_are_unique(P,SoFar,SoFar1),
-    vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(P => Q,SoFar,SoFar2) :-
-    vars_are_unique(P,SoFar,SoFar1),
-    vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(P <=> Q,SoFar,SoFar2) :-
-    vars_are_unique(P,SoFar,SoFar1),
-    vars_are_unique(Q,SoFar1,SoFar2).
-vars_are_unique(!(V:P),SoFar,SoFar2) :-
-    \+ ( member(X,V), ismember(X,SoFar) ),
-    append(V,SoFar,SoFar1),
-    vars_are_unique(P,SoFar1,SoFar2).
-vars_are_unique(?(V:P),SoFar,SoFar2) :-
-    \+ ( member(X,V), ismember(X,SoFar), write('DUPL VAR: '), write(X), nl ),
-    append(V,SoFar,SoFar1),
-    vars_are_unique(P,SoFar1,SoFar2).
 
 %
 %  equiv(F1,F2)  -  check that two formulae are equivalent
@@ -874,6 +880,18 @@ do_write_latex(?([X|Xs]:P)) :-
     write(' : \\left[ '),
     do_write_latex(P),
     write(' \\right] ').
+do_write_latex(knows(A,P)) :-
+    write(' \\Knows( '),
+    do_write_latex(A),
+    write(','),
+    do_write_latex(P),
+    write(')').
+do_write_latex(pknows(E,P)) :-
+    write(' \\PKnows( '),
+    do_write_latex(E),
+    write(','),
+    do_write_latex(P),
+    write(')').
 do_write_latex(P) :-
     is_atom(P), write(P).
 
