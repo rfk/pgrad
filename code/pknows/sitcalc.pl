@@ -82,7 +82,7 @@ adp_fluent(obs(Agt,O),A,C) :-
     adp_fluent(canObs(Agt),A,CO),
     adp_fluent(canSense(Agt),A,CS),
     adp_fluent(sr(R),A,CR),
-    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R^result]: CR & (O=(A^R))))).
+    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R^result]: CR & (O=pair(A,R))))).
 
 
 %
@@ -210,7 +210,7 @@ holds0(F1 <=> F2) :-
 holds0(F1 & F2) :-
     holds0(F1), holds0(F2).
 holds0(F1 | F2) :-
-    holds(F1) ; holds(F2).
+    holds0(F1) ; holds0(F2).
 holds0(~(F1 => F2)) :- 
     holds0((F1 & (~F2))).
 holds0(~(F1 <=> F2)) :- 
@@ -224,7 +224,7 @@ holds0(~(F1 | F2)) :-
 %
 holds0(~!(V : F)) :-
     holds0(?(V : ~F)).
-holds0(~?(V : F),s0) :-
+holds0(~?(V : F)) :-
     holds0(!(V : ~F)).
 %
 %  Handle positive quantifiers by binding free variables.
