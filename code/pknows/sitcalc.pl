@@ -82,7 +82,7 @@ adp_fluent(obs(Agt,O),A,C) :-
     adp_fluent(canObs(Agt),A,CO),
     adp_fluent(canSense(Agt),A,CS),
     adp_fluent(sr(R),A,CR),
-    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R^result]: CR & O=(A^R)))).
+    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R^result]: CR & (O=(A^R))))).
 
 
 %
@@ -192,78 +192,82 @@ holds(~(A=B),_) :-
 holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
+holds(F,s0) :-
+    holds0(F).
 
-% holds(F,s0) is implemented in such a way as to allow open-world reasoning.
+% holds0(F) is implemented in such a way as to allow open-world reasoning.
 % We must push negation down onto the individual literals, so we can test
-% then using initially_true(F) and initially_false(F).
+% them using primitive knows0 and holds0 from the domain.
+% 
+% First, using DeMorgan etc
 %
-% First, we case-split the boolean operators:
-%
-holds(F1 => F2,s0) :-
-    holds(~F1,s0) ; holds(F2,s0).
-holds(F1 <=> F2,s0) :-
-    holds(F1,s0) , holds(F2,s0)
+holds0(F1 => F2) :-
+    holds0(~F1) ; holds0(F2).
+holds0(F1 <=> F2) :-
+    holds0(F1) , holds0(F2)
     ;
-    holds(~F1,s0) , holds(~F2,s0).
-holds(F1 & F2,s0) :-
-    holds(F1,s0), holds(F2,s0).
-holds(F1 | F2,s0) :-
-    holds(F1,s0) ; holds(F2,s0).
-holds(~(F1 => F2),s0) :- 
-    holds((F1 & (~F2)),s0).
-holds(~(F1 <=> F2),s0) :- 
-    holds((F1 & (~F2) | ((~F1) & F2)),s0).
-holds(~(F1 & F2),s0) :- 
-    holds((~F1) | (~F2),s0).
-holds(~(F1 | F2),s0) :-
-    holds((~F1) & (~F2),s0).
+    holds0(~F1) , holds0(~F2).
+holds0(F1 & F2) :-
+    holds0(F1), holds0(F2).
+holds0(F1 | F2) :-
+    holds(F1) ; holds(F2).
+holds0(~(F1 => F2)) :- 
+    holds0((F1 & (~F2))).
+holds0(~(F1 <=> F2)) :- 
+    holds0((F1 & (~F2) | ((~F1) & F2))).
+holds0(~(F1 & F2)) :- 
+    holds0((~F1) | (~F2)).
+holds0(~(F1 | F2)) :-
+    holds0((~F1) & (~F2)).
 %
 % Re-write quantifiers to be in positive form
 %
-holds(~!(V : F),s0) :-
-    holds(?(V : ~F),s0).
-holds(~?(V : F),s0) :-
-    holds(!(V : ~F),s0).
+holds0(~!(V : F)) :-
+    holds0(?(V : ~F)).
+holds0(~?(V : F),s0) :-
+    holds0(!(V : ~F)).
 %
 %  Handle positive quantifiers by binding free variables.
 %  For ? prolog does the hard work for us.
 %  For ! we determine type of var and enumerate it into a conjunction.
 %
-holds(?([] : F),s0) :-
-    holds(F,s0).
-holds(?([V^_|Vs] : F),s0) :-
-    subs(V,_,F,F1), holds(?(Vs : F1),s0).
-holds(!([] : F),s0) :-
-    holds(F,s0).
-holds(!([V^T|Vs] : F),s0) :-
+holds0(?([] : F)) :-
+    holds0(F).
+holds0(?([V^_|Vs] : F)) :-
+    subs(V,_,F,F1), holds0(?(Vs : F1)).
+holds0(!([] : F)) :-
+    holds0(F).
+holds0(!([V^T|Vs] : F)) :-
     bagof(Fb,(Val^(call(T,Val),subs(V,Val,!(Vs:F),Fb))),Fbs),
     joinlist('&',Fbs,Enum),
-    holds(Enum,s0).
+    holds0(Enum).
 
 %
 %  For knowledge, apply persistence condition then just call into knows0.
 %
-holds(knows(Agt,F),s0) :-
+holds0(knows(Agt,F)) :-
     pcond(F,pbu(Agt),P),
     knows0(P).
-holds(~knows(Agt,F),s0) :-
+holds0(~knows(Agt,F)) :-
     pcond(F,pbu(Agt),P),
     \+ knows0(P).
 %
-%  Finally, handle primitive fluents using initially_true/initially_false
+%  Handle equality using unification
 %
-holds(F,s0) :-
-    prim_fluent(Ft),
-    functor(Ft,S,N), functor(F,S,N),
-    initially_true(F).
-holds(~F,s0) :-
-    prim_fluent(Ft),
-    functor(Ft,S,N), functor(F,S,N),
-    initially_false(F).
+holds0(A=B) :-
+    A=B.
+holds0(~(A=B)) :- 
+    dif(A,B).
 
 %
-%  knows0(Fml) is handled as per holds(Fml,s0), but using
-%  initially_knownT/initially_knownF for primitive fluents.
+%  Finally, we rely on holds0/1 from domain.pl to hande primitive fluents.
+%  Assume that knows0 -> holds0
+%
+holds0(F) :-
+    knows0(F).
+
+%
+%  knows0(Fml) is handled as per holds0(Fml)
 %
 knows0(F1 => F2) :-
     knows0(~F1) ; knows0(F2).
@@ -292,7 +296,7 @@ knows0(?([] : F)) :-
 knows0(?([V^_|Vs] : F)) :-
     subs(V,_,F,F1), knows0(?(Vs : F1)).
 knows0(!([] : F)) :-
-    knows0(F,s0).
+    knows0(F).
 knows0(!([V^T|Vs] : F)) :-
     bagof(Fb,(Val^(call(T,Val),subs(V,Val,!(Vs:F),Fb))),Fbs),
     joinlist('&',Fbs,Enum),
@@ -303,14 +307,6 @@ knows0(knows(Agt,F)) :-
 knows0(~knows(Agt,F)) :-
     pcond(F,pbu(Agt),P),
     \+ knows0(P).
-knows0(F) :-
-    prim_fluent(Ft),
-    functor(Ft,S,N), functor(F,S,N),
-    initially_knownT(F).
-knows0(~F) :-
-    prim_fluent(Ft),
-    functor(Ft,S,N), functor(F,S,N),
-    initially_knownT(F).
 
 %
 %  pcond_d1(F,C,P1)  -  depth 1 persistence condition for fluent F

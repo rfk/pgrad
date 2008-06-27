@@ -48,19 +48,14 @@ adp_fluent(sr(ok),enter(_),true).
 % Enumerates the fluents holding in the initial situation.
 % Rather than using negation-as-failure, we explicitly specify all literals
 % known to be true and known to be false.  This allows the initial database
-% to model (common) incomplete knowledge.
+% to model incomplete literal-level knowledge.
+% 
+% To avoid saying things twice, we assume knows0 -> holds0
 %
-initially_true(inroom(ann)).
-initially_true(inroom(bob)).
-initially_true(loc(c)).
-
-initially_false(loc(d)).
-
-initially_knownT(inroom(ann)).
-initially_knownT(inroom(bob)).
-
-initially_knownF(_) :- fail.
-
+knows0(inroom(ann)).
+knows0(inroom(bob)).
+holds0(loc(c)).
+holds0(~loc(d)).
 
 % Causal rules for each fluent/action combo
 causes_true(inroom(Agt),enter(Agt2),(Agt=Agt2)).
@@ -116,14 +111,14 @@ test(knows4) :-
     holds(~knows(bob,loc(c)),s0), !.
 
 
-%test(example1) :-
-%    holds(~?([L:location]:knows(ann,loc(L))),s0).
-%test(example2) :-
-%    holds(knows(bob,loc(c)),do(read(bob),s0)).
-%test(example3) :-
-%    holds(knows(bob,~?([L:location]:knows(ann,loc(L)))),s0).
-%test(example4) :-
-%    holds(~knows(bob,~?([L:location]:knows(ann,loc(L)))),do(leave(bob),s0)).
+test(example1) :-
+    holds(~?([L^location]:knows(ann,loc(L))),s0).
+test(example2) :-
+    holds(knows(bob,loc(c)),do(read(bob),s0)).
+test(example3) :-
+    holds(knows(bob,~?([L^location]:knows(ann,loc(L)))),s0).
+test(example4) :-
+    holds(~knows(bob,~?([L^location]:knows(ann,loc(L)))),do(leave(bob),s0)).
 
 :- end_tests(domain).
 
