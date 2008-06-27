@@ -1,4 +1,9 @@
 
+
+:- discontiguous(causes_true/3).
+:- discontiguous(causes_false/3).
+
+
 agent(ann).
 agent(bob).
 

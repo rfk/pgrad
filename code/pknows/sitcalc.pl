@@ -1,4 +1,13 @@
 
+:- multifile(adp_fluent/3).
+:- index(adp_fluent(1,1,0)).
+:- multifile(constraint/1).
+:- multifile(holds0/1).
+:- multifile(knows0/1).
+
+:- discontiguous(causes_true/3).
+:- discontiguous(causes_false/3).
+
 %
 %  action_with_vars(A,Vs)  -  get an action term with variable arguments
 %
@@ -43,6 +52,22 @@ domain_tautology(Fml) :-
     domain_axioms(Axs),
     entails(Axs,Fml).
 
+%
+%  Make adp_fluent enumerate action types if A is a variable
+%
+adp_fluent(F,A,C) :-
+    var(A), !,
+    (bagof(Ft,adp_fluent_bagof(F,A,Ft),Fts) ->
+        joinlist((|),Fts,Ftmp),
+        simplify(Ftmp,C)
+    ;
+        C=F
+    ).
+
+adp_fluent_bagof(F,A,F1) :-
+    action_with_vars(A1,V),
+    adp_fluent(F,A1,F1t),
+    F1 = ?(V : (F1t & (A=A1))).
 
 %
 %  Useful ADPs that can be defined in terms of other, simpler ADPs
@@ -286,3 +311,55 @@ knows0(~F) :-
     prim_fluent(Ft),
     functor(Ft,S,N), functor(F,S,N),
     initially_knownT(F).
+
+%
+%  pcond_d1(F,C,P1)  -  depth 1 persistence condition for fluent F
+%
+%    The basic meaning of this pedicate is: if fluent F holds in situation
+%    s, then it will continue to hold in all C-successors of s as long
+%    as P1 is true in s.
+% 
+
+pcond_d1(F,C,P1) :-
+    ( bagof(Cn,pcond_d1_bagof(F,C,Cn),Cns) ->
+        simplify_conjunction(Cns,SimpCns),
+        joinlist((&),SimpCns,P1)
+    ;
+        P1=true
+    ).
+
+pcond_d1_bagof(F,C,Cnt) :-
+    action_with_vars(A,Vs),
+    regression(F,A,R),
+    adp_fluent(C,A,Ec),
+    Cnt = !(Vs : (R | ~Ec)).
+
+%
+%  pcond(F,C,P)  -  persistence condition for F under C
+%
+
+pcond(F,C,P) :-
+    (domain_falsehood(F) ->
+        P = false
+    ; domain_tautology(F) ->
+        P = true
+    ; 
+        pcond_acc([F],C,P)
+    ).
+
+pcond_acc([F|Fs],C,P) :-
+    pcond_d1(F,C,P1),
+    %length([F|Fs],Len), write('P'), write(Len), write('=  '), write(P1), nl,
+    (domain_falsehood(P1) ->
+        P = false
+    ; domain_tautology(P1) ->
+        joinlist('&',[F|Fs],P)
+    ; 
+      joinlist('&',[F|Fs],Ff),
+      (domain_tautology(Ff=>P1) ->
+        P = Ff
+      ;
+        pcond_acc([P1,F|Fs],C,P)
+      )
+    ).
+

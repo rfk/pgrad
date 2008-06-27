@@ -36,6 +36,14 @@
 %
 %  If I can make prolog accept '!=' as an operator, I'll use that for
 %  inequality as well.
+%
+%  Epistemic pah operators are:
+%
+%     P ; Q       -   sequence
+%     P | Q       -   choice
+%     ?(P)        -   test
+%     !(X^T)      -   variable rebind (with type info)
+%     P*          -   iteration
 %     
 %  Most of these are native prolog operators so we dont have
 %  to declare them ourselves.  Note that ! and ?
@@ -52,6 +60,7 @@
 :- op(1200, xfx, :).
 :- op(550, fx, !).
 :- op(550, fx, ?).
+:- op(400, xf, *).
 
 
 %
