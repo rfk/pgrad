@@ -112,7 +112,7 @@ test(knows4) :-
 
 
 test(example1) :-
-    holds(~?([L^location]:knows(ann,loc(L))),s0).
+    holds(~?([L^location]:knows(ann,loc(L))),s0), !.
 test(example2) :-
     holds(knows(bob,loc(c)),do(read(bob),s0)).
 test(example3) :-

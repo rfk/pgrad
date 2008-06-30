@@ -517,9 +517,13 @@ simplify_conjunction(FmlsIn,FmlsOut) :-
 
 simplify_conjunction_acc([],FmlsAcc,FmlsAcc).
 simplify_conjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
-    % TODO: can we simplify F relative to the accumulated conjuncts?
-    %( joinlist('&',FmlsAcc,BG), fml_entails(BG,F) -> F2 = true ; F2 = F),
-    F2 = F,
+    ( member(Eq,FmlsAcc), struct_equiv(F,Eq) ->
+        F2 = true
+    ; member(Opp,FmlsAcc), struct_oppos(F,Opp) ->
+        F2 = false
+    ;
+        F2 = F
+    ),
     ( F2=true ->
         simplify_conjunction_acc(FmlsIn,FmlsAcc,FmlsOut)
     ; F2=false ->
@@ -535,12 +539,19 @@ simplify_disjunction(FmlsIn,FmlsOut) :-
 
 simplify_disjunction_acc([],FmlsAcc,FmlsAcc).
 simplify_disjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
-    ( F=false ->
+    ( member(Eq,FmlsAcc), struct_equiv(F,Eq) ->
+        F2 = false
+    ; member(Opp,FmlsAcc), struct_oppos(F,Opp) ->
+        F2 = true
+    ;
+        F2 = F
+    ),
+    ( F2=false ->
         simplify_disjunction_acc(FmlsIn,FmlsAcc,FmlsOut)
-    ; F=true ->
+    ; F2=true ->
         FmlsOut=[true]
     ;
-        simplify_disjunction_acc(FmlsIn,[F|FmlsAcc],FmlsOut)
+        simplify_disjunction_acc(FmlsIn,[F2|FmlsAcc],FmlsOut)
     ).
 
 
@@ -561,11 +572,11 @@ var_given_value(X,A=B,V) :-
         X == B, V = A
     ).
 var_given_value(X,P & Q,V) :-
-   flatten_op('&',[P,Q],Cs),
-   member(C,Cs), var_given_value(X,C,V).
+    flatten_op('&',[P,Q],Cs),
+    member(C,Cs), var_given_value(X,C,V).
 var_given_value(X,P | Q,V) :-
-   flatten_op('|',[P,Q],Cs),
-   var_given_value_list(X,Cs,V).
+    flatten_op('|',[P,Q],Cs),
+    var_given_value_list(X,Cs,V).
 var_given_value(X,!(_:P),V) :-
     var_given_value(X,P,V).
 var_given_value(X,?(_:P),V) :-
@@ -590,9 +601,13 @@ var_given_value_list(X,[H|T],V) :-
 :- index(var_valuated_list(0,1,0)).
 :- index(var_valuated_distribute(0,1,0,0)).
 
+% In the base case, X is given a single value throughout the
+% entire formula.  We simply replace it with that value. If the
+% value contains variables, we ensure that their quantifiers are
+% lifted to outermost scope.
 var_valuated(X,P,Q) :-
    var_given_value(X,P,V),
-   rename_vars([X^T],P,[V^T],Q), !.
+   insert_var_valuation(X,V,P,Q), !.
 
 % There's some trickery here, we allow ourselves to distribute
 % the & over a | if the | has a valuation.
@@ -610,9 +625,9 @@ var_valuated(X,P | Q,V) :-
    var_valuated_list(X,Cs,Vs),
    joinlist('|',Vs,V).
 var_valuated(X,!(V:P),!(V:Q)) :-
-    var_valuated(X,P,Q).
+   var_valuated(X,P,Q).
 var_valuated(X,?(V:P),?(V:Q)) :-
-    var_valuated(X,P,Q).
+   var_valuated(X,P,Q).
 
 var_valuated_list(_,[],[]).
 var_valuated_list(X,[H|T],[Hv|Tv]) :-
@@ -627,6 +642,22 @@ var_valuated_distribute(X,[P|Ps],Q,[Pv|T]) :-
 var_valuated_check(X,F) :-
     var_given_value(X,F,_).
 
+% If V contains any variables, we need to make sure the quantifier that
+% introduces them (if any) encloses all instances of X.
+insert_var_valuation(X,V,P,Q) :-
+   term_variables(X,Vars),
+   widen_quantifiers(Vars,P,X,Pw),
+   rename_vars([X^T],P,[V^T],Q), !.
+
+widen_quantifiers([],P,_,P).
+widen_quantifiers([V|Vs],P,X,Q) :-
+    do_widen_quantifier(P,V,X,Pw),
+    widen_quantifiers(Vs,Pw,X,Q).
+
+do_widen_quantifier(P,_,_,P) :-
+    is_atom(P), !.
+do_widen_quantifier(~P,V,X,Q) :-
+    do_widen_quantifier(P,V,X,Q).
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
