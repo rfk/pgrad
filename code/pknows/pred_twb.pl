@@ -39,7 +39,8 @@ twb_pdl_prove(Axioms,Conc,Result) :-
     ( ConcVars = [] ->
           Conc2 = Conc
     ;
-          Conc2 = !(ConcVars : Conc)
+          guess_var_types(ConcVars,Conc,TypedVars),
+          Conc2 = !(TypedVars : Conc)
     ),
     % Write out (Axioms) -> (Conjecture)
     write('('),

@@ -2,7 +2,8 @@
 %  fluent.pl:  predicates for manipulating fluent terms
 %
 %  This file supplies the basic predicates for manipulating and reasoning
-%  about fluent terms.
+%  about fluent terms.  It shells out to a third-party prover for the
+%  hard work.
 %
 %  Variables are expected to be actual prolog variables, as this vastly
 %  increases the simplicity and efficiency of certain operations.  It also
@@ -10,39 +11,29 @@
 %  we assume that the formula contains the *only* references to those
 %  variables, so we are free to bind them in simplification and reasoning.
 %
-%  In addition to manipulating arbitrary formulae, we have the ability
-%  to put fluents into Clause Normal Form and manipulate this form
-%  directly.  We assume the name of the skolem fluent is "skolN" where
-%  N is the number of arguments *apart* from the situation argument.
-%
-%
 
 
 %
-%  Our logical operators are almost the standard TSTP format operators,
-%  along with knows() and pknows() modalities:
+%  Our logical operators are:
 % 
 %     P & Q       -   logical and
 %     P | Q       -   logical or
 %     P => Q      -   implication
 %     P <=> Q     -   equivalence
 %     ~P          -   negation
-%     !([X^T]:P)  -   universal quantification
-%     ?([X^T]:P)  -   existential quantification
+%     !([X:T]:P)  -   universal quantification with typed variables
+%     ?([X:T]:P)  -   existential quantification with types variables
 %     A = B       -   object equality
 %     A \= B      -   object inequality
 %     knows(A,P)  -   individual-level knowledge modality
 %     pknows(E,P) -   complex epistemic modality
 %
-%  If I can make prolog accept '!=' as an operator, I'll use that for
-%  inequality as well.
-%
-%  Epistemic pah operators are:
+%  Epistemic path operators are:
 %
 %     P ; Q       -   sequence
 %     P | Q       -   choice
 %     ?(P)        -   test
-%     !(X^T)      -   variable rebind (with type info)
+%     !(X:T)      -   nondet. rebind of a typed variable
 %     P*          -   iteration
 %     
 %  Most of these are native prolog operators so we dont have
@@ -50,7 +41,9 @@
 %  take a list variables as their first argument - this
 %  allows more compact quantification over multiple variables.
 %
-%  Also note that variables are paired with their type in the quantifier.
+%  Also note that variables are always paired with their type in the
+%  quantifier - while we could probably deduce the type from its use
+%  in the enclosed formula, having it explicit is oh so much easier.
 %
 
 :- op(200,fx,~).
@@ -284,7 +277,8 @@ split_matching([E|T],Pred,Y,N) :-
 
 
 %
-%  indep_of_vars(Vars,P)  -  P contains none of the vars in the list Vars
+%  indep_of_vars(Vars,P)  -  P contains none of the vars in the list Vars,
+%                            i.e. it is independent of the vars.
 %
 indep_of_vars(Vars,P) :-
     \+ ( member(X,Vars), contains_var(P,X) ).
@@ -305,7 +299,7 @@ var_in_list([H|T],V) :-
 %  pairfrom(L,E1,E2)  -  E1 and E2 are a pair of (different) elements from L
 %
 %  Like doing (member(E1,L), member(E2,L))  but more efficient, doesnt match
-%  E1 and E2 to the same element, and doesnt generate permutations.
+%  E1 and E2 to the same element, and doesnt generate equivalent permutations.
 %
 pairfrom([H1,H2|T],E1,E2) :-
     E1 = H1, ( E2 = H2 ; member(E2,T) )
@@ -317,7 +311,6 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  
 %  This predicate applies some basic simplification rules to a formula
 %  to eliminate redundancy and (hopefully) speed up future reasoning.
-%  For maximum simplification, apply normalize/2 first.
 %  
 simplify(P,P) :-
     is_atom(P), P \= (_ = _), P \= (_ \= _).
@@ -556,40 +549,96 @@ simplify_disjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
 
 
 %
-%  var_given_value(X,P,V)  -  variable X is uniformly given the value V
-%                             within the formula P.
+%  var_given_value(X,P,V,Q)  -  variable X is uniformly given the value V
+%                               within the formula P.  Q is a formula equiv
+%                               to P, with variable X set to V.
 %
-%  var_given_value_list(X,Ps,V)  -  variable X is uniformly given the value V
-%                                   in all formulae in list Ps.
+%  var_given_value_list(X,Ps,V,Qs)  -  variable X is uniformly given the value
+%                                      V in all formulae in list Ps.
+% 
+%  Determining Q from P is not a simple substitution - if the value V
+%  contains vars that are introduced by a quantifier in P, this quantifier
+%  must be lifted to outermost scope.
+%
 
-:- index(var_given_value(0,1,0)).
-:- index(var_given_value_list(0,1,0)).
+:- index(var_given_value(0,1,0,0)).
+:- index(var_given_value_list(0,1,0,0)).
 
-var_given_value(X,A=B,V) :-
+var_given_value(X,A=B,V,true) :-
     ( X == A ->
         V = B
     ;
         X == B, V = A
     ).
-var_given_value(X,P & Q,V) :-
-    flatten_op('&',[P,Q],Cs),
-    member(C,Cs), var_given_value(X,C,V).
-var_given_value(X,P | Q,V) :-
-    flatten_op('|',[P,Q],Cs),
-    var_given_value_list(X,Cs,V).
-var_given_value(X,!(_:P),V) :-
-    var_given_value(X,P,V).
-var_given_value(X,?(_:P),V) :-
-    var_given_value(X,P,V).
-var_given_value(X,knows(_,P),V) :-
-    var_given_value(X,P,V).
-var_given_value(X,pknows(_,P),V) :-
-    var_given_value(X,P,V).
+var_given_value(X,P1 & P2,V,Q) :-
+    flatten_op('&',[P1,P2],Cjs),
+    select(Cj,Cjs,Rest), var_given_value(X,Cj,V,Qj),
+    partition(vgv_partition(X),Rest,Deps,Indeps),
+    (Indeps = [] -> IndepFml=true ; joinlist('&',Indeps,IndepFml)),
+    (Deps = [] -> DepFml1=true ; joinlist('&',Deps,DepFml1)),
+    subs(X,V,DepFml1,DepFml),
+    % We may have lifted a variable outside the scope of its
+    % quantifier.  We must push QRest back down through the quantifiers
+    % to rectify this.  By invariants of the operation, we know all 
+    % relevant quantifiers are at outermost scope in Qj.
+    (DepFml \= true ->
+      term_variables(V,Vars),
+      vgv_push_into_quantifiers(Vars,Qj,DepFml,QFml)
+    ;
+      QFml = Qj
+    ),
+    Q = (IndepFml & QFml), !.
+var_given_value(X,P1 | P2,V,Q) :-
+    flatten_op('|',[P1,P2],Djs),
+    var_given_value_list(X,Djs,V,Qs),
+    joinlist('|',Qs,Q).
+var_given_value(X,!(Vars:P),V,!(VarsQ:Q)) :-
+    var_given_value(X,P,V,Q2),
+    flatten_quant('!',Q2,Vars,VarsQ,Q).
+var_given_value(X,?(Vars:P),V,?(VarsQ:Q)) :-
+    var_given_value(X,P,V,Q2),
+    flatten_quant('?',Q2,Vars,VarsQ,Q).
+var_given_value(X,knows(A,P),V,knows(A,Q)) :-
+    var_given_value(X,P,V,Q).
+var_given_value(X,pknows(E,P),V,pknows(E,Q)) :-
+    var_given_value(X,P,V,Q).
+% There's no clause for ~P because that can never give X a specific value
 
-var_given_value_list(_,[],_).
-var_given_value_list(X,[H|T],V) :-
-    var_given_value(X,H,V),
-    var_given_value_list(X,T,V).
+var_given_value_list(_,[],_,[]).
+var_given_value_list(X,[H|T],V,[Qh|Qt]) :-
+    % Be careful not to do any unification on V.
+    % This ruins tail-recursion, but meh...
+    var_given_value(X,H,V,Qh),
+    var_given_value_list(X,T,V2,Qt),
+    V == V2.
+
+vgv_partition(V,F) :-
+    contains_var(F,V^_).
+
+vgv_push_into_quantifiers([],Qj,QDep,Qj & QDep).
+vgv_push_into_quantifiers(Vars,?(Qv:Qj),QDep,?(Qv:Q)) :-
+    Vars \= [],
+    vgv_subtract(Vars,Qv,Vars2),
+    vgv_push_into_quantifiers(Vars2,Qj,QDep,Q).
+vgv_push_into_quantifiers(Vars,!(Qv:Qj),QDep,!(Qv:Q)) :-
+    Vars \= [],
+    vgv_subtract(Vars,Qv,Vars2),
+    vgv_push_into_quantifiers(Vars2,Qj,QDep,Q).
+
+vgv_subtract([],_,[]).
+vgv_subtract(Vs,[],Vs).
+vgv_subtract(Vs,[X^_|Xs],Vs2) :-
+    vgv_subtract_helper(Vs,X,Vs1),
+    vgv_subtract(Vs1,Xs,Vs2).
+
+vgv_subtract_helper([],_,[]).
+vgv_subtract_helper([V|Vs],X,Vs2) :-
+    ( X == V ->
+        vgv_subtract_helper(Vs,X,Vs2)
+    ;
+        Vs2 = [V|Vs22],
+        vgv_subtract_helper(Vs,X,Vs22)
+    ).
 
 %
 %  var_valuated(X,P,P2)  -  variable X takes specific values throughout P,
@@ -601,25 +650,22 @@ var_given_value_list(X,[H|T],V) :-
 :- index(var_valuated_list(0,1,0)).
 :- index(var_valuated_distribute(0,1,0,0)).
 
-% In the base case, X is given a single value throughout the
-% entire formula.  We simply replace it with that value. If the
-% value contains variables, we ensure that their quantifiers are
-% lifted to outermost scope.
+% In the base case, X is given a single value throughout the entire formula.
 var_valuated(X,P,Q) :-
-   var_given_value(X,P,V),
-   insert_var_valuation(X,V,P,Q), !.
+   var_given_value(X,P,_,Q), !.
 
-% There's some trickery here, we allow ourselves to distribute
-% the & over a | if the | has a valuation.
+% The base case for P & Q - when they both give X the same value - is
+% already covered by the var_valuated/3 clause above.  But if one of the 
+% conjuncts is a disjunction that valuates X, then we can distribute over
+% it to achieve a valuation.
 var_valuated(X,P & Q,V) :-
-   flatten_op('&',[P,Q],Cls),
-   select(Cl,Cls,Rest),
-   flatten_op('|',[Cl],ClOrs),
-   maplist(var_valuated_check(X),ClOrs),
-   joinlist('&',Rest,RestTerm),
-   var_valuated_distribute(X,ClOrs,RestTerm,Qs),
-   joinlist('|',Qs,V), !.
-
+   flatten_op('&',[P,Q],Cjs),
+   select(Cj,Cjs,RestCjs),
+   flatten_op('|',Cj,Djs),
+   maplist(var_valuated_check(X),Djs),
+   joinlist('&',RestCjs,RestFml),
+   var_valuated_distribute(X,Djs,RestFml,VDjs),
+   joinlist('|',VDjs,V), !.
 var_valuated(X,P | Q,V) :-
    flatten_op('|',[P,Q],Cs),
    var_valuated_list(X,Cs,Vs),
@@ -631,33 +677,17 @@ var_valuated(X,?(V:P),?(V:Q)) :-
 
 var_valuated_list(_,[],[]).
 var_valuated_list(X,[H|T],[Hv|Tv]) :-
-    var_valuated(X,H,Hv),
-    var_valuated_list(X,T,Tv).
+   var_valuated(X,H,Hv),
+   var_valuated_list(X,T,Tv).
 
 var_valuated_distribute(_,[],_,[]).
 var_valuated_distribute(X,[P|Ps],Q,[Pv|T]) :-
-    var_valuated(X,P & Q,Pv),
-    var_valuated_distribute(X,Ps,Q,T).
+   var_valuated(X,P & Q,Pv),
+   var_valuated_distribute(X,Ps,Q,T).
 
 var_valuated_check(X,F) :-
-    var_given_value(X,F,_).
+   var_given_value(X,F,_,_).
 
-% If V contains any variables, we need to make sure the quantifier that
-% introduces them (if any) encloses all instances of X.
-insert_var_valuation(X,V,P,Q) :-
-   term_variables(X,Vars),
-   widen_quantifiers(Vars,P,X,Pw),
-   rename_vars([X^T],P,[V^T],Q), !.
-
-widen_quantifiers([],P,_,P).
-widen_quantifiers([V|Vs],P,X,Q) :-
-    do_widen_quantifier(P,V,X,Pw),
-    widen_quantifiers(Vs,Pw,X,Q).
-
-do_widen_quantifier(P,_,_,P) :-
-    is_atom(P), !.
-do_widen_quantifier(~P,V,X,Q) :-
-    do_widen_quantifier(P,V,X,Q).
 
 %
 %  joinlist(+Op,+In,-Out) - join items in a list using given operator
@@ -756,7 +786,7 @@ djs2fml(D,F) :-
 
 
 %
-%  is_atom(P)  -  the formula P is an atom, not a compound expression
+%  is_atom(P)  -  the formula P is a literal atom, not a compound expression
 %
 is_atom(P) :-
     P \= [],
@@ -996,6 +1026,18 @@ test(simp8) :-
     simplify(!([X^t]: p(X) & p(a)),!([X^t]:p(X)) & p(a)).
 test(simp9) :-
     simplify(?([X^t]: p(X) & p(a)),?([X^t]:p(X)) & p(a)).
+test(simp10) :-
+    X1 = ?([X^t] : ((p & (X=nil)) | (q & (X=obs) & r ) | (?([Y^o]:(s(Y) & (X=pair(a,Y))))))),
+    X2 = (p | ?([Y^o] : s(Y)) | (q & r)),
+    simplify(X1,X2).
+
+test(val1) :-
+    var_given_value(X,X=a,a,true).
+test(val2) :-
+    var_given_value(X,(X=a) & (X=b),b,F), simplify(F,false).
+test(val3) :-
+    var_given_value(X,p(X) & q(a) & ?([Y^t]:X=Y),Val,_),
+    Val == Y.
 
 test(copy1) :-
     F1 = !([X^t,Y^q] : p(X) & r(Y)),

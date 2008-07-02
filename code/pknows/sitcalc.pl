@@ -2,6 +2,7 @@
 :- multifile(adp_fluent/3).
 :- index(adp_fluent(1,1,0)).
 :- multifile(constraint/1).
+:- multifile(initially/1).
 :- multifile(holds0/1).
 :- multifile(knows0/1).
 
@@ -44,6 +45,8 @@ domain_axioms(Axs) :-
 
 constraint(true).
 constraint(~false).
+initially(~knows(Agt,false)) :-
+    agent(Agt).
 
 domain_falsehood(Fml) :-
     domain_axioms(Axs),
@@ -118,7 +121,7 @@ regression_bagof(F,A,B,Ft) :-
 % Regression base case, a primitive fluent.
 % Build successor state axiom from causes_true/cases_false
 regression1(F,A,Fr) :-
-    is_atom(F), F \= (_ = _), F \= (_ \= _), F \= knows(_,_),
+    is_atom(F), F \= (_ = _), F \= (_ \= _),
     (causes_true(F,A,Ep) -> true ; Ep = false),
     (causes_false(F,A,En) -> true ; En = false),
     simplify(Ep | (F & ~En),Fr).
@@ -163,23 +166,6 @@ regression1((P | Q),A,(R | S)) :-
 
 
 %
-%  Test whether a given term is a fluent or action
-%
-is_prim_fluent(F) :-
-    F =.. [Fn|Args],
-    length(Args,N),
-    length(TArgs,N),
-    Ff =.. [Fn|TArgs],
-    prim_fluent(Ff).
-
-is_prim_action(A) :-
-    A =.. [Fn|Args],
-    length(Args,N),
-    length(TArgs,N),
-    Ff =.. [Fn|TArgs],
-    prim_action(Ff).
-
-%
 %  holds(+F,+S) - fluent F holds in situation S
 %
 %  This predicate is true whenever the fluent F holds in situation S.
@@ -193,120 +179,9 @@ holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
 holds(F,s0) :-
-    holds0(F).
-
-% holds0(F) is implemented in such a way as to allow open-world reasoning.
-% We must push negation down onto the individual literals, so we can test
-% them using primitive knows0 and holds0 from the domain.
-% 
-% First, using DeMorgan etc
-%
-holds0(F1 => F2) :-
-    holds0(~F1) ; holds0(F2).
-holds0(F1 <=> F2) :-
-    holds0(F1) , holds0(F2)
-    ;
-    holds0(~F1) , holds0(~F2).
-holds0(F1 & F2) :-
-    holds0(F1), holds0(F2).
-holds0(F1 | F2) :-
-    holds0(F1) ; holds0(F2).
-holds0(~(F1 => F2)) :- 
-    holds0((F1 & (~F2))).
-holds0(~(F1 <=> F2)) :- 
-    holds0((F1 & (~F2) | ((~F1) & F2))).
-holds0(~(F1 & F2)) :- 
-    holds0((~F1) | (~F2)).
-holds0(~(F1 | F2)) :-
-    holds0((~F1) & (~F2)).
-%
-% Re-write quantifiers to be in positive form
-%
-holds0(~!(V : F)) :-
-    holds0(?(V : ~F)).
-holds0(~?(V : F)) :-
-    holds0(!(V : ~F)).
-%
-%  Handle positive quantifiers by binding free variables.
-%  For ? prolog does the hard work for us.
-%  For ! we determine type of var and enumerate it into a conjunction.
-%
-holds0(?([] : F)) :-
-    holds0(F).
-holds0(?([V^_|Vs] : F)) :-
-    subs(V,_,F,F1), holds0(?(Vs : F1)).
-holds0(!([] : F)) :-
-    holds0(F).
-holds0(!([V^T|Vs] : F)) :-
-    bagof(Fb,(Val^(call(T,Val),subs(V,Val,!(Vs:F),Fb))),Fbs),
-    joinlist('&',Fbs,Enum),
-    holds0(Enum).
-
-%
-%  For knowledge, apply persistence condition then just call into knows0.
-%
-holds0(knows(Agt,F)) :-
-    pcond(F,pbu(Agt),P),
-    knows0(P).
-holds0(~knows(Agt,F)) :-
-    pcond(F,pbu(Agt),P),
-    \+ knows0(P).
-%
-%  Handle equality using unification
-%
-holds0(A=B) :-
-    A=B.
-holds0(~(A=B)) :- 
-    dif(A,B).
-
-%
-%  Finally, we rely on holds0/1 from domain.pl to hande primitive fluents.
-%  Assume that knows0 -> holds0
-%
-holds0(F) :-
-    knows0(F).
-
-%
-%  knows0(Fml) is handled as per holds0(Fml)
-%
-knows0(F1 => F2) :-
-    knows0(~F1) ; knows0(F2).
-knows0(F1 <=> F2) :-
-    knows0(F1) , knows0(F2)
-    ;
-    knows0(~F1) , knows0(~F2).
-knows0(F1 & F2) :-
-    knows0(F1), knows0(F2).
-knows0(F1 | F2) :-
-    knows0(F1) ; knows0(F2).
-knows0(~(F1 => F2)) :- 
-    knows0((F1 & (~F2))).
-knows0(~(F1 <=> F2)) :- 
-    knows0((F1 & (~F2) | ((~F1) & F2))).
-knows0(~(F1 & F2)) :- 
-    knows0((~F1) | (~F2)).
-knows0(~(F1 | F2)) :-
-    knows0((~F1) & (~F2)).
-knows0(~!(V : F)) :-
-    knows0(?(V : ~F)).
-knows0(~?(V : F)) :-
-    knows0(!(V : ~F)).
-knows0(?([] : F)) :-
-    knows0(F).
-knows0(?([V^_|Vs] : F)) :-
-    subs(V,_,F,F1), knows0(?(Vs : F1)).
-knows0(!([] : F)) :-
-    knows0(F).
-knows0(!([V^T|Vs] : F)) :-
-    bagof(Fb,(Val^(call(T,Val),subs(V,Val,!(Vs:F),Fb))),Fbs),
-    joinlist('&',Fbs,Enum),
-    knows0(Enum).
-knows0(knows(Agt,F)) :-
-    pcond(F,pbu(Agt),P),
-    knows0(P).
-knows0(~knows(Agt,F)) :-
-    pcond(F,pbu(Agt),P),
-    \+ knows0(P).
+    bagof(Ax,initially(Ax),Ax0s),
+    joinlist('&',Ax0s,Ax0),
+    domain_tautology(Ax0 => F).
 
 %
 %  pcond_d1(F,C,P1)  -  depth 1 persistence condition for fluent F
@@ -357,5 +232,54 @@ pcond_acc([F|Fs],C,P) :-
       ;
         pcond_acc([P1,F|Fs],C,P)
       )
+    ).
+
+
+
+enumerate_vars([]).
+enumerate_vars([V^T|Vs]) :-
+    call(T,V), enumerate_vars(Vs).
+
+
+guess_var_types([],_,[]).
+guess_var_types([V|Vs],P,[V^T|Ts]) :-
+    guess_var_type(V,P,T),
+    guess_var_types(Vs,P,Ts).
+
+guess_var_type(V,P,T) :-
+    (guess_var_type_(V,P,T2) -> T=T2 ; T=object), !.
+
+guess_var_type_(V,P,T) :-
+    is_atom(P), P \= (_=_), P \= (_\=_),
+    contains_var(P,V^T),
+    P =.. [F|FArgs], length(FArgs,NumArgs),
+    length(FTypes,NumArgs), P2 =.. [F|FTypes],
+    prim_fluent(P2),
+    guess_var_type_list(V,FArgs,FTypes,T).
+guess_var_type_(V,P1 & P2,T) :-
+    guess_var_type_(V,P1,T) ; guess_var_type_(V,P2,T).
+guess_var_type_(V,P1 | P2,T) :-
+    guess_var_type_(V,P1,T) ; guess_var_type_(V,P2,T).
+guess_var_type_(V,P1 => P2,T) :-
+    guess_var_type_(V,P1,T) ; guess_var_type_(V,P2,T).
+guess_var_type_(V,P1 <=> P2,T) :-
+    guess_var_type_(V,P1,T) ; guess_var_type_(V,P2,T).
+guess_var_type_(V,~P,T) :-
+    guess_var_type_(V,P,T).
+guess_var_type_(V,?(_:P),T) :-
+    guess_var_type_(V,P,T).
+guess_var_type_(V,!(_:P),T) :-
+    guess_var_type_(V,P,T).
+guess_var_type_(V,knows(_,P),T) :-
+    guess_var_type_(V,P,T).
+guess_var_type_(V,pknows(_,P),T) :-
+    guess_var_type_(V,P,T).
+
+guess_var_type_list(_,[],[],_) :- fail.
+guess_var_type_list(V,[Ah|At],[Th|Tt],T) :-
+    ( V == Ah ->
+        T = Th
+    ;
+        guess_var_type_list(V,At,Tt,T)
     ).
 
