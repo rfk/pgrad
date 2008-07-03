@@ -163,6 +163,12 @@ regression1((P & Q),A,(R & S)) :-
 regression1((P | Q),A,(R | S)) :-
     regression1(P,A,R),
     regression1(Q,A,S).
+regression1((P => Q),A,(R => S)) :-
+    regression1(P,A,R),
+    regression1(Q,A,S).
+regression1((P <=> Q),A,(R <=> S)) :-
+    regression1(P,A,R),
+    regression1(Q,A,S).
 
 
 %
@@ -179,9 +185,34 @@ holds(F,do(A,S)) :-
     regression(F,A,Fr),
     holds(Fr,S).
 holds(F,s0) :-
+    regression_s0(F,Fr),
     bagof(Ax,initially(Ax),Ax0s),
     joinlist('&',Ax0s,Ax0),
-    domain_tautology(Ax0 => F).
+    domain_tautology(Ax0 => Fr).
+
+regression_s0(F,F) :-
+    is_atom(F).
+regression_s0(knows(Agt,P),knows(Agt,Pp)) :-
+    pcond(P,pbu(Agt),Pp).
+regression_s0(!(X : P),!(X : R)) :-
+    regression_s0(P,R).
+regression_s0(?(X : P),?(X : R)) :-
+    regression_s0(P,R).
+regression_s0(~P,~R) :-
+    regression_s0(P,R).
+regression_s0((P & Q),(R & S)) :-
+    regression_s0(P,R),
+    regression_s0(Q,S).
+regression_s0((P | Q),(R | S)) :-
+    regression_s0(P,R),
+    regression_s0(Q,S).
+regression_s0((P => Q),(R => S)) :-
+    regression_s0(P,R),
+    regression_s0(Q,S).
+regression_s0((P <=> Q),(R <=> S)) :-
+    regression_s0(P,R),
+    regression_s0(Q,S).
+
 
 %
 %  pcond_d1(F,C,P1)  -  depth 1 persistence condition for fluent F

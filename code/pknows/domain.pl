@@ -56,10 +56,16 @@ adp_fluent(sr(ok),enter(_),true).
 initially(loc(c)).
 initially(inroom(ann)).
 initially(inroom(bob)).
-initially(knows(ann,inroom(ann) & inroom(bob))).
-initially(knows(bob,inroom(ann) & inroom(bob))).
-initially(~ ?([L^location] : knows(ann,loc(L)))).
-initially(~ ?([L^location] : knows(bob,loc(L)))).
+initially(knows(Agt,P)) :-
+    agent(Agt),
+    ( agent(Agt2), P=inroom(Agt2)
+    ; agent(Agt2), agent(Agt3), P = knows(Agt2,inroom(Agt3))
+    ; agent(Agt2), location(L), P = ~ knows(Agt2,loc(L))
+    ).
+initially(~knows(ann,loc(c))).
+initially(~knows(ann,loc(d))).
+initially(~knows(bob,loc(c))).
+initially(~knows(bob,loc(d))).
 
 % Causal rules for each fluent/action combo
 causes_true(inroom(Agt),enter(Agt2),(Agt=Agt2)).
@@ -120,9 +126,9 @@ test(example1) :-
 test(example2) :-
     holds(knows(bob,loc(c)),do(read(bob),s0)), !.
 test(example3) :-
-    holds(knows(bob,~ ?([L^location]:knows(ann,loc(L)))),s0).
+    holds(knows(bob,~knows(ann,loc(c))),s0).
 test(example4) :-
-    holds(~ knows(bob,~ ?([L^location]:knows(ann,loc(L)))),do(leave(bob),s0)).
+    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)).
 
 :- end_tests(domain).
 

@@ -471,19 +471,30 @@ simplify((A=B),S) :-
    (
        A == B -> S=true
    ;
-       % Utilising the unique names assumption
-       (\+ unifiable(A,B,_)) -> S=false
-   ;
-       normalize((A=B),S)
+       % Utilising the unique names assumption, we can rewrite it to
+       % a conjunction of simpler equalities by striping functors, or
+       % to false if the terms will never unify
+       ( unifiable(A,B,Eqs) ->
+           joinlist('&',Eqs,S1),
+           normalize(S1,S)
+       ;
+           S=false
+       )
    ).
 simplify((A\=B),S) :-
    (
        A == B -> S=false
    ;
-       % Utilising the unique names assumption
-       (\+ unifiable(A,B,_)) -> S=true
-   ;
-       normalize((A\=B),S)
+       % Utilising the unique names assumption, we can rewrite it to
+       % a disjunction of simpler inequalities by striping functors, or
+       % to true if the terms will never unify
+       ( unifiable(A,B,Eqs) ->
+           joinlist('&',Eqs,S1),
+           normalize(S1,S2),
+           S = ~S2
+       ;
+           S = true
+       )
    ).
 simplify(knows(A,P),S) :-
    simplify(P,Ps),
@@ -615,15 +626,18 @@ var_given_value_list(X,[H|T],V,[Qh|Qt]) :-
 vgv_partition(V,F) :-
     contains_var(F,V^_).
 
-vgv_push_into_quantifiers([],Qj,QDep,Qj & QDep).
+%  We can stop recursing either when Vars=[] or when we are
+%  no longer at a quantifier, since we assume all relevant 
+%  quantifiers have been brought to the front.
 vgv_push_into_quantifiers(Vars,?(Qv:Qj),QDep,?(Qv:Q)) :-
-    Vars \= [],
+    Vars \= [], !,
     vgv_subtract(Vars,Qv,Vars2),
     vgv_push_into_quantifiers(Vars2,Qj,QDep,Q).
 vgv_push_into_quantifiers(Vars,!(Qv:Qj),QDep,!(Qv:Q)) :-
-    Vars \= [],
+    Vars \= [], !,
     vgv_subtract(Vars,Qv,Vars2),
     vgv_push_into_quantifiers(Vars2,Qj,QDep,Q).
+vgv_push_into_quantifiers(_,Qj,QDep,Qj & QDep).
 
 vgv_subtract([],_,[]).
 vgv_subtract(Vs,[],Vs).
@@ -661,8 +675,8 @@ var_valuated(X,P,Q) :-
 var_valuated(X,P & Q,V) :-
    flatten_op('&',[P,Q],Cjs),
    select(Cj,Cjs,RestCjs),
-   flatten_op('|',Cj,Djs),
-   maplist(var_valuated_check(X),Djs),
+   flatten_op('|',[Cj],Djs),
+   maplist(var_valuated_check(X),Djs), !,
    joinlist('&',RestCjs,RestFml),
    var_valuated_distribute(X,Djs,RestFml,VDjs),
    joinlist('|',VDjs,V), !.
@@ -686,6 +700,7 @@ var_valuated_distribute(X,[P|Ps],Q,[Pv|T]) :-
    var_valuated_distribute(X,Ps,Q,T).
 
 var_valuated_check(X,F) :-
+   %var_valuated(X,F,_).
    var_given_value(X,F,_,_).
 
 
@@ -735,6 +750,10 @@ fml2nnf(P <=> Q,N) :-
     fml2nnf((P => Q) & (Q => P),N), !.
 fml2nnf(P => Q,N) :-
     fml2nnf((~P) | Q,N), !.
+fml2nnf(~(P <=> Q),N) :-
+    fml2nnf(~(P => Q) & ~(Q => P),N), !.
+fml2nnf(~(P => Q),N) :-
+    fml2nnf(P & ~Q,N), !.
 fml2nnf(~(P & Q),N) :-
    fml2nnf((~P) | (~Q),N), !.
 fml2nnf(~(P | Q),N) :-
@@ -756,6 +775,10 @@ fml2nnf(?(X:P),?(X:N)) :-
 fml2nnf(knows(A,P),knows(A,N)) :-
     fml2nnf(P,N), !.
 fml2nnf(pknows(E,P),pknows(E,N)) :-
+    fml2nnf(P,N), !.
+fml2nnf(~knows(A,P),~knows(A,N)) :-
+    fml2nnf(P,N), !.
+fml2nnf(~pknows(E,P),~pknows(E,N)) :-
     fml2nnf(P,N), !.
 fml2nnf(P,P).
 
@@ -1004,6 +1027,63 @@ number_vars_rec([V|Vs],N) :-
 %     do so is to take a copy of Conc and work from that.
 %
 
+
+pp_fml(P) :-
+    copy_fml(P,F), fml2nnf(F,N), number_vars(N),
+    pp_fml(N,0,0), !, nl, nl.
+
+pp_inset(0).
+pp_inset(N) :-
+    N > 0, N1 is N - 1,
+    write('   '), pp_inset(N1).
+
+pp_fml_list([P],_,_,O1,D1) :-
+    pp_fml(P,O1,D1).
+pp_fml_list([P1,P2|Ps],Op,D,O1,D1) :-
+    pp_fml(P1,O1,D1), nl,
+    pp_inset(D), write(Op), nl,
+    pp_fml_list([P2|Ps],Op,D,O1,D1).
+
+pp_fml(P1 & P2,O,D) :-
+    flatten_op('&',[P1,P2],Ps),
+    D1 is D + 1,
+    O1 is O + 1,
+    pp_fml_list(Ps,'&',D,D1,O1).
+pp_fml(P1 | P2,O,D) :-
+    flatten_op('|',[P1,P2],Ps),
+    D1 is D + 1,
+    O1 is O + 1,
+    pp_fml_list(Ps,'|',D,D1,O1).
+pp_fml(~P,O,D) :-
+    D1 is D + 1,
+    pp_inset(O), write('~  '),
+    pp_fml(P,0,D1).
+pp_fml(P1 => P2,O,D) :-
+    D1 is D + 1,
+    pp_inset(O), pp_fml(P1,1,D1), nl,
+    pp_inset(D), write('=>'), nl,
+    pp_fml(P2,D1,D1).
+pp_fml(P1 <=> P2,O,D) :-
+    D1 is D + 1,
+    pp_inset(O), pp_fml(P1,1,D1), nl,
+    pp_inset(D), write('<=>'), nl,
+    pp_fml(P2,D1,D1).
+pp_fml(!(V:P),O,D) :-
+    D1 is D + 1,
+    pp_inset(O), write('!('), write(V), write('):'), nl,
+    pp_fml(P,D1,D1).
+pp_fml(?(V:P),O,D) :-
+    D1 is D + 1,
+    pp_inset(O), write('?('), write(V), write('):'), nl,
+    pp_fml(P,D1,D1).
+pp_fml(knows(A,P),O,D) :-
+    D1 is D + 1,
+    pp_inset(O), write('knows('), write(A), nl,
+    pp_fml(P,D1,D1), nl,
+    pp_inset(D), write(')').
+pp_fml(P,O,_) :-
+    is_atom(P),
+    pp_inset(O), write(P).
 
 
 :- begin_tests(fluent).

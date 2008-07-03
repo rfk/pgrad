@@ -22,3 +22,4 @@ main :-
   nl, nl,
   write('\\end{document}').
 
+
