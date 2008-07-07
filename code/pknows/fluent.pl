@@ -878,7 +878,8 @@ copy_fml(?(VarsP:P),?(VarsQ:Q)) :-
     copy_fml(P2,Q).
 copy_fml(knows(A,P),knows(A,Q)) :-
     copy_fml(P,Q).
-copy_fml(pknows(E,P),pknows(E,Q)) :-
+copy_fml(pknows(E,P),pknows(F,Q)) :-
+    copy_epath(E,F),
     copy_fml(P,Q).
 
 %

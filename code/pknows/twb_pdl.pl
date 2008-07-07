@@ -94,13 +94,14 @@ twb_write(?([V:T|Vs]:P)) :-
     twb_write(Enumed).
 twb_write(knows(A,P)) :-
     write('(['),
-    twb_write_path(A),
+    write(A),
     write('] ('),
     twb_write(P),
     write('))').
 twb_write(pknows(E,P)) :-
     write('(['),
-    twb_write_path(E),
+    enumerate_epath(E,EnumP),
+    twb_write_path(EnumP),
     write('] ('),
     twb_write(P),
     write('))').

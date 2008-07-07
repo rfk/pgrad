@@ -121,15 +121,20 @@ test(knows4) :-
 test(knows5) :-
     holds(~knows(bob,loc(c)),s0), !.
 
+test(path1) :-
+    domain_tautology(pknows(ann | bob,loc(c)) <=> (knows(ann,loc(c)) & knows(bob,loc(c)))).
+test(path2) :-
+    domain_tautology(pknows(!(X:agent) ; ?(inroom(X)),true) <=> (inroom(ann) & inroom(bob))).
+
 
 test(example1) :-
     holds(~ ?([L:location]:knows(ann,loc(L))),s0), !.
 test(example2) :-
     holds(knows(bob,loc(c)),do(read(bob),s0)), !.
-test(example3) :-
-    holds(knows(bob,~knows(ann,loc(c))),s0).
-test(example4) :-
-    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
+%test(example3) :-
+%    holds(knows(bob,~knows(ann,loc(c))),s0).
+%test(example4) :-
+%    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
 
 :- end_tests(domain).
 

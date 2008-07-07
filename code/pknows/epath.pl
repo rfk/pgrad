@@ -191,3 +191,7 @@ simplify_enum_epath(!(X:T),!(X:T)).
 simplify_enum_epath(A,A) :-
     agent(A).
 
+
+copy_epath(E,F) :-
+  fail.
+    
