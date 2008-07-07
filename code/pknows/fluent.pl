@@ -11,6 +11,14 @@
 %  we assume that the formula contains the *only* references to those
 %  variables, so we are free to bind them in simplification and reasoning.
 %
+%  The following predicate is expected to be provided as a 'black box'
+%  reasoning engine:
+%
+%    entails(Axioms,Conc):  Succeeds when conc is logically entailed by Axioms
+%
+%  Axioms is a list of formulae, and Conc is a formula.  The predicate must
+%  not bind any cariables in Conc.
+%
 
 
 %
@@ -97,9 +105,9 @@ normalize((P1 <=> Q1),(P2 <=> Q2)) :-
     normalize(P1,P2),
     normalize(Q1,Q2), !.
 normalize(knows(A,P),knows(A,Q)) :-
-    normalism(P,Q), !.
+    normalize(P,Q), !.
 normalize(pknows(E,P),pknows(E,Q)) :-
-    normalism(P,Q), !.
+    normalize(P,Q), !.
 normalize(P,P). 
 
 
@@ -225,7 +233,7 @@ flatten_quant_and_simp(Q,T,VarsIn,VarsOut,Body) :-
       append(V,VarsIn,Vars2),
       flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
     ;
-      simplify(T,Tsimp),
+      simplify1(T,Tsimp),
       ( Tsimp =.. [Q,(V : T2)] ->
           append(V,VarsIn,Vars2),
           flatten_quant_and_simp(Q,T2,Vars2,VarsOut,Body)
@@ -261,20 +269,6 @@ vdelete([H|T],E,Res) :-
         vdelete(T,E,T2)
     ).
 
-%
-%  split_matching(List,Pred,Y,N)  -  splits List into elements that match Pred
-%                                    (Y) and elements that dont (N)
-%
-split_matching([],_,[],[]).
-split_matching([E|T],Pred,Y,N) :-
-    ( call(Pred,E) ->
-        Y = [E|YT],
-        split_matching(T,Pred,YT,N)
-    ;
-        N = [E|NT],
-        split_matching(T,Pred,Y,NT)
-    ).
-
 
 %
 %  indep_of_vars(Vars,P)  -  P contains none of the vars in the list Vars,
@@ -296,15 +290,20 @@ var_in_list([H|T],V) :-
     ).
 
 %
-%  pairfrom(L,E1,E2)  -  E1 and E2 are a pair of (different) elements from L
+%  pairfrom(L,E1,E2,Rest)  -  E1 and E2 are a pair of (different) elements
+%                             from L, wile Rest is the rest of the list
 %
 %  Like doing (member(E1,L), member(E2,L))  but more efficient, doesnt match
 %  E1 and E2 to the same element, and doesnt generate equivalent permutations.
 %
-pairfrom([H1,H2|T],E1,E2) :-
-    E1 = H1, ( E2 = H2 ; member(E2,T) )
+pairfrom(L,E1,E2,Rest) :-
+    pairfrom_rec(L,[],E1,E2,Rest).
+
+pairfrom_rec([H|T],Rest1,E1,E2,Rest) :-
+    E1 = H, select(E2,T,Rest2), append(Rest1,Rest2,Rest)
     ;
-    pairfrom([H2|T],E1,E2).
+    pairfrom_rec(T,[H|Rest1],E1,E2,Rest).
+
 
 %
 %  simplify(+F1,-F2) - simplify a formula
@@ -312,11 +311,18 @@ pairfrom([H1,H2|T],E1,E2) :-
 %  This predicate applies some basic simplification rules to a formula
 %  to eliminate redundancy and (hopefully) speed up future reasoning.
 %  
-simplify(P,P) :-
+
+simplify(P,S) :-
+    normalize(P,Nml),
+    simplify1(Nml,S1),
+    fml2nnf(S1,Nnf),
+    simplify1(Nnf,S).
+
+simplify1(P,P) :-
     is_atom(P), P \= (_ = _), P \= (_ \= _).
-simplify(P & Q,S) :-
+simplify1(P & Q,S) :-
     flatten_op('&',[P,Q],TermsT),
-    simplify_conjunction(TermsT,TermsS),
+    simplify1_conjunction(TermsT,TermsS),
     ( TermsS = [] ->
         S = true
     ;
@@ -324,9 +330,9 @@ simplify(P & Q,S) :-
         predsort(fml_compare,TermsS,Terms),
         joinlist('&',Terms,S)
     ).
-simplify(P | Q,S) :-
+simplify1(P | Q,S) :-
     flatten_op('|',[P,Q],TermsT),
-    simplify_disjunction(TermsT,TermsS),
+    simplify1_disjunction(TermsT,TermsS),
     ( TermsS = [] ->
         S = false
     ;
@@ -334,9 +340,9 @@ simplify(P | Q,S) :-
         predsort(fml_compare,TermsS,Terms),
         joinlist('|',Terms,S)
     ).
-simplify(P => Q,S) :-
-    simplify(P,Sp),
-    simplify(Q,Sq),
+simplify1(P => Q,S) :-
+    simplify1(P,Sp),
+    simplify1(Q,Sq),
     (
         Sp=false -> S=true
     ;
@@ -348,9 +354,9 @@ simplify(P => Q,S) :-
     ;
         S = (Sp => Sq)
     ).
-simplify(P <=> Q,S) :-
-    simplify(P,Sp),
-    simplify(Q,Sq),
+simplify1(P <=> Q,S) :-
+    simplify1(P,Sp),
+    simplify1(Q,Sq),
     (
         struct_equiv(P,Q) -> S=true
     ;
@@ -366,8 +372,8 @@ simplify(P <=> Q,S) :-
     ;
         S = (Sp <=> Sq)
     ).
-simplify(~P,S) :-
-    simplify(P,SP),
+simplify1(~P,S) :-
+    simplify1(P,SP),
     (
         SP=false -> S=true
     ;
@@ -379,8 +385,8 @@ simplify(~P,S) :-
     ;
         S = ~SP
     ).
-simplify(!(Xs:P),S) :-
-    ( Xs = [] -> simplify(P,S)
+simplify1(!(Xs:P),S) :-
+    ( Xs = [] -> simplify1(P,S)
     ;
     flatten_quant_and_simp('!',P,Xs,VarsT,Body),
     sort(VarsT,Vars),
@@ -390,14 +396,14 @@ simplify(!(Xs:P),S) :-
         Body=true -> S=true
     ;
         % Remove any useless variables
-        split_matching(Vars,ncontains_var(Body),_,Vars2),
+        partition(ncontains_var(Body),Vars,_,Vars2),
         ( Vars2 = [] ->
             S2 = Body
         ;
           % Pull independent components outside the quantifier.
           % Both conjuncts and disjuncts can be handled in this manner.
           (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
-            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+            partition(indep_of_vars(Vars),BTerms,Indep,BT2),
             % Because we have removed useless vars, BT2 cannot be empty
             joinlist('|',BT2,Body2),
             ( Indep = [] ->
@@ -408,7 +414,7 @@ simplify(!(Xs:P),S) :-
             )
           
           ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
-            split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+            partition(indep_of_vars(Vars),BTerms,Indep,BT2),
             joinlist('&',BT2,Body2),
             ( Indep = [] ->
               S2=!(Vars2:Body2)
@@ -422,8 +428,8 @@ simplify(!(Xs:P),S) :-
         ),
         S = S2
     )).
-simplify(?(Xs:P),S) :-
-   ( Xs = [] -> simplify(P,S)
+simplify1(?(Xs:P),S) :-
+   ( Xs = [] -> simplify1(P,S)
    ;
    flatten_quant_and_simp('?',P,Xs,VarsT,Body),
    sort(VarsT,Vars),
@@ -435,17 +441,17 @@ simplify(?(Xs:P),S) :-
        % Remove vars that are assigned a specific value, simply replacing
        % them with their value in the Body formula
        member(V1^T1,Vars), var_valuated(V1,Body,Body2) ->
-           vdelete(Vars,V1^T1,Vars2), simplify(?(Vars2:Body2),S)
+           vdelete(Vars,V1^T1,Vars2), simplify1(?(Vars2:Body2),S)
    ;
        % Remove any useless variables
-       split_matching(Vars,ncontains_var(Body),_,Vars2),
+       partition(ncontains_var(Body),Vars,_,Vars2),
        ( Vars2 = [] ->
            S = Body
        ;
          % Pull independent components outside the quantifier,
          % Both conjuncts and disjuncts can be handled in this manner.
          (flatten_op('|',[Body],BTerms), BTerms = [_,_|_] -> 
-           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+           partition(indep_of_vars(Vars),BTerms,Indep,BT2),
            joinlist('|',BT2,Body2),
            ( Indep = [] ->
              S = ?(Vars2:Body2)
@@ -454,7 +460,7 @@ simplify(?(Xs:P),S) :-
              S = (?(Vars2:Body2) | IndepB)
            )
          ; flatten_op('&',[Body],BTerms), BTerms = [_,_|_] ->
-           split_matching(BTerms,indep_of_vars(Vars),Indep,BT2),
+           partition(indep_of_vars(Vars),BTerms,Indep,BT2),
            joinlist('&',BT2,Body2),
            ( Indep = [] ->
              S = ?(Vars2:Body2)
@@ -467,7 +473,7 @@ simplify(?(Xs:P),S) :-
          )
        )
    )).
-simplify((A=B),S) :-
+simplify1((A=B),S) :-
    (
        A == B -> S=true
    ;
@@ -481,7 +487,7 @@ simplify((A=B),S) :-
            S=false
        )
    ).
-simplify((A\=B),S) :-
+simplify1((A\=B),S) :-
    (
        A == B -> S=false
    ;
@@ -496,14 +502,14 @@ simplify((A\=B),S) :-
            S = true
        )
    ).
-simplify(knows(A,P),S) :-
-   simplify(P,Ps),
+simplify1(knows(A,P),S) :-
+   simplify1(P,Ps),
    ( Ps=true -> S=true
    ; Ps=false -> S=false
    ; S = knows(A,Ps)
    ).
-simplify(pknows(E,P),S) :-
-   simplify(P,Ps),
+simplify1(pknows(E,P),S) :-
+   simplify1(P,Ps),
    ( Ps=true -> S=true
    ; Ps=false -> S=false
    ; S = pknows(E,Ps)
@@ -511,16 +517,37 @@ simplify(pknows(E,P),S) :-
 
 
 %
-%  simplify_conjunction(In,Out)  -  simplify the conjunction of list of fmls
-%  simplify_disjunction(In,Out)  -  simplify the disjunction of list of fmls
+%  simplify1_conjunction(In,Out)  -  simplify the conjunction of list of fmls
+%  simplify1_disjunction(In,Out)  -  simplify the disjunction of list of fmls
 %
 
-simplify_conjunction(FmlsIn,FmlsOut) :-
-    maplist(simplify,FmlsIn,FmlsI2),
-    simplify_conjunction_acc(FmlsI2,[],FmlsOut).
+simplify1_conjunction(FmlsIn,FmlsOut) :-
+    maplist(simplify1,FmlsIn,FmlsI1),
+    simplify1_conjunction_rules(FmlsI1,FmlsI2),
+    simplify1_conjunction_acc(FmlsI2,[],FmlsOut).
 
-simplify_conjunction_acc([],FmlsAcc,FmlsAcc).
-simplify_conjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
+simplify1_conjunction_rules(ConjsI,ConjsO) :-
+    (pairfrom(ConjsI,C1,C2,Rest), (simplify1_conjunction_rule(C1,C2,C1o,C2o) ; simplify1_conjunction_rule(C2,C1,C2o,C1o)) ->
+      simplify1_conjunction_rules([C1o,C2o|Rest],ConjsO)
+    ;
+      ConjsO = ConjsI
+    ).
+ 
+simplify1_conjunction_rule(C1,C2,C1,C2o) :-
+    C2 = (C2a | C2b),
+    ( struct_oppos(C1,C2a), C2o=C2b
+    ; struct_oppos(C1,C2b), C2o=C2a
+    ).
+simplify1_conjunction_rule(C1,C2,C1,true) :-
+    C2 = (C2a | C2b),
+    ( struct_equiv(C1,C2a)
+    ; struct_equiv(C1,C2b)
+    ).
+    
+
+
+simplify1_conjunction_acc([],FmlsAcc,FmlsAcc).
+simplify1_conjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
     ( member(Eq,FmlsAcc), struct_equiv(F,Eq) ->
         F2 = true
     ; member(Opp,FmlsAcc), struct_oppos(F,Opp) ->
@@ -529,20 +556,20 @@ simplify_conjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
         F2 = F
     ),
     ( F2=true ->
-        simplify_conjunction_acc(FmlsIn,FmlsAcc,FmlsOut)
+        simplify1_conjunction_acc(FmlsIn,FmlsAcc,FmlsOut)
     ; F2=false ->
         FmlsOut=[false]
     ;
-        simplify_conjunction_acc(FmlsIn,[F2|FmlsAcc],FmlsOut)
+        simplify1_conjunction_acc(FmlsIn,[F2|FmlsAcc],FmlsOut)
     ).
     
 
-simplify_disjunction(FmlsIn,FmlsOut) :-
-    maplist(simplify,FmlsIn,FmlsI2),
-    simplify_disjunction_acc(FmlsI2,[],FmlsOut).
+simplify1_disjunction(FmlsIn,FmlsOut) :-
+    maplist(simplify1,FmlsIn,FmlsI2),
+    simplify1_disjunction_acc(FmlsI2,[],FmlsOut).
 
-simplify_disjunction_acc([],FmlsAcc,FmlsAcc).
-simplify_disjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
+simplify1_disjunction_acc([],FmlsAcc,FmlsAcc).
+simplify1_disjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
     ( member(Eq,FmlsAcc), struct_equiv(F,Eq) ->
         F2 = false
     ; member(Opp,FmlsAcc), struct_oppos(F,Opp) ->
@@ -551,11 +578,11 @@ simplify_disjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
         F2 = F
     ),
     ( F2=false ->
-        simplify_disjunction_acc(FmlsIn,FmlsAcc,FmlsOut)
+        simplify1_disjunction_acc(FmlsIn,FmlsAcc,FmlsOut)
     ; F2=true ->
         FmlsOut=[true]
     ;
-        simplify_disjunction_acc(FmlsIn,[F2|FmlsAcc],FmlsOut)
+        simplify1_disjunction_acc(FmlsIn,[F2|FmlsAcc],FmlsOut)
     ).
 
 
@@ -1002,30 +1029,6 @@ number_vars_rec([V|Vs],N) :-
     atom_codes(V,Codes),
     Ns is N + 1,
     number_vars_rec(Vs,Ns).
-
-%
-%  In conjunction with this file, one requires an implementation of actual
-%  logical reasoning.  Such a reasoning engine, like this file, must enforce
-%  unique names axioms for all ground terms in formulae - that is, for any
-%  terms returned by terms_in_fml/2.
-%
-%  The following predicates are expected to be provided by an implementation
-%  of logical reasoning.
-%
-%  fml2axioms(Fml,Axs):  Convert formula to more efficient form
-%
-%     This predicate is used to convert the formula in Fml into an opaque
-%     form that can be used for efficient reasoning.
-%
-%  add_to_axioms(Fml,Axs,Axs2):  Add a formula to an existing set of axioms
-%
-%  combine_axioms(Ax1,Ax2,Axs):  Combine two sets of axioms
-%
-%  entails(Axioms,Conc):  Succeeds when conc is logically entailed by Axioms
-%
-%     This *must not* bind any variables in Conc.  The easiest way to
-%     do so is to take a copy of Conc and work from that.
-%
 
 
 pp_fml(P) :-

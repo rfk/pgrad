@@ -224,8 +224,8 @@ regression_s0((P <=> Q),(R <=> S)) :-
 
 pcond_d1(F,C,P1) :-
     ( bagof(Cn,pcond_d1_bagof(F,C,Cn),Cns) ->
-        simplify_conjunction(Cns,SimpCns),
-        joinlist((&),SimpCns,P1)
+        joinlist('&',Cns,P1t),
+        simplify(P1t,P1)
     ;
         P1=true
     ).
