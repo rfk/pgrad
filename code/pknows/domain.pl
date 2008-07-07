@@ -51,28 +51,23 @@ adp_fluent(sr(R),read(_),loc(R)).
 adp_fluent(sr(ok),leave(_),true).
 adp_fluent(sr(ok),enter(_),true).
 
+% Causal rules for each fluent/action combo
+causes_true(inroom(Agt),enter(Agt2),(Agt=Agt2)).
+causes_false(inroom(Agt),leave(Agt2),(Agt=Agt2)).
+
 %  Specify what holds in the initial situation.
-%
 initially(loc(c)).
 initially(~loc(d)).
 initially(inroom(ann)).
 initially(inroom(bob)).
-initially(knows(Agt,P)) :-
-    agent(Agt),
-    ( agent(Agt2), P=inroom(Agt2)
-    ; P = (loc(c) <=> ~loc(d))
-    ; agent(Agt2), agent(Agt3), P = knows(Agt2,inroom(Agt3))
-    ; agent(Agt2), location(L), P = ~ knows(Agt2,loc(L))
-    ; agent(Agt2), P = knows(Agt2,loc(c) <=> ~loc(d))
-    ).
-initially(~knows(ann,loc(c))).
-initially(~knows(ann,loc(d))).
-initially(~knows(bob,loc(c))).
-initially(~knows(bob,loc(d))).
 
-% Causal rules for each fluent/action combo
-causes_true(inroom(Agt),enter(Agt2),(Agt=Agt2)).
-causes_false(inroom(Agt),leave(Agt2),(Agt=Agt2)).
+% Specify what is common knowledge in the initial situation
+initially(pknows((ann | bob)*,P) :-
+    P = inroom(ann) ; P = inroom(bob)
+    ; P = (loc(c) <=> ~loc(d))
+    ; ~knows(ann,loc(c)) ; ~knows(bob,loc(c))
+    ; ~knows(ann,loc(d)) ; ~knows(bob,loc(d)).
+
 
 
 :- begin_tests(domain).

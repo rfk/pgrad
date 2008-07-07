@@ -1,32 +1,10 @@
 %
-%  pred_twb.pl:  logical reasoning using the Tableaux Workbench suite
+%  twb_pdl.pl:  logical reasoning using the Tableaux Workbench PDL prover
 %
-%  At this stage I havent found a way to utilise the notion of "axioms" -
-%  perhaps I should convert them to clausal form or something.  Anyway,
-%  the only really interesting interface predicate is entails/2.
-%
-
-
-fml2axioms(Fml,Axs) :-
-    ( is_list(Fml) ->
-        Axs = Fml
-    ;
-        Axs = [Fml]
-    ).
-add_to_axioms(Fml,Axs,Axs2) :-
-    ( is_list(Fml) ->
-        append(Axs,Fml,Axs2)
-    ;
-        Axs2 = [Fml|Axs]
-    ).
-combine_axioms(Ax1,Ax2,Axs) :-
-    append(Ax1,Ax2,Axs).
 
 entails(Axs,Conc) :-
     copy_term(Conc,Conc2),
     twb_pdl_prove(Axs,Conc2,yes).
-
-%%%  Guts of the implementation below this line %%%
 
 twb_pdl_prove(Axioms,Conc,Result) :-
     % Create input/output files

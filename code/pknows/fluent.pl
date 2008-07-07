@@ -828,38 +828,13 @@ fml2nnf(~pknows(E,P),~pknows(E,N)) :-
     fml2nnf(P,N), !.
 fml2nnf(P,P).
 
-
-%
-%  fml2cnf  -  convert formula to CNF
-%
-%  This will rename variables, so be careful!
-%
-
-fml2cnf(F,C) :-
-    e_cnf(F,C).
-
-cnf2fml([],true) :- !.
-cnf2fml(C,F) :-
-    maplist(djs2fml,C,Ds),
-    joinlist('&',Ds,B),
-    free_vars(B,V),
-    ( V = [] ->
-        F = B
-    ;
-        F = !(V : B)
-    ).
-
-djs2fml([],false) :- !.
-djs2fml(D,F) :-
-    joinlist('|',D,F).
-
-
 %
 %  is_atom(P)  -  the formula P is a literal atom, not a compound expression
 %
+%  This is used to detect the base case of many predicates that structurally
+%  decompose formulae.
+%
 is_atom(P) :-
-    P \= [],
-    P \= [_|_],
     P \= (~_),
     P \= (_ => _),
     P \= (_ <=> _),
@@ -938,48 +913,6 @@ vars_in_both([H|T],V2,Acc,Vars) :-
         vars_in_both(T,V2,Acc,Vars)
     ).
     
-%
-%  terms_in_fml(F,Terms)  -  list all the basic terms found in the formula
-%
-terms_in_fml(P,Terms) :-
-    is_atom(P), !,
-    P =.. [_|Args],
-    sublist(ground,Args,TermsT),
-    sort(TermsT,Terms).
-terms_in_fml(~P,Terms) :-
-    !, terms_in_fml(P,Terms).
-terms_in_fml(CP,Terms) :-
-    CP =.. [Op,P1,P2],
-    memberchk(Op,['&','|','=>','<=>']), !,
-    terms_in_fml(P1,T1),
-    terms_in_fml(P2,T2),
-    oset_union(T1,T2,Terms).
-terms_in_fml(!(_:P),Terms) :-
-    terms_in_fml(P,Terms).
-terms_in_fml(?(_:P),Terms) :-
-    terms_in_fml(P,Terms).
-terms_in_fml(knows(_,P),Terms) :-
-    terms_in_fml(P,Terms).
-terms_in_fml(pknows(_,P),Terms) :-
-    terms_in_fml(P,Terms).
-
-
-%
-%  equiv(F1,F2)  -  check that two formulae are equivalent
-%  equiv(Axs,F1,F2)  -  check that two formulae are equivalent, given axioms
-%
-
-equiv(F1,F2) :-
-    fml2axioms(true & ~false,Axs),
-    equiv(Axs,F1,F2).
-
-equiv(Axs,F1,F2) :-
-    entails(Axs,F1 => F2),
-    entails(Axs,F2 => F1).
-
-fml_entails(F1,F2) :-
-    fml2axioms(F1,Axs),
-    entails(Axs,F2).
 
 write_eqn(P) :-
     write('\\begin{multline}'),nl,write_latex(P),nl,write('\\end{multline}').
@@ -1050,6 +983,10 @@ number_vars_rec([V|Vs],N) :-
     number_vars_rec(Vs,Ns).
 
 
+%
+%  pp_fml(P)  -  pretty-print the formula P
+%
+
 pp_fml(P) :-
     copy_fml(P,F), fml2nnf(F,N), number_vars(N),
     pp_fml(N,0,0), !, nl, nl.
@@ -1100,7 +1037,12 @@ pp_fml(?(V:P),O,D) :-
     pp_fml(P,D1,D1).
 pp_fml(knows(A,P),O,D) :-
     D1 is D + 1,
-    pp_inset(O), write('knows('), write(A), nl,
+    pp_inset(O), write('knows('), write(A), write(','), nl,
+    pp_fml(P,D1,D1), nl,
+    pp_inset(D), write(')').
+pp_fml(pknows(E,P),O,D) :-
+    D1 is D + 1,
+    pp_inset(O), write('pknows('), write(E), write(','), nl,
     pp_fml(P,D1,D1), nl,
     pp_inset(D), write(')').
 pp_fml(P,O,_) :-
