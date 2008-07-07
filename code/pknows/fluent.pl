@@ -565,8 +565,27 @@ simplify1_conjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-
     
 
 simplify1_disjunction(FmlsIn,FmlsOut) :-
-    maplist(simplify1,FmlsIn,FmlsI2),
+    maplist(simplify1,FmlsIn,FmlsI1),
+    simplify1_disjunction_rules(FmlsI1,FmlsI2),
     simplify1_disjunction_acc(FmlsI2,[],FmlsOut).
+
+simplify1_disjunction_rules(DisjI,DisjO) :-
+    (pairfrom(DisjI,D1,D2,Rest), (simplify1_disjunction_rule(D1,D2,D1o,D2o) ; simplify1_disjunction_rule(D2,D1,D2o,D1o)) ->
+      simplify1_disjunction_rules([D1o,D2o|Rest],DisjO)
+    ;
+      DisjO = DisjI
+    ).
+ 
+simplify1_disjunction_rule(D1,D2,D1,D2o) :-
+    D2 = (D2a & D2b),
+    ( struct_oppos(D1,D2a), D2o=D2b
+    ; struct_oppos(D1,D2b), D2o=D2a
+    ).
+simplify1_disjunction_rule(D1,D2,D1,false) :-
+    D2 = (D2a & D2b),
+    ( struct_equiv(D1,D2a)
+    ; struct_equiv(D1,D2b)
+    ).
 
 simplify1_disjunction_acc([],FmlsAcc,FmlsAcc).
 simplify1_disjunction_acc([F|FmlsIn],FmlsAcc,FmlsOut) :-

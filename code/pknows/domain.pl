@@ -54,13 +54,16 @@ adp_fluent(sr(ok),enter(_),true).
 %  Specify what holds in the initial situation.
 %
 initially(loc(c)).
+initially(~loc(d)).
 initially(inroom(ann)).
 initially(inroom(bob)).
 initially(knows(Agt,P)) :-
     agent(Agt),
     ( agent(Agt2), P=inroom(Agt2)
+    ; P = (loc(c) <=> ~loc(d))
     ; agent(Agt2), agent(Agt3), P = knows(Agt2,inroom(Agt3))
     ; agent(Agt2), location(L), P = ~ knows(Agt2,loc(L))
+    ; agent(Agt2), P = knows(Agt2,loc(c) <=> ~loc(d))
     ).
 initially(~knows(ann,loc(c))).
 initially(~knows(ann,loc(d))).
