@@ -192,6 +192,6 @@ simplify_enum_epath(A,A) :-
     agent(A).
 
 
-copy_epath(E,F) :-
-  fail.
+% TODO: copy epaths by renaming bound variables
+copy_epath(E,E).
     

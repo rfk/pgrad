@@ -136,5 +136,14 @@ test(example2) :-
 %test(example4) :-
 %    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
 
+test(example5) :-
+    holds(pknows((ann | bob)*,~knows(ann,loc(c))),s0), !.
+test(example6) :-
+    holds(~pknows((ann | bob)*,loc(c)),do(read(bob),s0)), !.
+test(example7) :-
+    holds(pknows((ann | bob)*,?([X:location] : knows(bob,loc(X)))),do(read(bob),s0)), !.
+test(example8) :-
+    holds(pknows((ann | bob)*,loc(c)),do(read(ann),do(read(bob),s0))), !.
+
 :- end_tests(domain).
 

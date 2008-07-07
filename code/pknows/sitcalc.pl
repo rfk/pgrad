@@ -130,6 +130,10 @@ regression1(knows(Agt,P),A,Fr) :-
     adp_fluent(obs(Agt,O),A,ObsDefn2),
     adp_fluent(canObs(Agt),A,CanObs),
     adp_fluent(poss,A,Poss).
+regression1(pknows0(E,P),A,Fr) :-
+    regression(P,A2,Pr),
+    regress_epath(E,A,A2,Er),
+    Fr = !([A2:action] : pknows0(Er,Pr)).
     
 
 % No functional fluents, so equality is rigid

@@ -108,6 +108,8 @@ normalize(knows(A,P),knows(A,Q)) :-
     normalize(P,Q), !.
 normalize(pknows(E,P),pknows(E,Q)) :-
     normalize(P,Q), !.
+normalize(pknows0(E,P),pknows0(E,Q)) :-
+    normalize(P,Q), !.
 normalize(P,P). 
 
 
@@ -514,6 +516,12 @@ simplify1(pknows(E,P),S) :-
    ; Ps=false -> S=false
    ; S = pknows(E,Ps)
    ).
+simplify1(pknows0(E,P),S) :-
+   simplify1(P,Ps),
+   ( Ps=true -> S=true
+   ; Ps=false -> S=false
+   ; S = pknows0(E,Ps)
+   ).
 
 
 %
@@ -658,6 +666,8 @@ var_given_value(X,?(Vars:P),V,?(VarsQ:Q)) :-
 var_given_value(X,knows(A,P),V,knows(A,Q)) :-
     var_given_value(X,P,V,Q).
 var_given_value(X,pknows(E,P),V,pknows(E,Q)) :-
+    var_given_value(X,P,V,Q).
+var_given_value(X,pknows0(E,P),V,pknows0(E,Q)) :-
     var_given_value(X,P,V,Q).
 % There's no clause for ~P because that can never give X a specific value
 
@@ -822,9 +832,13 @@ fml2nnf(knows(A,P),knows(A,N)) :-
     fml2nnf(P,N), !.
 fml2nnf(pknows(E,P),pknows(E,N)) :-
     fml2nnf(P,N), !.
+fml2nnf(pknows0(E,P),pknows0(E,N)) :-
+    fml2nnf(P,N), !.
 fml2nnf(~knows(A,P),~knows(A,N)) :-
     fml2nnf(P,N), !.
 fml2nnf(~pknows(E,P),~pknows(E,N)) :-
+    fml2nnf(P,N), !.
+fml2nnf(~pknows0(E,P),~pknows0(E,N)) :-
     fml2nnf(P,N), !.
 fml2nnf(P,P).
 
@@ -843,7 +857,8 @@ is_atom(P) :-
     P \= ?(_:_),
     P \= !(_:_),
     P \= knows(_,_),
-    P \= pknows(_,_).
+    P \= pknows(_,_),
+    P \= pknows0(_,_).
 
 
 %
@@ -879,6 +894,9 @@ copy_fml(?(VarsP:P),?(VarsQ:Q)) :-
 copy_fml(knows(A,P),knows(A,Q)) :-
     copy_fml(P,Q).
 copy_fml(pknows(E,P),pknows(F,Q)) :-
+    copy_epath(E,F),
+    copy_fml(P,Q).
+copy_fml(pknows0(E,P),pknows0(F,Q)) :-
     copy_epath(E,F),
     copy_fml(P,Q).
 
@@ -1044,6 +1062,11 @@ pp_fml(knows(A,P),O,D) :-
 pp_fml(pknows(E,P),O,D) :-
     D1 is D + 1,
     pp_inset(O), write('pknows('), write(E), write(','), nl,
+    pp_fml(P,D1,D1), nl,
+    pp_inset(D), write(')').
+pp_fml(pknows0(E,P),O,D) :-
+    D1 is D + 1,
+    pp_inset(O), write('pknows0('), write(E), write(','), nl,
     pp_fml(P,D1,D1), nl,
     pp_inset(D), write(')').
 pp_fml(P,O,_) :-
