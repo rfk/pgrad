@@ -175,13 +175,13 @@ fml_compare(Ord,F1,F2) :-
 %  grounding the copied variable, then checking for structural equivalence
 %  with the original term.
 %
-contains_var(A,V^_) :-
-    copy_term(A^V,A2^V2),
+contains_var(A,V:_) :-
+    copy_term(A:V,A2:V2),
     V2=groundme,
     A \=@= A2.
 
-ncontains_var(A,V^_) :-
-    copy_term(A^V,A2^V2),
+ncontains_var(A,V:_) :-
+    copy_term(A:V,A2:V2),
     V2=groundme,
     A =@= A2.
     
@@ -440,8 +440,8 @@ simplify1(?(Xs:P),S) :-
    ;
        % Remove vars that are assigned a specific value, simply replacing
        % them with their value in the Body formula
-       member(V1^T1,Vars), var_valuated(V1,Body,Body2) ->
-           vdelete(Vars,V1^T1,Vars2), simplify1(?(Vars2:Body2),S)
+       member(V1:T1,Vars), var_valuated(V1,Body,Body2) ->
+           vdelete(Vars,V1:T1,Vars2), simplify1(?(Vars2:Body2),S)
    ;
        % Remove any useless variables
        partition(ncontains_var(Body),Vars,_,Vars2),
@@ -670,7 +670,7 @@ var_given_value_list(X,[H|T],V,[Qh|Qt]) :-
     V == V2.
 
 vgv_partition(V,F) :-
-    contains_var(F,V^_).
+    contains_var(F,V:_).
 
 %  We can stop recursing either when Vars=[] or when we are
 %  no longer at a quantifier, since we assume all relevant 
@@ -687,7 +687,7 @@ vgv_push_into_quantifiers(_,Qj,QDep,Qj & QDep).
 
 vgv_subtract([],_,[]).
 vgv_subtract(Vs,[],Vs).
-vgv_subtract(Vs,[X^_|Xs],Vs2) :-
+vgv_subtract(Vs,[X:_|Xs],Vs2) :-
     vgv_subtract_helper(Vs,X,Vs1),
     vgv_subtract(Vs1,Xs,Vs2).
 
@@ -889,9 +889,9 @@ rename_vars(Vs,P,Vs2,P2) :-
     rename_vars(Vs,P,[],Vs2,P2).
 
 rename_vars([],P,Acc,Acc,P).
-rename_vars([V^T|Vs],P,Acc,NewV,NewP) :-
+rename_vars([V:T|Vs],P,Acc,NewV,NewP) :-
     subs(V,V2,P,P2),
-    append(Acc,[V2^T],Acc2),
+    append(Acc,[V2:T],Acc2),
     rename_vars(Vs,P2,Acc2,NewV,NewP).
 
 %
@@ -1067,12 +1067,12 @@ test(simp6) :-
 test(simp7) :-
     simplify(true & true,true).
 test(simp8) :-
-    simplify(!([X^t]: p(X) & p(a)),!([X^t]:p(X)) & p(a)).
+    simplify(!([X:t]: p(X) & p(a)),!([X:t]:p(X)) & p(a)).
 test(simp9) :-
-    simplify(?([X^t]: p(X) & p(a)),?([X^t]:p(X)) & p(a)).
+    simplify(?([X:t]: p(X) & p(a)),?([X:t]:p(X)) & p(a)).
 test(simp10) :-
-    X1 = ?([X^t] : ((p & (X=nil)) | (q & (X=obs) & r ) | (?([Y^o]:(s(Y) & (X=pair(a,Y))))))),
-    X2 = (p | ?([Y^o] : s(Y)) | (q & r)),
+    X1 = ?([X:t] : ((p & (X=nil)) | (q & (X=obs) & r ) | (?([Y:o]:(s(Y) & (X=pair(a,Y))))))),
+    X2 = (p | ?([Y:o] : s(Y)) | (q & r)),
     simplify(X1,X2).
 
 test(val1) :-
@@ -1080,11 +1080,11 @@ test(val1) :-
 test(val2) :-
     var_given_value(X,(X=a) & (X=b),b,F), simplify(F,false).
 test(val3) :-
-    var_given_value(X,p(X) & q(a) & ?([Y^t]:X=Y),Val,_),
+    var_given_value(X,p(X) & q(a) & ?([Y:t]:X=Y),Val,_),
     Val == Y.
 
 test(copy1) :-
-    F1 = !([X^t,Y^q] : p(X) & r(Y)),
+    F1 = !([X:t,Y:q] : p(X) & r(Y)),
     copy_fml(F1,F2),
     F1 =@= F2,
     F1 \== F2.

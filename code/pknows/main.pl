@@ -5,21 +5,11 @@
 
 :- [fluent].
 :- [epath].
-:- [pred_twb].
+:- [twb_pdl].
 :- [sitcalc].
 :- [domain].
 
 main :-
-  write('\\documentclass{article}'), nl,
-  write('\\usepackage{amsmath}'), nl,
-  write('\\begin{document}'), nl,
-  nl, nl,
-  P = ~holding(max,box1),
-  write_eqn(P),
-  nl, nl,
-  pcond_d1(P,pbu(sam),Pd1),
-  write_eqn(Pd1),
-  nl, nl,
-  write('\\end{document}').
+    run_tests.
 
 

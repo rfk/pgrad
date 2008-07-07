@@ -22,31 +22,17 @@ action_with_vars(A,Vs) :-
     A =.. [F|Args].
 
 awv_collect([],[],[]).
-awv_collect([T|Ts],[Y|Ys],[Y^T|Vs]) :-
+awv_collect([T|Ts],[Y|Ys],[Y:T|Vs]) :-
     awv_collect(Ts,Ys,Vs).
 
-
-%
-%  domain_axioms(Axs):  unify Axs with the set of domain axioms.
-%
-%  The domain axioms are the background theory against which entailment
-%  queries should be posed using entails/2.
-%
-
-domain_axioms(Axs) :-
-    ( retract(domain_axioms_cache(Axs)) ->
-        assert(domain_axioms_cache(Axs))
-    ;
-        findall(C,constraint(C),Cs),
-        joinlist('&',Cs,BgT),
-        fml2axioms(BgT,Axs),
-        assert(domain_axioms_cache(Axs))
-    ).
 
 constraint(true).
 constraint(~false).
 initially(~knows(Agt,false)) :-
     agent(Agt).
+
+domain_axioms(Ax) :-
+   findall(C,constraint(C),Ax).
 
 domain_falsehood(Fml) :-
     domain_axioms(Axs),
@@ -85,7 +71,7 @@ adp_fluent(obs(Agt,O),A,C) :-
     adp_fluent(canObs(Agt),A,CO),
     adp_fluent(canSense(Agt),A,CS),
     adp_fluent(sr(R),A,CR),
-    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R^result]: CR & (O=pair(A,R))))).
+    C = ((~CO & (O=nil)) | (CO & ~CS & (O=A)) | (CO & CS & ?([R:result]: CR & (O=pair(A,R))))).
 
 
 %
@@ -136,7 +122,7 @@ regression1(F,A,Fr) :-
 %      can ever match the observations for A
 %
 regression1(knows(Agt,P),A,Fr) :-
-    Fr = ?([O^observation]: (ObsDefn & (~CanObs => knows(Agt,P)) & (CanObs => KR))),
+    Fr = ?([O:observation]: (ObsDefn & (~CanObs => knows(Agt,P)) & (CanObs => KR))),
     KR = knows(Agt,((Poss & ObsDefn2) => Ppr)),
     pcond(P,pbu(Agt),Pp),
     regression(Pp,A,Ppr),
@@ -268,12 +254,12 @@ pcond_acc([F|Fs],C,P) :-
 
 
 enumerate_vars([]).
-enumerate_vars([V^T|Vs]) :-
+enumerate_vars([V:T|Vs]) :-
     call(T,V), enumerate_vars(Vs).
 
 
 guess_var_types([],_,[]).
-guess_var_types([V|Vs],P,[V^T|Ts]) :-
+guess_var_types([V|Vs],P,[V:T|Ts]) :-
     guess_var_type(V,P,T),
     guess_var_types(Vs,P,Ts).
 
@@ -282,7 +268,7 @@ guess_var_type(V,P,T) :-
 
 guess_var_type_(V,P,T) :-
     is_atom(P), P \= (_=_), P \= (_\=_),
-    contains_var(P,V^T),
+    contains_var(P,V:T),
     P =.. [F|FArgs], length(FArgs,NumArgs),
     length(FTypes,NumArgs), P2 =.. [F|FTypes],
     prim_fluent(P2),

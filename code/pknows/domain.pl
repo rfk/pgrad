@@ -62,13 +62,16 @@ initially(inroom(ann)).
 initially(inroom(bob)).
 
 % Specify what is common knowledge in the initial situation
-initially(pknows((ann | bob)*,P) :-
+initially(pknows((ann | bob)*,P)) :-
     P = inroom(ann) ; P = inroom(bob)
     ; P = (loc(c) <=> ~loc(d))
-    ; ~knows(ann,loc(c)) ; ~knows(bob,loc(c))
-    ; ~knows(ann,loc(d)) ; ~knows(bob,loc(d)).
+    ; P = ~knows(ann,loc(c)) ; P = ~knows(bob,loc(c))
+    ; P = ~knows(ann,loc(d)) ; P = ~knows(bob,loc(d)).
 
 
+%
+%  And now for the unit tests...
+%
 
 :- begin_tests(domain).
 
@@ -98,11 +101,11 @@ test(holds3) :-
 test(holds4) :-
     holds(inroom(ann),do(leave(bob),s0)), !.
 test(holds5) :-
-    holds(?([X^agent] : inroom(X)),do(leave(bob),s0)), !.
+    holds(?([X:agent] : inroom(X)),do(leave(bob),s0)), !.
 test(holds6) :-
-    holds(!([X^agent] : inroom(X)),s0), !.
+    holds(!([X:agent] : inroom(X)),s0), !.
 test(holds7) :-
-    \+ holds(!([X^agent] : inroom(X)),do(leave(bob),s0)).
+    \+ holds(!([X:agent] : inroom(X)),do(leave(bob),s0)).
 test(holds8) :-
     holds(loc(c),s0), !.
 
@@ -120,13 +123,13 @@ test(knows5) :-
 
 
 test(example1) :-
-    holds(~ ?([L^location]:knows(ann,loc(L))),s0), !.
+    holds(~ ?([L:location]:knows(ann,loc(L))),s0), !.
 test(example2) :-
     holds(knows(bob,loc(c)),do(read(bob),s0)), !.
 test(example3) :-
     holds(knows(bob,~knows(ann,loc(c))),s0).
 test(example4) :-
-    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)).
+    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
 
 :- end_tests(domain).
 

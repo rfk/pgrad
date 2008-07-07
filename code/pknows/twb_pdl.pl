@@ -12,7 +12,6 @@ twb_pdl_prove(Axioms,Conc,Result) :-
     tmp_file(twb_out,OutFile),
     tell(InFile),
     % Universally quantify all free variables in conc
-    % TODO: what type should these vars be?
     free_vars(Conc,ConcVars),
     ( ConcVars = [] ->
           Conc2 = Conc
@@ -26,21 +25,24 @@ twb_pdl_prove(Axioms,Conc,Result) :-
     write(') -> ('),
     twb_write(Conc2), write(').'), nl,
     told, !,
-    % Call TWB and have it write its conclusions in output file
+    % Call TWB and have it write its conclusions into output file
     sformat(PCmd,'/home/rfk/twb-dev/library/pdlMark.twb < ~w > ~w',[InFile,OutFile]),
     shell(PCmd,_),
-    % Grep output file for "Result:Closed" indicating truth
+    % Grep output file for "Result:Closed" indicating truthity
     sformat(TCmd,'grep "Result:Closed" ~w > /dev/null',[OutFile]),
     ( shell(TCmd,0) ->
         Result = yes
     ;
         Result = no
-    % Propositional prover, cannot get Result=unknown
+    % Propositional prover, so we cannot get Result=unknown
     ).
 
 
-%  All formulae are propositionalised, so we can decide equality
-%  at write-time.
+%
+%  twb_write(P)  -  write formula in TWB PDL format
+%
+%  All formulae are propositionalised as they are written, so we can decide
+%  equality at write-time and simply write 'Verum' or 'Falsum'.
 twb_write(A=B) :-
     ( A==B -> write('Verum') ; write('Falsum')).
 twb_write(A\=B) :-
@@ -80,19 +82,25 @@ twb_write(~P) :-
     write(')').
 twb_write(!([]:P)) :-
     twb_write(P).
-twb_write(!([V^T|Vs]:P)) :-
+twb_write(!([V:T|Vs]:P)) :-
     bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs),
     joinlist('&',Pbs,Enumed),
     twb_write(Enumed).
 twb_write(?([]:P)) :-
     twb_write(P).
-twb_write(?([V^T|Vs]:P)) :-
+twb_write(?([V:T|Vs]:P)) :-
     bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs),
     joinlist('|',Pbs,Enumed),
     twb_write(Enumed).
 twb_write(knows(A,P)) :-
     write('(['),
-    write(A),
+    twb_write_path(A),
+    write('] ('),
+    twb_write(P),
+    write('))').
+twb_write(pknows(E,P)) :-
+    write('(['),
+    twb_write_path(E),
     write('] ('),
     twb_write(P),
     write('))').
@@ -120,4 +128,28 @@ twb_write_axioms([]) :-
 twb_write_axioms([A|Axs]) :-
     twb_write(A), write(' & '),
     twb_write_axioms(Axs).
+
+
+twb_write_path(E1 ; E2) :-
+    write('('),
+    twb_write_path(E1),
+    write(' ; '),
+    twb_write_path(E2),
+    write(')').
+twb_write_path(E1 | E2) :-
+    write('('),
+    twb_write_path(E1),
+    write(' U '),
+    twb_write_path(E2),
+    write(')').
+twb_write_path(?(P)) :-
+    write('( ? '),
+    twb_write(P),
+    write(' )').
+twb_write_path(E*) :-
+    write('( * '),
+    twb_write_path(E),
+    write(' )').
+twb_write_path(A) :-
+    write(A).
 
