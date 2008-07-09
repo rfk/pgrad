@@ -43,6 +43,7 @@ twb_pdl_prove(Axioms,Conc,Result) :-
 %
 %  All formulae are propositionalised as they are written, so we can decide
 %  equality at write-time and simply write 'Verum' or 'Falsum'.
+%
 twb_write(A=B) :-
     ( A==B -> write('Verum') ; write('Falsum')).
 twb_write(A\=B) :-
@@ -98,7 +99,7 @@ twb_write(knows(A,P)) :-
     write('] ('),
     twb_write(P),
     write('))').
-twb_write(pknows(E,P)) :-
+twb_write(pknows0(E,P)) :-
     write('(['),
     enumerate_epath(E,EnumP),
     twb_write_path(EnumP),

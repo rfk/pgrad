@@ -196,20 +196,17 @@ ncontains_var(A,V:_) :-
 %  similar operators such as ((A & B) & (C & (D & E))) to be flattened
 %  into a list (A,B,C,D,E).
 %
-flatten_op(O,Ts,Res) :-
-    flatten_op(O,Ts,[],Res).
 
-%  accumulator implementation of flatten_op/3
+:- index(flatten_op(0,1,0)).
 
-:- index(flatten_op(0,1,0,0)).
-
-flatten_op(_,[],Res,Res).
-flatten_op(O,[T|Ts],Acc,Res) :-
+flatten_op(_,[],[]).
+flatten_op(O,[T|Ts],Res) :-
     ( T =.. [O|Args] ->
         append(Args,Ts,Ts2),
-        flatten_op(O,Ts2,Acc,Res)
+        flatten_op(O,Ts2,Res)
     ;
-        flatten_op(O,Ts,[T|Acc],Res)
+        Res = [T|Res2],
+        flatten_op(O,Ts,Res2)
     ).
 
 %
@@ -270,6 +267,13 @@ vdelete([H|T],E,Res) :-
         Res = [H|T2],
         vdelete(T,E,T2)
     ).
+
+:- index(vdelete_list(0,1,0)).
+
+vdelete_list(L,[],L).
+vdelete_list(L,[H|T],L2) :-
+    vdelete(L,H,L1),
+    vdelete_list(L1,T,L2).
 
 
 %
@@ -511,16 +515,18 @@ simplify1(knows(A,P),S) :-
    ; S = knows(A,Ps)
    ).
 simplify1(pknows(E,P),S) :-
+   simplify_epath(E,Es),
    simplify1(P,Ps),
    ( Ps=true -> S=true
    ; Ps=false -> S=false
-   ; S = pknows(E,Ps)
+   ; S = pknows(Es,Ps)
    ).
 simplify1(pknows0(E,P),S) :-
+   simplify_epath(E,Es),
    simplify1(P,Ps),
    ( Ps=true -> S=true
    ; Ps=false -> S=false
-   ; S = pknows0(E,Ps)
+   ; S = pknows0(Es,Ps)
    ).
 
 
@@ -1020,18 +1026,18 @@ pp_fml_list([P],_,_,O1,D1) :-
 pp_fml_list([P1,P2|Ps],Op,D,O1,D1) :-
     pp_fml(P1,O1,D1), nl,
     pp_inset(D), write(Op), nl,
-    pp_fml_list([P2|Ps],Op,D,O1,D1).
+    pp_fml_list([P2|Ps],Op,D,D1,D1).
 
 pp_fml(P1 & P2,O,D) :-
     flatten_op('&',[P1,P2],Ps),
     D1 is D + 1,
     O1 is O + 1,
-    pp_fml_list(Ps,'&',D,D1,O1).
+    pp_fml_list(Ps,'&',D,O1,D1).
 pp_fml(P1 | P2,O,D) :-
     flatten_op('|',[P1,P2],Ps),
     D1 is D + 1,
     O1 is O + 1,
-    pp_fml_list(Ps,'|',D,D1,O1).
+    pp_fml_list(Ps,'|',D,O1,D1).
 pp_fml(~P,O,D) :-
     D1 is D + 1,
     pp_inset(O), write('~  '),
@@ -1061,12 +1067,16 @@ pp_fml(knows(A,P),O,D) :-
     pp_inset(D), write(')').
 pp_fml(pknows(E,P),O,D) :-
     D1 is D + 1,
-    pp_inset(O), write('pknows('), write(E), write(','), nl,
+    pp_inset(O), write('pknows('), nl,
+    pp_epath(E,D1,D1), nl,
+    pp_inset(D), write('-----'), nl,
     pp_fml(P,D1,D1), nl,
     pp_inset(D), write(')').
 pp_fml(pknows0(E,P),O,D) :-
     D1 is D + 1,
-    pp_inset(O), write('pknows0('), write(E), write(','), nl,
+    pp_inset(O), write('pknows0('), nl,
+    pp_epath(E,D1,D1), nl,
+    pp_inset(D), write('-----'), nl,
     pp_fml(P,D1,D1), nl,
     pp_inset(D), write(')').
 pp_fml(P,O,_) :-
@@ -1074,7 +1084,7 @@ pp_fml(P,O,_) :-
     pp_inset(O), write(P).
 
 
-:- begin_tests(fluent).
+:- begin_tests(fluent,[sto(rational_trees)]).
 
 test(simp1) :-
     simplify(p & true,p).

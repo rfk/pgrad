@@ -9,7 +9,3 @@
 :- [sitcalc].
 :- [domain].
 
-main :-
-    run_tests.
-
-

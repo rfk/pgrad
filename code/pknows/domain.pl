@@ -1,4 +1,9 @@
-
+%
+%  Domain-specific definitions.
+%
+%  This axiomatisation is for the "party invitation" domain from the
+%  paper "Common Knowledge, Hidden Actions, and the Frame Problem".
+%
 
 :- discontiguous(causes_true/3).
 :- discontiguous(causes_false/3).
@@ -12,6 +17,11 @@ location(d).
 
 result(R) :-
   location(R).
+
+action(nil).
+action(A) :-
+    action_with_vars(A,Vs),
+    enumerate_vars(Vs).
 
 observation(nil).
 observation(A) :-
@@ -34,7 +44,7 @@ prim_action(enter(agent)).
 prim_fluent(loc(location)).
 prim_fluent(inroom(agent)).
 
-% Enumerates conditions for action description predicate fluents
+% Definitions for action description predicate fluents
 adp_fluent(poss,read(Agt),inroom(Agt)).
 adp_fluent(poss,enter(Agt),~inroom(Agt)).
 adp_fluent(poss,leave(Agt),inroom(Agt)).
@@ -62,7 +72,7 @@ initially(inroom(ann)).
 initially(inroom(bob)).
 
 % Specify what is common knowledge in the initial situation
-initially(pknows((ann | bob)*,P)) :-
+initially(pknows0((ann | bob)*,P)) :-
     P = inroom(ann) ; P = inroom(bob)
     ; P = (loc(c) <=> ~loc(d))
     ; P = ~knows(ann,loc(c)) ; P = ~knows(bob,loc(c))
@@ -73,7 +83,7 @@ initially(pknows((ann | bob)*,P)) :-
 %  And now for the unit tests...
 %
 
-:- begin_tests(domain).
+:- begin_tests(domain,[sto(rational_trees)]).
 
 test(reg1) :-
     regression(inroom(ann),read(bob),inroom(ann)).
@@ -122,28 +132,47 @@ test(knows5) :-
     holds(~knows(bob,loc(c)),s0), !.
 
 test(path1) :-
-    domain_tautology(pknows(ann | bob,loc(c)) <=> (knows(ann,loc(c)) & knows(bob,loc(c)))).
+    domain_tautology(pknows0(ann | bob,loc(c)) <=> (knows(ann,loc(c)) & knows(bob,loc(c)))).
 test(path2) :-
-    domain_tautology(pknows(!(X:agent) ; ?(inroom(X)),true) <=> (inroom(ann) & inroom(bob))).
+    domain_tautology(pknows0(!(X:agent) ; ?(inroom(X)),loc(c)) <=> ((inroom(ann) | inroom(bob)) => loc(c))).
+test(path3) :-
+    write('TEST: path3'), nl,
+    P = pknows0(ann,loc(c)),
+    regression(P,nil,R),
+    domain_tautology(R => P),
+    write('DONE'), nl.
+test(path4) :-
+    write('TEST: path4'), nl,
+    P = pknows0((ann | bob)*,loc(c)),
+    regression(P,nil,R),
+    domain_tautology(R => P),
+    write('DONE'), nl.
 
-
+%
+%  Examples from "Common Knowledge, Hidden Actions, and the Frame Problem".
+%
 test(example1) :-
+    write('TEST: example1'), nl,
     holds(~ ?([L:location]:knows(ann,loc(L))),s0), !.
 test(example2) :-
+    write('TEST: example2'), nl,
     holds(knows(bob,loc(c)),do(read(bob),s0)), !.
-%test(example3) :-
-%    holds(knows(bob,~knows(ann,loc(c))),s0).
-%test(example4) :-
-%    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
+test(example3) :-
+    write('TEST: example3'), nl,
+    holds(knows(bob,~knows(ann,loc(c))),s0).
+test(example4) :-
+    write('TEST: example4'), nl,
+    holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
 
 test(example5) :-
+    write('TEST: example5'), nl,
     holds(pknows((ann | bob)*,~knows(ann,loc(c))),s0), !.
-test(example6) :-
-    holds(~pknows((ann | bob)*,loc(c)),do(read(bob),s0)), !.
-test(example7) :-
-    holds(pknows((ann | bob)*,?([X:location] : knows(bob,loc(X)))),do(read(bob),s0)), !.
-test(example8) :-
-    holds(pknows((ann | bob)*,loc(c)),do(read(ann),do(read(bob),s0))), !.
+%test(example6) :-
+%    holds(~pknows((ann | bob)*,loc(c)),do(read(bob),s0)), !.
+%test(example7) :-
+%    holds(pknows((ann | bob)*,?([X:location] : knows(bob,loc(X)))),do(read(bob),s0)), !.
+%test(example8) :-
+%    holds(pknows((ann | bob)*,loc(c)),do(read(ann),do(read(bob),s0))), !.
 
 :- end_tests(domain).
 
