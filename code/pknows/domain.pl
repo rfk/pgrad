@@ -28,9 +28,7 @@ observation(A) :-
     action_with_vars(A,Vs),
     enumerate_vars(Vs).
 observation(pair(A,R)) :-
-    action_with_vars(A,Vs),
-    enumerate_vars(Vs),
-    result(R).
+    A = read(Agt), agent(Agt), location(R).
 
 object(O) :-
     agent(O) ; location(O) ; result(O) ; observation(O).
