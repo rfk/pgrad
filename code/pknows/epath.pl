@@ -252,8 +252,20 @@ simplify_epath_seq(Eseq,Sseq) :-
     ( member(?false,Eseq1) -> 
         Sseq = [?false]
     ;
-        partition('='(?true),Eseq1,_,Sseq)
+        partition('='(?true),Eseq1,_,Eseq2),
+        simplify_epath_seq_combine(Eseq2,Sseq)
     ).
+
+simplify_epath_seq_combine([],[]).
+simplify_epath_seq_combine([E],[E]).
+simplify_epath_seq_combine([E1,E2|Es],Ss) :-
+    ( simplify_epath_combine(E1,E2,Ec) ->
+        simplify_epath_seq_combine([Ec|Es],Ss)
+    ;
+        Ss = [E1|Ss2],
+        simplify_epath_seq_combine([E2|Es],Ss2)
+    ).
+
 
 simplify_epath_choice(Eopts,Sopts) :-
     maplist(simplify_epath,Eopts,Eopts1),
@@ -300,16 +312,70 @@ epath_subsumes(E*,E1*) :-
 
 %
 %  simplify_epath_union(E1,E2,Eu)  -  simplify E1 and E2 into their union
+%                                     (E1 | E2) <=> Eu
+%
+%  simplify_epath_combine(E1,E2,Ec)  -  simplify E1 and E2 into combination
+%                                       (E1 ; E2) <=> Ec
 %
 %  This basically allows us to special-case a number of common forms.
 %
-simplify_epath_union(E1,E1 ; (E2*) ; E2,E1 ; (E2*)).
+simplify_epath_union(E1,E2,Eu) :-
+    epath_pattern_match(E1,P1),
+    epath_pattern_match(E2,P1 ; (P2*) ; P2),
+    Eu = (P1 ; (P2*)).
+simplify_epath_union(E1,E2,Eu) :-
+    epath_pattern_match(E1,P1),
+    epath_pattern_match(E2,P2 ; (P2*) ; P1),
+    Eu = ((P2*) ; P1).
+simplify_epath_union(E1,E2,Eu) :-
+    epath_pattern_match(E1,P1),
+    epath_pattern_match(E2,(P2*) ; P2 ; P1),
+    Eu = ((P2*) ; P1).
+simplify_epath_union(E1,E2,Eu) :-
+    epath_pattern_match(E1,P1 ; (P2*)),
+    epath_pattern_match(E2,P1 ; (P2*) ; P2),
+    Eu = (P1 ; (P2*)).
+
+
+simplify_epath_combine(E1,E2,Ec) :-
+    epath_pattern_match(E1,P1*),
+    epath_pattern_match(E2,(P2 ; (P1*))*),
+    Ec = (((P1*) | (P2*))*).
+
+:- index(epath_pattern_match(1,1)).
+
+epath_pattern_match(E1,P1) :-
+    var(P1), !, P1 = E1.
+epath_pattern_match(E*,P*) :-
+    epath_pattern_match(E,P).
+epath_pattern_match(?(P),?(P)).
+epath_pattern_match(!(X:T),!(X:T)).
+epath_pattern_match(A,A) :-
+    agent(A).
+epath_pattern_match(E1 ; E2,P1 ; P2) :-
+    flatten_op(';',[E1,E2],Es),
+    append(M1s,M2s,Es),
+    joinlist(';',M1s,M1),
+    joinlist(';',M2s,M2),
+    epath_pattern_match(M1,P1),
+    epath_pattern_match(M2,P2).
+epath_pattern_match(E1 | E2,P1 | P2) :-
+    flatten_op('|',[E1,E2],Es),
+    % TODO:  need something like sublist(Sub,List,Rest) here, since
+    %        | doesn't care about order.
+    append(M1s,M2s,Es),
+    joinlist('|',M1s,M1),
+    joinlist('|',M2s,M2),
+    eapth_pattern_match(M1,P1),
+    eapth_pattern_match(M2,P2).
+    
 
 %
 %  copy_epath(EIn,EOut)  -  copy an epath, renaming path variables
 %
 %  This produces a copy of EIn with all path variables replaced by
-%  fresh variables.  All free formula variables remain unchanged.
+%  fresh variables.  All free formula variables remain unchanged, while
+%  all bound formula variables are also renamed.
 %
 copy_epath(E,Ec) :-
     epath_vars(E,EVarsT),
