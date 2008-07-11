@@ -141,6 +141,12 @@ test(path3) :-
     write('DONE'), nl.
 test(path4) :-
     write('TEST: path4'), nl,
+    P = pknows0(ann*,loc(c)),
+    regression(P,nil,R),
+    domain_tautology(R => P),
+    write('DONE'), nl.
+test(path5) :-
+    write('TEST: path5'), nl,
     P = pknows0((ann | bob)*,loc(c)),
     regression(P,nil,R),
     domain_tautology(R => P),

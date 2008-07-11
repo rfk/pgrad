@@ -105,7 +105,7 @@ epath_elim_var(E1 ; E2,VarVal,N1,N2,En) :-
 epath_elim_var(E1 | E2,VarVal,N1,N2,En) :-
     (epath_elim_var(E1,VarVal,N1,N2,En1) ->
         (epath_elim_var(E2,VarVal,N1,N2,En2) ->
-            simplify(En1 | En2,En)
+            simplify_epath(En1 | En2,En)
         ;
             simplify_epath(En1,En)
         )
@@ -157,13 +157,13 @@ epath_elim_var_kln(E,VarVal,N1,N2,0,En) :-
     ).
 epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1=K, N2=K,
-    En = (EnK*),
-    epath_elim_var_kln(E,VarVal,K,K,K1,EnK).
+    epath_elim_var_kln(E,VarVal,K,K,K1,EnK),
+    simplify_epath((EnK*),En).
 epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1=K, N2\=K,
     epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK),
     (epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-        En = ((EnK*) ; EnFromK)
+        simplify_epath(((EnK*) ; EnFromK),En)
     ;
         En = EnFromK
     ).
@@ -171,7 +171,7 @@ epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1\=K, N2=K,
     epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
     (epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-      En = (EnToK ; (EnK*))
+      simplify_epath((EnToK ; (EnK*)),En)
     ;
       En = EnToK
     ).
@@ -181,9 +181,9 @@ epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
         ( (epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
          epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK)) ->
             ( epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-                En = (EnK1 | (EnToK ; (EnK*) ; EnFromK))
+                simplify_epath((EnK1 | (EnToK ; (EnK*) ; EnFromK)),En)
             ;
-                En = (EnK1 | (EnToK ; EnFromK))
+                simplify_epath((EnK1 | (EnToK ; EnFromK)),En)
             )
         ;
             En = EnK1
@@ -192,9 +192,9 @@ epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
         epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
         epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK),
         ( epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-            En = ((EnToK ; (EnK*) ; EnFromK))
+            simplify_epath(((EnToK ; (EnK*) ; EnFromK)),En)
         ;
-            En = ((EnToK ; EnFromK))
+            simplify_epath((EnToK ; EnFromK),En)
         )
     ).
     
@@ -206,7 +206,7 @@ simplify_epath(X,_) :-
     var(X), !, fail.
 simplify_epath(E1 ; E2,Es) :-
     flatten_op(';',[E1,E2],Eseq),
-    simplify_epath_seq(Eseq,EseqS),
+    simplify_epath_seq(Eseq,EseqS), !,
     (EseqS = [] ->
         Es = ?false
     ;
@@ -214,14 +214,14 @@ simplify_epath(E1 ; E2,Es) :-
     ).
 simplify_epath(E1 | E2,Es) :-
     flatten_op('|',[E1,E2],Eopts),
-    simplify_epath_choice(Eopts,Sopts),
+    simplify_epath_choice(Eopts,Sopts), !,
     (Sopts = [] ->
         Es = ?false
     ;
         joinlist('|',Sopts,Es)
     ).
 simplify_epath(E*,Es) :-
-    simplify_epath(E,E1s),
+    simplify_epath(E,E1s), !,
     ( E1s = ?(true) ->
         Es = ?(true)
     ; E1s = ?(false) ->
@@ -234,17 +234,37 @@ simplify_epath(E*,Es) :-
     ), !.
 simplify_epath(?(P),?(S)) :-
     simplify(P,S), !.
-simplify_epath(!(X:T),!(X:T)).
+simplify_epath(!(X:T),!(X:T)) :- !.
 simplify_epath(A,A) :-
-    agent(A).
+    agent(A), !.
 
 
-% Any choices within a start that are simply ?true can be removed,
+%
+%  Simplification for operations within a star.
+%
+simplify_star_contents(E1,E2) :-
+    ( (simplify_star_contents1(E1,Es), (Es \= E1)) ->
+        simplify_star_contents(Es,E2)
+    ;
+        E2 = E1
+    ).
+
+% Any choices within a star that are simply ?true can be removed,
 % as we always have the option of staying in current state.
-simplify_star_contents(E1 | E2,Ep) :-
+simplify_star_contents1(E1 | E2,Ep) :-
     flatten_op('|',[E1,E2],Es),
     partition('='(?true),Es,_,Es2),
     joinlist('|',Es2,Ep).
+%
+%  Flatten stars in (P1* | (P2* | P3*)*)* 
+simplify_star_contents1(E1 | E2,Ep) :-
+    epath_pattern_match(E1,P1*),
+    epath_pattern_match(E2,((P2*) | (P3*))*),
+    Ep = ((P1*) | (P2*) | (P3*)).
+simplify_star_contents1(E1 | E2,Ep) :-
+    epath_pattern_match(E2,P1*),
+    epath_pattern_match(E1,((P2*) | (P3*))*),
+    Ep = ((P1*) | (P2*) | (P3*)).
 
 
 simplify_epath_seq(Eseq,Sseq) :-
@@ -342,6 +362,15 @@ simplify_epath_combine(E1,E2,Ec) :-
     epath_pattern_match(E2,(P2 ; (P1*))*),
     Ec = (((P1*) | (P2*))*).
 
+
+%
+%  epath_pattern_match(E,P)  -  pattern matching for epaths
+%  
+%  This predicate pattern-matches in a similar way to standard unification,
+%  but automatically flattens ; and | operators so that paths can match
+%  when the specific tree-structure of the prolog terms does not.
+%
+
 :- index(epath_pattern_match(1,1)).
 
 epath_pattern_match(E1,P1) :-
@@ -354,6 +383,8 @@ epath_pattern_match(A,A) :-
     agent(A).
 epath_pattern_match(E1 ; E2,P1 ; P2) :-
     flatten_op(';',[E1,E2],Es),
+    %  Use append to nondeterministically select matching sequences
+    %  for P1 and P2
     append(M1s,M2s,Es),
     joinlist(';',M1s,M1),
     joinlist(';',M2s,M2),
@@ -362,12 +393,12 @@ epath_pattern_match(E1 ; E2,P1 ; P2) :-
 epath_pattern_match(E1 | E2,P1 | P2) :-
     flatten_op('|',[E1,E2],Es),
     % TODO:  need something like sublist(Sub,List,Rest) here, since
-    %        | doesn't care about order.
+    %        | doesn't care about ordering.
     append(M1s,M2s,Es),
     joinlist('|',M1s,M1),
     joinlist('|',M2s,M2),
-    eapth_pattern_match(M1,P1),
-    eapth_pattern_match(M2,P2).
+    epath_pattern_match(M1,P1),
+    epath_pattern_match(M2,P2).
     
 
 %
