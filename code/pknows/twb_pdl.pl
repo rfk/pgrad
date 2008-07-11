@@ -1,6 +1,13 @@
 %
 %  twb_pdl.pl:  logical reasoning using the Tableaux Workbench PDL prover
 %
+%  The Tableaux Workbench suite can be obtained from:
+%     
+%        http://twb.rsise.anu.edu.au/
+%
+%  Build the "pdlMark" prover, then adjust the exe path below.
+
+twb_pdl_exe('/home/rfk/twb-dev/library/pdlMark.twb').
 
 entails(Axs,Conc) :-
     copy_term(Conc,Conc2),
@@ -26,7 +33,8 @@ twb_pdl_prove(Axioms,Conc,Result) :-
     twb_write(Conc2), write(').'), nl,
     told, !,
     % Call TWB and have it write its conclusions into output file
-    sformat(PCmd,'/home/rfk/twb-dev/library/pdlMark.twb < ~w > ~w',[InFile,OutFile]),
+    twb_pdl_exe(CmdFile),
+    sformat(PCmd,'~w < ~w > ~w',[CmdFile,InFile,OutFile]),
     shell(PCmd,_),
     % Grep output file for "Result:Closed" indicating truthity
     sformat(TCmd,'grep "Result:Closed" ~w > /dev/null',[OutFile]),
