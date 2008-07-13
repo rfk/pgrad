@@ -65,7 +65,8 @@ epath_vars_enum([X:T|Vars],[X-N-Vals|VarVals]) :-
 %
 :- index(epath_elim_vars(0,1,0)).
 
-epath_elim_vars(En,[],En).
+epath_elim_vars(En,[],Es) :-
+    simplify_epath(En,Es).
 epath_elim_vars(E,[X-N-Vals|VarVals],En) :-
     setof(En1,epath_elim_var(E,X-N-Vals,En1),En1s),
     joinlist('|',En1s,En2),
@@ -100,9 +101,11 @@ epath_elim_var_seq_helper(E1 ; E2,VarVal,N1,N2,En) :-
 %  paper "Logics of Communication and Change".
 %
 epath_elim_var(E1 ; E2,VarVal,N1,N2,En) :-
+    !,
     setof(EnT,epath_elim_var_seq_helper(E1 ; E2,VarVal,N1,N2,EnT),EnLst),
     joinlist('|',EnLst,En).
 epath_elim_var(E1 | E2,VarVal,N1,N2,En) :-
+    !,
     (epath_elim_var(E1,VarVal,N1,N2,En1) ->
         (epath_elim_var(E2,VarVal,N1,N2,En2) ->
             simplify_epath(En1 | En2,En)
@@ -114,20 +117,24 @@ epath_elim_var(E1 | E2,VarVal,N1,N2,En) :-
         simplify_epath(En2,En)
     ).
 epath_elim_var(E*,VarVal,N1,N2,En) :-
+    !,
     VarVal = _-N-_,
     epath_elim_var_kln(E,VarVal,N1,N2,N,EnK),
     simplify_epath(EnK,En).
 epath_elim_var(!(X1:T1),X-_-_,N1,N2,En) :-
+    !,
     (X1 == X ->
        En = (?(true))
     ;
        N1 = N2, En = (!(X1:T1))
     ).
 epath_elim_var(?(P),X-_-Vals,N1,N2,?(Pn)) :-
+    !,
     N1 = N2,
     nth1(N1,Vals,V), subs(X,V,P,PnT),
     simplify(PnT,Pn), Pn \= ?(false).
 epath_elim_var(A,_,N1,N2,A) :-
+    !,
     agent(A), N1=N2.
 
 
@@ -147,36 +154,60 @@ epath_elim_var(A,_,N1,N2,A) :-
 %  In the recursive case, we can take any path with K<=K-1, or take any
 %  path that results in binding K to Vals[K], then any path from Vals[K]
 %  back to Vals[K], then any path from Vals[K] to Vals[N2].
+%  
+%  We memoize the results since the recursive definition repeats lots and
+%  lots of calculations.
 %
-epath_elim_var_kln(E,VarVal,N1,N2,0,En) :-
+
+:- dynamic(epath_kln_memo/6).
+:- dynamic(epath_kln_do_memo/0).
+
+epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
+    ( epath_kln_do_memo ->
+      ( epath_kln_memo(E,VarVal,N1,N2,K,En) ->
+          true
+      ;
+          epath_elim_var_kln_(E,VarVal,N1,N2,K,En),
+          assert(epath_kln_memo(E,VarVal,N1,N2,K,En))
+      )
+    ;
+      epath_elim_var_kln_(E,VarVal,N1,N2,K,En)
+    ).
+
+epath_elim_var_kln_(E,VarVal,N1,N2,0,En) :-
+    !,
     epath_elim_var(E,VarVal,N1,N2,En1),
     ( N1 = N2 ->
         En = ((?(true)) | En1)
     ;
         En = En1
     ).
-epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
+epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1=K, N2=K,
+    !,
     epath_elim_var_kln(E,VarVal,K,K,K1,EnK),
     simplify_epath((EnK*),En).
-epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
+epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1=K, N2\=K,
+    !,
     epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK),
     (epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
         simplify_epath(((EnK*) ; EnFromK),En)
     ;
         En = EnFromK
     ).
-epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
+epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1\=K, N2=K,
+    !,
     epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
     (epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
       simplify_epath((EnToK ; (EnK*)),En)
     ;
       En = EnToK
     ).
-epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
+epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
     K > 0, K1 is K - 1, N1\=K, N2\=K,
+    !,
     ( epath_elim_var_kln(E,VarVal,N1,N2,K1,EnK1) ->
         ( (epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
          epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK)) ->
@@ -232,8 +263,7 @@ simplify_epath(E*,Es) :-
         Es = (E1p)*
     ;  Es = (E1s*)
     ), !.
-simplify_epath(?(P),?(S)) :-
-    simplify(P,S), !.
+simplify_epath(?(P),?(P)) :- !.
 simplify_epath(!(X:T),!(X:T)) :- !.
 simplify_epath(A,A) :-
     agent(A), !.
@@ -319,16 +349,18 @@ simplify_epath_choice_union(Eopts,Sopts) :-
 %  epath_subsumes(E1,E2)  -  detect common cases where one epath completely
 %                            subsumes another.
 %
-epath_subsumes(E,E).
-epath_subsumes(E*,E).
+epath_subsumes(E,E) :- !.
+epath_subsumes(E*,E) :- !.
 epath_subsumes(E*,E1 ; E2) :-
     epath_subsumes(E*,E1),
-    epath_subsumes(E*,E2).
+    epath_subsumes(E*,E2), !.
 epath_subsumes(E,E1 | E2) :-
     epath_subsumes(E,E1),
-    epath_subsumes(E,E2).
+    epath_subsumes(E,E2), !.
 epath_subsumes(E*,E1*) :-
-    epath_subsumes(E*,E1).
+    epath_subsumes(E*,E1), !.
+epath_subsumes(E1 | E2,E) :-
+    (epath_subsumes(E1,E) ; epath_subsumes(E2,E)), !.
 
 %
 %  simplify_epath_union(E1,E2,Eu)  -  simplify E1 and E2 into their union
@@ -361,6 +393,12 @@ simplify_epath_combine(E1,E2,Ec) :-
     epath_pattern_match(E1,P1*),
     epath_pattern_match(E2,(P2 ; (P1*))*),
     Ec = (((P1*) | (P2*))*).
+simplify_epath_combine(E1,E2,Ec) :-
+    epath_pattern_match(E1,P1*),
+    epath_pattern_match(E2,P2*),
+    ( epath_subsumes(P1,P2), Ec = E1
+    ; epath_subsumes(P2,P1), Ec = E2
+    ).
 
 
 %

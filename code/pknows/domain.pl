@@ -33,6 +33,13 @@ observation(pair(A,R)) :-
 object(O) :-
     agent(O) ; location(O) ; result(O) ; observation(O).
 
+obj1(O) :- O = obj1.
+obj2(O) :- obj1(O) ; O = obj2.
+obj3(O) :- obj2(O) ; O = obj3.
+obj4(O) :- obj3(O) ; O = obj4.
+obj5(O) :- obj4(O) ; O = obj5.
+obj6(O) :- obj5(O) ; O = obj6.
+
 % Enumerates primitive actions, and the types of their arguments.
 prim_action(read(agent)).
 prim_action(leave(agent)).
