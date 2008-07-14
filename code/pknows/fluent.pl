@@ -123,7 +123,37 @@ normalize(P,P).
 %
 
 struct_equiv(P,Q) :-
-    P =@= Q.
+    is_atom(P), is_atom(Q), P==Q.
+struct_equiv(P1 & P2,Q1 & Q2) :-
+    struct_equiv(P1,Q1),
+    struct_equiv(P2,Q2).
+struct_equiv(P1 | P2,Q1 | Q2) :-
+    struct_equiv(P1,Q1),
+    struct_equiv(P2,Q2).
+struct_equiv(P1 => P2,Q1 => Q2) :-
+    struct_equiv(P1,Q1),
+    struct_equiv(P2,Q2).
+struct_equiv(P1 <=> P2,Q1 <=> Q2) :-
+    struct_equiv(P1,Q1),
+    struct_equiv(P2,Q2).
+struct_equiv(~P,~Q) :-
+    struct_equiv(P,Q).
+struct_equiv(?([] : P),?([] : Q)) :-
+    struct_equiv(P,Q).
+struct_equiv(?([V1:T|Vs1] : P),?([V2:T|Vs2] : Q)) :-
+    subs(V1,V2,P,P1),
+    struct_equiv(?(Vs1 : P1),?(Vs2 : Q)).
+struct_equiv(!([] : P),!([] : Q)) :-
+    struct_equiv(P,Q).
+struct_equiv(!([V1:T|Vs1] : P),!([V2:T|Vs2] : Q)) :-
+    subs(V1,V2,P,P1),
+    struct_equiv(!(Vs1 : P1),!(Vs2 : Q)).
+struct_equiv(knows(A,P),knows(A,Q)) :-
+    struct_equiv(P,Q).
+struct_equiv(pknows(E,P),pknows(E,Q)) :-
+    struct_equiv(P,Q).
+struct_equiv(pknows0(E,P),pknows0(E,Q)) :-
+    struct_equiv(P,Q).
 
 struct_oppos(P,Q) :-
     P = ~P1, struct_equiv(P1,Q) -> true

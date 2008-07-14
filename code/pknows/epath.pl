@@ -273,10 +273,10 @@ epath_build(';',Es,E) :-
     ;
         partition('='(?true),Es0,_,Es1),
         ( Es1 = [] ->
-            E = (?false)
+            E = (?true)
         ;
             joinlist(';',Es1,E1),
-            simplify_epath_combine(E1,E)
+            (simplify_epath_combine(E1,E) -> true ; E=E1)
         )
     ).
 
@@ -435,48 +435,42 @@ simplify_epath_union1(?P1,?P2,?Pu) :-
 
 
 simplify_epath_combine(E,Ec) :-
-    ( simplify_epath_combine1(E,Ec) ->
-        true
-    ;
-        flatten_op(';',[E],Es),
-        ( Es=[E] ->
-            Es = E
-        ;
-            Es = [E1|E2s],
-            joinlist(';',E2s,E2),
-            Ec = (E1 ; Ec2),
-            simplify_epath_combine(E2,Ec2)
-        )
-    ).
-
-simplify_epath_combine1(E,Ec) :-
-    epath_pattern_match(E,P1* ; (P2 ; (P1*))* ; P3),
+    epath_pattern_match_seq(E,P1* ; (P2 ; (P1*))*,Pre,Post),
     epath_build('|',[P1*,P2*],Ec1),
     epath_build('*',Ec1,Ec2),
-    epath_build(';',[Ec2,P3],Ec).
-%simplify_epath_combine1(E1,E2,Ec) :-
-%    epath_pattern_match(E1,((P1*) ; P2)*),
-%    epath_pattern_match(E2,P1*),
-%    epath_build('|',[P1,P2],Ec1),
-%    epath_build('*',Ec1,Ec).
-simplify_epath_combine1(E,Ec) :-
-    epath_pattern_match(E,(((P1*) ; P2)*) ; P1 ; (P1*) ; P3),
+    append([Pre,[Ec2],Post],Seq),
+    epath_build(';',Seq,Ec).
+simplify_epath_combine(E,Ec) :-
+    epath_pattern_match_seq(E,(((P1*) ; P2)*) ; (P1*),Pre,Post),
     epath_build('|',[P1,P2],Ec1),
     epath_build('*',Ec1,Ec2),
-    epath_build(';',[Ec2,P1,P3],Ec).
-simplify_epath_combine1(E,Ec) :-
-    epath_pattern_match(E,P1* ; P2* ; P3),
-    ( epath_subsumes(P1,P2), epath_build(';',[P1,P3],Ec)
-    ; epath_subsumes(P2,P1), epath_build(';',[P2,P3],Ec)
-    ).
-simplify_epath_combine1(E,Ec) :-
-    epath_pattern_match(E,(?P1) ; (?P2) ; P3),
+    append([Pre,[Ec2],Post],Seq),
+    epath_build(';',Seq,Ec).
+simplify_epath_combine(E,Ec) :-
+    epath_pattern_match_seq(E,(((P1*) ; P2)*) ; P1 ; (P1*),Pre,Post),
+    epath_build('|',[P1,P2],Ec1),
+    epath_build('*',Ec1,Ec2),
+    append([Pre,[Ec2],Post],Seq),
+    epath_build(';',Seq,Ec).
+simplify_epath_combine(E,Ec) :-
+    epath_pattern_match_seq(E,P1* ; P2*,Pre,Post),
+    ( epath_subsumes(P1,P2), append([Pre,[P1],Post],Seq)
+    ; epath_subsumes(P2,P1), append([Pre,[P2],Post],Seq)
+    ),
+    epath_build(';',Seq,Ec).
+simplify_epath_combine(E,Ec) :-
+    epath_pattern_match_seq(E,(?P1) ; (?P2),Pre,Post),
     fml2cnf(P1 & P2,Pc1),
     simplify(Pc1,Pc),
-    epath_build(';',[?(Pc),P3],Ec).
+    append([Pre,[?Pc],Post],Seq),
+    epath_build(';',Seq,Ec).
 
 %
 %  epath_pattern_match(E,P)  -  pattern matching for epaths
+%  
+%  epath_pattern_match_seq(E,P,Pre,Post)  -  pattern matching of sequences
+%                                            with (possibly empty) lists of
+%                                            preceeding/following items.
 %  
 %  This predicate pattern-matches in a similar way to standard unification,
 %  but automatically flattens ; and | operators so that paths can match
@@ -511,6 +505,11 @@ epath_pattern_match(E1 | E2,P1 | P2) :-
     epath_pattern_match(M1,P1),
     epath_pattern_match(M2,P2).
 
+epath_pattern_match_seq(E,P,Pre,Post) :-
+    flatten_op(';',[E],Es),
+    append([Pre,Seqs,Post],Es),
+    joinlist(';',Seqs,Ematch),
+    epath_pattern_match(Ematch,P).
 
 epath_pattern_match_sublist([],[],[]).
 epath_pattern_match_sublist([E|Es],Sub,Rest) :-
@@ -606,12 +605,8 @@ test(enum3) :-
     epath_pattern_match(E,(ann | bob)*), !.
 
 test(enum4) :-
-    enumerate_epath(!(X:location) ; ((?test1(X) ; !(X:location))*),E),
-    epath_pattern_match(E,?(test1(c) | test1(d))), !.
-
-test(enum5) :-
-    enumerate_epath(!(X:location) ; (((?test1(X) | ?test2(X)) ; !(X:location))*),E),
-    epath_pattern_match(E,?(test1(c) | test1(d) | test2(c) | test2(d))), !.
+    enumerate_epath(!(X:location) ; ((ann ; ?test1(X) ; !(X:location))*),E),
+    epath_pattern_match(E,((ann ; ?test1(c))* | (ann ; ?test1(d))*)*), !.
 
 
 :- end_tests(epath).

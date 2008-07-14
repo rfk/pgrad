@@ -235,8 +235,8 @@ regress_epath_a(A,X,P) :-
     P = (!(Z:obj3) ; ?(ObsDefn) ; A ; !(X:obj3) ; ?(PossDefn & ObsDefn)),
     adp_fluent(obs(A,Z),X,ObsDefn1),
     adp_fluent(poss,X,PossDefn1),
-    simplify(ObsDefn1,ObsDefn),
-    simplify(PossDefn1,PossDefn).
+    simplify(ObsDefn1 | ((Z=nil) & (X=nil)),ObsDefn),
+    simplify(PossDefn1 | (X=nil),PossDefn).
 regress_epath_a(?(F),X,P) :-
     regression(F,X,Fr),
     P = ?(Fr).
