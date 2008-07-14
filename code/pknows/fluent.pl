@@ -1084,6 +1084,22 @@ pp_fml(P,O,_) :-
     pp_inset(O), write(P).
 
 
+fml2cnf(P,P) :-
+    is_atom(P).
+fml2cnf(P1 & P2,C1 & C2) :-
+    fml2cnf(P1,C1),
+    fml2cnf(P2,C2).
+fml2cnf(P1 | P2,C) :-
+    fml2cnf(P1,C1),
+    fml2cnf(P2,C2),
+    flatten_op('&',[C1],C1s),
+    flatten_op('&',[C2],C2s),
+    setof(Cp,fml2cnf_helper(C1s,C2s,Cp),Cs),
+    joinlist('&',Cs,C).
+
+fml2cnf_helper(Cjs1,Cjs2,C) :-
+    member(C1,Cjs1), member(C2,Cjs2), C = (C1 | C2).
+
 :- begin_tests(fluent,[sto(rational_trees)]).
 
 test(simp1) :-
