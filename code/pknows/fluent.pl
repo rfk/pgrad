@@ -231,6 +231,9 @@ ncontains_var(A,V:_) :-
 
 flatten_op(_,[],[]).
 flatten_op(O,[T|Ts],Res) :-
+    %( var(T) ->
+    %    Res = [T|Res2],
+    %    flatten_op(O,Ts,Res2)
     ( T =.. [O|Args] ->
         append(Args,Ts,Ts2),
         flatten_op(O,Ts2,Res)

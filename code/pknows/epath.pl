@@ -159,7 +159,7 @@ epath_elim_var(?(P),X-_-Vals,N,N,?(Pn)) :-
 :- dynamic(epath_kln_memo/6).
 :- index(epath_kln_memo(1,0,1,1,1,0)).
 
-epath_kln_memo_mode(basic).
+epath_kln_memo_mode(none).
 epath_kln_set_memo_mode(M) :-
     retract(epath_kln_memo_mode(_)),
     assert(epath_kln_memo_mode(M)).
@@ -255,6 +255,20 @@ epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
 %  simplified.
 %
 
+epath_build_off('|',Es,E) :-
+    ( Es = [] ->
+        E = ?false
+    ;
+        joinlist('|',Es,E)
+    ), !.
+epath_build_off(';',Es,E) :-
+    ( Es = [] ->
+        E = ?false
+    ;
+        joinlist(';',Es,E)
+    ), !.
+epath_build_off('*',E,E*) :- !.
+
 epath_build('|',Es,E) :-
     flatten_op('|',Es,Es0),
     partition('='(?false),Es0,_,Es1),
@@ -275,8 +289,8 @@ epath_build(';',Es,E) :-
         ( Es1 = [] ->
             E = (?true)
         ;
-            joinlist(';',Es1,E1),
-            (simplify_epath_combine(E1,E) -> true ; E=E1)
+            simplify_epath_seq_combine(Es1,Ss),
+            joinlist(';',Ss,E)
         )
     ).
 
@@ -304,7 +318,7 @@ simplify_epath(E1 ; E2,Es) :-
     maplist(simplify_epath,Eseq,Esimp),
     epath_build(';',Esimp,Es).
 simplify_epath(E1 | E2,Es) :-
-    flatten_op(';',[E1,E2],Eseq),
+    flatten_op('|',[E1,E2],Eseq),
     maplist(simplify_epath,Eseq,Esimp),
     epath_build('|',Esimp,Es).
 simplify_epath(E*,Es) :-
@@ -319,11 +333,13 @@ simplify_epath(!(X:T),!(X:T)).
 %  Simplification for operations within a star.
 %
 simplify_star_contents(E1,E2) :-
-    ( (simplify_star_contents1(E1,Es), (Es \= E1)) ->
+    ( simplify_star_contents1(E1,Es) ->
         simplify_star_contents(Es,E2)
     ;
         E2 = E1
     ).
+
+simplify_star_contents1(E*,E).
 
 % Any choices within a star that are simply ?true can be removed,
 % as we always have the option of staying in current state.
@@ -333,16 +349,30 @@ simplify_star_contents1(E1 | E2,Ep) :-
     length(Ts,N), N > 0,
     joinlist('|',Es2,Ep).
 %
-%  Flatten stars in (P1* | (P2* | P3*)*)* 
+%  Flatten stars in (B1* | (B2* | B3*)*)* 
 simplify_star_contents1(E,Ep) :-
-    epath_pattern_match(E,(P1*) | (((P2*) | (P3*))*)),
-    Ep = ((P1*) | (P2*) | (P3*)).
+    ( E = ((B1*) | (((B2*) | (B3*))*)) ; E = ((((B1*) | (B2*))*) | (B3*)) ) ->
+    Ep = ((B1*) | (B2*) | (B3*)).
+
 %
-%  Remove choices that are subsumed by repitition of the other branch
-simplify_star_contents1(E,Ep) :-
-    epath_pattern_match(E,P1 | P2),
-    epath_subsumes(P1*,P2),
-    Ep = P1.
+%  Remove choices that are subsumed by repetition of another branch
+simplify_star_contents1(E1 | E2,Ep) :-
+    flatten_op('|',[E1,E2],Es),
+    simplify_epath_star_subsumes(Es,Ss),
+    joinlist('|',Ss,Ep).
+
+simplify_epath_star_subsumes(Es,Ss) :-
+    simplify_epath_star_subsumes(Es,[],0,Ss).
+ 
+simplify_epath_star_subsumes([],Acc,1,Acc).
+simplify_epath_star_subsumes([E|Es],Acc,HaveSimpd,Ss) :-
+    ( member(E2,Acc), epath_subsumes(E2*,E) ->
+        simplify_epath_star_subsumes(Es,Acc,1,Ss)
+    ;
+        partition(epath_subsumes(E*),Acc,Rem,Acc2),
+        ( Rem = [] -> NewHaveSimpd = HaveSimpd ; NewHaveSimpd = 1 ),
+        simplify_epath_star_subsumes(Es,[E|Acc2],NewHaveSimpd,Ss)
+    ).
 
 
 
@@ -366,14 +396,43 @@ simplify_epath_choice_subsumes([E|Es],Acc,Ss) :-
 %  simpler branch giving their union.
 %
 simplify_epath_choice_union(Es,Ss) :-
-    ( (select(E1,Es,Es1), select(E2,Es1,Es2),
-      simplify_epath_union(E1,E2,Eu)) ->
-        simplify_epath_choice_union([Eu|Es2],Ss)
+    simplify_epath_choice_union(Es,[],Ss).
+
+simplify_epath_choice_union([],Acc,Acc).
+simplify_epath_choice_union([E|Es],Acc,Ss) :-
+    ( (select(E1,Acc,Rest), simplify_epath_union(E,E1,Eu)) ->
+        simplify_epath_choice_union([Eu|Es],Rest,Ss)
     ;
-        Ss = Es
+        simplify_epath_choice_union(Es,[E|Acc],Ss)
     ).
 
 
+%
+%  simplify_epath_seq_combine(Es,Ss)  -  simplify sequence of paths by
+%                                        combining adjacent ones.
+%
+simplify_epath_seq_combine(Es,Ss) :-
+    simplify_epath_seq_combine(Es,[],Ss).
+
+simplify_epath_seq_combine([E],Acc,Ss) :-
+    reverse([E|Acc],Ss).
+simplify_epath_seq_combine([E|Es],Acc,Ss) :-
+    ( simplify_epath_combine([E|Es],Es2) ->
+        simplify_epath_seq_combine_recheck(Es2,Acc,Ss)
+    ;
+      simplify_epath_seq_combine(Es,[E|Acc],Ss)
+    ).
+
+:- index(simplify_eapth_seq_combine_recheck(0,1,0)).
+
+simplify_epath_seq_combine_recheck(Es,[],Ss) :-
+    simplify_epath_seq_combine(Es,[],Ss).
+simplify_epath_seq_combine_recheck(Es,[A|Acc],Ss) :-
+    ( simplify_epath_combine([A|Es],Es2) ->
+        simplify_epath_seq_combine_recheck(Es2,Acc,Ss)
+    ;
+      simplify_epath_seq_combine(Es,[A|Acc],Ss)
+    ).
 
 %
 %  epath_subsumes(E1,E2)  -  detect common cases where one epath completely
@@ -383,21 +442,21 @@ simplify_epath_choice_union(Es,Ss) :-
 %  epath_subsumes/2 is det, which we ensure using cuts
 %
 epath_subsumes(E,E) :- !.
-epath_subsumes(E*,E1 ; E2) :-
-    epath_pattern_match(E1 ; E2,P1 ; P2),
-    epath_subsumes(E*,P1),
-    epath_subsumes(E*,P2), !.
 epath_subsumes(E*,E1*) :-
     epath_subsumes(E*,E1), !.
 epath_subsumes(E*,E1) :-
     epath_subsumes(E,E1), !.
+epath_subsumes(E*,E1) :-
+    epath_seq_split(E1,[P1,P2]),
+    epath_subsumes(E*,P1),
+    epath_subsumes(E*,P2), !.
 epath_subsumes(E,E1 | E2) :-
     epath_subsumes(E,E1),
     epath_subsumes(E,E2), !.
 epath_subsumes(E1 | E2,E) :-
     (epath_subsumes(E1,E) ; epath_subsumes(E2,E)), !.
 epath_subsumes(E1 ; E2,E) :-
-    epath_pattern_match(E,P1 ; P2),
+    epath_seq_split(E,[P1,P2]),
     epath_subsumes(E1,P1),
     epath_subsumes(E2,P2), !.
 
@@ -405,7 +464,7 @@ epath_subsumes(E1 ; E2,E) :-
 %  simplify_epath_union(E1,E2,Eu)  -  simplify E1 and E2 into their union
 %                                     (E1 | E2) <=> Eu
 %
-%  simplify_epath_combine(E,Ec)  -    simplify E1;E2 into Ec
+%  simplify_epath_combine(Es,Esc)  -    simplify E1;E2;P into Ec;P
 %
 %  This basically allows us to special-case a number of common forms.
 %
@@ -414,108 +473,114 @@ simplify_epath_union(E1,E2,Eu) :-
     ;
     simplify_epath_union1(E2,E1,Eu).
 
+%  P1 | (P1 ; P2* ; P2)   =>   P1 ; P2*
 simplify_epath_union1(E1,E2,Eu) :-
-    epath_pattern_match(E1,P1),
-    epath_pattern_match(E2,P1 ; (P2*) ; P2),
+    P1 = E1,
+    epath_seq_split(E2,[P1,P2*,P2]),
     epath_build('*',P2,P2S),
     epath_build(';',[P1,P2S],Eu).
+%  P1 | (P2 ; P2* ; P1)   =>   P2* ; P1
 simplify_epath_union1(E1,E2,Eu) :-
-    epath_pattern_match(E1,P1),
-    epath_pattern_match(E2,P2 ; (P2*) ; P1),
+    P1 = E1,
+    epath_seq_split(E2,[P2,P2*,P1]),
     epath_build('*',P2,P2S),
     epath_build(';',[P2S,P1],Eu).
+%  P1 | (P2* ; P2 ; P1)   =>   P2* ; P1
 simplify_epath_union1(E1,E2,Eu) :-
-    epath_pattern_match(E1,P1),
-    epath_pattern_match(E2,(P2*) ; P2 ; P1),
+    P1 = E1,
+    epath_seq_split(E2,[P2*,P2,P1]),
     epath_build('*',P2,P2S),
     epath_build(';',[P2S,P1],Eu).
+% ?P1 | ?P2   =>   ?(P1 | P2)
 simplify_epath_union1(?P1,?P2,?Pu) :-
     fml2cnf(P1 | P2,Pu1),
     simplify(Pu1,Pu).
 
 
-simplify_epath_combine(E,Ec) :-
-    epath_pattern_match_seq(E,P1* ; (P2 ; (P1*))*,Pre,Post),
+% P1* ; (P2 ; (P1*))*   =>   (P1* | P2*)*
+simplify_epath_combine(E,[Ec|Rest]) :-
+    epath_seq_split(E,[P1*,Pr*,Rest]),
+    epath_seq_split(Pr,[P2,P1*]),
     epath_build('|',[P1*,P2*],Ec1),
-    epath_build('*',Ec1,Ec2),
-    append([Pre,[Ec2],Post],Seq),
-    epath_build(';',Seq,Ec).
-simplify_epath_combine(E,Ec) :-
-    epath_pattern_match_seq(E,(((P1*) ; P2)*) ; (P1*),Pre,Post),
+    epath_build('*',Ec1,Ec).
+% (P1* ; P2)* ; P1*   =>   (P1* | P2*)*
+simplify_epath_combine(E,[Ec|Rest]) :-
+    epath_seq_split(E,[Pr*,P1*,Rest]),
+    epath_seq_split(Pr,[P1*,P2]),
     epath_build('|',[P1,P2],Ec1),
-    epath_build('*',Ec1,Ec2),
-    append([Pre,[Ec2],Post],Seq),
-    epath_build(';',Seq,Ec).
-simplify_epath_combine(E,Ec) :-
-    epath_pattern_match_seq(E,(((P1*) ; P2)*) ; P1 ; (P1*),Pre,Post),
+    epath_build('*',Ec1,Ec).
+% (P1* ; P2)* ; P1 ; P1*   =>   (P1* | P2*)*
+simplify_epath_combine(E,[Ec|Rest]) :-
+    epath_seq_split(E,[Pr*,P1,P1*,Rest]),
+    epath_seq_split(Pr,[P1*,P2]),
     epath_build('|',[P1,P2],Ec1),
-    epath_build('*',Ec1,Ec2),
-    append([Pre,[Ec2],Post],Seq),
-    epath_build(';',Seq,Ec).
-simplify_epath_combine(E,Ec) :-
-    epath_pattern_match_seq(E,P1* ; P2*,Pre,Post),
-    ( epath_subsumes(P1,P2), append([Pre,[P1],Post],Seq)
-    ; epath_subsumes(P2,P1), append([Pre,[P2],Post],Seq)
-    ),
-    epath_build(';',Seq,Ec).
-simplify_epath_combine(E,Ec) :-
-    epath_pattern_match_seq(E,(?P1) ; (?P2),Pre,Post),
+    epath_build('*',Ec1,Ec).
+% P1* ; P2*   =>   P1*   if P1 > P2
+simplify_epath_combine(E,[Ec|Rest]) :-
+    epath_seq_split(E,[P1*,P2*,Rest]),
+    ( epath_subsumes(P1,P2), Ec = P1
+    ; epath_subsumes(P2,P1), Ec = P2
+    ).
+% ?P1 ; ?P2   =>   ?(P1 & P2)
+simplify_epath_combine(E,[?(Pc)|Rest]) :-
+    epath_seq_split(E,[?P1,?P2,Rest]),
     fml2cnf(P1 & P2,Pc1),
-    simplify(Pc1,Pc),
-    append([Pre,[?Pc],Post],Seq),
-    epath_build(';',Seq,Ec).
+    simplify(Pc1,Pc).
 
-%
-%  epath_pattern_match(E,P)  -  pattern matching for epaths
-%  
-%  epath_pattern_match_seq(E,P,Pre,Post)  -  pattern matching of sequences
-%                                            with (possibly empty) lists of
-%                                            preceeding/following items.
-%  
-%  This predicate pattern-matches in a similar way to standard unification,
-%  but automatically flattens ; and | operators so that paths can match
-%  even when the specific tree-structure of the prolog terms does not.
-%
 
-:- index(epath_pattern_match(1,1)).
+:- index(epath_seq_split(1,1)).
 
-epath_pattern_match(E1,P1) :-
-    var(P1), P1=E1, !.
-epath_pattern_match(A,A) :-
-    agent(A), !.
-epath_pattern_match(E*,P*) :-
-    epath_pattern_match(E,P).
-epath_pattern_match(?(P),?(P)).
-epath_pattern_match(!(X:T),!(X:T)).
-epath_pattern_match(E1 ; E2,P1 ; P2) :-
+epath_seq_split(E1 ; E2,Seqs) :-
     flatten_op(';',[E1,E2],Es),
-    %  Use append to nondeterministically select matching
-    %  sequences for P1 and P2
-    append(M1s,M2s,Es),
-    joinlist(';',M1s,M1),
-    joinlist(';',M2s,M2),
-    epath_pattern_match(M1,P1),
-    epath_pattern_match(M2,P2).
-epath_pattern_match(E1 | E2,P1 | P2) :-
-    flatten_op('|',[E1,E2],Es),
-    %  Select any sublist of Es to match P1, with the rest matching P2
-    epath_pattern_match_sublist(Es,M1s,M2s),
-    joinlist('|',M1s,M1),
-    joinlist('|',M2s,M2),
-    epath_pattern_match(M1,P1),
-    epath_pattern_match(M2,P2).
+    epath_seq_split_prep(Seqs,Preps),
+    epath_seq_split(Es,Preps),
+    epath_seq_split_unprep(Preps,Seqs).
 
-epath_pattern_match_seq(E,P,Pre,Post) :-
-    flatten_op(';',[E],Es),
-    append([Pre,Seqs,Post],Es),
-    joinlist(';',Seqs,Ematch),
-    epath_pattern_match(Ematch,P).
+epath_seq_split([E|Es],Seqs) :-
+    epath_seq_split([E|Es],[],Seqs).
 
-epath_pattern_match_sublist([],[],[]).
-epath_pattern_match_sublist([E|Es],Sub,Rest) :-
-    ( Sub=[E|Sub2], epath_pattern_match_sublist(Es,Sub2,Rest) )
+epath_seq_split([],[],[]).
+epath_seq_split([],[S-Vs|Todo],[]) :-
+    reverse(Vs,VsR),
+    ( var(S) ->
+        S = VsR
     ;
-    ( Rest=[E|Rest2], epath_pattern_match_sublist(Es,Sub,Rest2) ).
+        joinlist(';',VsR,S)
+    ),
+    epath_seq_split([],Todo,[]).
+epath_seq_split([E|Es],Todo,[S|Seqs]) :-
+    ( var(S) ->
+        ((Todo = [S2-Vs|Todo2], S2 == S) ->
+            (epath_seq_split([E|Es],Todo,Seqs)
+            ;
+            epath_seq_split(Es,[S-[E|Vs]|Todo2],[S|Seqs]))
+        ;
+            epath_seq_split(Es,[S-[E]|Todo],[S|Seqs])
+        )
+    ;
+      epath_seq_split_unify(S,[E|Es],Es2), epath_seq_split(Es2,Todo,Seqs)
+    ).
+epath_seq_split([],Todo,[S]) :-
+    var(S), Todo = [S2-_|_], S2 == S, 
+    epath_seq_split([],Todo,[]).
+
+
+epath_seq_split_unify(P,[E|Es],Es) :-
+    var(P), P=E, !.
+epath_seq_split_unify(P1 ; P2,Es,Es2) :-
+    epath_seq_split_unify(P1,Es,Es1),
+    epath_seq_split_unify(P2,Es1,Es2), !.
+epath_seq_split_unify(E,[E|Es],Es).
+
+epath_seq_split_prep([],[]).
+epath_seq_split_prep([S|Seqs],[P|Preps]) :-
+    (var(S) -> true ; S=P ),
+    epath_seq_split_prep(Seqs,Preps).
+epath_seq_split_unprep([],[]).
+epath_seq_split_unprep([P|Preps],[S|Seqs]) :-
+    ( P = [_|_] -> joinlist(';',P,S) ; P=S ),
+    epath_seq_split_unprep(Preps,Seqs).
+
     
 
 %
