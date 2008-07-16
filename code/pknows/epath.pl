@@ -447,7 +447,7 @@ epath_subsumes(E*,E1*) :-
 epath_subsumes(E*,E1) :-
     epath_subsumes(E,E1), !.
 epath_subsumes(E*,E1) :-
-    epath_seq_split(E1,[P1,P2]),
+    epath_seq_split(E1,[P1,P2],[]),
     epath_subsumes(E*,P1),
     epath_subsumes(E*,P2), !.
 epath_subsumes(E,E1 | E2) :-
@@ -456,7 +456,7 @@ epath_subsumes(E,E1 | E2) :-
 epath_subsumes(E1 | E2,E) :-
     (epath_subsumes(E1,E) ; epath_subsumes(E2,E)), !.
 epath_subsumes(E1 ; E2,E) :-
-    epath_seq_split(E,[P1,P2]),
+    epath_seq_split(E,[P1,P2],[]),
     epath_subsumes(E1,P1),
     epath_subsumes(E2,P2), !.
 
@@ -476,19 +476,19 @@ simplify_epath_union(E1,E2,Eu) :-
 %  P1 | (P1 ; P2* ; P2)   =>   P1 ; P2*
 simplify_epath_union1(E1,E2,Eu) :-
     P1 = E1,
-    epath_seq_split(E2,[P1,P2*,P2]),
+    epath_seq_split(E2,[P1,P2*,P2],[]),
     epath_build('*',P2,P2S),
     epath_build(';',[P1,P2S],Eu).
 %  P1 | (P2 ; P2* ; P1)   =>   P2* ; P1
 simplify_epath_union1(E1,E2,Eu) :-
     P1 = E1,
-    epath_seq_split(E2,[P2,P2*,P1]),
+    epath_seq_split(E2,[P2,P2*,P1],[]),
     epath_build('*',P2,P2S),
     epath_build(';',[P2S,P1],Eu).
 %  P1 | (P2* ; P2 ; P1)   =>   P2* ; P1
 simplify_epath_union1(E1,E2,Eu) :-
     P1 = E1,
-    epath_seq_split(E2,[P2*,P2,P1]),
+    epath_seq_split(E2,[P2*,P2,P1],[]),
     epath_build('*',P2,P2S),
     epath_build(';',[P2S,P1],Eu).
 % ?P1 | ?P2   =>   ?(P1 | P2)
@@ -499,70 +499,70 @@ simplify_epath_union1(?P1,?P2,?Pu) :-
 
 % P1* ; (P2 ; (P1*))*   =>   (P1* | P2*)*
 simplify_epath_combine(E,[Ec|Rest]) :-
-    epath_seq_split(E,[P1*,Pr*,Rest]),
-    epath_seq_split(Pr,[P2,P1*]),
+    epath_seq_split(E,[P1*,Pr*],Rest),
+    epath_seq_split(Pr,[P2,P1*],[]),
     epath_build('|',[P1*,P2*],Ec1),
     epath_build('*',Ec1,Ec).
 % (P1* ; P2)* ; P1*   =>   (P1* | P2*)*
 simplify_epath_combine(E,[Ec|Rest]) :-
-    epath_seq_split(E,[Pr*,P1*,Rest]),
-    epath_seq_split(Pr,[P1*,P2]),
+    epath_seq_split(E,[Pr*,P1*],Rest),
+    epath_seq_split(Pr,[P1*,P2],[]),
     epath_build('|',[P1,P2],Ec1),
     epath_build('*',Ec1,Ec).
 % (P1* ; P2)* ; P1 ; P1*   =>   (P1* | P2*)*
 simplify_epath_combine(E,[Ec|Rest]) :-
-    epath_seq_split(E,[Pr*,P1,P1*,Rest]),
-    epath_seq_split(Pr,[P1*,P2]),
+    epath_seq_split(E,[Pr*,P1,P1*],Rest),
+    epath_seq_split(Pr,[P1*,P2],[]),
     epath_build('|',[P1,P2],Ec1),
     epath_build('*',Ec1,Ec).
 % P1* ; P2*   =>   P1*   if P1 > P2
 simplify_epath_combine(E,[Ec|Rest]) :-
-    epath_seq_split(E,[P1*,P2*,Rest]),
+    epath_seq_split(E,[P1*,P2*],Rest),
     ( epath_subsumes(P1,P2), Ec = P1
     ; epath_subsumes(P2,P1), Ec = P2
     ).
 % ?P1 ; ?P2   =>   ?(P1 & P2)
 simplify_epath_combine(E,[?(Pc)|Rest]) :-
-    epath_seq_split(E,[?P1,?P2,Rest]),
+    epath_seq_split(E,[?P1,?P2],Rest),
     fml2cnf(P1 & P2,Pc1),
     simplify(Pc1,Pc).
 
 
-:- index(epath_seq_split(1,1)).
+:- index(epath_seq_split(1,1,0)).
 
-epath_seq_split(E1 ; E2,Seqs) :-
+epath_seq_split(E1 ; E2,Seqs,Rest) :-
     flatten_op(';',[E1,E2],Es),
     epath_seq_split_prep(Seqs,Preps),
-    epath_seq_split(Es,Preps),
+    epath_seq_split(Es,Preps,Rest),
     epath_seq_split_unprep(Preps,Seqs).
 
-epath_seq_split([E|Es],Seqs) :-
-    epath_seq_split([E|Es],[],Seqs).
+epath_seq_split([E|Es],Seqs,Rest) :-
+    epath_seq_split([E|Es],[],Seqs,Rest).
 
-epath_seq_split([],[],[]).
-epath_seq_split([],[S-Vs|Todo],[]) :-
+epath_seq_split(Rest,[],[],Rest).
+epath_seq_split(Rest,[S-Vs|Todo],[],Rest) :-
     reverse(Vs,VsR),
     ( var(S) ->
         S = VsR
     ;
         joinlist(';',VsR,S)
     ),
-    epath_seq_split([],Todo,[]).
-epath_seq_split([E|Es],Todo,[S|Seqs]) :-
+    epath_seq_split(Rest,Todo,[],Rest).
+epath_seq_split([E|Es],Todo,[S|Seqs],Rest) :-
     ( var(S) ->
         ((Todo = [S2-Vs|Todo2], S2 == S) ->
-            (epath_seq_split([E|Es],Todo,Seqs)
+            (epath_seq_split([E|Es],Todo,Seqs,Rest)
             ;
-            epath_seq_split(Es,[S-[E|Vs]|Todo2],[S|Seqs]))
+            epath_seq_split(Es,[S-[E|Vs]|Todo2],[S|Seqs],Rest))
         ;
-            epath_seq_split(Es,[S-[E]|Todo],[S|Seqs])
+            epath_seq_split(Es,[S-[E]|Todo],[S|Seqs],Rest)
         )
     ;
-      epath_seq_split_unify(S,[E|Es],Es2), epath_seq_split(Es2,Todo,Seqs)
+      epath_seq_split_unify(S,[E|Es],Es2), epath_seq_split(Es2,Todo,Seqs,Rest)
     ).
-epath_seq_split([],Todo,[S]) :-
+epath_seq_split([],Todo,[S],Rest) :-
     var(S), Todo = [S2-_|_], S2 == S, 
-    epath_seq_split([],Todo,[]).
+    epath_seq_split([],Todo,[],Rest).
 
 
 epath_seq_split_unify(P,[E|Es],Es) :-
@@ -659,19 +659,19 @@ pp_epath(A,O,_) :-
 
 test(enum1) :-
     enumerate_epath(!(X:location) ; ?test(X),E),
-    epath_pattern_match(E,?(test(c) | test(d))), !.
+    E = (?(test(c) | test(d))), !.
 
 test(enum2) :-
     enumerate_epath(!(X:location) ; ((ann ; !(X:location))*),E),
-    epath_pattern_match(E,ann*), !.
+    E = (ann*), !.
 
 test(enum3) :-
     enumerate_epath(!(X:location) ; (((ann | bob) ; !(X:location))*),E),
-    epath_pattern_match(E,(ann | bob)*), !.
+    E =((ann | bob)*), !.
 
 test(enum4) :-
     enumerate_epath(!(X:location) ; ((ann ; ?test1(X) ; !(X:location))*),E),
-    epath_pattern_match(E,((ann ; ?test1(c))* | (ann ; ?test1(d))*)*), !.
+    E = (((ann ; ?test1(c))* | (ann ; ?test1(d))*)*), !.
 
 
 :- end_tests(epath).
