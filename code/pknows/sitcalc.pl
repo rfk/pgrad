@@ -228,11 +228,11 @@ regression_s0(pknows(E,P),FPr) :-
 %
 regress_epath(P,C1,C2,POut) :-
   regress_epath_a(P,X,Pa),
-  POut = (!(X:obj3) ; ?(X=C1) ; Pa ; ?(X=C2)).
+  POut = (!(X:action) ; ?(X=C1) ; Pa ; ?(X=C2)).
 
 regress_epath_a(A,X,P) :-
     atom(A),
-    P = (!(Z:obj3) ; ?(ObsDefn) ; A ; !(X:obj3) ; ?(PossDefn & ObsDefn)),
+    P = (!(Z:observation) ; ?(ObsDefn) ; A ; !(X:action) ; ?(PossDefn & ObsDefn)),
     adp_fluent(obs(A,Z),X,ObsDefn1),
     adp_fluent(poss,X,PossDefn1),
     simplify(ObsDefn1 | ((Z=nil) & (X=nil)),ObsDefn),
