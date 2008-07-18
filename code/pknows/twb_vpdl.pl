@@ -1,13 +1,17 @@
 %
-%  twb_pdl.pl:  logical reasoning using the Tableaux Workbench PDL prover
+%  twb_vpdl.pl:  interface to our VPDL prover built using Tableaux Workbench
+%
+%  The main predicate we export is entails/2, which shells out to a stand-alone
+%  prover for "PDL-plus-variable-assignment".
 %
 %  The Tableaux Workbench suite can be obtained from:
 %     
 %        http://twb.rsise.anu.edu.au/
 %
-%  Build the "pdlMark" prover, then adjust the exe path below.
+%  Then use `cd vpdl && twbcompile vpdl.ml` to build the prover.
+%
 
-twb_pdl_exe('/home/rfk/twb-dev/library/pdlMark.twb').
+twb_pdl_exe('vpdl/vpdl.twb').
 
 entails(Axs,Conc) :-
     copy_term(Conc,Conc2),
@@ -27,8 +31,11 @@ twb_pdl_prove(Axioms,Conc,Result) :-
           Conc2 = !(TypedVars : Conc)
     ),
     % Write out (Axioms) -> (Conjecture)
+    % We need to include object equality axioms for each object.
     write('('),
     twb_write_axioms(Axioms), !,
+    write(' & '),
+    twb_write_equality_axioms,
     write(') -> ('),
     twb_write(Conc2), write(').'), nl,
     told, !,
@@ -49,13 +56,24 @@ twb_pdl_prove(Axioms,Conc,Result) :-
 %
 %  twb_write(P)  -  write formula in TWB PDL format
 %
-%  All formulae are propositionalised as they are written, so we can decide
-%  equality at write-time and simply write 'Verum' or 'Falsum'.
-%
 twb_write(A=B) :-
-    ( A==B -> write('Verum') ; write('Falsum')).
+    ground(A), ground(B),
+    ( A == B ->
+        write('Verum')
+    ; ( twb_is_var(A) ; twb_is_var(B) ) ->
+        twb_write(equals(A,B))
+    ;
+        write('Falsum')
+    ), !.
 twb_write(A\=B) :-
-    ( A==B -> write('Falsum') ; write('Verum')).
+    ground(A), ground(B),
+    ( A == B ->
+        write('Falsum')
+    ; ( twb_is_var(A) ; twb_is_var(B) ) ->
+        twb_write( ~ equals(A,B))
+    ;
+        write('Verum')
+    ), !.
 twb_write(P) :-
     is_atom(P),
     P =.. [F|Terms],
@@ -102,15 +120,16 @@ twb_write(?([V:T|Vs]:P)) :-
     joinlist('|',Pbs,Enumed),
     twb_write(Enumed).
 twb_write(knows(A,P)) :-
-    write('(['),
+    write('( ['),
     write(A),
     write('] ('),
     twb_write(P),
     write('))').
 twb_write(pknows0(E,P)) :-
-    write('(['),
-    enumerate_epath(E,EnumP),
-    twb_write_path(EnumP),
+    write('( ['),
+    epath_vars(E,Vars),
+    number_vars(Vars),
+    twb_write_path(E),
     write('] ('),
     twb_write(P),
     write('))').
@@ -140,6 +159,12 @@ twb_write_axioms([A|Axs]) :-
     twb_write_axioms(Axs).
 
 
+twb_write_equality_axioms :-
+    setof(Ax,O^(object(O),Ax=equals(O,O)),Axs1),
+    maplist(make_cknows_fml,Axs1,Axs),
+    twb_write_axioms(Axs).
+
+
 twb_write_path(E1 ; E2) :-
     write('('),
     twb_write_path(E1),
@@ -160,6 +185,22 @@ twb_write_path(E*) :-
     write('( * '),
     twb_write_path(E),
     write(' )').
+twb_write_path(!(X:T)) :-
+    bagof(V,call(T,V),Vs),
+    write('( '),
+    twb_write_vassigns(Vs,X),
+    write(' )').
 twb_write_path(A) :-
     write(A).
+
+twb_write_vassigns([],_) :-
+    write('( ? Falsum )').
+twb_write_vassigns([V|Vs],X) :-
+    write('( ! '), write(X), write(' <= '), twb_write_term(V), write(' )'),
+    write(' U '), twb_write_vassigns(Vs,X).
+
+twb_is_var(V) :-
+    atom(V),
+    name(x,[X]),
+    atom_codes(V,[X|_]).
 

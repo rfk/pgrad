@@ -42,13 +42,19 @@ initially(~knows(Agt,false)) :-
 %  Perform reasoning relative to the domain axioms.
 %
 domain_axioms(Ax) :-
-   findall(C,constraint(C),Ax).
+   findall(C,constraint(C),Ax1),
+    maplist(make_cknows_fml,Ax1,Ax).
 domain_falsehood(Fml) :-
     domain_axioms(Axs),
     entails(Axs,~Fml).
 domain_tautology(Fml) :-
     domain_axioms(Axs),
     entails(Axs,Fml).
+
+make_cknows_fml(F,CK) :-
+    setof(A,agent(A),Agts),
+    joinlist('|',Agts,E),
+    CK = pknows0((E*),F).
 
 %
 %  adp_fluent(F,A,C)  -  C is the defn for ADP fluent F applied to action A

@@ -5,7 +5,7 @@
 
 :- [fluent].
 :- [epath].
-:- [twb_pdl].
+:- [twb_vpdl].
 :- [sitcalc].
 :- [domain].
 

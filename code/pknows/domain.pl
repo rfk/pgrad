@@ -151,43 +151,32 @@ test(path1) :-
 test(path2) :-
     domain_tautology(pknows0(!(X:agent) ; ?(inroom(X)),loc(c)) <=> ((inroom(ann) | inroom(bob)) => loc(c))).
 test(path3) :-
-    write('TEST: path3'), nl,
     P = pknows0(ann,loc(c)),
     regression(P,nil,R),
-    domain_tautology(R => P),
-    write('DONE'), nl, !.
-test(path4) :-
-    write('TEST: path4'), nl,
-    P = pknows0(ann*,loc(c)),
-    regression(P,nil,R),
-    domain_tautology(R => P),
-    write('DONE'), nl, !.
-test(path5) :-
-    write('TEST: path5'), nl,
-    P = pknows0((ann | bob)*,loc(c)),
-    regression(P,nil,R),
-    domain_tautology(R => P),
-    write('DONE'), nl, !.
+    domain_tautology(R => P), !.
+%test(path4) :-
+%    P = pknows0(ann*,loc(c)),
+%    regression(P,nil,R),
+%    domain_tautology(R => P), !.
+%test(path5) :-
+%    P = pknows0((ann | bob)*,loc(c)),
+%    regression(P,nil,R),
+%    domain_tautology(R => P), !.
 
 %
 %  Examples from "Common Knowledge, Hidden Actions, and the Frame Problem".
 %
 test(example1) :-
-    write('TEST: example1'), nl,
     holds(~ ?([L:location]:knows(ann,loc(L))),s0), !.
 test(example2) :-
-    write('TEST: example2'), nl,
     holds(knows(bob,loc(c)),do(read(bob),s0)), !.
 test(example3) :-
-    write('TEST: example3'), nl,
     holds(knows(bob,~knows(ann,loc(c))),s0).
 test(example4) :-
-    write('TEST: example4'), nl,
     holds(~ knows(bob,~ knows(ann,loc(c))),do(leave(bob),s0)), !.
 
-test(example5) :-
-    write('TEST: example5'), nl,
-    holds(pknows((ann | bob)*,~knows(ann,loc(c))),s0), !.
+%test(example5) :-
+%    holds(pknows((ann | bob)*,~knows(ann,loc(c))),s0), !.
 %test(example6) :-
 %    holds(~pknows((ann | bob)*,loc(c)),do(read(bob),s0)), !.
 %test(example7) :-
