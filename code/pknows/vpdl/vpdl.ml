@@ -1,14 +1,13 @@
 (*
-  Theorem Prover for our simplified FODL language, based on
-  the standard "pdlMark" prover from TWB.
+  Theorem Prover for PDL-plus-variable-assignments (VPDL) based on the
+  standard "pdlMark" prover from TWB.
 
   We have added a new program type [ ! vassign ] which assigns values
-  to variables in the enclosed program.  It's based purely on string
-  re-writing and so is incredibly fragile, but works for our purposes.
+  to variables in the enclosed program, and a collection of new tableaux
+  rule to push vassigns inside other modalities.  Finally, when the vassign
+  reaches a raw formula term, it is applied as a simple string substitution.
 
-  We have also added a collection of tableaux rules to push vassigns inside
-  other program modalities, culimating with a string-replacing rule to apply
-  them to raw formulae.
+  The result is an incredibly fragile syntax but it works for our purposes.
 *)
 
 CONNECTIVES
@@ -45,8 +44,8 @@ expr := formula;;
 END
 
 
-open FodlRewrite
-open FodlFunctions
+open VpdlRewrite
+open VpdlFunctions
 
 
 HISTORIES

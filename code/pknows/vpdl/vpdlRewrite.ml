@@ -1,4 +1,4 @@
-source Fodl
+source Vpdl
 
 let neg_term = function formula ( a ) -> formula ( ~ a )
 
