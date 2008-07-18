@@ -8,10 +8,12 @@
   reaches a raw formula term, it is applied as a simple string substitution.
 
   The result is an incredibly fragile syntax but it works for our purposes.
+
+  We also add simple term-based equality handling using a special rule.
 *)
 
 CONNECTIVES
-[ "~";"&";"v";"->";"<->";"<";">";"[";"]";"U";"*";";";"?";"!";"<="]
+[ "~";"&";"v";"->";"<->";"<";">";"[";"]";"U";"*";";";"?";"!";"<=";"=="]
 
 GRAMMAR
 
@@ -31,6 +33,7 @@ program :=
 
 formula :=
      ATOM | Verum | Falsum
+    | formula == formula
     | formula & formula
     | formula v formula
     | formula -> formula
@@ -58,6 +61,8 @@ VARIABLES
 END
 
 let nnf = List.map nnf_term
+
+(*  vsubs,vmerge,etc are only called with single-element lists  *)
 let vsubs pattn = 
   match pattn with 
   | (vpattn,fpattn) -> [ vsubs1 (List.hd vpattn,List.hd fpattn) ]
@@ -65,7 +70,18 @@ let vsubs pattn =
 
 let vmerge pattn = 
   match pattn with
-  | (vpattn1,vpattn2,fpattn) -> [ vmerge1 (List.hd vpattn1,List.hd vpattn2, List.hd fpattn) ]
+  | (vpattn1,vpattn2,fpattn) -> [ vmerge1 (List.hd vpattn1,List.hd vpattn2,List.hd fpattn) ]
+  ;;
+
+let eq_terms pattn = 
+  match pattn with
+  | (tpattn1,tpattn2) -> [ eq_terms1 (List.hd tpattn1,List.hd tpattn2) ]
+  ;;
+
+let neq_terms pattn = 
+  match pattn with
+  | (tpattn1,tpattn2) -> [ neq_terms1 (List.hd tpattn1,List.hd tpattn2) ]
+  ;;
 
 
 TABLEAU
@@ -84,6 +100,16 @@ TABLEAU
       uev := uevundef ();
       mrk := true
   ]
+  END
+
+  (*  Equality-handling rules  *)
+
+  RULE Eq { A == B } ; Z === eq_terms ( A , B ) ; Z
+  BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
+  END
+
+  RULE NEq { ~ ( A == B ) } ; Z ===  neq_terms ( A , B ) ; Z
+  BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
   (*  standard pdlMark rules  *)
@@ -274,13 +300,14 @@ TABLEAU
 END
 
 STRATEGY := 
-  let term = tactic (False ! Id) in 
+  let stop = tactic (False ! Id) in 
+  let eq = tactic ( Eq ! NEq ) in
   let vnorm = tactic (VDia ! VRawDia ! VRawBox ! VMerge) in
   let decom = tactic (And ! StarBox ! UnionBox ! SeqDia ! SeqBox ! TestDia) in
   let vdecom = tactic (VAnd ! VStarBox ! VUnionBox ! VSeqDia ! VSeqBox ! VTestDia) in
   let split = tactic (Or ! StarDia ! UnionDia ! TestBox) in
   let vsplit = tactic (VOr ! VStarDia ! VUnionDia ! VTestBox) in
-  let sat = tactic (term ! vnorm ! decom ! vdecom ! split ! vsplit ! VRawFml)
+  let sat = tactic (stop ! eq ! vnorm ! decom ! vdecom ! split ! vsplit ! VRawFml)
   in tactic ((sat ! K ! Loop)*)
 
 let exit = function

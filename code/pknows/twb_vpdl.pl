@@ -31,11 +31,8 @@ twb_pdl_prove(Axioms,Conc,Result) :-
           Conc2 = !(TypedVars : Conc)
     ),
     % Write out (Axioms) -> (Conjecture)
-    % We need to include object equality axioms for each object.
     write('('),
     twb_write_axioms(Axioms), !,
-    write(' & '),
-    twb_write_equality_axioms,
     write(') -> ('),
     twb_write(Conc2), write(').'), nl,
     told, !,
@@ -57,23 +54,17 @@ twb_pdl_prove(Axioms,Conc,Result) :-
 %  twb_write(P)  -  write formula in TWB PDL format
 %
 twb_write(A=B) :-
-    ground(A), ground(B),
-    ( A == B ->
-        write('Verum')
-    ; ( twb_is_var(A) ; twb_is_var(B) ) ->
-        twb_write(equals(A,B))
-    ;
-        write('Falsum')
-    ), !.
+    write('( '),
+    twb_write_term(A),
+    write(' == '),
+    twb_write_term(B),
+    write(' )').
 twb_write(A\=B) :-
-    ground(A), ground(B),
-    ( A == B ->
-        write('Falsum')
-    ; ( twb_is_var(A) ; twb_is_var(B) ) ->
-        twb_write( ~ equals(A,B))
-    ;
-        write('Verum')
-    ), !.
+    write('~ ( '),
+    twb_write_term(A),
+    write(' == '),
+    twb_write_term(B),
+    write(' )').
 twb_write(P) :-
     is_atom(P),
     P =.. [F|Terms],
@@ -156,12 +147,6 @@ twb_write_axioms([]) :-
     write('Verum').
 twb_write_axioms([A|Axs]) :-
     twb_write(A), write(' & '),
-    twb_write_axioms(Axs).
-
-
-twb_write_equality_axioms :-
-    setof(Ax,O^(object(O),Ax=equals(O,O)),Axs1),
-    maplist(make_cknows_fml,Axs1,Axs),
     twb_write_axioms(Axs).
 
 

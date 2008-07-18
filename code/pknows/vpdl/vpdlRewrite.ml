@@ -20,6 +20,8 @@ let rec nnf_term = function
   | formula ( ~ ( < p > a ) ) -> formula ( [ {nnf_prog p} ] {nnf_term ( formula ( ~ a ) )} )
   | formula ( [ p ] a ) -> formula ( [ {nnf_prog p} ] {nnf_term a} )
   | formula ( ~ ( [ p ] a ) ) -> formula ( < {nnf_prog p} > {nnf_term ( formula ( ~ a ) )} )
+  | formula ( ~ ( a == b ) ) as f -> f
+  | formula ( a == b ) as f -> f
   | formula (Verum) as f -> f
   | formula (Falsum) as f -> f
   | formula (~ Verum) -> formula (Falsum)
@@ -89,21 +91,24 @@ and ef_prog = function
 let nnf_snf_term f =
   let nnf = nnf_term f in
   let snf = snf_term nnf in
-  (* print_endline (formula_printer snf); *)
   snf
 
 
-(*  we assume that we only subs into raw formulae, not formulae with
-    modalities - the other cases are just here to keep the typechecker happy,
-    and they leave the formula unmodified 
-*)
-
+(*  The actual subtitution mechanism - it's just string replacement  *)
 let vsubs_str oldval newval s  =
     Str.global_replace (Str.regexp_string oldval) newval s
 
+(*  vsubs wrapper operating on fml atoms  *)
 let vsubs_atom (`Atom text,`Atom name,`Atom value) =
-    vsubs_str name value text
+    `Atom (vsubs_str name value text)
 
+
+(*  push variable substitutions down to atomic formulae
+
+    we assume that we only subs into raw formulae, not formulae with
+    modalities - the other cases are just here to keep the typechecker happy,
+    and they leave the formula unmodified 
+*)
 let rec vsubs_do = function
   | ( formula ( a & b ) , o,n ) -> formula ( { vsubs_do (a,o,n) } & { vsubs_do (b,o,n) } )
   | ( formula ( a v b ) , o,n ) -> formula ( { vsubs_do (a,o,n) } v { vsubs_do (b,o,n) } )
@@ -112,26 +117,38 @@ let rec vsubs_do = function
   | ( formula ( a <-> b ) , o,n ) ->  formula ( { vsubs_do (a,o,n) } <-> { vsubs_do (b,o,n) } )
   | ( formula ( < p > a ) as f , o,n ) -> f
   | ( formula ( [ p ] a ) as f , o,n ) -> f
+  | ( formula ( a == b ) , o,n ) -> formula ( { vsubs_do(a,o,n) } == { vsubs_do(a,o,n) } )
   | ( formula (Verum) as f, o,n ) -> f
   | ( formula (Falsum) as f, o,n ) -> f
-  | ( formula (A) as f , o,n ) -> formula ( {`Atom (vsubs_atom(f,o,n)) } )
+  | ( formula (A) as f , o,n ) -> formula ( { vsubs_atom(f,o,n) } )
 
+
+(*  recursively handling multiple var bindings in a single modality  *)
 let rec vsubs1 = function
   | ( vassign ( A <= B ) , f ) -> formula ( { vsubs_do(f,a,b) } )
   | ( vassign ( a ! b ) , f ) -> formula ( { vsubs1( b , vsubs1(a,f) ) } )
 
+(*  check whether a vassign already contains a given var name  *)
 let rec vcontains = function
   | ( vassign ( A <= B ) , vv ) -> if vv=a then true else false
   | ( vassign ( a ! b ), vv ) -> if vcontains(a,vv) then true
                                  else vcontains(b,vv)
 
+(*  merge a base vassign into the given vassign  *)
 let rec vmerge_do = function
   | ( vassign ( A <= B ) as v1 , v2 ) -> 
                                    let merged = vassign ( v2 ! v1)
                                    in if vcontains(v2,a) then v2 else merged
   | ( vassign (a ! b ) , v2 ) -> vmerge_do(b,vmerge_do(a,v2))
 
+(*  merge two vassign modalities, applying the result to given fml  *)
 let rec vmerge1 = function
   | ( v1, v2, f) -> let merged = vassign ( { vmerge_do(v1,v2) } )
                     in formula ( [ ! merged ] f )
+
+(*  equality testing of terms  *)
+let eq_terms1 = function
+  | ( t1 , t2 ) -> if t1 = t2 then formula ( Verum ) else formula ( Falsum )
+let neq_terms1 = function
+  | ( t1 , t2 ) -> if t1 = t2 then formula ( Falsum ) else formula ( Verum )
 
