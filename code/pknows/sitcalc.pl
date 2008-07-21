@@ -33,8 +33,8 @@ awv_collect([T|Ts],[Y|Ys],[Y:T|Vs]) :-
 %  Specify domain-independent constraints, and some things we can safely
 %  assume will hold in any initial situation.
 %
-constraint(true).
-constraint(~false).
+%constraint(true).
+%constraint(~false).
 initially(~knows(Agt,false)) :-
     agent(Agt).
 

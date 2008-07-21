@@ -42,6 +42,7 @@
 %     P | Q       -   choice
 %     ?(P)        -   test
 %     !(X:T)      -   nondet. rebind of a typed variable
+%     -([X:V])    -   set vars to specific values
 %     P*          -   iteration
 %     
 %  Most of these are native prolog operators so we dont have
@@ -552,6 +553,8 @@ simplify1(pknows(E,P),S) :-
    simplify1(P,Ps),
    ( Ps=true -> S=true
    ; Ps=false -> S=false
+   ; Es=(?false) -> S=true
+   ; Es=(?true) -> S=Ps
    ; S = pknows(Es,Ps)
    ).
 simplify1(pknows0(E,P),S) :-
@@ -559,6 +562,8 @@ simplify1(pknows0(E,P),S) :-
    simplify1(P,Ps),
    ( Ps=true -> S=true
    ; Ps=false -> S=false
+   ; Es=(?false) -> S=true
+   ; Es=(?true) -> S=Ps
    ; S = pknows0(Es,Ps)
    ).
 

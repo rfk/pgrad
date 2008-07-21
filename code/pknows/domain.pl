@@ -154,10 +154,10 @@ test(path3) :-
     P = pknows0(ann,loc(c)),
     regression(P,nil,R),
     domain_tautology(R => P), !.
-%test(path4) :-
-%    P = pknows0(ann*,loc(c)),
-%    regression(P,nil,R),
-%    domain_tautology(R => P), !.
+test(path4) :-
+    P = pknows0(ann*,loc(c)),
+    regression(P,nil,R),
+    domain_tautology(R => P), !.
 %test(path5) :-
 %    P = pknows0((ann | bob)*,loc(c)),
 %    regression(P,nil,R),

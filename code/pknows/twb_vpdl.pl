@@ -14,8 +14,9 @@
 twb_pdl_exe('vpdl/vpdl.twb').
 
 entails(Axs,Conc) :-
+    maplist(copy_term,Axs,Axs2),
     copy_term(Conc,Conc2),
-    twb_pdl_prove(Axs,Conc2,yes).
+    twb_pdl_prove(Axs2,Conc2,yes).
 
 twb_pdl_prove(Axioms,Conc,Result) :-
     % Create input/output files
@@ -45,85 +46,103 @@ twb_pdl_prove(Axioms,Conc,Result) :-
     ( shell(TCmd,0) ->
         Result = yes
     ;
+        % Propositional prover, so we cannot get Result=unknown
         Result = no
-    % Propositional prover, so we cannot get Result=unknown
     ).
 
 
 %
 %  twb_write(P)  -  write formula in TWB PDL format
 %
-twb_write(A=B) :-
+
+twb_write(P) :-
+    twb_write_fml(P), !.
+
+twb_write_fml(true) :-
+    write(' (Verum) '), !.
+twb_write_fml(false) :-
+    write(' (Falsum) '), !.
+twb_write_fml(A=B) :-
     write('( '),
     twb_write_term(A),
     write(' == '),
     twb_write_term(B),
     write(' )').
-twb_write(A\=B) :-
+twb_write_fml(A\=B) :-
     write('~ ( '),
     twb_write_term(A),
     write(' == '),
     twb_write_term(B),
     write(' )').
-twb_write(P) :-
+twb_write_fml(P) :-
     is_atom(P),
-    P =.. [F|Terms],
-    write(F),
-    (Terms \= [] -> write('__'), twb_write_terms(Terms,'__') ; true).
-twb_write(P & Q) :-
+    twb_write_pred(P).
+twb_write_fml(P & Q) :-
     write('('),
-    twb_write(P),
+    twb_write_fml(P),
     write(' & '),
-    twb_write(Q),
+    twb_write_fml(Q),
     write(')').
-twb_write(P | Q) :-
+twb_write_fml(P | Q) :-
     write('('),
-    twb_write(P),
+    twb_write_fml(P),
     write(' v '),
-    twb_write(Q),
+    twb_write_fml(Q),
     write(')').
-twb_write(P => Q) :-
+twb_write_fml(P => Q) :-
     write('('),
-    twb_write(P),
+    twb_write_fml(P),
     write(' -> '),
-    twb_write(Q),
+    twb_write_fml(Q),
     write(')').
-twb_write(P <=> Q) :-
+twb_write_fml(P <=> Q) :-
     write('('),
-    twb_write(P),
+    twb_write_fml(P),
     write(' <-> '),
-    twb_write(Q),
+    twb_write_fml(Q),
     write(')').
-twb_write(~P) :-
+twb_write_fml(~P) :-
     write('~ ('),
-    twb_write(P),
+    twb_write_fml(P),
     write(')').
-twb_write(!([]:P)) :-
-    twb_write(P).
-twb_write(!([V:T|Vs]:P)) :-
-    bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs),
-    joinlist('&',Pbs,Enumed),
-    twb_write(Enumed).
-twb_write(?([]:P)) :-
-    twb_write(P).
-twb_write(?([V:T|Vs]:P)) :-
-    bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs),
-    joinlist('|',Pbs,Enumed),
-    twb_write(Enumed).
-twb_write(knows(A,P)) :-
+twb_write_fml(!([]:P)) :-
+    twb_write_fml(P).
+twb_write_fml(!([V:T|Vs]:P)) :-
+    bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs1),
+    maplist(copy_fml,Pbs1,Pbs),
+    joinlist('&',Pbs,Enumed1),
+    simplify(Enumed1,Enumed),
+    twb_write_fml(Enumed).
+twb_write_fml(?([]:P)) :-
+    twb_write_fml(P).
+twb_write_fml(?([V:T|Vs]:P)) :-
+    bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs1),
+    maplist(copy_fml,Pbs1,Pbs),
+    joinlist('|',Pbs,Enumed1),
+    simplify(Enumed1,Enumed),
+    twb_write_fml(Enumed).
+twb_write_fml(knows(A,P)) :-
     write('( ['),
     write(A),
     write('] ('),
-    twb_write(P),
+    twb_write_fml(P),
     write('))').
-twb_write(pknows0(E,P)) :-
-    write('( ['),
+twb_write_fml(pknows0(E,P)) :-
     epath_vars(E,Vars),
-    number_vars(Vars),
-    twb_write_path(E),
-    write('] ('),
-    twb_write(P),
-    write('))').
+    epath_enum_vars(E,En1),
+    epath_elim_impossible_branches(En1,[],En),
+    ( En = (?false) ->
+        write(' (Verum) ')
+    ; En = (?true) ->
+        twb_write_fml(P)
+    ;
+        write('( ['),
+        number_vars(Vars),
+        twb_write_path(En),
+        write('] ('),
+        twb_write_fml(P),
+        write('))')
+    ).
 
 twb_write_terms([],_).
 twb_write_terms([T],_) :-
@@ -142,11 +161,17 @@ twb_write_term(T) :-
       twb_write_terms(Args,'_')
     ).
     
+twb_write_pred(P) :-
+    P =.. [F|Terms],
+    write(F),
+    (Terms \= [] -> write('__'), twb_write_terms(Terms,'__') ; true).
 
 twb_write_axioms([]) :-
     write('Verum').
+twb_write_axioms([A]) :-
+    twb_write_fml(A).
 twb_write_axioms([A|Axs]) :-
-    twb_write(A), write(' & '),
+    twb_write_fml(A), write(' & '),
     twb_write_axioms(Axs).
 
 
@@ -164,28 +189,25 @@ twb_write_path(E1 | E2) :-
     write(')').
 twb_write_path(?(P)) :-
     write('( ? '),
-    twb_write(P),
+    twb_write_fml(P),
     write(' )').
 twb_write_path(E*) :-
     write('( * '),
     twb_write_path(E),
     write(' )').
-twb_write_path(!(X:T)) :-
-    bagof(V,call(T,V),Vs),
-    write('( '),
-    twb_write_vassigns(Vs,X),
-    write(' )').
+twb_write_path(-VA) :-
+    ( VA = [] ->
+      twb_write_path(?true)
+    ;
+      write('( '),
+      twb_write_vassign(VA),
+      write(' )')
+    ).
 twb_write_path(A) :-
     write(A).
 
-twb_write_vassigns([],_) :-
-    write('( ? Falsum )').
-twb_write_vassigns([V|Vs],X) :-
-    write('( ! '), write(X), write(' <= '), twb_write_term(V), write(' )'),
-    write(' U '), twb_write_vassigns(Vs,X).
-
-twb_is_var(V) :-
-    atom(V),
-    name(x,[X]),
-    atom_codes(V,[X|_]).
+twb_write_vassign([]).
+twb_write_vassign([(X:V)|Xs]) :-
+    write('! '), write(X), write(' <= '), twb_write_term(V), write(' '),
+    twb_write_vassign(Xs).
 

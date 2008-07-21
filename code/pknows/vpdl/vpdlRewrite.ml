@@ -38,6 +38,7 @@ and nnf_prog = function
 let rec eps_free = function
   | program ( * a ) -> false
   | program ( ? f ) -> false
+  | program ( ! _ ) -> false
   | program ( a U b ) -> (eps_free a) && (eps_free b)
   | program ( a ; b ) -> (eps_free a) || (eps_free b)
   | _ -> true
@@ -67,6 +68,7 @@ and ef_prog = function
         | Some a1 -> Some (program ( a1 ; ( * a1 ) ))
       end
   | program ( ? f ) -> None
+  | program ( ! _ ) -> None
   | program ( a U b ) ->
       begin
         match (ef_prog a, ef_prog b) with
@@ -117,7 +119,7 @@ let rec vsubs_do = function
   | ( formula ( a <-> b ) , o,n ) ->  formula ( { vsubs_do (a,o,n) } <-> { vsubs_do (b,o,n) } )
   | ( formula ( < p > a ) as f , o,n ) -> f
   | ( formula ( [ p ] a ) as f , o,n ) -> f
-  | ( formula ( a == b ) , o,n ) -> formula ( { vsubs_do(a,o,n) } == { vsubs_do(a,o,n) } )
+  | ( formula ( a == b ) , o,n ) -> formula ( { vsubs_do(a,o,n) } == { vsubs_do(b,o,n) } )
   | ( formula (Verum) as f, o,n ) -> f
   | ( formula (Falsum) as f, o,n ) -> f
   | ( formula (A) as f , o,n ) -> formula ( { vsubs_atom(f,o,n) } )

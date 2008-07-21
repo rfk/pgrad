@@ -9,7 +9,8 @@
 
   The result is an incredibly fragile syntax but it works for our purposes.
 
-  We also add simple term-based equality handling using a special rule.
+  We've also added simple term-based equality handling using a special rule.
+
 *)
 
 CONNECTIVES
@@ -303,11 +304,11 @@ STRATEGY :=
   let stop = tactic (False ! Id) in 
   let eq = tactic ( Eq ! NEq ) in
   let vnorm = tactic (VDia ! VRawDia ! VRawBox ! VMerge) in
-  let decom = tactic (And ! StarBox ! UnionBox ! SeqDia ! SeqBox ! TestDia) in
-  let vdecom = tactic (VAnd ! VStarBox ! VUnionBox ! VSeqDia ! VSeqBox ! VTestDia) in
-  let split = tactic (Or ! StarDia ! UnionDia ! TestBox) in
-  let vsplit = tactic (VOr ! VStarDia ! VUnionDia ! VTestBox) in
-  let sat = tactic (stop ! eq ! vnorm ! decom ! vdecom ! split ! vsplit ! VRawFml)
+  let vdecom = tactic (VAnd ! VUnionBox ! VSeqDia ! VSeqBox ! VTestDia ! VStarBox) in
+  let vsplit = tactic (VOr ! VTestBox ! VUnionDia ! VStarDia) in
+  let decom = tactic (And ! UnionBox ! SeqDia ! SeqBox ! TestDia ! StarBox) in
+  let split = tactic (Or ! TestBox ! UnionDia ! StarDia) in
+  let sat = tactic (stop ! eq ! vnorm ! vdecom ! vsplit ! VRawFml ! decom ! split)
   in tactic ((sat ! K ! Loop)*)
 
 let exit = function

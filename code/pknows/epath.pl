@@ -3,14 +3,247 @@
 %
 
 %
-%  enumerate_epath(E,En)  -  enumerate all possible values of each path 
-%                            variable in the epath, reducing it from FODL
-%                            to PDL (and hence making it decidable)
+%  epath_poss_values(E,VVIn,VVOut)  -  determine possible var values
 %
-enumerate_epath(E,En) :-
-    epath_vars(E,Vars),
-    epath_vars_enum(Vars,VarVals),
-    epath_elim_vars(E,VarVals,En).
+%  If path E is entered with variable bindings from the set VVIn, then
+%  it will terminate with bindings from the set VVOut.
+%  Each of these is a list mapping vars to a list of possible values, e.g.
+%  [X:[a,b,c], Y:[f,g]].  Vars not in the mapping are allowed to take on
+%  any value.
+%
+%  Since this is a propositional domain, we can handle the star operator
+%  as a simple fixpoint calculation and be sure it will eventually terminate.
+%
+
+epath_poss_values(A,VV,VV) :-
+    agent(A).
+epath_poss_values(?(P),VVIn,VVOut) :-
+    epath_poss_values_test(VVIn,[],P,VVOut),
+    vv_valid(VVOut).
+epath_poss_values(!(X:T),VVIn,VVOut) :-
+    bagof(Val,call(T,Val),Vals),
+    vv_update(VVIn,X,Vals,VVOut).
+epath_poss_values(-[],VVIn,VVIn).
+epath_poss_values(-[X:V|Xs],VVIn,VVOut) :-
+    vv_update(VVIn,X,[V],VV2),
+    epath_poss_values(-Xs,VV2,VVOut).
+epath_poss_values(E1 ; E2,VVIn,VVOut) :-
+    epath_poss_values(E1,VVIn,VV2),
+    epath_poss_values(E2,VV2,VVOut).
+epath_poss_values(E1 | E2,VVIn,VVOut) :-
+    ( epath_poss_values(E1,VVIn,VV1) ->
+        ( epath_poss_values(E2,VVIn,VV2) ->
+            vv_merge(VV1,VV2,VVOut)
+        ;
+            VVOut = VV1
+        )
+    ;
+        epath_poss_values(E2,VVIn,VVOut)
+    ).
+epath_poss_values(E*,VVIn,VVOut) :-
+    epath_poss_values(E,VVIn,VV2),
+    ( VV2 = VVIn ->
+        VVOut = VV2
+    ;
+        epath_poss_values(E*,VV2,VVOut)
+    ).
+
+
+epath_poss_values_test([],_,_,[]).
+epath_poss_values_test([X:Vs|Xs],Sofar,P,VVOut) :-
+    partition(epath_poss_values_allowed(P,X,Xs,Sofar),Vs,Vs1,_),
+    VVOut = [X:Vs1|VVOut2],
+    Sofar2 = [X:Vs1|Sofar],
+    epath_poss_values_test(Xs,Sofar2,P,VVOut2).
+
+epath_poss_values_allowed(P,X,Others1,Others2,V) :-
+    epath_poss_values_allowed_sub1(P,Others1,P1),
+    epath_poss_values_allowed_sub1(P1,Others2,P2),
+    subs(X,V,P2,P3),
+    simplify(P3,P4),
+    P4 \= false.
+
+epath_poss_values_allowed_sub1(P,[],P).
+epath_poss_values_allowed_sub1(P,[X:Vs|Xs],P2) :-
+    member(Val,Vs),
+    subs(X,Val,P,P1),
+    epath_poss_values_allowed_sub1(P1,Xs,P2).
+    
+
+vv_valid([]).
+vv_valid([_:Vs|Xs]) :-
+    Vs \= [],
+    vv_valid(Xs).
+
+vv_update([],X,Vs,[X:Vs]).
+vv_update([X1:Vs1|Xs],X2,Vs2,Res) :-
+    ( X1 == X2 ->
+        Res = [X1:Vs2|Xs]
+    ;
+        Res = [X1:Vs1|Res2],
+        vv_update(Xs,X2,Vs2,Res2)
+    ).
+
+vv_merge([],VV2,VV2).
+vv_merge([X:Vs|Xs],VV1,Res) :-
+    vv_merge1(VV1,X,Vs,VV2),
+    vv_merge(Xs,VV2,Res).
+
+vv_merge1([],X,Vs,[X:Vs]).
+vv_merge1([X1:Vs1|Xs],X2,Vs2,Res) :-
+    ( X1 == X2 ->
+        union(Vs1,Vs2,VsU),
+        Res = [X1:VsU|Xs]
+    ;
+        Res = [X1:Vs1|Res2],
+        vv_merge1(Xs,X2,Vs2,Res2)
+    ).
+
+
+
+%
+%  epath_enum_vars(E,En)  -  enumerate all possible values of each path 
+%                            variable in the epath, reducing it from FODL
+%                            to VPDL and hence making it decidable
+%
+%  We expand any unions produced during enumeration over sequence operators,
+%  in the hope that each branch will simplify given the new variable bindings.
+%  We try to push var assignments as far to the right as possible, doing subs
+%  into tests and simplifying.
+%
+
+epath_enum_vars(E1 ; E2,En) :-
+    epath_enum_vars(E1,En1),
+    flatten_op('|',[En1],Ens1),
+    epath_enum_vars(E2,En2),
+    flatten_op('|',[En2],Ens2),
+    epath_enum_vars_branches(Ens1,Ens2,Ens),
+    epath_build('|',Ens,En).
+epath_enum_vars(E1 | E2,En) :-
+    flatten_op('|',[E1,E2],Es),
+    maplist(epath_enum_vars,Es,Ens),
+    epath_build('|',Ens,En).
+epath_enum_vars(E*,En) :-
+    epath_enum_vars(E,EnS),
+    epath_build('*',EnS,En).
+epath_enum_vars(?(P),?(P)).
+epath_enum_vars(-VA,-VA).
+epath_enum_vars(!(X:T),En) :-
+    bagof(VA,V^(call(T,V),VA=(-[X:V])),VAs),
+    epath_build('|',VAs,En).
+epath_enum_vars(A,A) :-
+    agent(A).
+    
+
+epath_enum_vars_branches([],_,[]).
+epath_enum_vars_branches([B|Bs],Es,[R|Rs]) :-
+    ( epath_ends_with_assign(B,VA,Head) ->
+        epath_enum_vars_branches_assign(Es,VA,Head,[],R)
+    ;
+        epath_enum_vars_branches_noassign(Es,B,[],R)
+    ),
+    epath_enum_vars_branches(Bs,Es,Rs).
+
+
+epath_enum_vars_branches_assign([],_,_,Acc,R) :-
+    joinlist('|',Acc,R).
+epath_enum_vars_branches_assign([E|Es],VA,B,Acc,R) :-
+    epath_push_assign(E,VA,Ea),
+    epath_build(';',[B,Ea],R1),
+    epath_enum_vars_branches_assign(Es,VA,B,[R1|Acc],R).
+
+epath_enum_vars_branches_noassign([],_,Acc,R) :-
+    joinlist('|',Acc,R).
+epath_enum_vars_branches_noassign([E|Es],B,Acc,R) :-
+    epath_build(';',[B,E],R1),
+    epath_enum_vars_branches_noassign(Es,B,[R1|Acc],R).
+ 
+%
+%  epath_ends_with_assign(E,VA,Head)  -  epath ends with a variable assignment
+%
+%  This predicate is true when E ends with a unique variable assignment
+%  operator.  VA is bound to the assignment and Head is the remainder
+%  of the path.
+%
+epath_ends_with_assign(E1 ; E2,VA,Head) :-
+    epath_ends_with_assign(E2,VA2,Head2),
+    ( Head2 = (?true) ->
+        ( epath_ends_with_assign(E1,VA1,Head1) ->
+            Head = Head1, vassign_merge(VA1,VA2,VA)
+        ;
+            Head = E1, VA=VA2
+        )
+    ;
+        Head = (E1 ; Head2), VA=VA2
+    ).
+epath_ends_with_assign(E1 | E2,VA,Head) :-
+    epath_ends_with_assign(E1,VA,Head1),
+    epath_ends_with_assign(E2,VA2,Head2),
+    VA == VA2,
+    Head = (Head1 | Head2).
+epath_ends_with_assign(-(VA),VA,?true).
+
+
+%
+%  epath_push_assign(E,VA,Ep)  -  push a variable assignment as far to the
+%                                 right as possible.
+%
+%  This may involved, for example, pushing it over a test operator and
+%  substituting the assigned values into the test formula.
+%
+epath_push_assign(E1 ; E2,VA,Ep) :-
+    epath_push_assign(E1,VA,Ep1),
+    ( epath_ends_with_assign(Ep1,VA2,Head) ->
+        epath_push_assign(E2,VA2,Ep2),
+        epath_build(';',[Head,Ep2],Ep)
+    ;
+        epath_build(';',[Ep1,E2],Ep)
+    ).
+epath_push_assign(E1 | E2,VA,Ep) :-
+    epath_push_assign(E1,VA,Ep1),
+    epath_push_assign(E2,VA,Ep2),
+    epath_build('|',[Ep1,Ep2],Ep).
+epath_push_assign(E*,VA,(-VA) ; (E*)).
+epath_push_assign(!(X:T),VA,Ep) :-
+    ( vassign_contains(VA,X) ->
+        Ep = (-VA ; !(X:T))
+    ;
+        Ep = (!(X:T) ; -VA)
+    ).
+epath_push_assign(-VA2,VA,-VAm) :-
+    vassign_merge(VA2,VA,VAm).
+epath_push_assign(?(P),VA,?(Q) ; -VA) :-
+    vassign_subs(VA,P,Q1),
+    simplify(Q1,Q).
+epath_push_assign(A,VA,A ; -VA) :-
+    agent(A).
+
+
+%
+%  Predicates for manipulating a variable assignment list
+%
+vassign_merge([],VA,VA).
+vassign_merge([(X:V)|Xs],VA2,VA) :-
+    vassign_insert(X,V,VA2,VAt),
+    vassign_merge(Xs,VAt,VA).
+
+vassign_insert(X,V,[],[X:V]).
+vassign_insert(X,V,[(X2:V2)|Xs],VA) :-
+    ( X == X2 ->
+        VA = [(X2:V2)|Xs]
+    ;
+        vassign_insert(X,V,Xs,VAs),
+        VA = [(X2:V2)|VAs]
+    ).
+
+vassign_contains([(X:_)|Xs],Y) :-
+    X == Y ; vassign_contains(Xs,Y).
+
+vassign_subs([],P,P).
+vassign_subs([(X:V)|Xs],P,Q) :-
+    subs(X,V,P,P2),
+    vassign_subs(Xs,P2,Q).
+
 
 %
 %  epath_vars(E,Vars)  -  find all path variables (as opposed to formula-level
@@ -28,6 +261,7 @@ epath_vars(E*,Vars) :-
     epath_vars(E,Vars), !.
 epath_vars(!(X:T),[X:T]) :- !.
 epath_vars(?(_),[]) :- !.
+epath_vars(-VA,VA) :- !.
 epath_vars(A,[]) :-
     agent(A).
 
@@ -41,233 +275,12 @@ epath_vars_union([X:T|Vars1],Vars2,Vars) :-
     ).
 
 %
-%  epath_vars_enum(VarsList,ValsList)  -  enumerate possible values for
-%                                         each path variable.
-%
-%  The input is a list of typed variables (V:T), while the output is
-%  a corresponding list of (V-N-Vals) with N the number of possible values
-%  variable V can be given, and Vals the list of possible values.
-%
-epath_vars_enum([],[]).
-epath_vars_enum([X:T|Vars],[X-N-Vals|VarVals]) :-
-    findall(Val,call(T,Val),Vals),
-    length(Vals,N),
-    epath_vars_enum(Vars,VarVals).
-
-%
-%  epath_elim_vars(E,Vars,EOut)  -  eliminate variables from an epath
-%
-%  epath_elim_var(E,V-N-Vals,EOut)  -  elimate a single variable from an epath
-%
-%  Vars is a list of (V-N-Vals) triples as produced by epath_vars_enum.
-%  The input epath E is converted in an equivalent path EOut but with
-%  all vars in the list replaced by an enumeration of their values.
-%
-%  epath_elim_var/3 is det.
-%
-
-:- index(epath_elim_vars(0,1,0)).
-
-epath_elim_vars(En,[],En).
-epath_elim_vars(E,[X-N-Vals|VarVals],En) :-
-    setof(En1,epath_elim_var(E,X-N-Vals,En1),En1s),
-    epath_build('|',En1s,En2),
-    epath_elim_vars(En2,VarVals,En).
-
-epath_elim_var(E,X-N-Vals,En) :-
-    numlist(1,N,Ns), member(N1,Ns), member(N2,Ns),
-    epath_elim_var(E,X-N-Vals,N1,N2,En).
-
-% helper predicate for setof/3 call in epath_elim_var
-epath_elim_var_seq_helper(E1 ; E2,VarVal,N1,N2,En) :-
-    VarVal = _-N-_,
-    numlist(1,N,Ns), member(Nt,Ns),
-    epath_elim_var(E1,VarVal,N1,Nt,En1),
-    epath_elim_var(E2,VarVal,Nt,N2,En2),
-    epath_build(';',[En1,En2],En).
-
-%
-%  epath_elim_var(E,X-N-Vals,N1,N2,EOut)  -  eliminate variable X from path E
-%
-%  This predicate eliminates the variable X from the path E by enumerating
-%  its possible values.  We assume that X is bound to Vals[N1] at the beginning
-%  of the path, and ensure that X is bound to Vals[N2] at the end of the path.
-%
-%  See epath_elim_var/3 for how this is used - we basically enumerate all
-%  possible pairs of N1 and N2 and union the resulting paths together.
-%
-%  The clauses are all straightforward except for the iteration operator,
-%  which we handle using a Kleene-style construction inspired by the
-%  paper "Logics of Communication and Change".
-%
-%  epath_elim_var/5 is semidet
-%
-epath_elim_var(A,_,N,N,A) :-
-    agent(A).
-epath_elim_var(E1 ; E2,VarVal,N1,N2,En) :-
-    setof(EnT,epath_elim_var_seq_helper(E1 ; E2,VarVal,N1,N2,EnT),EnLst),
-    epath_build('|',EnLst,En).
-epath_elim_var(E1 | E2,VarVal,N1,N2,En) :-
-    (epath_elim_var(E1,VarVal,N1,N2,En1) ->
-        (epath_elim_var(E2,VarVal,N1,N2,En2) ->
-            epath_build('|',[En1,En2],En)
-        ;
-            En = En1
-        )
-    ;
-        epath_elim_var(E2,VarVal,N1,N2,En2),
-        En = En2
-    ).
-epath_elim_var(E*,VarVal,N1,N2,En) :-
-    VarVal = _-N-_,
-    epath_elim_var_kln(E,VarVal,N1,N2,N,En).
-epath_elim_var(!(X1:T1),X-_-_,N1,N2,En) :-
-    (X1 == X ->
-       En = (?(true))
-    ;
-       N1 = N2, En = (!(X1:T1))
-    ).
-epath_elim_var(?(P),X-_-Vals,N,N,?(Pn)) :-
-    nth1(N,Vals,V), subs(X,V,P,PnT),
-    simplify(PnT,Pn), Pn \= ?(false).
-
-
-%
-%  epath_elim_var_kln(E,VarVal,N1,N2,K,En)
-%
-%  Kleene-style elimination of variable from within E*
-%
-%  The idea here is that a world is reachable by path <En> whenever it is
-%  reachable by iteration of path E, under the restriction that each iteration
-%  of E ends with X bound to value number K or less.
-%
-%  Thus E* is equiv to En with K==length(Vals), but we build up the definition
-%  recursively in order to eliminate variables.
-%
-%  In the base case of K<=0, there can be no intermediate iterations of E.
-%  In the recursive case, we can take any path with K<=K-1, or take any
-%  path that results in binding K to Vals[K], then any path from Vals[K]
-%  back to Vals[K], then any path from Vals[K] to Vals[N2].
-%  
-%  We memoize the results since the recursive definition repeats lots and
-%  lots of calculations.
-%
-%  epath_elim_var_kln/6 is semidet.
-%
-
-:- dynamic(epath_kln_memo_mode/1).
-:- dynamic(epath_kln_memo/6).
-:- index(epath_kln_memo(1,0,1,1,1,0)).
-
-epath_kln_memo_mode(none).
-epath_kln_set_memo_mode(M) :-
-    retract(epath_kln_memo_mode(_)),
-    assert(epath_kln_memo_mode(M)).
-
-epath_elim_var_kln(E,VarVal,N1,N2,K,En) :-
-    epath_kln_memo_mode(Mode),
-    ( Mode=basic ->
-        ( epath_kln_memo(E,VarVal,N1,N2,K,En) ->
-            true
-        ;
-            epath_elim_var_kln_(E,VarVal,N1,N2,K,En),
-            assert(epath_kln_memo(E,VarVal,N1,N2,K,En))
-        )
-    ; Mode=none ->
-        epath_elim_var_kln_(E,VarVal,N1,N2,K,En)
-    ;
-      throw(epath_kln_memo_mode(Mode))
-    ).
-
-%
-%  actual implementation of epath_elim_var_kln
-%  all four clauses are mutually exclusive so we use cut at
-%  the earliest possible moment.
-%
-
-epath_elim_var_kln_(E,VarVal,N1,N2,0,En) :-
-    !,
-    epath_elim_var(E,VarVal,N1,N2,En1),
-    ( N1 = N2 ->
-        epath_build('|',[(?(true)),En1],En)
-    ;
-        En = En1
-    ).
-epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
-    K > 0, K1 is K - 1, N1=K, N2=K,
-    !,
-    epath_elim_var_kln(E,VarVal,K,K,K1,EnK),
-    epath_build('*',EnK,En).
-epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
-    K > 0, K1 is K - 1, N1=K, N2\=K,
-    !,
-    epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK),
-    (epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-        epath_build('*',EnK,EnKS),
-        epath_build(';',[EnKS,EnFromK],En)
-    ;
-        En = EnFromK
-    ).
-epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
-    K > 0, K1 is K - 1, N1\=K, N2=K,
-    !,
-    epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
-    (epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-        epath_build('*',EnK,EnKS),
-        epath_build(';',[EnToK,EnKS],En)
-    ;
-        En = EnToK
-    ).
-epath_elim_var_kln_(E,VarVal,N1,N2,K,En) :-
-    K > 0, K1 is K - 1, N1\=K, N2\=K,
-    !,
-    ( epath_elim_var_kln(E,VarVal,N1,N2,K1,EnK1) ->
-        ( (epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
-         epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK)) ->
-            ( epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-                epath_build('*',EnK,EnKS),
-                epath_build(';',[EnToK,EnKS,EnFromK],En1),
-                epath_build('|',[EnK1,En1],En)
-            ;
-                epath_build(';',[EnToK,EnFromK],En1),
-                epath_build('|',[EnK1,En1],En)
-            )
-        ;
-            En = EnK1
-        )
-    ;
-        epath_elim_var_kln(E,VarVal,N1,K,K1,EnToK),
-        epath_elim_var_kln(E,VarVal,K,N2,K1,EnFromK),
-        ( epath_elim_var_kln(E,VarVal,K,K,K1,EnK) ->
-            epath_build('*',EnK,EnKS),
-            epath_build(';',[EnToK,EnKS,EnFromK],En)
-        ;
-            epath_build(';',[EnToK,EnFromK],En)
-        )
-    ).
-    
-
-%
 %  epath_build(Op,Args,EPath)  -  build an epath, with simplification
 %
 %  This predicate builds an epath, applying simplifications appropriate
 %  to the top-level operator but assuming all argument paths are already
 %  simplified.
 %
-
-epath_build_off('|',Es,E) :-
-    ( Es = [] ->
-        E = ?false
-    ;
-        joinlist('|',Es,E)
-    ), !.
-epath_build_off(';',Es,E) :-
-    ( Es = [] ->
-        E = ?false
-    ;
-        joinlist(';',Es,E)
-    ), !.
-epath_build_off('*',E,E*) :- !.
 
 epath_build('|',Es,E) :-
     flatten_op('|',Es,Es0),
@@ -290,7 +303,11 @@ epath_build(';',Es,E) :-
             E = (?true)
         ;
             simplify_epath_seq_combine(Es1,Ss),
-            joinlist(';',Ss,E)
+            ( member(?false,Ss) ->
+                E = (?false)
+            ;
+                joinlist(';',Ss,E)
+            )
         )
     ).
 
@@ -328,6 +345,53 @@ simplify_epath(?(P),?(S)) :-
     simplify(P,S).
 simplify_epath(!(X:T),!(X:T)).
 
+
+
+epath_elim_impossible_branches(A,_,A) :-
+    agent(A).
+epath_elim_impossible_branches(?(P),VVPoss,?(P1)) :-
+    ( epath_poss_values(?(P),VVPoss,_) ->
+        P1 = P
+    ;
+        P1 = false
+    ).
+epath_elim_impossible_branches(!(X:T),_,!(X:T)).
+epath_elim_impossible_branches(-VA,_,-VA).
+epath_elim_impossible_branches(E1 ; E2,VVPoss,Er) :-
+    ( epath_poss_values(E1,VVPoss,VV2) ->
+        epath_elim_impossible_branches(E1,VVPoss,Er1),
+        epath_elim_impossible_branches(E2,VV2,Er2),
+        (Er1 = ?false ->
+            Er = ?false
+        ; Er2 = ?false ->
+            Er = ?false
+        ;
+            Er = (Er1 ; Er2)
+        )
+    ;
+        Er = (?false)
+    ).
+epath_elim_impossible_branches(E1 | E2,VVPoss,Er) :-
+    epath_elim_impossible_branches(E1,VVPoss,Er1),
+    epath_elim_impossible_branches(E2,VVPoss,Er2),
+    (Er1 = ?false ->
+       Er = Er2
+    ; Er2 = ?false ->
+       Er = Er1
+    ;
+       Er = (Er1 | Er2)
+    ).
+epath_elim_impossible_branches(E*,VVPoss,Er) :-
+    ( epath_poss_values(E*,VVPoss,VV2) ->
+        epath_elim_impossible_branches(E,VV2,E2),
+        (E2 = ?false ->
+            Er = ?false
+        ;
+            Er = (E2*)
+        )
+    ;
+        Er = (?false)
+    ).
 
 %
 %  Simplification for operations within a star.
@@ -527,7 +591,15 @@ simplify_epath_combine(E,[?(Pc)|Rest]) :-
     fml2cnf(P1 & P2,Pc1),
     simplify(Pc1,Pc).
 
-
+%
+%  epath_seq_split(E,Seqs,Rest)  -  nondeterminstically split sequence of ops
+%
+%  This predicate nondeterministically splits a series of sequence operators
+%  into patterns that match the elements of the list Seqs.  Each free var in
+%  Seqs may be given one or more elements from the sequence, while each
+%  any entries in Seq that are nonvar will be unified with precisely one
+%  element.
+%
 :- index(epath_seq_split(1,1,0)).
 
 epath_seq_split(E1 ; E2,Seqs,Rest) :-
@@ -610,6 +682,7 @@ copy_epath_fmls(E*,Ec*) :-
 copy_epath_fmls(?(P),?(Pc)) :-
     copy_fml(P,Pc).
 copy_epath_fmls(!(V:T),!(V:T)).
+copy_epath_fmls(-VA,-VA).
 copy_epath_fmls(A,A) :-
     agent(A).
 
@@ -645,6 +718,8 @@ pp_epath(?(P),O,D) :-
     pp_fml(P,0,D1).
 pp_epath(!(V:T),O,_) :-
     pp_inset(O), write('!  '), write(V:T).
+pp_epath(-VA,O,_) :-
+    pp_inset(O), write('-  '), pp_epath_assign(VA).
 pp_epath(E*,O,D) :-
     D1 is D + 1,
     pp_inset(O), write('*'), nl,
@@ -654,25 +729,9 @@ pp_epath(A,O,_) :-
     pp_inset(O), write(A).
 
 
+pp_epath_assign([]).
+pp_epath_assign([(X:V)|Xs]) :-
+    write(X), write(' <= '), write(V), write(',  '),
+    pp_epath_assign(Xs).
 
-:- begin_tests(epath,[sto(rational_trees)]).
-
-test(enum1) :-
-    enumerate_epath(!(X:location) ; ?test(X),E),
-    E = (?(test(c) | test(d))), !.
-
-test(enum2) :-
-    enumerate_epath(!(X:location) ; ((ann ; !(X:location))*),E),
-    E = (ann*), !.
-
-test(enum3) :-
-    enumerate_epath(!(X:location) ; (((ann | bob) ; !(X:location))*),E),
-    E =((ann | bob)*), !.
-
-test(enum4) :-
-    enumerate_epath(!(X:location) ; ((ann ; ?test1(X) ; !(X:location))*),E),
-    E = (((ann ; ?test1(c))* | (ann ; ?test1(d))*)*), !.
-
-
-:- end_tests(epath).
 
