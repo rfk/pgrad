@@ -145,12 +145,18 @@ let rec vmerge_do = function
 
 (*  merge two vassign modalities, applying the result to given fml  *)
 let rec vmerge1 = function
-  | ( v1, v2, f) -> let merged = vassign ( { vmerge_do(v1,v2) } )
-                    in formula ( [ ! merged ] f )
+  | ( ( v1, v2 ), f) -> let merged = vassign ( { vmerge_do(v1,v2) } )
+                        in formula ( < ! merged > f )
 
 (*  equality testing of terms  *)
 let eq_terms1 = function
   | ( t1 , t2 ) -> if t1 = t2 then formula ( Verum ) else formula ( Falsum )
 let neq_terms1 = function
   | ( t1 , t2 ) -> if t1 = t2 then formula ( Falsum ) else formula ( Verum )
+
+(*  check for application to raw formulae  *)
+let is_raw_fml1 = function
+  | formula ( [ _ ] _ ) -> false
+  | formula ( < _ > _ ) -> false
+  | _ -> true
 

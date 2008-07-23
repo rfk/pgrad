@@ -61,29 +61,34 @@ VARIABLES
   mrk : bool := false
 END
 
+(*  Functions for use on lists-of-formulae  *)
+
 let nnf = List.map nnf_term
 
-(*  vsubs,vmerge,etc are only called with single-element lists  *)
 let vsubs pattn = 
   match pattn with 
-  | (vpattn,fpattn) -> [ vsubs1 (List.hd vpattn,List.hd fpattn) ]
+  | (vpattn,fpattn) -> List.map vsubs1 ( List.combine vpattn fpattn )
   ;;
 
 let vmerge pattn = 
   match pattn with
-  | (vpattn1,vpattn2,fpattn) -> [ vmerge1 (List.hd vpattn1,List.hd vpattn2,List.hd fpattn) ]
+  | (vpattn1,vpattn2,fpattn) -> List.map vmerge1 ( List.combine ( List.combine vpattn1 vpattn2 ) fpattn)
   ;;
 
 let eq_terms pattn = 
   match pattn with
-  | (tpattn1,tpattn2) -> [ eq_terms1 (List.hd tpattn1,List.hd tpattn2) ]
+  | (tpattn1,tpattn2) -> List.map eq_terms1 ( List.combine tpattn1 tpattn2 )
   ;;
 
 let neq_terms pattn = 
   match pattn with
-  | (tpattn1,tpattn2) -> [ neq_terms1 (List.hd tpattn1,List.hd tpattn2) ]
+  | (tpattn1,tpattn2) -> List.map neq_terms1 ( List.combine tpattn1 tpattn2 )
   ;;
 
+let is_raw_fml f =
+  is_raw_fml1 (List.hd f)
+
+(*  Actual Tableaux Rules  *)
 
 TABLEAU
 
@@ -113,7 +118,7 @@ TABLEAU
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  (*  standard pdlMark rules  *)
+  (*  Standard Alpha Rules  *)
 
   RULE And { A & B } ; Z === A ; B ; Z 
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
@@ -138,6 +143,8 @@ TABLEAU
   RULE SeqDia { < A ; B > P } ; Z === < A > < B > P ; Z
   BACKTRACK [ uev := set_uev_Inh(uev@1, < A ; B > P, < A > < B > P, Z) ]
   END
+
+  (*  Standard Beta Rules  *)
 
   RULE Or
         { P v Q } ; Z 
@@ -181,56 +188,59 @@ TABLEAU
   ]
   END
 
-  (*  assignment-handling rules  *)
+  (*  assignment-handling alpha rules  *)
 
-  RULE VDia { < ! V > P } ; Z === [ ! V ] P ; Z
+  RULE VBox { [ ! V ] P } ; Z === < ! V > P ; Z
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  RULE VRawDia { [ ! V ] < A > P } ; Z === < A > [ ! V ] P ; Z
+  RULE VRawDia { < ! V > < A > P } ; Z === < A > < ! V > P ; Z
+  BACKTRACK [ uev := set_uev_Inh(uev@1, < ! V > < A > P, < A > < ! V > P, Z) ]
+  END
+
+  RULE VRawBox { < ! V > [ A ] P } ; Z === [ A ] < ! V > P ; Z
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  RULE VRawBox { [ ! V ] [ A ] P } ; Z === [ A ] [ ! V ] P ; Z
+  RULE VRawFml { < ! V > P } ; Z === vsubs ( V , P ) ; Z
+  COND   [ is_raw_fml(P) ]
+  BACKTRACK [ uev := set_uev_Inh(uev@1, < ! V > P, P, Z) ]
+  END
+
+  RULE VMerge { < ! V > < ! X > P } ; Z === vmerge (V, X, P) ; Z
+  BACKTRACK [ uev := set_uev_Inh(uev@1, < ! V > < ! X > P, vmerge (V, X, P), Z) ]
+  END
+
+  RULE VAnd { < ! V > ( A & B ) } ; Z === < ! V > A ; < ! V > B ; Z 
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  RULE VRawFml { [ ! V ] P } ; Z === vsubs ( V , P ) ; Z
+  RULE VUnionBox { < ! V > [ A U B ] P } ; Z === < ! V > [ A ] P ;  < ! V > [ B ] P ; Z
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  RULE VMerge { [ ! V ] [ ! X ] P } ; Z === vmerge (V, X, P) ; Z
+  RULE VSeqBox { < ! V > [ A ; B ] P } ; Z === < ! V > [ A ] [ B ] P ; Z
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  RULE VAnd { [ ! V ] ( A & B ) } ; Z === [ ! V ] A ; [ ! V ] B ; Z 
+  RULE VStarBox { < ! V > [ * A ] P } ; Z === < ! V > P ; < ! V > [ A ] [ * A ] P ; Z 
   BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
   END
 
-  RULE VUnionBox { [ ! V ] [ A U B ] P } ; Z === [ ! V ] [ A ] P ;  [ ! V ] [ B ] P ; Z
-  BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
+  RULE VTestDia { < ! V > < ? F > P } ; Z === vsubs ( V , F ) ; < ! V > P ; Z
+  BACKTRACK [ uev := set_uev_Inh(uev@1, < ! V > < ? F > P, < ! V > P, Z) ]
   END
 
-  RULE VSeqBox { [ ! V ] [ A ; B ] P } ; Z === [! V ] [ A ] [ B ] P ; Z
-  BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
+  RULE VSeqDia { < ! V > < A ; B > P } ; Z === < ! V > < A > < B > P ; Z
+  BACKTRACK [ uev := set_uev_Inh(uev@1, < ! V > < A ; B > P, < ! V > < A > < B > P, Z) ]
   END
 
-  RULE VStarBox { [ ! V ] [ * A ] P } ; Z === [ ! V ] P ; [ ! V ] [ A ] [ * A ] P ; Z 
-  BACKTRACK [ uev := set_uev_All(uev@1, Z) ]
-  END
-
-  RULE VTestDia { [ ! V ] < ? F > P } ; Z === vsubs ( V , F ) ; [ ! V ] P ; Z
-  BACKTRACK [ uev := set_uev_Inh(uev@1, [ ! V ] < ? F > P, [ ! V ] P, Z) ]
-  END
-
-  RULE VSeqDia { [ ! V ] < A ; B > P } ; Z === [ ! V ] < A > < B > P ; Z
-  BACKTRACK [ uev := set_uev_Inh(uev@1, [ ! V ] < A ; B > P, [ ! V ] < A > < B > P, Z) ]
-  END
+  (*  assignment-handling beta rules  *)
 
   RULE VOr
-        { [ ! V ] ( P v Q ) } ; Z 
+        { < ! V > ( P v Q ) } ; Z 
   ======================================
-      [ ! V ] P ; Z ||| [ ! V ] Q ; Z
+      < ! V > P ; Z ||| < ! V > Q ; Z
 
   BRANCH [ [ doNextChild_disj(mrk@1, uev@1) ] ]
   BACKTRACK [
@@ -240,7 +250,7 @@ TABLEAU
   END
 
   RULE VTestBox
-  { [! V ] [ ? F ] P } ; Z === nnf ( vsubs ( V , ~ F ) ) ; Z ||| [ ! V ] P ; Z
+  { < ! V > [ ? F ] P } ; Z === nnf ( vsubs ( V , ~ F ) ) ; Z ||| < ! V > P ; Z
 
   BRANCH [ [ doNextChild_disj(mrk@1, uev@1) ] ]
   BACKTRACK [
@@ -250,21 +260,21 @@ TABLEAU
   END
 
   RULE VUnionDia
-  { [ ! V ] < A U B > P } ; Z === [ ! V ] < A > P ; Z ||| [ ! V ] < B > P ; Z
+  { < ! V > < A U B > P } ; Z === < ! V > < A > P ; Z ||| < ! V > < B > P ; Z
 
   BRANCH [ [ doNextChild_disj(mrk@1, uev@1) ] ]
   BACKTRACK [
-      uev := uev_disj_union(mrk@all, uev@all, [ ! V ] < A U B > P, [ ! V ] < A > P, [ ! V ] < B > P, Z);
+      uev := uev_disj_union(mrk@all, uev@all, < ! V > < A U B > P, < ! V > < A > P, < ! V > < B > P, Z);
       mrk := mrk_disj(mrk@all)
   ]
   END
 
   RULE VStarDia
-  { [ ! V ] < * A > P } ; Z === [ ! V ] P ; Z ||| [ ! V ] < A > < * A > P ; Z 
+  { < ! V > < * A > P } ; Z === < ! V > P ; Z ||| < ! V > < A > < * A > P ; Z 
 
   BRANCH [ [ doNextChild_disj(mrk@1, uev@1) ] ]
   BACKTRACK [
-      uev := uev_disj_star(mrk@all, uev@all, [ ! V ] < * A > P , [ ! V ] P, [ ! V ] < A > < * A > P, Z);
+      uev := uev_disj_star(mrk@all, uev@all, < ! V > < * A > P , < ! V > P, < ! V > < A > < * A > P, Z);
       mrk := mrk_disj(mrk@all)
   ]
   END
@@ -303,12 +313,12 @@ END
 STRATEGY := 
   let stop = tactic (False ! Id) in 
   let eq = tactic ( Eq ! NEq ) in
-  let vnorm = tactic (VDia ! VRawDia ! VRawBox ! VMerge) in
-  let vdecom = tactic (VAnd ! VUnionBox ! VSeqDia ! VSeqBox ! VTestDia ! VStarBox) in
-  let vsplit = tactic (VOr ! VTestBox ! VUnionDia ! VStarDia) in
-  let decom = tactic (And ! UnionBox ! SeqDia ! SeqBox ! TestDia ! StarBox) in
-  let split = tactic (Or ! TestBox ! UnionDia ! StarDia) in
-  let sat = tactic (stop ! eq ! vnorm ! vdecom ! vsplit ! VRawFml ! decom ! split)
+  let vnorm = tactic (VBox ! VRawDia ! VRawBox ! VMerge ! VRawFml) in
+  let valpha = tactic (VAnd ! VUnionBox ! VSeqDia ! VSeqBox ! VTestDia ! VStarBox) in
+  let vbeta = tactic (VOr ! VUnionDia ! VStarDia ! VTestBox ) in
+  let alpha = tactic (And ! UnionBox ! SeqDia ! SeqBox ! TestDia ! StarBox) in
+  let beta = tactic (Or ! TestBox ! UnionDia ! StarDia) in
+  let sat = tactic (stop ! eq ! vnorm ! valpha ! alpha ! vbeta ! beta)
   in tactic ((sat ! K ! Loop)*)
 
 let exit = function

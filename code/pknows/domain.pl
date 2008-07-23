@@ -145,6 +145,8 @@ test(knows4) :-
     holds(~knows(bob,inroom(ann)),do(leave(ann),s0)), !.
 test(knows5) :-
     holds(~knows(bob,loc(c)),s0), !.
+test(knows6) :-
+    \+ holds(knows(bob,loc(c)),s0).
 
 test(path1) :-
     domain_tautology(pknows0(ann | bob,loc(c)) <=> (knows(ann,loc(c)) & knows(bob,loc(c)))).
@@ -154,12 +156,8 @@ test(path3) :-
     P = pknows0(ann,loc(c)),
     regression(P,nil,R),
     domain_tautology(R => P), !.
-test(path4) :-
-    P = pknows0(ann*,loc(c)),
-    regression(P,nil,R),
-    domain_tautology(R => P), !.
-%test(path5) :-
-%    P = pknows0((ann | bob)*,loc(c)),
+%test(path4) :-
+%    P = pknows0(ann*,loc(c)),
 %    regression(P,nil,R),
 %    domain_tautology(R => P), !.
 
