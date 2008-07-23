@@ -108,19 +108,15 @@ twb_write_fml(~P) :-
 twb_write_fml(!([]:P)) :-
     twb_write_fml(P).
 twb_write_fml(!([V:T|Vs]:P)) :-
-    bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs1),
-    maplist(copy_fml,Pbs1,Pbs),
-    joinlist('&',Pbs,Enumed1),
-    simplify(Enumed1,Enumed),
-    twb_write_fml(Enumed).
+    write('( '),
+    twb_write_fml_sols(twb_valuate_var(T,!(Vs:P)),V,'&',true),
+    write(' )'), flush.
 twb_write_fml(?([]:P)) :-
     twb_write_fml(P).
 twb_write_fml(?([V:T|Vs]:P)) :-
-    bagof(Pb,(Val^(call(T,Val),subs(V,Val,!(Vs:P),Pb))),Pbs1),
-    maplist(copy_fml,Pbs1,Pbs),
-    joinlist('|',Pbs,Enumed1),
-    simplify(Enumed1,Enumed),
-    twb_write_fml(Enumed).
+    write('( '),
+    twb_write_fml_sols(twb_valuate_var(T,?(Vs:P)),V,'|',false),
+    write(' )'), flush.
 twb_write_fml(knows(A,P)) :-
     write('( ['),
     write(A),
@@ -143,6 +139,19 @@ twb_write_fml(pknows0(E,P)) :-
         twb_write_fml(P),
         write('))')
     ).
+
+
+twb_valuate_var(T,Fml,V,Res) :-
+    call(T,Val), subs(V,Val,Fml,Res1),
+    copy_fml(Res1,Res2),
+    simplify(Res2,Res).
+
+twb_write_fml_sols(Pred,Var,Sep,_) :-
+    call(Pred,Var,Sol),
+    twb_write_fml(Sol),
+    write(' '), write(Sep), write(' '), fail.
+twb_write_fml_sols(_,_,_,Final) :-
+    twb_write_fml(Final).
 
 twb_write_terms([],_).
 twb_write_terms([T],_) :-

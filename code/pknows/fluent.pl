@@ -561,7 +561,8 @@ simplify1(pknows0(E,P),S) :-
    simplify_epath(E,Es),
    simplify1(P,Ps),
    ( Ps=true -> S=true
-   ; Ps=false -> S=false
+   %; Ps=false -> S=false  % this may be OK if Es=(?false) but we can't
+                           % always detect such a case
    ; Es=(?false) -> S=true
    ; Es=(?true) -> S=Ps
    ; S = pknows0(Es,Ps)

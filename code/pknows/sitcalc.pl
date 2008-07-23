@@ -188,12 +188,15 @@ regression1(pknows(E,P),A,Fr) :-
     regression1(FP,A,FPr),
     regression1_pknows_rename(FPr,Fr).
 regression1_pknows_fixpoint(PKn,FP) :-
+    % TODO: cheating here, we know this will terminate after a single iteration
     regression1(PKn,nil,PKn1),
-    ( domain_tautology(PKn => PKn1) ->
-        FP = PKn
-    ;
-        regression1_pknows_fixpoint(PKn1,FP)
-    ).
+    FP = PKn1.
+    %regression1(PKn,nil,PKn1),
+    %( domain_tautology(PKn => PKn1) ->
+    %    FP = PKn
+    %;
+    %    regression1_pknows_fixpoint(PKn1,FP)
+    %).
 regression1_pknows_rename(!(V : PK),!(V : PKr)) :-
     regression1_pknows_rename(PK,PKr).
 regression1_pknows_rename(pknows0(E,P),pknows(E,P)).
@@ -226,8 +229,7 @@ regression_s0(knows(Agt,P),knows(Agt,Pp)) :-
     pcond(P,pbu(Agt),Pp).
 regression_s0(pknows0(E,P),pknows0(E,P)).
 regression_s0(pknows(E,P),FPr) :-
-    regression1_pknows_fixpoint(pknows0(E,P),FP),
-    regression1_pknows_rename(FP,FPr).
+    regression1_pknows_fixpoint(pknows0(E,P),FPr).
 
 
 %  Definition of the epistemic path regressor.

@@ -161,6 +161,13 @@ test(path3) :-
 %    regression(P,nil,R),
 %    domain_tautology(R => P), !.
 
+test(pknows1) :-
+    holds(pknows(ann,inroom(ann)),s0), !.
+test(pknows2) :-
+    holds(pknows(bob,~inroom(ann)),do(leave(ann),s0)), !.
+test(pknows3) :-
+    holds(pknows((ann | bob)*,inroom(ann)),s0), !.
+
 %
 %  Examples from "Common Knowledge, Hidden Actions, and the Frame Problem".
 %
