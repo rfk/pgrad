@@ -715,7 +715,7 @@ e, and arbitrary sets of concurrent actions.
  It must also incorporate our new technique for handling hidden actions
  while remaining compatible with other extensions to the situation calculus.
  The macro-expansion approach, coupled with our rigorous observation-based
- semantics, allow our formalism to neatly fulfill all these requirements.
+ semantics, allow our formalism to neatly fulfil all these requirements.
 \end_layout
 
 \begin_layout Standard
@@ -3717,8 +3717,8 @@ It is given that
 \end_inset
 
  action.
- Since she would always observe such an action, she cannot have learned
- the party's location as a result of hidden actions and the example is entailed.
+ Since she would always observe such an action, she cannot have learnt the
+ party's location as a result of hidden actions and the example is entailed.
  Formally:
 \begin_inset Formula \begin{align*}
 \Reg(\neg\exists l:\,\mathbf{Knows}(Ann,loc=l,S_{0}))\,\Rightarrow\,\,\,\, & \neg\exists l:\,\KnowsZ(Ann,\Pst(loc=l,PbU(Ann)),S_{0})\\
@@ -3803,7 +3803,7 @@ Since the only possible value of
 \begin_inset Formula $c'$
 \end_inset
 
- that satisifes the antecedent is 
+ that satisfies the antecedent is 
 \begin_inset Formula $\{read(Bob)\}$
 \end_inset
 
@@ -4588,12 +4588,12 @@ key "vanBenthem06lcc"
 \end_layout
 
 \begin_layout Itemize
-form more expressive epistemic modalities using the syntax of dynamic logic,
- interpreted over the epistemic frame of the agents
+Form more expressive epistemic modalities using the syntax of dynamic logic,
+ interpreted over the epistemic frame of the agents.
 \end_layout
 
 \begin_layout Itemize
-apply regression within the modality as well as to the enclosed formula
+Apply regression within the modality as well as to the enclosed formula.
 \end_layout
 
 \begin_layout Standard
@@ -6503,7 +6503,11 @@ reference "sub:An-Illustrative-Example"
 \end_inset
 
 .
- We add to the domain axioms the following initial group knowledge:
+ We add the the following initial knowledge axiom to 
+\begin_inset Formula $\Dt_{S_{0}}$
+\end_inset
+
+:
 \begin_inset Formula \begin{gather*}
 \PKnowsZ((Ann\cup Bob)^{*},InRoom(Ann)\wedge InRoom(Bob),S_{0})\end{gather*}
 
@@ -6513,25 +6517,27 @@ reference "sub:An-Illustrative-Example"
 \end_layout
 
 \begin_layout Standard
-In this domain, the preconditions and effects of actions are relatively
- simple and the fixpoint calculation to work with 
-\begin_inset Formula $\mathcal{E}^{\infty}(s)$
-\end_inset
-
- will always terminate at 
-\begin_inset Formula $\mathcal{E}^{1}(s)$
-\end_inset
-
-.
- Basically, there is nothing that can be accomplished by sequence of hidden
+The preconditions and effects of actions in this domain are relatively simple,
+ such that there is nothing that can be accomplished by a sequence of hidden
  actions that cannot be accomplished by a single hidden action.
+ More formally, it is possible to show that:
+\begin_inset Formula \[
+\phi[\mathcal{E}^{\infty}(s)]\,\equiv\,\phi[\mathcal{E}^{1}(s)]\]
+
+\end_inset
+
+ In other words, the fixpoint calculation required for reasoning about 
+\begin_inset Formula $\PKnows$
+\end_inset
+
+ will always terminate after a single iteration.
  We will therefore use the following identity to simplify presentation of
  the example:
 \begin_inset Formula \begin{align*}
-\Reg(\PKnows(\pi,\phi,s)\,\Rightarrow & \,\,\,\PKnowsZ(\pi,\phi,\mathcal{E}^{\infty}(s))\\
-\equiv & \,\,\,\PKnowsZ(\pi,\phi,\mathcal{E}^{1}(s))\\
-\equiv & \,\,\,\PKnowsZ(\pi,\phi,do(\{\},s))\\
-\equiv & \,\,\,\forall c':\,\PKnowsZ(\Trn(\pi,\{\},c'),\Reg(\phi,c'),s)\end{align*}
+\Reg(\PKnows(\pi,\phi,do(c,s))\,\Rightarrow & \,\,\,\PKnowsZ(\pi,\phi,\mathcal{E}^{\infty}(do(c,s)))\\
+\equiv & \,\,\,\PKnowsZ(\pi,\phi,\mathcal{E}^{1}(do(c,s)))\\
+\equiv & \,\,\,\PKnowsZ(\pi,\phi,do(\{\},do(c,s)))\\
+\equiv & \,\,\,\forall c',c'':\,\PKnows(\Trn(\Trn(\pi,\{\},c'),c,c''),\Reg(\Reg(\phi,c'),c''),s)\end{align*}
 
 \end_inset
 
@@ -6558,6 +6564,12 @@ To keep the presentation compact, we will abbreviate agent names to
 .
 \end_layout
 
+\begin_layout Standard
+
+\newpage
+
+\end_layout
+
 \begin_layout Example
 After Bob reads the invitation, it is common knowledge that he knows where
  the party is:
@@ -6581,15 +6593,11 @@ This example hinges on the fact that initially, it is common knowledge that
 tioned identity gives:
 \begin_inset Formula \begin{multline*}
 \Reg(\PKnows((A\cup B)^{*},\phi,do(read(B),S_{0})))\\
-\,\,\,\,\,\,\,\,\,\,\,\,\,\Rightarrow\,\,\forall c:\,\PKnowsZ(\Trn((A\cup B)^{*},\{\},c),\Reg(\phi,c),do(read(B),\mathcal{E}^{\infty}(S_{0})))\\
-\Rightarrow\,\,\forall c,c':\,\PKnows(\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c'),\Reg(\Reg(\phi,c),c'),S_{0})\end{multline*}
+\Rightarrow\,\,\forall c,c':\,\PKnows(\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c'),\Reg(\Reg(\phi,c),c'),S_{0})\\
+\Rightarrow\,\,\forall c,c',c'':\,\PKnowsZ(\Trn(\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c'),\{\},c''),\Reg(\Reg(\Reg(\phi,c),c'),c''),S_{0})\end{multline*}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 We begin by evaluating 
 \begin_inset Formula $\Trn(\pi,\{\},c)$
 \end_inset
@@ -6600,34 +6608,90 @@ We begin by evaluating
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-And the cases for 
+With the cases for 
 \begin_inset Formula $\TrnA(agt,x)$
 \end_inset
 
- both evaluate to:
+ both evaluating to:
 \begin_inset Formula \[
 \TrnA(agt,x)\,\Rightarrow\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,?Obs(agt,x)=z\]
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Based on the axioms for 
-\begin_inset Formula $Obs$
+Since we know all possible observations that Ann could make, let us expand
+ the path 
+\begin_inset Formula $\TrnA(A,x)$
 \end_inset
 
-, we know that no matter how many iterations of the starred path are performed,
- the only possible values for 
+ by enumerating the possible values for 
+\begin_inset Formula $z$
+\end_inset
+
+.
+ The first line in the result gives the case where 
+\begin_inset Formula $Obs(Ann,x)=\{\}$
+\end_inset
+
+, and the last line is the case where 
+\begin_inset Formula $Obs(Ann,x)=read(Ann)\#r$
+\end_inset
+
+.
+ All other lines are where Ann simply observes the action 
 \begin_inset Formula $x$
 \end_inset
 
- will be 
+.
+ 
+\begin_inset Formula \begin{gather*}
+\TrnA(A,x)\,\Rightarrow\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\\
+?\, x=\{\}\vee(x=read(B)\wedge\neg IR(A)))\,;\, A\,;\,\exists x\,;\,?\, x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
+\cup\,\,?x=enter(A)\,;\, A\,;\,\exists x\,;\,?x=enter(A)\wedge IR(A)\\
+\cup\,\,?x=enter(B)\,;\, A\,;\,\exists x\,;\,?x=enter(B)\wedge IR(B)\\
+\cup\,\,?x=leave(A)\,;\, A\,;\,\exists x\,;\,?x=leave(A)\wedge\neg IR(A)\\
+\cup\,\,?x=leave(B)\,;\, A\,;\,\exists x\,;\,?x=leave(B)\wedge\neg IR(B)\\
+\cup\,\,?\, x=read(B)\wedge IR(A)\,;\, A\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(A)\wedge IR(B)\\
+\cup\,\,\exists r\,;\,?\, x=read(A)\wedge loc(r)\,;\, A\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(A)\wedge loc(r)\end{gather*}
+
+\end_inset
+
+Now consider starting with 
+\begin_inset Formula $x$
+\end_inset
+
+ set to 
+\begin_inset Formula $\{\}$
+\end_inset
+
+ and following this path some number of times.
+ On the first iteration, 
+\begin_inset Formula $x$
+\end_inset
+
+ may get rebound to either 
+\begin_inset Formula $\{\}$
+\end_inset
+
+ or 
+\begin_inset Formula $read(B)$
+\end_inset
+
+.
+ Subsequent iterations may alternate between these values, but can never
+ bind 
+\begin_inset Formula $x$
+\end_inset
+
+ to any other action.
+ An analogous argument for 
+\begin_inset Formula $\TrnA(B,x)$
+\end_inset
+
+ shows that the path 
+\begin_inset Formula $\Trn((A\cup B)^{*},\{\},c)$
+\end_inset
+
+ can be simplified to consider only the actions 
 \begin_inset Formula $\{\}$
 \end_inset
 
@@ -6639,76 +6703,52 @@ Based on the axioms for
 \begin_inset Formula $read(B)$
 \end_inset
 
-.
- We can use this to simplify 
-\begin_inset Formula $\TrnA(agt,x)$
-\end_inset
-
- for Ann and Bob individually, eliminating the variable 
-\begin_inset Formula $z$
-\end_inset
-
- in favour of the known possible observations from these actions.
- We shown only 
-\begin_inset Formula $\TrnA(A,x)$
-\end_inset
-
-, the result for 
-\begin_inset Formula $\TrnA(B,x)$
-\end_inset
-
- is analogous: 
-\begin_inset Formula \begin{multline*}
-\TrnA(A,x)\,\Rightarrow\\
-?\, x=\{\}\vee(x=read(B)\wedge\neg IR(A)))\,;\, A\,;\,\exists x\,;\,?\, x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
-\cup\,?\, x=read(B)\wedge IR(A)\,;\, A\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(A)\wedge IR(B)\\
-\cup\,\exists r\,;\,?\, x=read(A)\wedge loc(r)\,;\, A\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(A)\wedge loc(r)\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-At this point we can gain some intuition why the proof will complete.
- Given that it's common knowlege that 
-\begin_inset Formula $IR(A)$
-\end_inset
-
-, it is impossible to begin the path 
-\begin_inset Formula $\TrnA(A,x)$
-\end_inset
-
- with 
-\begin_inset Formula $x=\{\}$
-\end_inset
-
- and end with 
-\begin_inset Formula $x=read(B)$
-\end_inset
-
-, since it would need to traverse a test containing 
-\begin_inset Formula $\neg IR(A)$
-\end_inset
-
-.
- Indeed, given that 
-\begin_inset Formula $IR(A)$
-\end_inset
-
- and 
-\begin_inset Formula $IR(B)$
-\end_inset
-
- are common knowledge, the path 
-\begin_inset Formula $(\TrnA(A,x)\cup\TrnA(B,x))$
-\end_inset
-
- cannot successfully change the value of 
+, with any other binding of 
 \begin_inset Formula $x$
 \end_inset
 
+ being unreachable:
+\begin_inset Formula \begin{multline*}
+\Trn((A\cup B)^{*},\{\},c)\,\Rightarrow\,\exists x\,;\,?x=\{\}\,;\,(\\
+?\, x=\{\}\vee(x=read(B)\wedge\neg IR(A)))\,;\, A\,;\,\exists x\,;\,?\, x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
+\cup\,\,?\, x=\{\}\vee(x=read(A)\wedge\neg IR(B)))\,;\, B\,;\,\exists x\,;\,?\, x=\{\}\vee(x=read(A)\wedge IR(A)\wedge\neg IR(B))\\
+\cup\,\,?\, x=read(B)\wedge IR(A)\,;\, A\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(A)\wedge IR(B)\\
+\cup\,\,\exists r\,;\,?\, x=read(A)\wedge loc(r)\,;\, A\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(A)\wedge loc(r)\\
+\cup\,\,?\, x=read(A)\wedge IR(B)\,;\, B\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(B)\wedge IR(A)\\
+\cup\,\,\exists r\,;\,?\, x=read(B)\wedge loc(r)\,;\, B\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(B)\wedge loc(r)\\
+)^{*}\,;\,?x=c\end{multline*}
+
+\end_inset
+
+This path matches with our intuitions about the observability of actions.
+ Since the 
+\begin_inset Formula $enter$
+\end_inset
+
+ and 
+\begin_inset Formula $leave$
+\end_inset
+
+ actions are always public, they can never be mistaken for the empty action
+ and are irrelevant in the path 
+\begin_inset Formula $\Trn(\pi,\{\},c)$
+\end_inset
+
 .
+ Moreover, the binding of 
+\begin_inset Formula $x$
+\end_inset
+
+ may only switch from 
+\begin_inset Formula $\{\}$
+\end_inset
+
+ to 
+\begin_inset Formula $read(B)$
+\end_inset
+
+ if there is a possible world in which Ann is not in the room, reflecting
+ the conditions under which that action would be hidden.
 \end_layout
 
 \begin_layout Standard
@@ -6716,17 +6756,13 @@ Next we evaluate the
 \begin_inset Formula $\Trn(\pi,read(B),c')$
 \end_inset
 
- portion:
+ portion, which will produce:
 \begin_inset Formula \begin{multline*}
 \Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c')\,\Rightarrow\,\exists x'\,;\,?x'=read(B)\,;\,\exists x\,;\,?x=\{\}\,;\\
-(\TrnA(\TrnA(A,x),x')\cup\TrnA(\TrnA(B,x),x'))^{*}\,;\,?x=c\,;\,?x'=read(B)\end{multline*}
+(\TrnA(\TrnA(A,x),x')\cup\TrnA(\TrnA(B,x),x'))^{*}\,;\,?x=c\,;\,?x'=c'\end{multline*}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
 As before, the only possible values of 
 \begin_inset Formula $x'$
 \end_inset
@@ -6745,127 +6781,231 @@ As before, the only possible values of
 
 .
  None of these actions affect any of the tests present in 
-\begin_inset Formula $\TrnA(A,x)$
+\begin_inset Formula $\Trn((A\cup B)^{*},\{\},c)$
 \end_inset
 
-, meaning they will be unchanged in 
-\begin_inset Formula $\TrnA(\TrnA(A,x),x')$
-\end_inset
-
-:
+, so we can safely leave them unchanged in the resulting path:
 \begin_inset Formula \begin{multline*}
-\TrnA(\TrnA(A,x),x')\,\Rightarrow\\
-?\, x=\{\}\vee(x=read(B)\wedge\neg IR(A)))\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
-\cup\,?\, x=read(B)\wedge IR(A)\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(A)\wedge IR(B)\\
-\cup\,\exists r\,;\,?\, x=read(A)\wedge loc(r)\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(A)\wedge loc(r)\end{multline*}
+\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c')\,\Rightarrow\,\exists x'\,;\,?x'=read(B)\,;\,\exists x\,;\,?x=\{\}\,;\,(\\
+?x=\{\}\vee(x=read(B)\wedge\neg IR(A)));\TrnA(A,x');\exists x;?x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
+\cup\,?x=\{\}\vee(x=read(A)\wedge\neg IR(B)));\TrnA(B,x');\exists x;?x=\{\}\vee(x=read(A)\wedge IR(A)\wedge\neg IR(B))\\
+\cup\,\,?\, x=read(B)\wedge IR(A)\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(A)\wedge IR(B)\\
+\cup\,\,\exists r\,;\,?\, x=read(A)\wedge loc(r)\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(A)\wedge loc(r)\\
+\cup\,\,?\, x=read(A)\wedge IR(B)\,;\,\TrnA(B,x')\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(B)\wedge IR(A)\\
+\cup\,\,\exists r\,;\,?\, x=read(B)\wedge loc(r)\,;\,\TrnA(B,x')\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(B)\wedge loc(r)\\
+)^{*}\,;\,?x=c\,;\, x'=c'\end{multline*}
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-We can complete this expansion using the previsouly calculated result for
+We can complete this expansion using the previously calculated result for
  
 \begin_inset Formula $\TrnA(A,x)$
 \end_inset
 
-.
+, but will proceed leaving this implicit.
+ Finally, we must apply 
+\begin_inset Formula $\Trn$
+\end_inset
+
+ again for the 
+\begin_inset Formula $\Trn(\pi,\{\},c'')$
+\end_inset
+
+ portion.
+ The process is identical and we will not repeat it here.
 \end_layout
 
 \begin_layout Standard
-Now let us deal with 
-\begin_inset Formula $c$
+We next evaluate this path over the initial epistemic relation of the agents,
+ about which we know:
+\begin_inset Formula \[
+\PKnowsZ((A\cup B)^{*},IR(A)\wedge IR(B),S_{0})\]
+
 \end_inset
 
- and 
-\begin_inset Formula $c'$
-\end_inset
 
-.
- Since the epistemic path insists that 
-\begin_inset Formula $x=c$
-\end_inset
+\end_layout
 
- and 
-\begin_inset Formula $x'=c'$
-\end_inset
-
- at termination, the only values of 
-\begin_inset Formula $c$
-\end_inset
-
- and 
-\begin_inset Formula $c'$
-\end_inset
-
- we need consider are also 
-\begin_inset Formula $\{\}$
+\begin_layout Standard
+Consider how this restricts the possible bindings of 
+\begin_inset Formula $x$
 \end_inset
 
 , 
+\begin_inset Formula $x'$
+\end_inset
+
+ etc.
+ For 
+\begin_inset Formula $x$
+\end_inset
+
+ to switch from its initial value of 
+\begin_inset Formula $\{\}$
+\end_inset
+
+ to 
 \begin_inset Formula $read(A)$
 \end_inset
 
- and 
+ (resp.
+ 
 \begin_inset Formula $read(B)$
 \end_inset
 
-; all other cases will have 
-\begin_inset Formula $\PKnows$
+) the path must traverse a test for 
+\begin_inset Formula $\neg IR(B)$
 \end_inset
 
- vaccuously true.
- We will consider the various combinations in turn.
-\end_layout
-
-\begin_layout Standard
-Suppose 
-\begin_inset Formula $c=read(B)$
+ (resp.
+ 
+\begin_inset Formula $\neg IR(A)$
 \end_inset
 
-, then we have:
-\begin_inset Formula \[
-\Reg(\exists x:\Knows(B,loc=x),read(B))\,\Rightarrow\, true\]
-
+).
+ Since we know that these tests will never succeed on the initial epistemic
+ frame, we can conclude that 
+\begin_inset Formula $x$
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-Since 
-\begin_inset Formula $\PKnows(\pi,true)$
-\end_inset
-
- always, this case is trivially entailed by the domain.
- A similar argument holds for the case where 
-\begin_inset Formula $c'=read(B)$
+ will always be bound to 
+\begin_inset Formula $\{\}$
 \end_inset
 
 .
- 
+ Since the path insists that 
+\begin_inset Formula $x=c$
+\end_inset
+
+ at termination, this is the only interesting value for 
+\begin_inset Formula $c$
+\end_inset
+
+ - any value of 
+\begin_inset Formula $c$
+\end_inset
+
+ other than 
+\begin_inset Formula $\{\}$
+\end_inset
+
+ will result in no worlds being reachable by the regressed path and will
+ thus have 
+\begin_inset Formula $\PKnowsZ$
+\end_inset
+
+ vacuously true.
+ By a similar argument, we find that the only interesting values of 
+\begin_inset Formula $c'$
+\end_inset
+
+ and 
+\begin_inset Formula $c''$
+\end_inset
+
+ are 
+\begin_inset Formula $read(B)$
+\end_inset
+
+ and 
+\begin_inset Formula $\{\}$
+\end_inset
+
+ respectively.
 \end_layout
 
 \begin_layout Standard
-\begin_inset Formula \[
-\Reg(\exists x:\Knows(B,loc=x),\{\})\,\Rightarrow\,\exists x:\Knows(B,loc=x)\]
+Turning now to the regression of the inner formula, we have:
+\begin_inset Formula \begin{gather*}
+\Reg(\Reg(\Reg(\exists x:\,\Knows(B,loc=x),c),c'),c'')\\
+\Rightarrow\Reg(\Reg(\Reg(\exists x:\,\Knows(B,loc=x),\{\}),read(B)),\{\})\\
+\Rightarrow\Reg(\Reg(\exists x:\,\Knows(B,loc=x),read(B),\{\})\\
+\Rightarrow true\end{gather*}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Thus for 
+\begin_inset Formula $c=\{\}$
+\end_inset
+
+, 
+\begin_inset Formula $c'=read(B)$
+\end_inset
+
+, 
+\begin_inset Formula $c''=\{\}$
+\end_inset
+
+ the known formula is a tautology, while for any other values the regressed
+ epistemic path has no reachable worlds.
+ The example is therefore entailed by the domain.
+\end_layout
+
+\begin_layout Standard
+\InsetSpace ~
+
+\end_layout
+
+\begin_layout Example
+After Bob reads the invitation, the location is not common knowledge
 \begin_inset Formula \[
-\Reg(\exists x:\Knows(B,loc=x),read(A))\,\Rightarrow\,\exists x:\Knows(B,IR(B)\wedge IR(A)\,\rightarrow\, loc=x)\]
+\Dt\cup\Dt_{K}^{obs}\,\not\models\,\PKnows((Ann\cup Bob)^{*},loc=C,do(read(Bob),S_{0}))\]
 
 \end_inset
 
 
-\begin_inset Formula \[
-\Reg(\exists x:\Knows(B,loc=x),read(B))\,\Rightarrow\, true\]
+\end_layout
+
+\begin_layout Standard
+Regression of the epistemic path proceeds as with the previous example,
+ but regression of the inner formula no longer produces a tautology.
+ If we ignore the path components dealing with 
+\begin_inset Formula $c$
+\end_inset
+
+ and 
+\begin_inset Formula $c''$
+\end_inset
+
+, which from the previous example we know to be redundant, regressing this
+ expression produces the following:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{multline*}
+\PKnowsZ(\dots\\
+\cup\,\,?\, x'=read(B)\wedge IR(A)\,;\, A\,;\,\exists x'\,;\,?\, x'=read(B)\wedge IR(A)\wedge IR(B)\\
+\cup\,\,\exists r\,;\,?\, x'=read(B)\wedge loc(r)\,;\, B\,;\,\exists x'\,;\,?\, x'=read(B)\wedge IR(B)\wedge loc(r)\\
+\cup\dots,loc=C,S_{0})\end{multline*}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+This means, very roughly, that 
+\begin_inset Formula $read(B)$
+\end_inset
+
+ could result in common knowledge that 
+\begin_inset Formula $loc=C$
+\end_inset
+
+ if it was commonly known that the preconditions of 
+\begin_inset Formula $read(B)$
+\end_inset
+
+ implied 
+\begin_inset Formula $loc=C$
+\end_inset
+
+.
+ Since this is not given in the domain description, the example is not entailed.
 \end_layout
 
 \begin_layout Standard
@@ -6883,11 +7023,11 @@ After Ann also reads the invitation, the location becomes common knowledge:
 
 \end_layout
 
-\begin_layout Example
+\begin_layout Standard
 The additional action here can be handled in the same manner as the previous
  example.
- We will not repeat the working here, but simply state that this indeed
- is a consequence of our theory.
+ We will not repeat the working, but simply state that this indeed is a
+ consequence of our theory.
 \end_layout
 
 \begin_layout Subsection

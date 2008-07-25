@@ -25,8 +25,10 @@ evaluating a fluent at a given situation.  Used like so:
 
 
 We assume all variables have a finite domain, so that fluents can be
-propositionalized to perform reasoning.  We shell out of the PDL prover
-from the Tableuax Workbench project for the actual reasoning.
+propositionalized to perform reasoning.  We have also modified the PDL
+provier from the Tableuax Workbench project do handle variable assignments,
+which we shell out to for the actual reasoning.  You will need to compile
+the file "vpdl/vpdl.ml" using the TWB compiler.
 
 The included files are:
 
@@ -45,5 +47,7 @@ The included files are:
 
   * domain.pl:  Domain-specific predicates, such as ADP fluent definitions,
                 causes_true/causes_false, etc.
+
+  * vpdl/*:     Modified PDL prover that can handle variable assignment.
 
 
