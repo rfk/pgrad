@@ -1,4 +1,4 @@
-####
+
 #
 #  Makefile for generating thesis document, or parts thereof.
 #
@@ -8,8 +8,10 @@
 #
 #    all:  create PDF for the entire thesis document
 #    <chapter>.ch.pdf:  create PDF for a specific chapter
+#    <chapter>.nb.ch.pdf:  create PDF for a specific chapter, without biblio
 #
 #    view: built entire thesis, then view it as a pdf
+#    view-<chapter>:  view PDF of a specific chapter
 #
 #    sp:   spell-check the entire thesis
 #    sp-<chapter>: spell-check a specific chapter
@@ -17,7 +19,11 @@
 #    wc:   count words over the entire thesis
 #    wc-<chapter>:   count words in a specific chapter
 #
-#  Note that these wordcounts are not terribly accurate. I'll
+#    edit-<chapter>:  launch LyX to edit a chapter
+#
+#    publish:  upload thesis to CS website
+#
+#  Note that the wordcounts are not terribly accurate. I'll
 #  try to work on that in the future...
 #    
 
@@ -29,7 +35,7 @@ GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx
 
 CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf
 
-CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex reasoning.tex knowledge.tex planning.tex conclusion.tex 
+CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex persistence.tex knowledge.tex cknowledge.tex planning.tex implementation.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
 
 ## Additional variables
@@ -64,11 +70,9 @@ all: thesis.pdf
 # Generate a temporary latex file that will build a single chapter,
 # without bibliography
 %.nb.ch.tex: %.tex
-	echo '\include{preamble}' > $@
+	cat preamble.tex > $@
 	echo '\begin{document}' >> $@
-	echo -n '\include{' >> $@
-	echo -n $* >> $@
-	echo '}' >> $@
+	cat $< >> $@
 	echo '\end{document}' >> $@
 
 # DVI converters for different formats
@@ -117,7 +121,7 @@ view-%: %.ch.pdf
 edit-%: %.tex
 	# Generate lyx file from the latex
 	rm -rf $*.ed.lyx $*.ed.tex
-	tex2lyx $< $*.ed.lyx
+	tex2lyx -c book $< $*.ed.lyx
 	# Run lyx for editing, then export back to latex
 	lyx $*.ed.lyx
 	lyx --export latex $*.ed.lyx
@@ -137,6 +141,10 @@ publish:
 	scp upload-thesis.tar.gz rfk@mundula.cs.mu.oz.au:
 	ssh mundula.cs.mu.oz.au 'gunzip upload-thesis.tar.gz && cd www_public && tar -xvf ~/upload-thesis.tar && mv upload-thesis/* thesis/ && rm -r upload-thesis ~/upload-thesis.tar && chmod 755 thesis && chmod 644 thesis/*'
 	rm -rf upload-thesis upload-thesis.tar.gz
+
+# find things left to do
+todo:
+	grep -i todo *.*
 
 
 ##  Specific dependenices
