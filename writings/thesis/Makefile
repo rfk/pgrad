@@ -150,6 +150,16 @@ publish:
 todo:
 	grep -i todo *.*
 
+# find latex/bibtex warnings
+warnings: thesis.dvi
+	grep --color '^Warning' thesis.blg || true
+	echo ""
+	grep --color 'Warning' thesis.log || true
+	echo ""
+	grep --color -A 1 '^Underfull' thesis.log || true
+	echo ""
+	grep --color -A 1 '^Overfull' thesis.log || true
+
 
 ##  Specific dependenices
 
