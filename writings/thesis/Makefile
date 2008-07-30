@@ -44,6 +44,7 @@ LTX = latex -interaction=nonstopmode
 BTX = bibtex -terse
 PDFLTX = pdflatex
 VIEWER = evince
+SPELLCHECK = aspell -t --add-tex-command="bibentry p" -c
 
 ## Basic Dependencies
 
@@ -103,12 +104,12 @@ wc-%: %.nb.ch.dvi
 
 # spellchecking each individual file with aspell
 sp:
-	aspell -t -c thesis.tex
-	for FN in $(CHAPTERS); do aspell -t -c $$FN; done;
-	for FN in $(APPENDICES); do aspell -t -c $$FN; done;
+	$(SPELLCHECK) thesis.tex
+	for FN in $(CHAPTERS); do $(SPELLCHECK) $$FN; done;
+	for FN in $(APPENDICES); do $(SPELLCHECK) $$FN; done;
 
 sp-%: %.tex
-	aspell -t -c $<
+	$(SPELLCHECK) -t -c $<
 
 # easy viewing of entire thesis
 view: thesis.pdf
