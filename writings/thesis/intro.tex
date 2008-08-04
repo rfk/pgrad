@@ -3,34 +3,118 @@
 
 \chapter{Introduction}
 
-The situation calculus is a powerful formalism for reasoning about
-dynamic worlds and specifying the behavior of autonomous agents. Among
-its advantages are: straightforward representations of rich domain
-features such as concurrent actions and continuous time; effective
-reasoning procedures based on regression; mature formalism for epistemic
-reasoning; and a straightforward encoding as a logic program for implementation.
+The situation calculus, and the programming language Golog that is
+built upon it, is a powerful formalism for reasoning about dynamic
+worlds and specifying the behavior of autonomous agents. Among its
+advantages are: straightforward representations of rich domain features
+such as concurrent actions and continuous time; effective reasoning
+procedures based on regression; flexible task specification using
+familiar programming constructs; a mature formalism for epistemic
+reasoning; and a straightforward implementation by encoding as a logic
+program. But while powerful, existing formalisms based on the situation
+calculus suffer several major limitations that make them unsuitable
+for use in rich multi-agent domains.
 
-However, the situation calculus also has some limitations that have
-restricted its use in multi-agent domains. TODO what are they?
+First, the situation calculus lacks a comprehensive treatment of group-level
+epistemic modalities. Simple group-level modalities such as {}``everyone
+knows $\phi$'' can be expressed as finite combinations of individual-level
+knowledge operators, but more complex modalities such as {}``it is
+common knowledge that $\phi$'' cannot be handled in this way. Instead,
+common knowledge is typically introduced via a separate second-order
+axiom \citep{davis05fo_ma_theory,ghaderi07sc_joint_ability}. This
+approach is logically sound, but means regression can no longer be
+used for effective automated reasoning. Given the deep connections
+between common knowledge and coordination, this is a serious shortcoming
+in multi-agent domains.
+
+Second, it requires that whenever an action occurs, all agents \emph{know}
+that an action has occurred. This demands a level of synchronicity
+that is unreasonable in many multi-agent domains. But if the restriction
+is lifted, each agent's knowledge must account for arbitrarily-long
+sequences of hidden actions \citep{Lesperance99sitcalc_approach}.
+Such a formulation must utilise a second-order induction axiom, again
+precluding the use of regression for effective automated reasoning.
+
+Third, planning in the situation calculus involves building situation
+terms representing the actions to be performed. Situations inherantly
+impose a total ordering on actions, and cannot represent the independent
+execution of actions by different agents. Again, performing a plan
+built using situation terms requires a degree of syncrhonicity that
+is unreasonable in many multi-agent domains. Even if this synchronicity
+is achievable, it is often not desirable.\\
+
+
+In this thesis we overcome these limitations, extending the standard
+accounts of knowledge and planning in the situation calculus three
+main technical results:
+
+\begin{itemize}
+\item A formal account of \emph{Common Knowledge} and other group-level
+epistemic modalities, including a regression rule for reasoning about
+common knowledge; 
+\item support for \emph{Hidden Actions} and actions that are partially observable,
+including a reasoning technique to deal with arbitrarily-long sequences
+of hidden actions; and 
+\item a partially-ordered representation of actions which we call a \emph{Joint
+Execution}, which can replace raw situation terms in the Golog execution
+planning process to allow some independence between agents. 
+\end{itemize}
+Moreover, each of these extensions is provided with an effective reasoning
+procedure based on standard regression techniques. The result is a
+rich account of knowledge and planning for asynchronous, partially-observable
+domains.\\
+
+
+To make things more concrete, consider a small motivating example
+which will be used throughout the paper:
 
 \begin{quote}
 You have just taken possession of a team of robotic chefs. It is your
 task to program the chefs to prepare a delicious meal. 
 \end{quote}
-\begin{itemize}
-\item motivating example: cooking agents 
-\item introduce HLP paradigm, briefly argue in its favour 
-\item major limitation: focused on single-agent systems 
-\item the \char`\"{}MIndiGolog Vision\char`\"{}: cooperative execution of
-a HLP 
-\item situation calculus needs extending to represent rich MA domains 
-\item achievements in this thesis:
+A natural way to approach this problem is to specify the tasks of
+the chefs as a series of Golog programs, one for each dish that is
+to be prepared. We would then like the agents to cooperate to plan
+and perform the execution of these shared tasks without further intervention
+from the programmer. This example will be used to simultaneously motivate
+and demonstrate out techniques throught.\\
+
+
+This thesis proceeds as follows:
 
 \begin{itemize}
-\item MIndiGolog: HLP semantics suitable for multi-agent domains 
-\item New reasoning technique for univsersally quantified queries 
-\item Robustly multi-agent account of knowledge, common knowledge 
-\item Semantics and techniques for cooperative planning of a legal execution 
-\item Implementations in Oz with distributed execution planning 
-\end{itemize}
+\item Chapter \ref{ch:background} presents the necessary background material
+on the situation calculus, Golog, epistemic reasoning, and the Mozart
+programming system which will be used to implement the system. 
+\item Chapter \ref{ch:mindigolog} introduces a variant of Golog with semantics
+suitable for planning the cooperative execution of a shared task,
+which we call \emph{MIndiGolog.} We demonstrate an implementation
+using the distributed logic programming capabilities of Mozart to
+share the planning workload among agents. We also show that this technique
+is limited to syncrhonous domains by the underlying situation calculus
+theory. 
+\item Chapter \ref{ch:persistence} develops a new reasoning technique for
+effectively handling queries that universally quantify over situation
+terms, which we call the \emph{Persistence Condition} operator. It
+uses a restricted fixpoint calculation to replace a second-order induction
+axiom. 
+\item Chapter \ref{ch:knowledge} develops a formalism for individual knowledge
+in the face of hidden actions, by explicitly reifying the \emph{observations}
+made by each agent as the world evolves, and specifying an agent's
+knowledge in terms of what it has observed. The persistence condition
+operator is used to augment the traditional regression rule for knowledge
+to account for arbitrarily-long sequences of hidden actions. 
+\item Chapter \ref{ch:cknowledge} introduces common knowledge by using
+the syntax of dynamic logic to formulate a more expressive epistemic
+language than existing situation calculus theories. We formulate a
+regression rule for the complex epistemic modalities and formalte
+relate them to our account of individual knowledge. 
+\item Chapter \ref{ch:jointexec} develops joint executions as a restricted
+kind of prime event structure, and shows how to use them in planning
+the execution of a shared Golog program. 
+\item Chapter \ref{ch:implementation} discusses our implementation in more
+detail, including a novel representation of formulae based on Shannon
+Graphs to allow open-world reasoning. 
+\item Chapter \ref{ch:conclusion} concludes with a summary of our achievements
+and suggestions for future work. 
 \end{itemize}
