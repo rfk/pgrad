@@ -1,4 +1,3 @@
-
 #
 #  Makefile for generating thesis document, or parts thereof.
 #
@@ -35,7 +34,7 @@ GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx
 
 CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf
 
-CHAPTERS = abstract.tex intro.tex background.tex golog.tex mindigolog.tex persistence.tex knowledge.tex cknowledge.tex planning.tex implementation.tex conclusion.tex 
+CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex persistence.tex knowledge.tex cknowledge.tex jointexec.tex implementation.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
 
 ## Additional variables
@@ -74,6 +73,7 @@ all: thesis.pdf
 %.nb.ch.tex: %.tex
 	cat preamble.tex > $@
 	echo '\begin{document}' >> $@
+	cat mathmacros.tex >> $@
 	cat $< >> $@
 	echo '\end{document}' >> $@
 
@@ -133,7 +133,7 @@ edit-%: %.ch.tex
 	grep -v 'newcommand' $*.ed.ch.tex > $*.tex
 
 
-# publish latest versions to my website
+# publish latest versions to my CSSE website
 publish:
 	make thesis.pdf
 	for FN in $(CHAPTERS); do make `basename $$FN .tex`.ch.pdf; done;
