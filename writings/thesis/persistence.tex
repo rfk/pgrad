@@ -5,52 +5,36 @@
 
 \label{ch:persistence}
 
-The foundational axioms of the situation calculus include a second-order
-induction axiom defining the set of all situations \citep{Reiter93proving}.
-Sentences that contain only existential quantification over situation
-terms can be proven without the induction axiom and so are more amenable
-to automated reasoning \citep{pirri99contributions_sitcalc}. It is
-therefore important for systems built on a situation calculus theory
-of action to limit queries to existential form. Much of the work on
-implementing systems with the situation calculus has been on reducing
-the number of axioms required to answer a given query, to allow more
-efficient reasoning.
+This chapter extends the standard effective reasoning techniques of
+the situation calculus to deal with certain types of universally-quantified
+query. Recall that the foundational axioms of the situation calculus
+include a second-order induction axiom to define the set of all situations,
+meaning that regression cannot be applied to queries that universally
+quantify over situation terms. Unfortunately there are many reasoning
+tasks that require such quantification, including the formalism we
+will developed in chapter TODO.
 
-Unfortunately there are many reasoning tasks that require universal
-quantification over situations. For example, it is often desirable
-to show that no situation can satisfy a particular goal. In this paper
-we are interested in a subset of such queries which we refer to as
-\emph{persistence queries}: under a particular situation calculus
-theory $\mathcal{D}$, and given some property $\phi$ and situation
-$s$, determine whether $\phi$ will hold in all situations in the
-future of $s$:\[
-\mathcal{D}\models\forall s'\,.\, s\sqsubseteq s'\,\rightarrow\,\phi[s']\]
- The need for second-order logic has traditionally limited automated
-reasoning about such queries. We introduce a new approach that is
-similar in spirit to the regression operator of \citep{reiter91frameprob}:
+In this chapter we study a subset of such queries which we refer to
+as \emph{property persistence queries}. We introduce a new approach
+that is similar in spirit to the regression operator of \citep{reiter91frameprob}:
 define an operator that transforms a formula $\phi$ into a formula
 $\mathcal{P}_{\mathcal{D}}[\phi]$, such that $\phi$ persists in
 $s$ if and only if $\mathcal{P}_{\mathcal{D}}[\phi]$ holds in $s$.
 We term this the \emph{persistence condition} of $\phi$, and show
 how to calculate it in a form suitable for effective automated reasoning.
 
-To determine $\mathcal{P}_{\mathcal{D}}[\phi]$, we first define an
-operator $\mathcal{P}_{\mathcal{D}}^{1}[\phi]$ that holds in $s$
-whenever $\phi$ holds in $s$ and all its immediate successors. The
-persistence condition is shown to be a fixed-point of this operator,
-which can be sought using a straightforward iterative algorithm. Since
-this requires only first-order reasoning with a limited number of
-axioms, the result is an effective procedure with which to answer
-a family of queries that universally quantify over situations.
+The chapter proceeds as follows: TODO
 
 
-\section{Property Persistence}
+\section{Property Persistence Queries}
 
-One important form of situation calculus query is to ask whether a
-given property $\phi$ will hold in \emph{all future situations} of
-a given situation $s$, as well as at $s$ itself:\[
-\mathcal{D}\models\forall s'\,.\, s\sqsubseteq s'\rightarrow\phi(s')\]
- More generally, one may wish to limit the futures considered to those
+Given some property $\phi$ and situation $s$, a persistence query
+asks whether $\phi$ will hold in all situations in the future of
+$s$:\[
+\mathcal{D}\models\forall s'\,.\, s\sqsubseteq s'\,\rightarrow\,\phi[s']\]
+
+
+More generally, one may wish to limit the futures considered to those
 brought about by a certain class of actions $\alpha$:\[
 \mathcal{D}\models\forall s'\,.\, s\le_{\alpha}s'\rightarrow\phi[s']\]
  In words this states {}``given that all subsequent actions satisfy
@@ -87,51 +71,12 @@ were performed by that agent can satisfy $G$. If this is the case,
 it will need to cooperate with another agent in order to achieve its
 goal.
 
-\textbf{Knowledge under Partial Observability:} In recent unpublished
-work we develop a new account of knowledge in the situation calculus
-when not all actions are observable by all agents. To facilitate reasoning
-in this formalism, agents must be able to reason about what cannot
-be changed by actions that they cannot observe, a form of persistence
+\textbf{Knowledge with Hidden Actions:} In a subsequent chapter, we
+develop an account of knowledge in the situation calculus where some
+actions may be hidden from some agents. To facilitate reasoning in
+this formalism, agents must be able to reason about what cannot be
+changed by actions that they cannot observe, a form of persistence
 query.
-
-Due to the universal quantification over situations, the techniques
-for effective automated reasoning in Section \ref{sub:Effective-Reasoning}
-cannot be applied to persistence queries. This paper is devoted to
-developing of a complementary technique for handling such queries.
-
-
-\subsubsection{Related Work}
-
-While there is a rich and diverse literature base for the situation
-calculus, there appears to have been little work dealing with universally
-quantified queries. The work of \citep{Reiter93proving} shows how
-to handle such queries by hand using an appropriate instantiation
-of the induction axiom, but makes no mention of automating this reasoning.
-
-Other work considering persistence focuses exclusively on verifying
-state constraints. These are uniform formulae that must hold in every
-possible situation, a highly specialized form of persistence query.
-The work of \citep{Lin94-StateConstraints} {}``compiles away''
-the induction axiom when verifying a state constraint, by means of
-the following equivalence:\begin{gather*}
-\Sigma\cup\mathcal{D}_{una}\cup\mathcal{D}_{ss}\models\phi[S_{0}]\rightarrow\left(\forall s\,.\, S_{0}\leq s\rightarrow\phi[s]\right)\\
-\mathit{iff}\\
-\mathcal{D}_{una}\models\forall s,a\,.\,\phi[s]\wedge\mathcal{R}_{\mathcal{D}}[Poss(a,s)]\,\rightarrow\,\mathcal{R}_{\mathcal{D}}[\phi[do(a,s)]]\end{gather*}
- Verification of a state constraint can thus be reduced to reasoning
-about a universally quantified uniform formula using only the unique
-names axioms, a comparatively straightforward reasoning task. This
-problem is also approached by \citep{bertossi96automating}, who develop
-a system for automatically verifying state constraints based on an
-induction theorem prover.
-
-However, there are many issues related to persistence that are not
-addressed by such work, including: persistence at situations other
-than $S_{0}$; action description predicates other than $Poss$; how
-to combine notions of persistence and regression; and determining
-what additional conditions may be necessary to guarantee the persistence
-of $\phi$. As our treatment of persistence can provide a concrete
-basis for these considerations, it is significantly more general than
-existing work.
 
 
 \section{The Persistence Condition}
@@ -166,14 +111,12 @@ A uniform formula $\phi$ persists to depth 1 under $\alpha$ in situation
 $s$ when the formula $\mathcal{P}_{\mathcal{D}}^{1}[\phi,\alpha]$
 holds in $s$, as defined by:\label{def:persists-depth-n}\[
 \mathcal{P}_{\mathcal{D}}^{1}[\phi,\alpha][s]\,\isdef\,\phi[s]\,\wedge\,\forall a\,.\,\mathcal{R_{D}}[\alpha(a,s)\rightarrow\phi[do(a,s)]]\]
-More generally, for any $n\geq0$, a uniform formula $\phi$ persists
+ More generally, for any $n\geq0$, a uniform formula $\phi$ persists
 to depth $n$ under $\alpha$ in situation $s$ when the formula $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
 holds in $s$, as defined by:\[
 \mathcal{P}_{\mathcal{D}}^{0}[\phi,\alpha]\,\isdef\,\phi\]
-\[
+ \[
 \mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]\,\isdef\,\mathcal{P}_{\mathcal{D}}^{1}[\mathcal{P}_{D}^{n-1}[\phi,\alpha],\alpha]\]
-
-
 
 \end{defn}
 Note that $\mathcal{P}_{\mathcal{D}}^{1}$ is a literal encoding of
@@ -206,7 +149,7 @@ of the situation calculus entail the following induction principle:\label{prop:a
 
 \end{prop}
 \begin{proof}
-A trivial adaptation of theorem 1 in \citep{Reiter93proving}.
+A trivial adaptation of theorem 1 in \citep{Reiter93proving}. 
 \end{proof}
 \begin{prop}
 For any basic action theory $\mathcal{D}$, uniform formula $\phi$
@@ -218,7 +161,7 @@ and action description predicate $\alpha$:\label{prop:a-order-reduction}\begin{g
 \end{prop}
 \begin{proof}
 A straightforward generalization of Lemma 5 in \citep{Lin94-StateConstraints},
-utilizing Proposition \ref{prop:a-order-induction}.
+utilizing Proposition \ref{prop:a-order-induction}. 
 \end{proof}
 Proposition \ref{prop:a-order-reduction} will be key in our algorithm
 for calculating the persistence condition. It allows one to establish
@@ -234,8 +177,8 @@ Given a basic action theory $\mathcal{D}$, uniform formula $\phi$
 and action description predicate $\alpha$, then for any $n$:\label{lem:p-equiv-p(pn)}\begin{multline*}
 \mathcal{D}-\mathcal{D}_{S_{0}}\models\forall s\,.\,\left[\,\,\forall s'\,.\,\left(s\leq_{\alpha}s'\rightarrow\phi[s']\right)\right.\\
 \left.\equiv\forall s'\,.\,\left(s\leq_{\alpha}s'\rightarrow\mathcal{P}_{D}^{n}[\phi,\alpha][s']\right)\,\,\right]\end{multline*}
-That is, $\phi$ persists under $\alpha$ iff $\,\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
-persists under $\alpha$.
+ That is, $\phi$ persists under $\alpha$ iff $\,\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
+persists under $\alpha$. 
 \end{lemma}
 \begin{proof}
 By the definition of $\mathcal{P}_{\mathcal{D}}^{n}$, any $s'$ that
@@ -251,7 +194,7 @@ and action description predicate $\alpha$, then for any $n$:\label{lem:p-implies
 \begin{proof}
 $\mathcal{P_{D}}[\phi,\alpha]$ implies the persistence of $\phi$
 by definition, which implies $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
-by Lemma \ref{lem:p-equiv-p(pn)}.
+by Lemma \ref{lem:p-equiv-p(pn)}. 
 \end{proof}
 We are now equipped to prove the major theorem of this paper: that
 if $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$ implies $\mathcal{P}_{\mathcal{D}}^{n+1}[\phi,\alpha]$,
@@ -271,19 +214,19 @@ For the \emph{if} direction, we first see by the definition of $\mathcal{P}_{\ma
 that equation (\ref{eqn:pn_persists}) is equivalent to:\begin{multline*}
 \mathcal{D}_{una}\models\forall s,a\,.\,\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha][s]\wedge\mathcal{R}_{\mathcal{D}}[\alpha(a,s)]\\
 \rightarrow\mathcal{R}_{\mathcal{D}}[\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha][do(a,s)]]\end{multline*}
-which by Proposition \ref{prop:a-order-reduction} implies the persistence
+ which by Proposition \ref{prop:a-order-reduction} implies the persistence
 of $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$ under $\alpha$.
 By Lemma \ref{lem:p-equiv-p(pn)} this implies the persistence of
 $\phi$ under $\alpha$, which in turn implies $\mathcal{P_{D}}[\phi,\alpha]$,
 giving:\[
 \mathcal{D}-\mathcal{D}_{s_{0}}\models\forall s\,.\,\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha][s]\rightarrow\mathcal{P_{D}}[\phi,\alpha][s]\]
-By Lemma \ref{lem:p-implies-pn} this implication is in fact an equivalence,
+ By Lemma \ref{lem:p-implies-pn} this implication is in fact an equivalence,
 yielding equation (\ref{eqn:pn_equiv_persists}) as required.
 
 The \emph{only if} direction is a straightforward reversal of this
 reasoning: $\mathcal{P_{D}}[\phi,\alpha]$ implies the persistence
 of $\phi$, which implies the persistence of $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$,
-which implies (\ref{eqn:pn_persists}) by Proposition \ref{prop:a-order-reduction}.
+which implies (\ref{eqn:pn_persists}) by Proposition \ref{prop:a-order-reduction}. 
 \end{proof}
 Since $\mathcal{P}_{\mathcal{D}}^{n+1}[\phi,\alpha]\rightarrow\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
 by definition, equation (\ref{eqn:pn_persists}) identifies $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
@@ -297,31 +240,30 @@ Since we can easily calculate $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$
 for any $n$, we have a straightforward algorithm for determining
 $\mathcal{P_{D}}[\phi,\alpha]$: search for an $n$ such that\[
 \mathcal{D}_{una}\models\forall s\,.\,\left(\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha][s]\rightarrow\mathcal{P}_{\mathcal{D}}^{n+1}[\phi,\alpha][s]\right)\]
-Since we expect $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$ to be
-simpler than $\mathcal{P}_{\mathcal{D}}^{n+1}[\phi,\alpha]$, we should
-look for the smallest such $n$. Algorithm \ref{alg:calc_p} presents
-an iterative procedure for doing just that.
+ Since we expect $\mathcal{P}_{\mathcal{D}}^{n}[\phi,\alpha]$ to
+be simpler than $\mathcal{P}_{\mathcal{D}}^{n+1}[\phi,\alpha]$, we
+should look for the smallest such $n$. Algorithm \ref{alg:calc_p}
+presents an iterative procedure for doing just that.
 
+%
 \begin{algorithm}
-\caption{Calculate $\mathcal{P}_\mathcal{D}[\phi,\alpha]$}
-\label{alg:calc_p}
-\begin{algorithmic}
-\STATE $\mathtt{pn} \Leftarrow \phi$
-\STATE $\mathtt{pn1} \Leftarrow \mathcal{P}^1_\mathcal{D}[\mathtt{pn},\alpha]$
-\WHILE{$\mathcal{D}_{una} \not\models \forall s\,.\,\mathtt{pn}[s] \rightarrow \mathtt{pn1}[s]$}
-  \STATE $\mathtt{pn} \Leftarrow \mathtt{pn1}$
-  \STATE $\mathtt{pn1} \Leftarrow \mathcal{P}^1_{\mathcal{D}}[\mathtt{pn},\alpha]$
-\ENDWHILE
-\STATE return $\mathtt{pn}$
-\end{algorithmic}
+\caption{Calculate $\mathcal{P}_{\mathcal{D}}[\phi,\alpha]$}
+
+
+\label{alg:calc_p} \begin{algorithmic} \STATE $\mathtt{pn}\Leftarrow\phi$
+\STATE $\mathtt{pn1}\Leftarrow\mathcal{P}_{\mathcal{D}}^{1}[\mathtt{pn},\alpha]$
+\WHILE{$\mathcal{D}_{una}\not\models\forall s\,.\,\mathtt{pn}[s]\rightarrow\mathtt{pn1}[s]$}
+\STATE $\mathtt{pn}\Leftarrow\mathtt{pn1}$ \STATE $\mathtt{pn1}\Leftarrow\mathcal{P}_{\mathcal{D}}^{1}[\mathtt{pn},\alpha]$
+\ENDWHILE \STATE return $\mathtt{pn}$ \end{algorithmic} 
 \end{algorithm}
+
 
 Note that the calculation of $\mathcal{P}_{\mathcal{D}}^{1}[\phi,\alpha]$
 is a straightforward syntactic transformation and so requires no further
 treatment.
 
 
-\subsubsection{Correctness}
+\subsection{Correctness}
 
 If algorithm \ref{alg:calc_p} terminates, it terminates returning
 a value of $pn$ for which equation (\ref{eqn:pn_persists}) holds.
@@ -336,7 +278,7 @@ condition (equivalent to $false$) when $\phi$ can never persist
 under $\alpha$.
 
 
-\subsubsection{Completeness}
+\subsection{Completeness}
 
 As Theorem \ref{thm:p(pn)-equiv-p} is an equivalence, the only source
 of incompleteness will be failure to terminate. Algorithm \ref{alg:calc_p}
@@ -373,7 +315,7 @@ of iterations produced by our algorithm would be:\begin{gather*}
 \mathcal{P}_{\mathcal{D}}^{2}[Fp(x,s)]\equiv Fp(x,s)\wedge Fp(x+1,s)\wedge Fp(x+2,s)\\
 \vdots\\
 \mathcal{P}_{\mathcal{D}}^{n}[Fp(x,s)]\equiv\bigwedge_{i=0}^{i=n}Fp(x+i,s)\end{gather*}
-The persistence condition in this case is $\mathcal{P}_{\mathcal{D}}[Fp(x,s)]\equiv\forall y\,.\, x\leq y\rightarrow Fp(y,s)$,
+ The persistence condition in this case is $\mathcal{P}_{\mathcal{D}}[Fp(x,s)]\equiv\forall y\,.\, x\leq y\rightarrow Fp(y,s)$,
 and while this is the limit of the iteration it is clearly unachievable
 in any finite number of steps.
 
@@ -399,7 +341,10 @@ advanced fixed-point algorithms that may give better efficiency and
 termination guarantees.
 
 
-\subsubsection{Effectiveness}
+\section{Discussion}
+
+
+\subsection{Effectiveness}
 
 Our algorithm replaces a single reasoning task based on the full action
 theory $\mathcal{D}$ with a series of reasoning tasks based on the
@@ -439,18 +384,18 @@ applied to the following transformed queries.
 \textbf{Goal Impossibility:} Given a goal $G$, establish that there
 is no possible situation in which that goal is satisfied:\[
 \mathcal{D}\models\mathcal{P_{D}}[\neg G,Poss][S_{0}]\]
-The persistence condition of $\neg G$ with respect to action possibility
+ The persistence condition of $\neg G$ with respect to action possibility
 allows goal impossibility to be checked easily.
 
 \textbf{Goal Futility:} Given a goal $G$ and situation $s$, establish
 that the goal cannot be satisfied in any possible situation in the
 future of $s$:\[
 \mathcal{D}\models\mathcal{P_{D}}[\neg G,Poss][s]\]
-Precisely the same formula is required for checking goal impossibility
+ Precisely the same formula is required for checking goal impossibility
 and goal futility. This highlights the advantage of re-using the persistence
 condition at multiple situations. Our approach makes it feasible for
 an agent to check for goal futility each time it considers performing
-an action, and avoid situations that would make its goals unachievable. 
+an action, and avoid situations that would make its goals unachievable.
 
 \textbf{Checking State Constraints:} This can be handled as per goal
 impossibility above. A state constraint $\phi$ should always satisfy:\[
@@ -479,7 +424,41 @@ rule like the following:\begin{multline*}
 
 
 
-\section{Conclusions}
+\subsection{Related Work}
+
+While there is a rich and diverse literature base for the situation
+calculus, there appears to have been little work dealing with universally
+quantified queries. The work of \citet{Reiter93proving} shows how
+to handle such queries manually using an appropriate instantiation
+of the induction axiom, but makes no mention of automating this reasoning.
+
+Other work considering persistence focuses exclusively on verifying
+state constraints. These are uniform formulae that must hold in every
+possible situation, a highly specialized form of persistence query.
+The work of \citet{Lin94-StateConstraints} {}``compiles away''
+the induction axiom when verifying a state constraint, by means of
+the following equivalence:\begin{gather*}
+\Sigma\cup\mathcal{D}_{una}\cup\mathcal{D}_{ss}\models\phi[S_{0}]\rightarrow\left(\forall s\,.\, S_{0}\leq s\rightarrow\phi[s]\right)\\
+\mathit{iff}\\
+\mathcal{D}_{una}\models\forall s,a\,.\,\phi[s]\wedge\mathcal{R}_{\mathcal{D}}[Poss(a,s)]\,\rightarrow\,\mathcal{R}_{\mathcal{D}}[\phi[do(a,s)]]\end{gather*}
+ Verification of a state constraint can thus be reduced to reasoning
+about a universally quantified uniform formula using only the unique
+names axioms, a comparatively straightforward reasoning task. This
+problem is also approached by \citet{bertossi96automating}, who develop
+a system for automatically verifying state constraints based on an
+induction theorem prover.
+
+However, there are many issues related to persistence that are not
+addressed by such work, including: persistence at situations other
+than $S_{0}$; action description predicates other than $Poss$; how
+to combine notions of persistence and regression; and determining
+what additional conditions may be necessary to guarantee the persistence
+of $\phi$. As our treatment of persistence can provide a concrete
+basis for these considerations, it is significantly more general than
+existing work.
+
+
+\subsection{Conclusions}
 
 We have developed an algorithm that transforms persistence queries,
 a very general and useful class of situation calculus query, to a

@@ -1,9 +1,9 @@
 
 
 
-\chapter{Planning and Program Execution}
+\chapter{Joint Executions}
 
-\label{ch:planning} 
+\label{ch:planning}
 
 However, some representational limits of the situation calculus make
 it unsatisfactory, by itself, for rich multi-agent domains. The fundamental
@@ -24,7 +24,7 @@ can in fact be overcome, by developing a formalism for explicitly
 working with only a partial ordering on actions. We take inspiration
 from a model of concurrent computation known as \emph{prime event}
 \emph{structures} \citep{npw79event_structures}, which are partially-ordered
-branching sequences of events.\emph{ }
+branching sequences of events. 
 
 We define a \emph{joint execution} as a particular kind of prime event
 structure that is rich enough to capture the concurrent execution
@@ -59,8 +59,8 @@ to modeling multi-agent teams in the situation calculus.
 \subsection{Event Structures}
 
 To tackle cooperative execution in a multi-agent setting, we have
-adopted a model of concurrent computation known as \emph{event structures,
-}introduced in \citep{npw79event_structures}. The particular variant
+adopted a model of concurrent computation known as \emph{event structures,}
+introduced in \citep{npw79event_structures}. The particular variant
 we are interested in are \emph{prime event structures}, canonically
 defined as a four-tuple:\[
 (\mathcal{V},\prec,\#,\gamma)\]
@@ -118,11 +118,11 @@ meta-variables ranging over predicate and functional fluents respectively):
 
 \begin{itemize}
 \item $Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2},s))$ 
-\item $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$
+\item $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$ 
 \item $\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$\\
- for all predicate fluents $\mathcal{P}(s)$
+ for all predicate fluents $\mathcal{P}(s)$ 
 \item $\mathcal{F}(do(a_{1},do(a_{2},s)))=r\equiv\mathcal{F}(do(a_{2},do(a_{1},s)))=r$\\
- for all functional fluents $\mathcal{F}(s)$
+ for all functional fluents $\mathcal{F}(s)$ 
 \end{itemize}
 Whether actions are independent can be deduced from the description
 of the action theory, or (as currently in our implementation) indicated
@@ -144,7 +144,7 @@ iff $\mathcal{D}\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{
 We define a \emph{joint execution} as a special kind of prime event
 structure with the following components:\[
 (\mathcal{A},\mathcal{O},ens,alts,\gamma,<)\]
-It contains two disjoint sets of events: \emph{action} events $\mathcal{A}$
+ It contains two disjoint sets of events: \emph{action} events $\mathcal{A}$
 representing the actions to be performed, and \emph{outcome} events
 $\mathcal{O}$ representing the possible outcomes of each action.
 For each action event $a\in\mathcal{A}$, its enablers $ens(a)$ is
@@ -161,23 +161,22 @@ actions $act2$ and $act3$.
 
 %
 \begin{figure}
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\textsf{\textbf{\tiny \input{listings/je_example}}}
 %
-\framebox{\begin{minipage}[t][1\totalheight]{1\columnwidth}%
-\begin{center}
-%\textsf{\textbf{\tiny \include{listings/je_example}}}
-\par\end{center}%
 \end{minipage}}
 
-\caption{
-A simple joint execution. Elliptical nodes are action events, box
-nodes are outcome events.
-}
-\label{fig:example-je}
+\caption{ A simple joint execution. Elliptical nodes are action events, box
+nodes are outcome events. }
+
+
+\label{fig:example-je} 
 \end{figure}
 
 
 A joint execution has one additional component over a standard prime
-event structure: a \emph{total }order on events $<$ that is consistent
+event structure: a \emph{total} order on events $<$ that is consistent
 with the partial order $\prec$ induced by the enabling relation.
 We will use this to perform reasoning by assuming that events occur
 in the fixed order given by $<$, and placing restrictions on the
@@ -198,9 +197,9 @@ set, denoted $hists(e)$, the set of all configurations that contain
 all elements of $e$, and end in an event from $e$. The unique history
 of an outcome set that is consistent with $<$ will be denoted $hist(e)$.
 
-We say that an outcome set $e_{1}$ \emph{covers }a set \emph{$e_{2}$,
-}denoted by $e_{1}\sqsubseteq e_{2}$, if every event in $e_{1}$
-is either also in $e_{2}$, or precedes something in $e_{2}$. Every
+We say that an outcome set $e_{1}$ \emph{covers} a set \emph{$e_{2}$,}
+denoted by $e_{1}\sqsubseteq e_{2}$, if every event in $e_{1}$ is
+either also in $e_{2}$, or precedes something in $e_{2}$. Every
 history in $hists(e_{2})$ will have a prefix in $hists(e_{1})$.
 This defines a partial ordering on outcome sets:\[
 e_{1}\sqsubseteq e_{2}\,\equiv\,\forall o_{1}\in e_{1}:\,\,\exists o_{2}\in e_{2}:\,\, o_{1}\preceq o_{2}\]
@@ -228,14 +227,14 @@ by a team of agents.\\
 
 
 \textbf{(R1) Independent events have independent actions:}\\
-Joint executions are restricted such that the following holds for
+ Joint executions are restricted such that the following holds for
 all action events $a_{1},a_{2}\in\mathcal{A}$:\[
 a_{1}<a_{2}\,\rightarrow\, a_{1}\prec a_{2}\,\vee\, a_{1}\#a_{2}\,\vee\, indep(\gamma(a_{1}),\gamma(a_{2}))\]
 
 
 In words: if event $a_{2}$ is after $a_{1}$ in the total order,
 but the execution allows them to be performed in either order, then
-the corresponding actions must be independent. 
+the corresponding actions must be independent.
 
 With this restriction, the histories given by $hists(b)$ will differ
 from each other only by transposition of independent actions, making
@@ -254,7 +253,7 @@ terms.\\
 
 
 \textbf{(R2) Actions are enabled by a unique branch:}\\
-We restrict the enabling set for each action event to be a branch,
+ We restrict the enabling set for each action event to be a branch,
 rather than an arbitrary set of outcome events. In practice this means
 that when inserting a new action into the joint execution, one must
 specify the branch to which it belongs. This restriction allows us
@@ -268,7 +267,7 @@ with its effects, as these actions must be independent of $\gamma(a)$.
 
 
 \textbf{(R3) All possible outcomes are considered:}\\
-Clearly planning requires that all possible outcomes of an action
+ Clearly planning requires that all possible outcomes of an action
 be considered. For each action event $a\in\mathcal{A}$, and each
 possible outcome $r$ of that action, if:\begin{multline*}
 D\cup\mathbf{sensed}[hist(ens(a))]\not\,\models\,\\
@@ -280,7 +279,7 @@ then there must be a corresponding outcome event:\[
 
 
 \textbf{(R4) Actions are enabled by observable events:}\\
-If an action is to be enabled by an outcome event $o$ produced by
+ If an action is to be enabled by an outcome event $o$ produced by
 another agent, it is clearly necessary that the agent performing the
 action be able to observe the occurrence of $o$. Otherwise, it has
 no way of synchronizing its actions with those of its teammate. Let
@@ -290,7 +289,7 @@ $a$, then we require that:\[
 
 
 \textbf{(R5) Overlapping views enable identical actions:}\\
-To ensure that the joint execution can actually be carried out by
+ To ensure that the joint execution can actually be carried out by
 the agents, there must be no confusion about whether a particular
 action is enabled. Lifting the function $view$ to operate on sets
 of histories in the obvious way, then:\[
@@ -354,7 +353,7 @@ In this section we have defined a \emph{joint execution} as a prime
 event structure with some additional restrictions. We contend that
 such structures are highly suitable for planning the actions to be
 performed by a team in service of some shared task, such as executing
-a shared ConGolog program. 
+a shared ConGolog program.
 
 On one hand, joint executions are restricted enough to be practical
 for such use. Like the situation terms or conditional action trees
@@ -391,7 +390,7 @@ Our implementation%
 which implements the Oz language \citep{vanroy99mozart} rather than
 the traditional use of Prolog. As we shall see, Mozart's strong support
 for distributed logic programming allows the team of agents to share
-the planning workload with almost no additional code. 
+the planning workload with almost no additional code.
 
 To make things more concrete, figure \ref{fig:plan-output} shows
 the output of our system when run on the $MakeSalad$ example of figure
@@ -428,29 +427,30 @@ otherwise independent action.
 To ensure that the dependencies between actions reflect the needs
 of the program being executed, we augment our implementation of the
 $Trans$ predicate to keep additional information about what transitions
-were made. A \emph{step }object has the following attributes:
+were made. A \emph{step} object has the following attributes:
 
 \begin{itemize}
 \item action: the action performed in that step, or $nil$ if it is an internal
-program transition
+program transition 
 \item test: an additional fluent formula that must hold immediately before
-performing the step
+performing the step 
 \item thread: a sequence of 'l' and 'r' characters indicating the concurrent
-thread in which the step is performed
-\item outcome: the outcome of performing the action.
+thread in which the step is performed 
+\item outcome: the outcome of performing the action. 
 \end{itemize}
 %
 \begin{figure}
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\textsf{\textbf{\tiny \input{listings/plan}}}%
 %
-\framebox{\begin{minipage}[t][1\totalheight]{1\columnwidth}%
-%\textsf{\textbf{\tiny \include{listings/plan}}}%
 \end{minipage}}
 
-\caption{
-Joint execution for $MakeSalad(bowl(1))$, showing significant concurrency
-between agents
-}
-\label{fig:plan-output}
+\caption{ Joint execution for $MakeSalad(bowl(1))$, showing significant concurrency
+between agents }
+
+
+\label{fig:plan-output} 
 \end{figure}
 
 
@@ -463,15 +463,15 @@ and the concurrency operator from equation \ref{eqn:trans_conc_orig}.
 
 %
 \begin{figure}
-%
-\framebox{\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
 {\scriptsize \verbatiminput{listings/ConGolog.oz}}%
 \end{minipage}}
 
-\caption{
-Partial code for $Trans$ predicate
-}
-\label{fig:trans-code}
+\caption{ Partial code for $Trans$ predicate }
+
+
+\label{fig:trans-code} 
 \end{figure}
 
 
@@ -489,8 +489,6 @@ to be executed in the order they were generated by the planner, while
 unordered steps may be performed independently.
 
 
-
-
 \subsection{Planning Procedure}
 
 The code for planning a joint execution from a given ConGolog program
@@ -503,29 +501,29 @@ branch so far.
 
 %
 \begin{figure}
-%
-\framebox{\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
 {\scriptsize \verbatiminput{listings/Planner.oz}}%
 \end{minipage}}
 
-\caption{
-Code for main planning loop
-}
-\label{fig:planning-code}
+\caption{ Code for main planning loop }
+
+
+\label{fig:planning-code} 
 \end{figure}
 
 
 %
 \begin{figure}
-%
-\framebox{\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
 {\scriptsize \verbatiminput{listings/psearch.oz}}%
 \end{minipage}}
 
-\caption{
-Code to run planning procedure in parallel
-}
-\label{fig:parallel-search}
+\caption{ Code to run planning procedure in parallel }
+
+
+\label{fig:parallel-search} 
 \end{figure}
 
 
@@ -556,7 +554,7 @@ A primary motivation in using Mozart/Oz for our implementation is
 its strong support for distributed logic programming. Utilizing Mozart's
 parallel search functionality \citep{Schulte00constraint_services},
 the planning workload can be transparently distributed between the
-agents in the team. 
+agents in the team.
 
 Figure \ref{fig:parallel-search} shows the necessary code, which
 should be executed by one of the agents. The planning procedure is

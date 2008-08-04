@@ -36,6 +36,7 @@ CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf
 
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex persistence.tex knowledge.tex cknowledge.tex jointexec.tex implementation.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
+AUXFILES = preamble.tex mathmacros.tex bibcmds.tex
 
 ## Additional variables
 
@@ -163,6 +164,6 @@ warnings: thesis.dvi
 
 ##  Specific dependenices
 
-thesis.dvi: thesis.tex $(CHAPTERS) $(APPENDICES)
+thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES)
 
 

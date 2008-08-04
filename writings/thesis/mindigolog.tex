@@ -1,88 +1,48 @@
- 
 
 
-\chapter{MIndiGolog}
 
-\label{ch:mindigolog} 
+\chapter{Motivation: MIndiGolog}
 
-In distributed problem solving applications, a team of agents must
-cooperate closely to achieve a shared goal. Such teams can often be
-conceptualized as a single agent with distributed sensing, reasoning
-and acting capabilities, which leads to a two-stage technique for
-programming such teams: adapt a formalism from single-agent programming
-to specify the tasks to be performed, then provide a coordination
-strategy allowing the team to execute the specification cooperatively.
-This approach has been successfully employed by platforms such as
-STEAM \cite{tambe97flexible_teamwork}, SharedPlans \cite{grosz99planning_together},
-and TAEMS \cite{decker95designing_coordination}, which specify tasks
-with variants of the Hierarchical Task Networks (HTN) formalism.
+\label{ch:mindigolog}
 
-While HTN is a popular and powerful approach to task specification,
-an increasingly popular alternative is \emph{high-level program execution}
-as embodied by the Golog programming language \cite{levesque97golog}.
-By {}``high-level program'' is meant a program whose primitive components
-are domain-specific actions, connected by standard programming constructs,
-and that may contain nondeterministic operators. The primary advantage
-of this approach is \emph{controlled nondeterminism}, allowing some
-parts of the task to be fully specified while others may involve arbitrary
-amounts of nondeterminism, or even goal-based planning. Golog has
-the following additional advantages over HTN: it provides a more natural
-representation of many tasks thanks to common programming constructs;
-and it is based on a more sophisticated logic of action \cite{son00htn_golog}.
+This chapter develops a Golog variant designed specifically for execution
+in multi-agent domains. The aim is to build a distributed problem
+solving system based on cooperative execution of a shared Golog program.
+As this chapter will demonstrate, the existing features of the situation
+calculus and Golog go a long way towards achieving this goal, but
+ultimately fall short in rich multi-agent domains.
 
-Extensions to the original Golog have introduced further advantageous
-features, including concurrent program execution by interleaving of
-actions (ConGolog \cite{giacomo00congolog}) and the ability to combine
-online execution with offline planning (IndiGolog \cite{giacomo99indigolog}).
-We refer to these extensions collectively as the {}``Golog family''
-of programming languages.
+We begin by integrating several existing extensions to the situation
+calculus into the semantics of Golog to better represent the dynamics
+of a multi-agent team. Key among these is true concurrency of actions,
+which we combine with the interleaved concurrency of ConGolog to give
+a flexible account of concurrent execution. An explicit notion of
+time is incorporated to enrich the world model and to assist in coordination
+between agents. The concept of natural actions is also tightly integrated
+into the language, to allow agents to predict the behavior of their
+teammates and environment. We name the resulting language {}``MIndiGolog''
+for {}``Multi-Agent IndiGolog''.
 
-Motivated by these advantages, our research program aims to build
-a distributed problem solving system based on cooperative execution
-of shared high-level programs. This paper represents a first step
-towards that goal. We integrate several existing extensions to the
-situation calculus into the Golog language to better represent the
-dynamics of a multi-agent team. Key among these is true concurrency
-of actions, which we combine with the interleaved concurrency of ConGolog
-to give a flexible account of concurrent execution. An explicit notion
-of time is incorporated to enrich the world model and to assist in
-coordination between agents. The concept of natural actions is also
-tightly integrated into the language, to allow agents to predict the
-behavior of their teammates and environment. We name the resulting
-language {}``MIndiGolog'' for {}``Multi-Agent IndiGolog''.
+The new features added to the situation calculus in the rest of the
+thesis allow us to overcome these difficulties, and we will revisit
+MIndiGolog at the end of chapter TODO. MIndiGolog thus simultaneous
+serves as a motivation for, and a demonstration of, the techniques
+developed throughout this thesis.
 
-The paper proceeds as follows: section \ref{sec:Background} gives
-some background on the situation calculus and Golog, and describes
-extensions to these formalisms that we will integrate in our work;
-section \ref{sec:MIndiGolog} gives the semantics of MIndiGolog, demonstrates
-their utility, and shows how techniques for distributed logic programming
-can facilitate the shared execution of MIndiGolog programs; section
-\ref{sec:Related-Work} discusses related work and section \ref{sec:Conclusions}
-concludes with a summary of our results and ongoing research. The
-work is motivated and illustrated throughout by examples from a simple
-multi-agent domain, in which a team of robotic chefs must be programmed
-to cooperatively prepare a meal.
+The chapter proceeds as follows: TODO.
 
 
 \section{MIndiGolog\label{sec:MIndiGolog}}
 
 We have integrated three extensions to the situation calculus with
 the semantics of IndiGolog to better model the dynamics of a multi-agent
-setting. These extensions allow agents to represent time, concurrently-occurring
+team. These extensions allow agents to represent time, concurrently-occurring
 actions, and natural actions in a robust way.
 
 
 \subsection{Time}
 
-It is clear from the background section that the approach of \cite{reiter96sc_nat_conc}
-to modeling time is complicated by the presence of concurrent actions.
-To avoid the need for the $Coherent$ predicate, we attach the temporal
-argument to each situation rather than to each action. The successor
-situation function $do(a,s)$ becomes $do(a,t,s)$, to indicate {}``action
-$a$ was performed at time $t$ in situation $s$''. The possibility
-predicate $Poss(a,s)$ likewise becomes $Poss(a,t,s)$. The semantics
-of IndiGolog trivially accommodate this change, and the predicate
-$Coherent$ and function $time$ are no longer needed.
+TODO: The semantics of IndiGolog trivially accommodate this change.
 
 
 \subsection{Concurrency}
@@ -91,13 +51,13 @@ While it is straightforward to modify the IndiGolog $Trans$ rule
 for primitive actions to accept sets of concurrent actions, there
 are deeper implications for the concurrency operator. This is implemented
 by accepting a transition from either of the two programs as a transition
-for the pair \cite{giacomo00congolog}. In the presence of true concurrency,
+for the pair \citet{giacomo00congolog}. In the presence of true concurrency,
 this is insufficient. Suppose program $\delta_{1}$ may be transitioned
 by performing actions $c_{1}$, and $\delta_{2}$ may be transitioned
-by performing actions $c_{2}$. As noted in \cite{pinto99tcongolog},
+by performing actions $c_{2}$. As noted in \citet{pinto99tcongolog},
 it should be possible to exploit true concurrency by performing both
 simultaneously, i.e. $c_{1}\cup c_{2}$. However, this introduces
-several complications that \cite{pinto99tcongolog} does not address.
+several complications that \citet{pinto99tcongolog} does not address.
 
 First, precondition interaction means that $c_{1}\cup c_{2}$ may
 not be possible even if the individual actions are. The transition
@@ -146,9 +106,9 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 
 \subsection{Natural Actions}
 
-The formalism of \cite{reiter96sc_nat_conc} is adopted, with simple
+The formalism of \citet{reiter96sc_nat_conc} is adopted, with simple
 modifications for our handling of time. While planning with natural
-actions has previously been done in Golog \cite{pirri00planning_nat_acts},
+actions has previously been done in Golog \citet{pirri00planning_nat_acts},
 the programmer was required to explicitly check for any possible natural
 actions and ensure that they appear in the execution. We significantly
 lower the burden on the programmer by guaranteeing that all legal
@@ -214,25 +174,27 @@ IndiGolog, modified according to equations (\ref{eqn:trans_conc_new}),
 executions of a MIndiGolog program derived from such a theory of action
 produce legal situations.
 
-\begin{lemma} Let $\mathcal{D}$ be a MIndiGolog theory of action.
-Then:\label{thm:trans_legal}\[
+\begin{lemma}
+Let $\mathcal{D}$ be a MIndiGolog theory of action. Then:\label{thm:trans_legal}\[
 \mathcal{D}\models\forall s,s',\delta,\delta'.Legal(s)\wedge Trans(\delta,s,\delta',s')\rightarrow Legal(s')\]
 
-
-\end{lemma} \begin{proof} By induction on the structure of $\delta$.
-That the theorem holds for the modified $Trans$ clauses of equations
-(\ref{eqn:trans_conc_new}), (\ref{eqn:trans_prim_new}) and (\ref{eqn:trans_cond_new})
-is straightforward, and no other clause constructs new situation terms.
-\end{proof} 
-
-\begin{thm} Let $\mathcal{D}$ be a MIndiGolog theory of action.
-Then: \[
+\end{lemma}
+\begin{proof}
+By induction on the structure of $\delta$. That the theorem holds
+for the modified $Trans$ clauses of equations (\ref{eqn:trans_conc_new}),
+(\ref{eqn:trans_prim_new}) and (\ref{eqn:trans_cond_new}) is straightforward,
+and no other clause constructs new situation terms. 
+\end{proof}
+\begin{thm}
+Let $\mathcal{D}$ be a MIndiGolog theory of action. Then: \[
 \mathcal{D}\models\forall s',\delta,\delta'\,.\, Trans*(\delta,S_{0},\delta',s')\rightarrow Legal(s')\]
- \newpage{}Thus, all legal executions of a MIndiGolog program produce
-legal situations. \end{thm} \begin{proof} From lemma \ref{thm:trans_legal},
-the legality of $S_{0}$, and the properties of transitive closure.
-\end{proof} 
-
+ Thus, all legal executions of a MIndiGolog program produce legal
+situations. 
+\end{thm}
+\begin{proof}
+From lemma \ref{thm:trans_legal}, the legality of $S_{0}$, and the
+properties of transitive closure. 
+\end{proof}
 Like standard IndiGolog, MIndiGolog will only call for actions to
 be performed if it is actually possible to perform them. MIndiGolog
 has the added advantage of effortlessly incorporating any natural
@@ -255,7 +217,7 @@ instantiated to their earliest possible value).
 
 %
 \begin{figure*}[t]
-\centering \subfigure[One possible execution of the $MakeSalad$ program with three agents,
+ \centering \subfigure[One possible execution of the $MakeSalad$ program with three agents,
 using MIndiGolog. Note the occurrence of multiple
 actions within each do statement.]{ \label{cap:example_trace} \framebox{\makebox[1\textwidth]{%
 \begin{minipage}[t][1\totalheight]{0.5\textwidth}%
@@ -271,7 +233,7 @@ each step.]{ \label{cap:indigolog_trace} \framebox{\makebox[1\textwidth]{%
 \end{minipage}%
 \begin{minipage}[t][1\totalheight]{0.45\textwidth}%
 {\small \verbatiminput{figures/mindigolog/output_makeSalad_ig_2.txt}}%
-\end{minipage}}} } 
+\end{minipage}}} }
 
 \caption{Example executions of the $MakeSalad$ program}
 
@@ -292,8 +254,8 @@ for distributed problem solving applications.
 
 As the existing languages based on Golog have demonstrated, an interpreter
 can be conveniently constructed using a logic programming language
-such a Prolog. We have followed the style of \cite{giacomo00congolog,giacomo99indigolog}
-to build interpreters for our language in both Prolog and Oz \cite{vanroy03mozart_logic},
+such a Prolog. We have followed the style of \citet{giacomo00congolog,giacomo99indigolog}
+to build interpreters for our language in both Prolog and Oz \citet{vanroy03mozart_logic},
 a multi-paradigm programming language with strong support for distributed
 computing.
 
@@ -346,10 +308,13 @@ currently developing an algorithm for cooperative execution of MIndiGolog
 programs that utilizes such distribution of the planning workload.
 
 
-\section{Related Work\label{sec:Related-Work}}
+\section{Discussion\label{sec:MIndiGolog:Discussion}}
+
+
+\subsection{Achievements}
 
 That Golog shows promise for multi-agent teams is evidenced by the
-success of \cite{Ferrein2005readylog} with a RoboCup soccer team
+success of \citet{Ferrein2005readylog} with a RoboCup soccer team
 executing a shared Golog program. However, the semantics of their
 Golog variant {}``ReadyLog'' remain largely single-agent and do
 not address concerns such as: the possibility of performing actions
@@ -362,23 +327,15 @@ work on cooperative execution will address the others.
 
 As stated earlier, there has been much promising work on distributed
 problem solving systems using the Hierarchical Task Networks formalism
-(\cite{tambe97flexible_teamwork,decker95designing_coordination,grosz99planning_together},
+(\citet{tambe97flexible_teamwork,decker95designing_coordination,grosz99planning_together},
 among others). We believe high-level program execution to have several
 clear advantages over HTN, in particular the ready availability of
 controlled nondeterminism. Combined with familiar programming constructs
 such as loops and if-then-else, it provides a very powerful formalism
-for expressing complex behaviors and tasks \cite{Gabaldon02htn_in_golog,son00htn_golog}.
+for expressing complex behaviors and tasks \citet{Gabaldon02htn_in_golog,son00htn_golog}.
 Golog also benefits from a logic of action rich enough to capture
 many challenging aspects of multi-agent domains (such as time and
 concurrency) while remaining computationally feasible.
-
-Note that this paper focuses on task specification using Golog and
-does not deal with coordination between team members. We are currently
-developing techniques for cooperative execution of MIndiGolog programs
-based on these successful approaches to executing HTN specifications.
-
-
-\section{Conclusions and Future Work\label{sec:Conclusions}}
 
 Our work integrates several important extensions to the situation
 calculus and Golog to better model the dynamics of multi-agent teams.
@@ -390,20 +347,7 @@ for cooperative execution by a multi-agent team.
 Since the semantics of MIndiGolog are based on first-order logic,
 existing techniques for distributed logic programming can be used
 to share the execution-planning workload between agents. In fully-observable
-domains, the parallel search capabilities of Oz can be used directly.
-We are currently developing a more sophisticated coordination strategy
-to augment these techniques and allow cooperative execution of MIndiGolog
-programs by a team of autonomous agents in partially observable domains.
-
-Such coordination strategies are typically based on explicit mental
-attitudes such as knowledge and intention. A key aspect of our recent
-work has been the development of a computationally-feasible account
-of knowledge in partially observable domains \cite{kelly07sc_know_obs}.
-This requires efficient reasoning about what cannot be changed by
-certain types of action, and we have developed a technique for answering
-such {}``persistence queries'' under some simple assumptions \cite{kelly07sc_persistence}.
-An implementation of these techniques will form the base of our distributed
-problem solving system.
+domains, the parallel search capabilities of Oz can be used directly. 
 
 This paper thus represents a first step towards providing the advantages
 of Golog (such as controlled nondeterminism, powerful programming
@@ -415,7 +359,11 @@ logic programming techniques, have already proven useful for programming
 the behavior of multi-agent teams in fully observable domains.
 
 
-\section{TODO: Limitations}
+\subsection{Limitations}
+
+
+
+TODO: limitations
 
 \begin{itemize}
 \item All actions known to all agents. 
@@ -423,4 +371,3 @@ the behavior of multi-agent teams in fully observable domains.
 \item DKnows = Knows = EKnows = CKnows 
 \item Basically signpost the rest of the thesis 
 \end{itemize}
-

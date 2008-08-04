@@ -1,21 +1,42 @@
 
 
+
 \chapter{Background}
 
 \label{ch:background}
 
+This chapter covers the necessary background material for the thesis.
+We begin by introducing the base language of the situation calculus
+in section \ref{sec:Background:The-Situation-Calculus}, along with
+the {}``cooking agents'' example domain which will be used throughout
+the thesis. Section \ref{sec:Background:Golog} introduces the Golog
+family of programming languages, which are the standard formalism
+for representing complex tasks in the situation calculus. Reasoning
+about knowledge is covered in section \ref{sec:Background:Epistemic-Reasoning},
+including a discussion of several limitations of the traditional situation
+calculus approach. Finally, section \ref{sec:Background:Mozart/Oz}
+introduces the Mozart programming system, which forms the basis of
+our implementation.
 
-\section{The Situation Calculus}
+While there are no new results presented in this chapter, it does
+introduce several novel pieces of notation which will be needed later
+in the thesis. They are introduced here to maintain consistency of
+the presentation.
 
-Our work utilises the situation calculus \citep{pirri99contributions_sitcalc}
-with multiple agents \citep{shapiro98specifying_ma_systems} and concurrent
-actions \citep{reiter96sc_nat_conc}, and we begin from the standard
-account of knowledge due to \citep{scherl03sc_knowledge}. A brief
-overview is presented below. Readers familiar with the situation calculus
-should note the following: our generalisation of the $Poss$ fluent
-to action description predicates; our use of the single-step variant
-of the regression operator; and the material on the persistence condition
-meta-operator.
+
+\section{The Situation Calculus\label{sec:Background:The-Situation-Calculus}}
+
+The situation calculus is a formalism for describing and reasoning
+about dynamic worlds. It was first introduced by \citet{McCHay69sitcalc}
+and has since been significantly expanded and formalized \citep{reiter91frameprob,pirri99contributions_sitcalc}.
+We use the particular variant due to Reiter et. al. at the University
+of Toronto, sometimes called the {}``Toronto school'' or {}``situations-as-histories''
+version \citep{levesque98sc_foundations}, with time and concurrent
+actions as per \citep{reiter96sc_nat_conc}.
+
+A brief overview is presented below. Readers familiar with the situation
+calculus should note our generalisation of the $Poss$ fluent to action
+description predicates.
 
 
 \subsection{Notation and Axioms\label{sub:Notation-and-Axioms}}
@@ -35,17 +56,13 @@ are predicates or functions that represent properties of the world
 that may change between situations; they take a situation term as
 their final argument.
 
-Throughout the paper we will present examples from a simple multi-agent
-domain, in which two agents Ann and Bob are attending a party. The
-location of the party (the fluent $loc(s)$) is either $C$ or $D$
-but they do not know which, and they have just received an invitation
-telling them the location of the party. Each agent may read the invitation
-(the action $read$) and leave/enter the room (the actions $leave$
-and $enter$) at any time. Some example formulae from this domain
-are: {}``Ann is in the room initially'', and {}``Bob is not in
-the room after leaving it''. Written formally:\begin{gather*}
-InRoom(Ann,S_{0})\\
-\neg InRoom(Bob,do(leave(Bob),S_{0}))\end{gather*}
+Throughout the thesis we will present examples from a simple multi-agent
+domain, in which a group of robotic chefs must cooperate to prepare
+a meal. Some example statements from this domain include {}``Ann
+is not holding the knife initially'' and {}``Bob is holding the
+knife after he picks it up''. Formally:\begin{gather*}
+\neg Holding(Ann,Knife1,S_{0})\\
+Holding(Bob,Knife1,do(pickup(Bob,Knife1),S_{0}))\end{gather*}
 
 
 The dynamics of a particular domain are captured by a set of sentences
@@ -53,18 +70,20 @@ called a \emph{basic action theory}. Queries about the behaviour of
 the world are posed as logical entailment queries relative to this
 theory.
 
-Basic~Action~Theory A basic action theory, denoted $\Dt$, is a
-set of situation calculus sentences (of the specific syntactic form
-outlined below) describing a particular dynamic world. It consists
-of the following disjoint sets: the foundational axioms of the situation
-calculus ($\Sigma$); unique names axioms for actions ($\Dt_{una}$);
-action description axioms defining preconditions etc for each action
-($\Dt_{ad}$); successor state axioms describing how primitive fluents
-change between situations ($\Dt_{ssa}$); and axioms describing the
-value of primitive fluents in the initial situation ($\Dt_{S_{0}}$):\[
+\begin{defnL}
+[{{[}{{[}{Basic~Action~Theory}]}]}] A basic action theory,
+denoted $\Dt$, is a set of situation calculus sentences (of the specific
+syntactic form outlined below) describing a particular dynamic world.
+It consists of the following disjoint sets: the foundational axioms
+of the situation calculus ($\Sigma$); unique names axioms for actions
+($\Dt_{una}$); action description axioms defining preconditions etc
+for each action ($\Dt_{ad}$); successor state axioms describing how
+primitive fluents change between situations ($\Dt_{ssa}$); and axioms
+describing the value of primitive fluents in the initial situation
+($\Dt_{S_{0}}$):\[
 \Dt=\Sigma\cup\Dt_{una}\cup\Dt_{ad}\cup\Dt_{ssa}\cup\Dt_{S_{0}}\]
 
-
+\end{defnL}
 These axioms must satisfy some simple consistency criteria to constitute
 a valid domain description \citet{pirri99contributions_sitcalc}.
 We assume an arbitrary, but fixed, basic action theory.
@@ -73,14 +92,15 @@ The \emph{uniform formulae} can be thought of as properties of the
 state of the world. They are basically logical combinations of fluents
 referring to a common situation term. For the moment we restrict ourselves
 to \emph{objective} uniform formulae; the complete definition includes
-statements about knowledge and will be introduced in the next section.
+statements about knowledge and will be introduced following that material.
 
 \begin{defnL}
-[{{[}{Objective~Uniform~Formulae}]}] Let $s$ be a fixed situation
-term, $F$ an arbitrary fluent, $\vars{x}$ a vector of terms mentioning
-no situation term other than $s$, and $y$ a variable that is not
-of sort \noun{Situation}. Then the objective formulae uniform in $s$
-are the smallest set of syntactically-valid formulae satisfying:\[
+[{{[}{{[}{Objective~Uniform~Formulae}]}]}] Let $s$ be a fixed
+situation term, $F$ an arbitrary fluent, $\vars{x}$ a vector of
+terms mentioning no situation term other than $s$, and $y$ a variable
+that is not of sort \noun{Situation}. Then the objective formulae
+uniform in $s$ are the smallest set of syntactically-valid formulae
+satisfying:\[
 \phi::=F(\vars{x},s)\,|\,\phi_{1}\wedge\phi_{2}\,|\,\phi_{1}\vee\phi_{2}\,|\,\neg\phi\,|\,\exists y:\phi\,|\,\forall y:\phi\]
 
 \end{defnL}
@@ -93,10 +113,15 @@ represents a uniform formula with the particular situation $s'$ inserted
 into all its fluents, while $\phi^{-1}$ represents a uniform formula
 with the situation argument removed from all its fluents.
 
+\medskip{}
+
+
 The set $\Dt_{una}$ restricts action terms to a finite number of
 action types, and ensures that actions with different types or different
 arguments are in fact different. The function $actor(a)$ gives the
-agent performing an action, which is always the action's first argument.\\
+agent performing an action, which is always the action's first argument.
+
+\medskip{}
 
 
 The set $\Dt_{ssa}$ contains one \emph{successor state axiom} for
@@ -112,7 +137,9 @@ F(\vars{x},do(c,s))\equiv\Phi_{F}^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\we
 
 Here $\Phi_{F}^{+}$ and $\Phi_{F}^{-}$ are formulae uniform in $s$.
 This may be read as {}``$F$ is true after performing $c$ if $c$
-made it true, or it was previously true and $c$ did not make it false''.\\
+made it true, or it was previously true and $c$ did not make it false''.
+
+\medskip{}
 
 
 The set $\Dt_{ad}$ generalises the standard \emph{action precondition
@@ -145,6 +172,9 @@ allowing them to be expanded down to primitive fluents even when they
 refer to an action variable. For example, we assume that $Poss(a,s)$
 can be replaced by an enumeration over action types such as the following:\[
 Poss(a,s)\equiv\,\, a=A_{1}(\vars{x}_{1})\wedge\Phi_{Poss}^{A_{1}}(\vars{x}_{1},s)\,\vee\,\dots\,\vee a=A_{n}(\vars{x}_{n})\wedge\Phi_{Poss}^{A_{n}}(\vars{x}_{n},s)\]
+
+
+\medskip{}
 
 
 The foundational axioms $\Sigma$ ensure that situations form a branching-time
@@ -254,55 +284,7 @@ When dealing with situation-suppressed uniform formulae, we will use
 a two-argument operator $\Reg(\phi,c)$ to indicate the regression
 of $\phi$ over the action $c$. It should be read as a shorthand
 for $\Reg(\phi[do(c,s)])^{-1}$ using the situation-suppression operator
-from Section \ref{sub:Notation-and-Axioms}.\\
-
-
-A key contribution of \citet{scherl03sc_knowledge} was showing how
-to apply the regression operator to formulae containing the $\mathbf{Knows}$
-macro, allowing it to be treated syntactically as if it were a primitive
-fluent. This means that epistemic queries can be approached using
-standard reasoning techniques of the situation calculus. Although
-we have changed the notation somewhat to foreshadow the techniques
-we will develop in Section \ref{sec:Obs-Knowledge}, their definition
-operates as follows. First, define the \emph{results} of a concurrent
-action to be the set of $action\#result$ pairs for all primitive
-actions perform by the agent in question:\[
-\mathbf{res}(agt,c,s)\isdef\{a\#SR(a,s)\,\,|\,\, a\in c\,\wedge\, actor(a)=agt\}\]
-
-
-This definition is then used to formulate a regression rule as follows:\begin{multline}
-\Reg(\Knows(agt,\phi,do(c,s))\isdef\\
-\exists y:\, y=\mathbf{res}(agt,c,s)\,\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi[do(c,s)]),s)\label{eq:reg_k_std}\end{multline}
-
-
-This works by collecting the sensing results from each action performed
-by the agent into the set $y$, then ensuring matching sensing results
-in every situation considered possible. It expresses the knowledge
-of the agent after a concurrent action in terms of what it knew before
-the action, along with the information returned by the action. This
-technique relies heavily on the fact that all actions are public,
-since it requires every agent's knowledge to be updated in response
-to every action.
-
-Repeated applications of $\Reg$ can thus transform a knowledge query
-into one that is uniform in the initial situation. While it would
-be valid to then expand the $\Knows$ macros and handle the query
-using first-order logic, in practice the reasoning procedure would
-leave $\Knows$ intact and use a specialised prover based on modal
-logic.
-
-It is possible to formulate an alternate successor state axiom for
-knowledge that does not assume all actions are public, such as that
-of \citet{Lesperance99sitcalc_approach}. Such formulations invariably
-require universal quantification over situation terms, to account
-for arbitrarily-long sequences of hidden actions. This is incompatible
-with regression rules like the above, and these formulations offer
-no reasoning procedure other than general second-order theorem proving.
-By utilising a new reasoning technique called the {}``persistence
-condition'' to reason about universal quantification over situation
-terms, our work is the first to provide an account of knowledge with
-hidden actions while maintaining regression in the style presented
-above as an effective reasoning tool.
+from Section \ref{sub:Notation-and-Axioms}.
 
 TODO
 
@@ -316,6 +298,15 @@ TODO
 \item using typing of functions to guarantee a finite herbrand universe
 (\citet{levesque04krr_book}, pp69) and therefore decidability 
 \end{itemize}
+Sentences that contain only existential quantification over situation
+terms can be proven without the induction axiom and so are more amenable
+to automated reasoning \citep{pirri99contributions_sitcalc}. It is
+therefore important for systems built on a situation calculus theory
+of action to limit queries to existential form. Much of the work on
+implementing systems with the situation calculus has been on reducing
+the number of axioms required to answer a given query, to allow more
+efficient reasoning.
+
 
 \subsection{TODO}
 
@@ -399,7 +390,7 @@ similarities between the major action formalisms should allow the
 these ideas to transcend the specifics of the situation calculus \citet{thielscher06reconcile_sc_fc,thielscher07unifying_action_calculus,vanbentham07ml_sitcalc}.
 
 
-\section{Golog}
+\section{Golog\label{sec:Background:Golog}}
 
 Golog \citet{levesque97golog} is a declarative agent programming
 language based on the situation calculus. Testimony to its success
@@ -532,31 +523,13 @@ as our theory of action ensures agents can only be doing one thing
 at a time. But it would not determine that the natural action $endTask$
 will occur after one minute and enable to program to finish.
 
+TODO: other Gologs: (DTGolog, HTNGolog, GTGolog). highlight rich cross-pollination,
+hope to be a part of it
 
-\subsection{TODO}
 
-\begin{itemize}
-\item Basic Golog, operators, semantics \citet{levesque97golog} 
-\item Highlight the vast body of similar approaches, e.g. Dynamic Logic 
-\item So why golog? - full power of sitcalc, answer extraction for planning. 
-\item Discuss idea of 'Legal Execution' in depth 
-\item ConGolog \citet{giacomo00congolog}. Also some discussion of related
-semantics, such as CCS 
-\item IndiGolog - highlight online/offline distinction and connections to
-coordination and planning \citet{giacomo99indigolog} 
-\item TConGolog - highlight deficiencies \citet{pinto99tcongolog} 
-\item Other Gologs (DTGolog, HTNGolog, GTGolog)
+\section{Epistemic Reasoning\label{sec:Background:Epistemic-Reasoning}}
 
-\begin{itemize}
-\item for completeness only, we have already established that we aren't
-operating in domains appropriate for them 
-\item But, take time to highlight rich cross-pollination between works,
-and that our results similarly have potential for integration with
-these approaches 
-\end{itemize}
-\end{itemize}
-
-\section{Epistemic Reasoning}
+TODO: general intro to epistemic reasoning \citet{halpern90knowledge_distrib,fagin95}
 
 Epistemic reasoning was first introduced to the situation calculus
 by \citet{moore80know_act}, and formalised extensively by \citet{scherl03sc_knowledge}
@@ -622,10 +595,11 @@ before the action, and the sensing results from the action.
 \medskip{}
 
 
+\begin{defn}
 We will denote by $\Dt_{K}^{std}$ the axioms of the standard account
 of knowledge due to \citet{scherl03sc_knowledge}, as detailed in
-equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard}) above.
-
+equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard}) above. 
+\end{defn}
 We can now present the complete definition of a uniform formula, which
 may include both action description predicates%
 \footnote{This differs from the standard definition, which does not permit action
@@ -635,14 +609,16 @@ change, since we assume that action description predicates can always
 be expanded into a finite combination of primitive fluents.%
 } and knowledge expressions.
 
-Uniform~Formulae Let $s$ be a fixed situation term, $F$ a primitive
-fluent, $\alpha$ an action description predicate, $\vars{x}$ a vector
-of terms mentioning no situation term other than $s$, and $y$ a
-variable that is not of sort \noun{Situation}. Then the formulae uniform
-in $s$ are the smallest set of syntactically-valid formulae satisfying:\[
+\begin{defnL}
+[{{[}{{[}{Uniform~Formulae}]}]}] Let $s$ be a fixed situation
+term, $F$ a primitive fluent, $\alpha$ an action description predicate,
+$\vars{x}$ a vector of terms mentioning no situation term other than
+$s$, and $y$ a variable that is not of sort \noun{Situation}. Then
+the formulae uniform in $s$ are the smallest set of syntactically-valid
+formulae satisfying:\[
 \phi::=F(\vars{x},s)\,|\,\alpha(\vars{x},s)\,|\,\phi_{1}\wedge\phi_{2}\,|\,\phi_{1}\vee\phi_{2}\,|\,\neg\phi\,|\,\exists y:\phi\,|\,\forall y:\phi\,|\,\Knows(agt,\phi,s)\]
 
-
+\end{defnL}
 While powerful, this knowledge-representation formalism has an important
 limitation: it is fundamentally \emph{synchronous.} Each agent is
 assumed to have full knowledge of all actions that have occurred -
@@ -652,22 +628,63 @@ of actions would be infeasible. A major contribution of this paper
 is a more flexible formalism for knowledge that can be applied to
 a much wider range of domains.
 
-\begin{itemize}
-\item Knowledge, Distributed Knowledge, Common Knowledge \citet{halpern90knowledge_distrib,fagin95} 
-\item Importance of Common Knowledge for Coordination 
-\item Knowledge in the Situation Calculus
+A key contribution of \citet{scherl03sc_knowledge} was showing how
+to apply the regression operator to formulae containing the $\mathbf{Knows}$
+macro, allowing it to be treated syntactically as if it were a primitive
+fluent. This means that epistemic queries can be approached using
+standard reasoning techniques of the situation calculus. Although
+we have changed the notation somewhat to foreshadow the techniques
+we will develop in Section \ref{sec:Obs-Knowledge}, their definition
+operates as follows. First, define the \emph{results} of a concurrent
+action to be the set of $action\#result$ pairs for all primitive
+actions perform by the agent in question:\[
+\mathbf{res}(agt,c,s)\isdef\{a\#SR(a,s)\,\,|\,\, a\in c\,\wedge\, actor(a)=agt\}\]
 
-\begin{itemize}
-\item Reasoning about Knowledge \citet{moore80know_act,scherl03sc_knowledge} 
-\item Use in a multi-agent setting (??what's the best reference) 
-\item Concurrency and time \citet{scherl03conc_knowledge} 
-\item Shortcomings of multi-agent extensions 
-\item Decidable fragments, weakening for computational efficiency 
-\end{itemize}
-\item Epistemic feasibility of plans: \citet{giacomo04sem_delib_indigolog,Lesperance01epi_feas_casl} 
-\end{itemize}
 
-\section{The Oz Programming Language}
+This definition is then used to formulate a regression rule as follows:\begin{multline}
+\Reg(\Knows(agt,\phi,do(c,s))\isdef\\
+\exists y:\, y=\mathbf{res}(agt,c,s)\,\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi[do(c,s)]),s)\label{eq:reg_k_std}\end{multline}
+
+
+This works by collecting the sensing results from each action performed
+by the agent into the set $y$, then ensuring matching sensing results
+in every situation considered possible. It expresses the knowledge
+of the agent after a concurrent action in terms of what it knew before
+the action, along with the information returned by the action. This
+technique relies heavily on the fact that all actions are public,
+since it requires every agent's knowledge to be updated in response
+to every action.
+
+Repeated applications of $\Reg$ can thus transform a knowledge query
+into one that is uniform in the initial situation. While it would
+be valid to then expand the $\Knows$ macros and handle the query
+using first-order logic, in practice the reasoning procedure would
+leave $\Knows$ intact and use a specialised prover based on modal
+logic.
+
+It is possible to formulate an alternate successor state axiom for
+knowledge that does not assume all actions are public, such as that
+of \citet{Lesperance99sitcalc_approach}. Such formulations invariably
+require universal quantification over situation terms, to account
+for arbitrarily-long sequences of hidden actions. This is incompatible
+with regression rules like the above, and these formulations offer
+no reasoning procedure other than general second-order theorem proving.
+By utilising a new reasoning technique called the {}``persistence
+condition'' to reason about universal quantification over situation
+terms, our work is the first to provide an account of knowledge with
+hidden actions while maintaining regression in the style presented
+above as an effective reasoning tool.
+
+TODO: shortcomings of multi-agent extensions, decidability/weakening
+\citet{demolombe00tractable_sc_belief} \citet{petrick02knowledge_equivalence}
+
+TODO: group-level knowledge, important of common knowledge, inability
+to do regression
+
+TODO: epistemic feasibility of plans? \citet{giacomo04sem_delib_indigolog,Lesperance01epi_feas_casl}
+
+
+\section{Mozart/Oz\label{sec:Background:Mozart/Oz}}
 
 \begin{itemize}
 \item Basic introduction \citet{vanroy99mozart} 

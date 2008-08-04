@@ -3,7 +3,13 @@
 
 \chapter{Knowledge}
 
-\label{ch:knowledge} 
+\label{ch:knowledge}
+
+This chapter develops a formalism for individual knowledge in the
+face of hidden actions.
+
+
+\section{Intuitions}
 
 Existing accounts of knowledge in the situation calculus directly
 express the dynamics of knowledge update in terms of the actions that
@@ -22,7 +28,7 @@ all its observations, excluding cases where the set of observations
 was empty. An agent knows something if it is true in all situations
 matching its current view. Decoupling knowledge in this manner makes
 it easy to express various degrees of observability of actions, from
-public actions through to actions that are completely hidden. 
+public actions through to actions that are completely hidden.
 
 To maintain the elegant solution to the frame problem for knowledge
 developed by \citet{scherl03sc_knowledge}, the regression rule of
@@ -50,10 +56,10 @@ regression rules can be applied using an agent's individual view,
 rather than requiring a full situation term. Agents can thus use our
 techniques to reason about their own knowledge using only their local
 information, making the formalism suitable both for reasoning \emph{about},
-and reasoning \emph{in},\emph{ }rich multi-agent domains.
+and reasoning \emph{in}, rich multi-agent domains.
 
 
-\subsection{Observations}
+\section{Observations}
 
 To remove the direct coupling between knowledge and actions, we introduce
 an explicit notion of \emph{observations}. These are internal notifications
@@ -66,7 +72,7 @@ history of observations.
 [{Observations}] An observation is a notification event received
 by an agent, making it aware of some change in the state of the world.
 When an agent receives such a notification, we say that it {}``observed'',
-{}``made'' or {}``perceived'' that observation.
+{}``made'' or {}``perceived'' that observation. 
 \end{defnL}
 Since the state of the world may only change in response to some action,
 observations can only be made as a result of some action. For simplicity
@@ -74,7 +80,7 @@ we assume that agents perceive observations instantaneously, i.e.
 in the same instant as the actions that cause them.
 
 Since {}``observation'' is quite a loaded term, it is worth re-iterating
-this point: observations are instantaneous\emph{ events} generated
+this point: observations are instantaneous \emph{events} generated
 internally by each agent in response to actions occurring in the world.
 We make no commitment as to how these events are generated, preferring
 a clean delineation between the task of observing change and the dynamics
@@ -88,22 +94,22 @@ to the language of the situation calculus, for the moment without
 any particular commitment towards what this sort will contain. We
 then add to $\Dt_{ad}$ the action description function:\[
 Obs(agt,c,s)=o\]
-This function returns a set of observations, and should be read as
+ This function returns a set of observations, and should be read as
 {}``when actions $c$ are performed in situation $s$, agent $agt$
 will perceive $o$''. Using a set of observations allows an agent
 to perceive any number of observations in response to an action occurrence
 - perhaps several observations, perhaps none. When $Obs(agt,c,s)$
 is the empty set (denoted $\{\}$) then the agent makes no observations
-and the actions $c$ are completely hidden. 
+and the actions $c$ are completely hidden.
 
 The concept of a \emph{view} follows naturally - it is the sequence
-of all the observations made by an agent as the world has evolved. 
+of all the observations made by an agent as the world has evolved.
 
 \begin{defnL}
 [{Views}] An agent's view in a given situation $\mathrm{s}$ is the
 corresponding sequence of observations made by the agent as a result
 of each action in $\mathrm{s}$, excluding those actions for which
-no observations were made.
+no observations were made. 
 \end{defnL}
 We introduce another sort \noun{Views} consisting of sequences of
 sets of observations, with $\epsilon$ being the empty sequence and
@@ -126,7 +132,7 @@ perspective. As we shall see, this distinction is fundamental to developing
 a truly general multi-agent semantics for knowledge.
 
 
-\subsection{Knowledge and Observation\label{sub:Knowledge-and-Observation}}
+\section{Knowledge and Observation\label{sub:Knowledge-and-Observation}}
 
 It is a basic tenet of epistemic reasoning that an agent's knowledge
 at any particular time must depend solely on its local history: the
@@ -162,7 +168,7 @@ state axiom to capture the desired dynamics of the knowledge fluent:\begin{align
 K(agt,s'',do(c,s))\equiv & \left[\, Obs(agt,c,s)=\{\}\rightarrow K(agt,s'',s)\,\right]\nonumber \\
 \wedge & \left[\, Obs(agt,c,s)\neq\{\}\rightarrow\exists c',s':\, Obs(agt,c',s')=Obs(agt,c,s)\right.\nonumber \\
  & \left.\,\,\,\,\,\,\,\,\wedge\, Poss(c',s')\wedge K(agt,s',s)\wedge do(c',s')\leq_{\PbU(agt)}s''\,\right]\label{eqn:new_k_ssa}\end{align}
- 
+
 
 If $c$ was totally unobservable, the agent's state of knowledge does
 not change. Otherwise, it considers possible any legal successor to
@@ -183,12 +189,10 @@ the following axiom:\begin{gather}
 Init(s)\rightarrow\left[K(agt,s'',s)\equiv\exists s'\,.\, K_{0}(agt,s',s)\wedge s'\leq_{\PbU(agt)}s'')\right]\label{eqn:new_k_s0}\end{gather}
 
 
-\newpage{}
-
 \begin{defn}
 We will denote by $\Dt_{K}^{obs}$ the axioms for our new observation-based
 semantics for knowledge, as detailed in equations (\ref{eq:view_defn},\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0})
-above.
+above. 
 \end{defn}
 These axioms suffice to ensure that knowledge behaves as we require:
 two situations will be related by $K(agt,s',s)$ if and only if they
@@ -202,13 +206,13 @@ and $s''$:\[
 
 \end{thm}
 \begin{proofsketch}
-For the\textbf{ }\emph{if} direction we establish each of the three
-conjuncts individually. The $root$ case is trivial since equation
-(\ref{eqn:new_k_s0}) always expresses $K(s'',do(c,s))$ in terms
-of $K(s',s)$. The $Legal$ case relies on the fact that $\PbU$ implies
-$Poss$, while the $View$ case relies on the fact that $s\leq_{\PbU}s'\rightarrow View(s)=View(s')$.
+For the \emph{if} direction we establish each of the three conjuncts
+individually. The $root$ case is trivial since equation (\ref{eqn:new_k_s0})
+always expresses $K(s'',do(c,s))$ in terms of $K(s',s)$. The $Legal$
+case relies on the fact that $\PbU$ implies $Poss$, while the $View$
+case relies on the fact that $s\leq_{\PbU}s'\rightarrow View(s)=View(s')$.
 For the \emph{only-if} direction we show how to construct an $s'$
-satisfying the $\exists s'$ parts of equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}).
+satisfying the $\exists s'$ parts of equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}). 
 \end{proofsketch}
 Using this new formulation, an agent's knowledge is completely decoupled
 from the global notion of actions, instead depending only on the local
@@ -217,7 +221,7 @@ what the \noun{Observations} sort contains, and how the $Obs()$ function
 behaves. This will be the focus of the next subsection.
 
 
-\subsection{Axiomatising Observations}
+\section{Axiomatising Observations}
 
 Let us begin by considering again the standard account of knowledge
 due to \citep{scherl03sc_knowledge}. Its basic assumption that {}``all
@@ -248,7 +252,7 @@ Equations (\ref{eq:ax_obs_std1},\ref{eq:ax_obs_std2}) mean $Obs(agt,c,s)$
 cannot be empty for $c\neq\{\}$, so $s=s'$ iff $s\leq_{\PbU(agt)}s'$.
 Equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}) then amount to
 simple transformations of equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard})
-respectively, meaning that $K$ behaves the same under both theories.
+respectively, meaning that $K$ behaves the same under both theories. 
 \end{proof}
 We now discuss one straightforward way to generalise this for partial
 observability of actions. A new action description predicate $CanObs(agt,a,s)$
@@ -287,7 +291,7 @@ know that some action has occurred without necessarily knowing precisely
 what the action was.
 
 
-\subsection{Regression}
+\section{Regression}
 
 The final aspect of our new account of knowledge is to extend the
 techniques for effective reasoning in the situation calculus to handle
@@ -295,7 +299,7 @@ the modified formalism. The appearance of $\leq_{\PbU(agt)}$ in equation
 (\ref{eqn:new_k_ssa}) means that our new successor state axiom universally
 quantifies over situations, so standard regression techniques cannot
 be used. We must appeal to the persistence condition meta-operator
-introduced in Section  \ref{sub:Property-Persistence} to transform
+introduced in Section \ref{sub:Property-Persistence} to transform
 this quantification into a uniform formula, so that regression can
 be applied.
 
@@ -305,7 +309,7 @@ our formalism:\begin{align}
  & \wedge\,\left[o=\{\}\,\rightarrow\,\Knows(agt,\phi,s)\right]\nonumber \\
  & \wedge\,\left[o\neq\{\}\,\rightarrow\,\Knows(agt,\forall c':\, Obs(agt,c')=o\right.\nonumber \\
  & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,\PbU(agt)),c'),s)\right]\label{eqn:R_do_c_s}\end{align}
- 
+
 
 Note the similarity to the standard regression rule for knowledge
 in equation \eqref{eq:reg_k_std}. New in our version are: the replacement
@@ -337,7 +341,7 @@ situation calculus.
 \label{thm:Reg_Knows}Given a basic action theory $\Dt$ and a uniform
 formula $\phi$:\[
 \Dt\cup\Dt_{K}^{obs}\,\models\,\phi[do(c,s)]\equiv\Reg(\phi,c)[s]\]
- 
+
 \end{thm}
 \begin{proofsketch}
 We need only consider the case of $\phi=\Knows(agt,\phi,s)$. In the
@@ -347,10 +351,8 @@ that match the form of the $\Knows$ macro, and using regression and
 the persistence condition to render the resulting knowledge expressions
 uniform in $s$. In the base case, we apply the persistence condition
 to an expansion of $\Knows$ at the initial situation to produce the
-desired result.
+desired result. 
 \end{proofsketch}
-
-
 While this reasoning method is suitable for modelling and simulation
 purposes, it would be unreasonable for a situated agent to ask {}``do
 I know $\phi$ in the current situation?'' using the situation calculus
@@ -397,7 +399,7 @@ website%
 }.
 
 
-\subsection{An Illustrative Example\label{sub:An-Illustrative-Example}}
+\section{An Illustrative Example\label{sub:An-Illustrative-Example}}
 
 Consider again the example domain of the party invitation. The fluents
 of interest are the location of the party (the function $loc$) and
@@ -409,19 +411,19 @@ agents who are in the room. This domain can be summarised by the following
 axioms:\begin{gather*}
 loc(S_{0})=C\\
 loc(do(c,s))=l\equiv loc(s)=l\end{gather*}
-\begin{gather*}
+ \begin{gather*}
 InRoom(Ann,S_{0})\equiv InRoom(Bob,S_{0})\equiv true\\
 InRoom(agt,do(c,s))\equiv enter(agt)\in c\,\vee\, InRoom(agt,s)\wedge leave(agt)\notin c\\
 Poss(enter(agt),s)\equiv\neg InRoom(agt,s)\\
 Poss(leave(agt),s)\equiv InRoom(agt,s)\end{gather*}
-\begin{gather*}
+ \begin{gather*}
 Poss(read(agt),s)\equiv InRoom(agt,s)\\
 SR(read(agt),s)=r\equiv r=loc(s)\end{gather*}
-\begin{gather*}
+ \begin{gather*}
 \forall agt,l:\,\neg\KnowsZ(agt,loc=l,S_{0})\\
 \forall agt_{1},agt_{2},l:\,\KnowsZ(agt_{1},\neg\KnowsZ(agt_{2},loc=l),S_{0})\\
 \forall agt:\,\KnowsZ(agt,InRoom(Ann)\wedge InRoom(Bob),S_{0})\end{gather*}
-\begin{gather*}
+ \begin{gather*}
 CanObs(agt,leave(agt'),s)\equiv CanObs(agt,enter(agt'),s)\equiv true\\
 CanSense(agt,leave(agt'),s)\equiv CanSense(agt,enter(agt'),s)\equiv false\\
 CanObs(agt,read(agt'),s)\equiv InRoom(agt',s)\\
@@ -434,7 +436,7 @@ CanSense(agt,read(agt'),s)\equiv agt=agt'\end{gather*}
 The following are examples of knowledge queries that can be posed
 in our formalism, a brief explanation of their outcome, and a demonstration
 of how they can be answered using our new regression rules. Each has
-been verified by the preliminary implementation of our reasoning engine.\newpage{}
+been verified by the preliminary implementation of our reasoning engine.
 
 \begin{example}
 Initially, Ann doesn't know where the party is:\[
@@ -455,7 +457,7 @@ So the query reduces to:\[
 
 
 Which is entailed by the domain.\\
-\\
+ \\
 
 
 \begin{example}
@@ -484,7 +486,7 @@ $Obs$ to obtain:\[
 
 
 This tautology is clearly entailed by the domain.\\
-\newpage{}
+ 
 
 \begin{example}
 Initially, Bob knows that Ann doesn't know where the party is:\[
@@ -497,7 +499,7 @@ taking place. Since he has not observed it, he can conclude that Ann
 does not know the location of the party. Formally:\begin{multline*}
 \Reg(\mathbf{Knows}(Bob,\neg\exists l:\,\Knows(Ann,loc=l),S_{0}))\,\Rightarrow\\
 \KnowsZ(Bob,\Pst(\neg\exists l:\,\Knows(Ann,loc=l),PbU(Bob)),S_{0})\end{multline*}
-\begin{multline*}
+ \begin{multline*}
 \Pst(\neg\exists l:\,\Knows(Ann,loc=l),PbU(Bob))\,\Rightarrow\\
 \neg\exists l:\,\Knows(Ann,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Ann)\right)\end{multline*}
 
@@ -507,7 +509,7 @@ So the query reduces to:\[
 
 
 Which is entailed by the domain.\\
-\\
+ \\
 
 
 \begin{example}
@@ -551,7 +553,7 @@ Since Ann is known to be in the room, this expression will be entailed
 by the domain.
 
 
-\subsection{Observing the Effects of Actions\label{sub:Observing-Effects}}
+\section{Observing the Effects of Actions\label{sub:Observing-Effects}}
 
 In many domains it would be infeasible for an agent to observe a particular
 action occurring, but it may observe some of the effects of that action.
@@ -568,7 +570,7 @@ to true and (for simplicity) that this information would be available
 to all agents. The following could be used to include this information
 in an agent's observations:\[
 f_{\phi}\in Obs(agt,c,s)\equiv\neg\phi[s]\wedge\Reg(\phi,c)\]
- 
+
 
 Note that since $Obs()$ is an action description predicate, we must
 use regression to ensure that the right-hand side of this definition
@@ -585,7 +587,15 @@ approach highlights the flexibility and robustness of the observation-based
 semantics.
 
 
-\subsection{Discussion}
+\section{TODO: Approximate Epistemic Reasoning}
+
+\begin{itemize}
+\item Restrict formulae allowed inside $\Knows$ to atomic literals, in
+style of \citet{demolombe00tractable_sc_belief}. 
+\item Leverage encoding develope by \citet{petrick02knowledge_equivalence} 
+\end{itemize}
+
+\section{Discussion}
 
 In this section, we have first developed a principled axiomatisation
 of the observability of actions, using the notion of observations
@@ -605,7 +615,7 @@ K(agt,s'',do(a,s))\equiv\,\,\, & \exists s':\, K(agt,s',s)\\
  & \wedge\,(actor(a)\neq agt\,\rightarrow\, s'\leq_{actor(a)\neq agt}s''))\\
  & \wedge\,(actor(a)=agt\,\rightarrow\,\exists s^{*}:\,\left[s'\leq_{actor(a)=agt}s^{*}\wedge\right.\\
  & \,\,\,\,\,\,\,\,\,\,\,\,\left.s''=do(a,s^{*})\wedge Poss(a,s^{*})\wedge sr(a,s)=sr(a,s^{*}))\right]\end{align*}
- 
+
 
 In this case agents are only aware of the actions that they themselves
 perform, and they consider possible an arbitrary sequence of hidden
@@ -654,11 +664,3 @@ Our new observation-based semantics thus provides a powerful account
 of knowledge suitable both for reasoning \emph{about}, and for reasoning
 \emph{in}, asynchronous multi-agent domains.
 
-
-\section{TODO: Approximate Epistemic Reasoning}
-
-\begin{itemize}
-\item Restrict formulae allowed inside $\Knows$ to atomic literals, in
-style of \citet{demolombe00tractable_sc_belief}. 
-\item Leverage encoding develope by \citet{petrick02knowledge_equivalence} 
-\end{itemize}
