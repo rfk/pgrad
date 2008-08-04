@@ -123,7 +123,7 @@ view-%: %.ch.pdf
 edit-%: %.ch.tex
 	# Generate lyx file from the latex
 	rm -rf $*.ed.lyx $*.ed.tex
-	tex2lyx -c book $< $*.ed.lyx
+	tex2lyx -c thesis $< $*.ed.lyx
 	# Run lyx for editing, then export back to latex
 	lyx $*.ed.lyx
 	lyx --export latex $*.ed.lyx
