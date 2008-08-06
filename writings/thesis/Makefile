@@ -171,6 +171,6 @@ warnings: thesis.dvi
 thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES)
 
 overview.pdf: thesis.pdf
-	pdfnup --nup 1x1 --pages "1,3,7-9,12-14" --outfile overview.pdf thesis.pdf 
+	pdfnup --nup 1x1 --pages "1,3,11-13,19-22" --outfile overview.pdf thesis.pdf 
 
 
