@@ -13,7 +13,7 @@ familiar programming constructs; a mature formalism for epistemic
 reasoning; and a straightforward implementation by encoding as a logic
 program. But while powerful, existing formalisms based on the situation
 calculus suffer several major limitations that make them unsuitable
-for use in rich multi-agent domains.
+for use in rich, asynchronous multi-agent domains.
 
 First, the situation calculus lacks a comprehensive treatment of group-level
 epistemic modalities. Simple group-level modalities such as {}``everyone
@@ -36,17 +36,17 @@ Such a formulation must utilise a second-order induction axiom, again
 precluding the use of regression for effective automated reasoning.
 
 Third, planning in the situation calculus involves building situation
-terms representing the actions to be performed. Situations inherantly
+terms representing the actions to be performed. Situations inherently
 impose a total ordering on actions, and cannot represent the independent
 execution of actions by different agents. Again, performing a plan
-built using situation terms requires a degree of syncrhonicity that
+built using situation terms requires a degree of synchronicity that
 is unreasonable in many multi-agent domains. Even if this synchronicity
 is achievable, it is often not desirable.\\
 
 
 In this thesis we overcome these limitations, extending the standard
-accounts of knowledge and planning in the situation calculus three
-main technical results:
+accounts of knowledge and planning in the situation calculus with
+three main technical results:
 
 \begin{itemize}
 \item A formal account of \emph{Common Knowledge} and other group-level
@@ -57,42 +57,51 @@ including a reasoning technique to deal with arbitrarily-long sequences
 of hidden actions; and 
 \item a partially-ordered representation of actions which we call a \emph{Joint
 Execution}, which can replace raw situation terms in the Golog execution
-planning process to allow some independence between agents. 
+planning process to allow agents to perform independent actions without
+synchronisation. 
 \end{itemize}
 Moreover, each of these extensions is provided with an effective reasoning
 procedure based on standard regression techniques. The result is a
-rich account of knowledge and planning for asynchronous, partially-observable
-domains.\\
-
+rich account of knowledge and planning for asynchronous multi-agent
+domains.
 
 To make things more concrete, consider a small motivating example
-which will be used throughout the paper:
+which will be used throughout the thesis:
 
 \begin{quote}
 You have just taken possession of a team of robotic chefs. It is your
 task to program the chefs to prepare a delicious meal. 
 \end{quote}
-A natural way to approach this problem is to specify the tasks of
-the chefs as a series of Golog programs, one for each dish that is
-to be prepared. We would then like the agents to cooperate to plan
-and perform the execution of these shared tasks without further intervention
-from the programmer. This example will be used to simultaneously motivate
-and demonstrate out techniques throught.\\
+A natural way to approach this problem is to specify a program detailing
+the preparation of each dish to be served, and have the agents cooperate
+to plan and perform the concurrent execution of these programs. We
+have developed a variant of the Golog programming language suitable
+for representing and reasoning about such cooperative execution. This
+example will be used to simultaneously motivate and demonstrate our
+techniques.
 
+The implementation of these techniques is done using the Mozart programming
+platform, rather than the more traditional use of Prolog. Mozart provides
+excellent support for distributed logic programming, and in particular
+provides the ability to automatically distribute the search for solutions
+in a logic program between a group of networked computers. Coupled
+with the straightforward encoding of the situation calculus as a logic
+program, this allows the agents to easily share the workload of planning
+their program execution.\newpage{}
 
-This thesis proceeds as follows:
+The thesis proceeds as follows:
 
 \begin{itemize}
 \item Chapter \ref{ch:background} presents the necessary background material
 on the situation calculus, Golog, epistemic reasoning, and the Mozart
-programming system which will be used to implement the system. 
+programming system which will be used to implement our techniques. 
 \item Chapter \ref{ch:mindigolog} introduces a variant of Golog with semantics
 suitable for planning the cooperative execution of a shared task,
 which we call \emph{MIndiGolog.} We demonstrate an implementation
 using the distributed logic programming capabilities of Mozart to
-share the planning workload among agents. We also show that this technique
-is limited to syncrhonous domains by the underlying situation calculus
-theory. 
+share the planning workload among agents. We also highlight the limitations
+of the situation calculus that restrict this technique to synchronous
+domains. 
 \item Chapter \ref{ch:persistence} develops a new reasoning technique for
 effectively handling queries that universally quantify over situation
 terms, which we call the \emph{Persistence Condition} operator. It
@@ -107,14 +116,15 @@ to account for arbitrarily-long sequences of hidden actions.
 \item Chapter \ref{ch:cknowledge} introduces common knowledge by using
 the syntax of dynamic logic to formulate a more expressive epistemic
 language than existing situation calculus theories. We formulate a
-regression rule for the complex epistemic modalities and formalte
+regression rule for these complex epistemic modalities and formally
 relate them to our account of individual knowledge. 
 \item Chapter \ref{ch:jointexec} develops joint executions as a restricted
-kind of prime event structure, and shows how to use them in planning
-the execution of a shared Golog program. 
+kind of prime event structure, and shows how to use them as a data
+structure in planning the execution of a shared MIndiGolog program. 
 \item Chapter \ref{ch:implementation} discusses our implementation in more
 detail, including a novel representation of formulae based on Shannon
-Graphs to allow open-world reasoning. 
+Graphs to allow the kind of open-world reasoning required for dealing
+with knowledge queries. 
 \item Chapter \ref{ch:conclusion} concludes with a summary of our achievements
 and suggestions for future work. 
 \end{itemize}

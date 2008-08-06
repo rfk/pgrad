@@ -44,7 +44,7 @@ LTX = latex -interaction=nonstopmode
 BTX = bibtex -terse
 PDFLTX = pdflatex
 VIEWER = evince
-SPELLCHECK = aspell -t --add-tex-command="bibentry p" -c
+SPELLCHECK = aspell -t --add-tex-command="bibentry p" --add-tex-command="citep p" -c
 
 ## Basic Dependencies
 
@@ -116,7 +116,7 @@ sp:
 	for FN in $(APPENDICES); do $(SPELLCHECK) $$FN; done;
 
 sp-%: %.tex
-	$(SPELLCHECK) -t -c $<
+	$(SPELLCHECK) $<
 
 # easy viewing of entire thesis
 view: thesis.pdf
@@ -169,5 +169,8 @@ warnings: thesis.dvi
 ##  Specific dependenices
 
 thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES)
+
+overview.pdf: thesis.pdf
+	pdfnup --nup 1x1 --pages "1,3,7-9,12-14" --outfile overview.pdf thesis.pdf 
 
 
