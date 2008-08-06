@@ -63,20 +63,26 @@ all: thesis.pdf
 # Generate a temporary latex file that will build a single chapter
 %.ch.tex: %.tex
 	cat preamble.tex > $@
-	echo '\begin{document}' >> $@
+	# Doing echo '\begin{document}' works on my PC, but prints
+	# a weird metacharacter on my laptop.  WTF?
+	echo -n '\' >> $@
+	echo 'begin{document}' >> $@
 	cat mathmacros.tex >> $@
 	cat $< >> $@
 	cat bibcmds.tex >> $@
-	echo '\end{document}' >> $@
+	echo -n '\' >> $@
+	echo 'end{document}' >> $@
 
 # Generate a temporary latex file that will build a single chapter,
 # without bibliography
 %.nb.ch.tex: %.tex
 	cat preamble.tex > $@
-	echo '\begin{document}' >> $@
+	echo -n '\' >> $@
+	echo 'begin{document}' >> $@
 	cat mathmacros.tex >> $@
 	cat $< >> $@
-	echo '\end{document}' >> $@
+	echo -n '\' >> $@
+	echo 'end{document}' >> $@
 
 # DVI converters for different formats
 %.ps: %.dvi
