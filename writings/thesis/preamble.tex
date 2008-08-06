@@ -1,7 +1,6 @@
 
-%+++DEFINE CLASS & PACKAGES+++
-\documentclass[a4paper,british,twoside,12pt,openany]{book}
-\usepackage[Lenny]{fncychap}
+\documentclass[a4paper,british,twoside,12pt]{book}
+
 \usepackage{graphics}
 \usepackage{graphicx}
 \usepackage{subfigure}
@@ -11,57 +10,67 @@
 \usepackage{verbatim}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{color}
 \usepackage{tikz}
 \usepackage{bibentry}
 \usepackage[numbers]{natbib}
-\usepackage{setspace}   %enables use of \doublespace \onehalfspace \singlespace
-\usepackage{fancyhdr}   %customises header and allows chap, sec or page number
+\usepackage{setspace}
+\usepackage{fancyhdr}
 
-%===DEFINE PAGE===
-\topmargin      -1.8cm              %top of page margin
-\headheight     14.5pt              %running head height
-\parskip        2mm                 %paragraph spacing
-\oddsidemargin  12mm                %left margin of odd page =28mm +oddsidemargin
-\evensidemargin 1mm                 %left margin of even page =29mm +evensidemargin
-\textheight     250mm               %height of text box on page
-\textwidth      145mm               %width of text across the page =textwidth -5mm
-\parindent      8mm                 %paragraph indentation width
+\definecolor{black}{rgb}{0,0,0}
+\definecolor{lightgrey}{rgb}{0.80,0.80,0.80}
+
+% Page margins etc
+\topmargin	-13mm
+\headheight     6mm
+\oddsidemargin  12mm       %left margin of odd page =28mm +oddsidemargin
+\evensidemargin 1mm        %left margin of even page =29mm +evensidemargin
+\textheight     245mm      
+\textwidth      145mm      %width of text across the page =textwidth -5mm
+
+% Page headers and footers for fancy-style pages
+\fancyhf{}
+\fancyhead[RO]{\sffamily\bfseries \rightmark}
+\fancyhead[LE]{\sffamily\bfseries \leftmark}
+\fancyfoot[LE]{
+     \fcolorbox{black}{lightgrey}{\bfseries \thepage}}
+\fancyfoot[RO]{
+     \fcolorbox{black}{lightgrey}{\bfseries \thepage}}
+\renewcommand{\headrulewidth}{0.3mm}
+\renewcommand{\footrulewidth}{0.3mm}
+\renewcommand{\footruleskip}{0mm}
 \pagestyle{fancy}                   
-    \fancyhead{}                    %Reset fancy fields
-    \fancyhead[LO]{R. F. Kelly}      %Other position is [RE]
-    \fancyhead[RO]{\rightmark}      %rightmark is the section name
-    \fancyhead[LE]{\leftmark}       %leftmark is the chapter name
-    \renewcommand{\headrulewidth}{0.5mm}
-        \headsep=   1.3cm             %Text separation from header
-    \renewcommand{\footrulewidth}{0.5mm}
-    \cfoot{\thepage}
-        \footskip=  1.3cm             %Text separation from footer
 
-\renewcommand\bibname{References} 
+% matching footers for plain-style pages
+\fancypagestyle{plain}{
+\fancyhf{}
+\fancyfoot[LE]{
+     \fcolorbox{black}{lightgrey}{\bfseries \thepage}}
+\fancyfoot[RO]{
+     \fcolorbox{black}{lightgrey}{\bfseries \thepage}}
+\renewcommand{\headrulewidth}{0mm}
+\renewcommand{\footrulewidth}{0.3mm}
+\renewcommand{\footruleskip}{0mm}
+}
 
-%===Redefine default figure placement to h (for 'here') ===
+% ensure blank pages are completely blank
 \makeatletter
-\def\fps@figure{htbp} %default is {tbp}
+\def\cleardoublepage{\clearpage\if@twoside \ifodd\c@page\else
+        \hbox{}
+        \vspace*{\fill}
+        \thispagestyle{empty}
+        \newpage
+        \if@twocolumn\hbox{}\newpage\fi\fi\fi}
 \makeatother
 
-%===DEFINE PERSONALISED COMMANDS===
-% Instead of typing out commonly used long commands/items
-% that are long you can define your own commands to use.
-% Notes: (1)\ensuremath is used in case you want to use the
-% command while already in a math environment
-% e.g. $\theta =30\degr +45\degr$
-% (2) Latex wont put a space between this and the next word
-% so I put it in manually and define another command name with
-% a s suffix when I specifically don't need a space e.g. at the
-% end of a sentence. This can cause issues though as Latex
-% wont break the words joined by the tilde apart for line splitting.
-%\newcommand{\sq}{\ensuremath{^2~}}
-%\newcommand{\sqs}{\ensuremath{^2}}
-%\newcommand{\cb}{\ensuremath{^3~}}
-%\newcommand{\cbs}{\ensuremath{^3}}
 
-% Pinched from LyX
-\newcommand{\noun}[1]{\textsc{#1}}
+% Proper naming for bibliography
+\renewcommand\bibname{References} 
+
+% Redfine default figure placement to "here" (default is {tbp})
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
 
 % Environment Definitions
 \newenvironment{proofsketch}{\begin{proof}[Proof Sketch]}{\end{proof}}
@@ -71,7 +80,6 @@
 \newtheorem{example}{Example}
 \newtheorem{defn}{Definition}
 \newtheorem{defnL}[defn]{Definition}
-
 \newtheoremstyle{thmext}{\topsep}{\topsep}{\itshape}{}{\bfseries}{.}{ }{\thmname{#1}\thmnote{ #3}}
 \theoremstyle{thmext}
 \newtheorem*{thmext}{Theorem}
@@ -79,4 +87,10 @@
 \theoremstyle{thmext}
 \newtheorem*{lemmaext}{Lemma}
 \theoremstyle{plain}
+
+% Pinched from LyX
+\newcommand{\noun}[1]{\textsc{#1}}
+
+% Enable fancy chapter headings
+\usepackage[Lenny]{fncychap}
 

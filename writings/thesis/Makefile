@@ -44,7 +44,7 @@ LTX = latex -interaction=nonstopmode
 BTX = bibtex -terse
 PDFLTX = pdflatex
 VIEWER = evince
-SPELLCHECK = aspell -t --add-tex-command="bibentry p" --add-tex-command="citep p" -c
+SPELLCHECK = aspell -l en_GB -t --add-tex-command="bibentry p" --add-tex-command="citep p" --add-tex-command="citet p" -c
 
 ## Basic Dependencies
 
