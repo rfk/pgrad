@@ -84,6 +84,15 @@ all: thesis.pdf
 	echo -n '\' >> $@
 	echo 'end{document}' >> $@
 
+rawchapters.tex: $(CHAPTERS)
+	cat preamble.tex > $@
+	echo -n '\' >> $@
+	echo 'begin{document}' >> $@
+	cat mathmacros.tex >> $@
+	for FN in $(CHAPTERS); do cat $$FN >> $@; done;
+	echo -n '\' >> $@
+	echo 'end{document}' >> $@
+
 # DVI converters for different formats
 %.ps: %.dvi
 	dvips -o $@ $<
@@ -103,8 +112,8 @@ clobber: clean
 ## Other Misc Commands
 
 # counting words in a latex file, from http://wlug.org.nz/LatexWordcount
-wc:  thesis.dvi
-	dvi2tty -w100 thesis.dvi | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
+wc:  rawchapters.dvi
+	dvi2tty -w100 rawchapters.dvi | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
 
 wc-%: %.nb.ch.dvi
 	dvi2tty -w100 $< | perl -pe 's/-$$// || s/$$/ /; chomp; s/[-\._|]//g' | wc -w
