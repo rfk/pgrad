@@ -24,7 +24,7 @@
 \usepackage{fancyvrb}
 
 \title{Asynchronous Multi-Agent Domains\\ in the Situation Calculus}
-\author{Ryan Kelly\\ (Supervisor: Adrian Pearce)}
+\author[Ryan Kelly]{Ryan Kelly\\ Supervisor: Adrian Pearce}
 
 \begin{document}
 
@@ -33,17 +33,26 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Outline}
+  \frametitle{Contributions}
+  Powerful extensions to the Situation Calculus for representing and reasoning
+  about rich, asynchronous multi-agent domains:
+  \ \\
+  \ \\
   \begin{itemize}
-  \item Situation Calculus
-  \item MIndiGolog
-  \item Observations
-  \item Knowledge
-  \item Common Knowledge
-  \item Joint Execution
-  \item Conclusions
+  \item Multi-agent Golog with distributed execution planning
+  \item Techniques for effective inductive reasoning
+  \item Reasoning about knowledge with hidden actions
+  \item Reasoning about group-level knowledge modalities
+  \item Planning joint executions with partial observability
   \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Situation Calculus}
 
 \begin{frame}
 \frametitle{The Situation Calculus}
@@ -68,8 +77,8 @@
 
 \begin{frame}
 \frametitle{The Situation Calculus}
-From these components we can built a first-order-logic \emph{Theory of Action}
-$\mathbf{D}$, with which agents can:
+From these components we can built a first-order \emph{Theory of Action}
+$\Dt$, with which agents can:
 \begin{itemize}
   \item Reason about when actions are possible
   \item Reason about the effects of actions
@@ -87,21 +96,17 @@ But, what about more complex actions and procedures?
 \end{frame}
 
 \begin{frame}
-\frametitle{GOLOG: "alGOL in LOGic"}
-GOLOG introduces programs to the SitCalc via "complex actions".
+\frametitle{Golog}
+Golog introduces programs to the SitCalc via "complex actions".
 Primitive actions are composed using operators such as:
 
 \begin{itemize}
-  \pause
   \item $\delta_1;\delta_2$ - Perform two programs in sequence
-  \pause
   \item $\phi?$ - Assert that a condition holds
-  \pause
   \item $\delta_1|\delta_2$ - Choose between programs to execute
-  \pause
-  \item $(\pi x)\delta(x)$ - Choose suitable bindings for variables
-  \pause
+  \item $\pi(x,\ \delta(x))$ - Choose suitable bindings for variables
   \item $\delta^*$ - Execute a program zero or more times
+  \item $\delta_1 || \delta_2$ - Execute programs concurrently
 \end{itemize}
 \ \\
 \ \\
@@ -110,207 +115,156 @@ Key Point:  programs can include \alert{nondeterminism}
 \end{frame}
 
 \begin{frame}
-\frametitle{A Simple Example}
+\frametitle{A Quick Example}
 Consider a Golog program for getting to uni of a morning:\[
 \begin{array}{c}
 ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
-(\pi\ food)(edible(food)?;eat(food)); haveShower; brushTeeth\\
+\pi(food,\ edible(food)?;eat(food)); haveShower; brushTeeth\\
 (driveToUni\ |\ trainToUni); (time<9:00)?
 \end{array}\]
 
-There are potentially many legal executions, depending on which actions
-are possible in the world.
+There are potentially many ways to execute this progream, depending on which 
+actions are possible in the world.
+\pause
+\ \\
+\ \\
+Use theory of action to plan a \emph{Legal Execution}:\[
+\mathbf{D} \models \exists s,\delta' . Trans*(\delta,S_0,\delta',s) \wedge Final(\delta',s)\]
 
-Use the theory of action to inform nondeterministic choices.
 \end{frame}
 
 \begin{frame}
 \frametitle{Why the Situation Calculus?}
+\begin{itemize}
+\item Elegant, monotonic solution to frame problem
+\item Effective reasoning techniques based on Regression
+\item Straightforward implementation as a logic program
+\item Powerful nondeterminism control for programming/planning
+\item Large body of existing work and results
+\item Many useful extensions for rich domain features...
+\end{itemize}
+\end{frame}
 
+\begin{frame}
+\frametitle{Extending the Situation Calculus}
+\begin{itemize}
+\pause
+\item Concurrent Actions:\ \ \ $do(\{a_1,a_2\},s)$
+\pause
+\item Continuous time:\ \ \ $do(c,t,s)$
+\pause
+\item Long-running tasks:\ \ \ $begin(t)$, $doing(t,s)$, $end(t)$
+\pause
+\item Natural processes:\ \ \ $Legal(a,s)\rightarrow\neg\exists n: nat(n) \wedge Poss(n,s)$
+\pause
+\item Incomplete knowledge:\ \ \ $\Knows(\phi,s)$
+\pause
+\item Asynchronous multi-agent domains:\ \ \ ???
+\end{itemize}
+\ \\
+\ \\
+\pause
+Our work continues this proud tradition.
 \end{frame}
 
 \section{MIndiGolog}
 
 \begin{frame}
-\frametitle{Golog for Multi-Agent Teams?}
-Is Golog a useful formalism for multi-agent teams?
-Consider programming our cooking agents to make a simple salad:
+\frametitle{MIndiGolog}
+Vision:
+\begin{itemize}
+\item Agents cooperate to plan and perform the execution of a shared Golog program
+\end{itemize}
 \ \\
+\ \\
+Contributions
+\begin{itemize}
+\item Merge concurrent actions with concurrent program execution
+\item Integrate time and natural actions for coordination
+\item Share planning workload using distributed logic programming
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Motivating Example: The Cooking Agents}
+Several robotic chefs inhabit a kitchen, along with various ingredients,
+appliances and utensils.  They must cooperate to produce a meal consisting
+of several dishes.\\
+\ \\
+\pause
+Challenges:
+\begin{itemize}
+  \item Encoding procedural knowledge
+  \item Concurrent execution of tasks
+  \item Conflict over shared resources
+  \item Coordination of shared actions
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Example Programs}
+
+Consider some programs we might write for this domain:
+
 \begin{columns}
   \begin{column}{0.5\textwidth}
 \[
+\pause
 \begin{array}{c}
 \mathbf{proc}\ ChopTypeInto(type,dest)\\
-\pi(obj)[IsType(obj,type)?\ ;\\
-chop(obj)\ ;\ place\_in(obj,dest)]\\
+\pi((agt,obj), \ \ \ \ \ \ \ \\
+IsType(obj,type)?\ ;\\
+Chop(agt,obj)\ ;\\
+PlaceIn(agt,obj,dest))\\
 \mathbf{end}\end{array}\]
   \end{column}
   \begin{column}{0.5\textwidth}
 \[
+\pause
 \begin{array}{c}
-\mathbf{proc}\ MakeSalad(dest)\\
-ChopTypeInto(Lettuce,dest)\ ;\\
-ChopTypeInto(Carrot,dest)\ ;\\
-ChopTypeInto(Tomato,dest)\ ;\\
-mix(dest,1)\\
+\mathbf{proc}\ MakeSalad(bowl)\\
+(ChopTypeInto(Lettuce,bowl)\ ||\\
+ChopTypeInto(Carrot,bowl)\ ||\\
+ChopTypeInto(Tomato,bowl)\ )\ ;\\
+\pi(agt, Mix(agt,dest,1))\\
 \mathbf{end}\end{array}\]
   \end{column}
 \end{columns}
-\ \\
-\ \\
-\pause
-\alert{Idea}:  have the team cooperate to execute a shared Golog program
 \end{frame}
 
 \begin{frame}
-\frametitle{Multi-Agent Situation Calculus}
-What do we need for a multi-agent situation calculus?
+\frametitle{MIndiGolog Semantics}
+Single-steps of computation are specified by  $Trans(\delta,s,\delta',s')$.
 \begin{itemize}
-  \item Identify which agent performs which action
-  \item True concurrency of actions
-  \item Explicit account of time, for coordination
-  \item Natural actions, the predict the behavior of the world
-  \item Knowledge about state of the world
-  \item Knowledge about what actions have been performed
+  \item $Trans(a,s,nil,s')\ \equiv\ Poss(a,s)\wedge s'=do(a,s)$
+  \item $Trans(\delta_1|\delta_2,s,\delta',s')\ \equiv\ Trans(\delta_1,s,\delta',s')\vee Trans(\delta_2,s,\delta',s')$
+  \item $Trans(\delta_1||\delta_2,s,\delta',s')\ \equiv\ \exists\gamma:Trans(\delta_1,s,\gamma,s')\wedge\delta'=(\gamma||\delta_2)$\\
+        $\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \vee\ \exists\gamma:Trans(\delta_2,s,\gamma,s')\wedge\delta'=(\delta_1||\gamma)$
+  \item $\dots$
 \end{itemize}
 \ \\
-\ \\
 \pause
-Many of these have been addressed independently by other authors.
-
-We extend and combine them to form a compelling formalism for multi-agent
-worlds.
-\end{frame}
-
-\begin{frame}
-\frametitle{Multiple Agents, Explicit Time}
-Multiple agents can be handled by having the first argument of each action
-identify the agent performing it.
+Termination is indicated by $Final(\delta,s)$
 \begin{itemize}
-  \item $pickup(Richard,Block1)$
-  \item $goto(Thomas,x,y)$
-  \item $chop(Harriet,Tomato1)$
-\end{itemize}
-\pause
-Adding time to the SitCalc has a long history \cite{reiter01kia}.
-We opt for a simple solution: attach an explicit time to each situation,
-indicating when it was brought about:\[
-\begin{array}{c}
-do(a_1,t_1,S_0),\ do(a_2,t_2,do(a_1,t_1,S_0))\\
-Poss(a,t,s) \equiv\ \dots\\
-start(do(a,t,s)) = t
-\end{array}\]
-\end{frame}
-
-\begin{frame}
-\frametitle{True vs Interleaved Concurrency}
-ConGolog provides \emph{interleaved concurrency} allowing multiple
-high-level programs to be executed together.\\
-\ \\
-With multiple agents, the world exhibits \emph{true concurrency}. Several
-actions can occur at the same instant.\\
-\ \\
-\pause
-Need to:
-\begin{itemize}
-  \item allow true concurrency to be represented
-  \item modify the $||$ operator to take advantage of true concurrency
-  \item ensure that this modification is well-behaved
+  \item $Final(nil,s) \equiv true$
+  \item $Final(\delta_1|\delta_2,s) \equiv Final(\delta_1,s)\vee Final(\delta_2,s)$
+  \item $\dots$
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{The Concurrent Situation Calculus}
-Replace action terms with sets of actions, all of which are performed
-at the same time \cite{reiter01kia}:\[
-do(\{pickup(Thomas,Lettuce1),pickup(Richard,Tomato1)\},t_1,S_0)\]
-\pause
-\ \\
-\ \\
-Precondition interaction:\[
-Poss(\{pickup(Richard,Obj),pickup(Harriet,Obj)\},t,s)\ ?\]
-\pause
-Basic solution:\[
-Poss(c,s) \equiv \forall a \in c.Poss(a,s)\ \wedge\ \neg Conflicts(c,s)\]
+\frametitle{MIndiGolog Semantics}
+Agents should take advantage of true concurrency. Basic idea:
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge}\\ 
+Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
+\end{multline*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Continuous Actions}
-Some actions have a finite duration: $mix(Thomas,Bowl1,5)$
-Others are instantaneous: $pickup(Robert,Lettuce1)$.
-So this concurrent action is problematic:\[
-\{mix(Thomas,Bowl1,5),pickup(Robert,Lettuce1)\}\]
-Standard solution: decompose continuous actions into instantaneous $begin$
-and $end$ actions:\[
-begin\_mix(Thomas,Bowl1,5) \dots end\_mix(Thomas,Bowl1,5)\]
-But $end\_mix()$ is not a standard action.  It cannot be performed at
-any time.  Rather, it \emph{must} occur whenever it is possible.
-\end{frame}
-
-\begin{frame}
-\frametitle{Natural Actions}
-Natural Action:  an action that must occur whenever it is possible,
-unless some earlier action prevents it from occurring.
-\begin{itemize}
-  \item $Poss(na,t,s)$ predicts the times at which a natural action will occur.
-  \item Legal Situation: one in which any natural actions that could have occurred, did occur:\[
-\begin{array}{c}
-legal(do(c,t,s)) \equiv legal(s) \wedge\\
-Poss(c,t,s) \wedge start(s) \leq t \wedge\\
-\forall a,t_a [natural(a) \wedge Poss(a,t_a,s) \rightarrow (a \in c \vee t < t_a)]
-\end{array}\]
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{MIndiGolog}
-We have created a new Golog variant that:
-\begin{itemize}
-  \item Integrates both true and interleaved concurrency
-  \item Has an explicit notion of time
-  \item Automatically handles natural actions
-\end{itemize}
-\ \\
-\ \\
-Implemented in Prolog, it functions as a \emph{centralised} multi-agent planner.
-\ \\
-\ \\
-Using the distributed logic programming capabilities of Oz, the planning
-workload can be \emph{distributed} amongst the agents.
-\end{frame}
-
-\begin{frame}
-\frametitle{Making a Salad}
-When making a salad, the order of ingredients doesn't matter.  This can
-be expressed using concurrency:\[
-\begin{array}{c}
-\mathbf{proc}\ MakeSalad(dest)\\
-\left[\ ChopTypeInto(Lettuce,dest)\ ||\right.\\
-ChopTypeInto(Carrot,dest)\ ||\\
-\left.ChopTypeInto(Tomato,dest)\ \right]\ ;\\
-mix(dest,1)\\
-\mathbf{end}\end{array}\]
-We must also expand the continuous $mix$ action, and specify the agent
-performing each action.
-\end{frame}
-
-\begin{frame}
-\frametitle{Making a Salad}
-But, it doesn't matter who does what: more nondeterminism
-\[
-\begin{array}{c}
-\mathbf{proc}\, MakeSalad(dest)\\
-\left[\pi(agt)(ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
-\pi(agt)(ChopTypeInto(agt,Carrot,dest))\,||\\
-\left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
-\pi(agt)\left[begin\_task(agt,mix(dest,1))\,;\right.\\
-\left.\,\,\,\, end\_task(agt,mix(dest,1))\right]\,\,\mathbf{end}\end{array}\]
-\pause
-Of course, we could hide this with syntactic sugar...
-\end{frame}
-
-\begin{frame}
-\frametitle{Actually Making Salad}
+\frametitle{Example Output}
 \begin{columns}
   \begin{column}{0.5\textwidth}
     \VerbatimInput[fontsize=\tiny]{output_makeSalad_1.txt}
@@ -326,113 +280,29 @@ Can give idle agents other work using:\[
 MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
 \end{frame}
 
+\section{Asynchronicity}
+
 \begin{frame}
-\frametitle{Golog for Multi-Agent Teams!}
-We get all the benefits of Golog for single-agent systems:
-\begin{itemize}
-  \item Controlled Nondeterminism
-  \item Clear, simple programs
-  \item Symbolic reasoning about the world
-  \item Can prove safety/liveness/etc properties
-\end{itemize}
-\ \\
-\pause
-Plus:
-\begin{itemize}
-  \item The same program can be given to \emph{any} team of agents
-  \item Conflicts and concurrency handled declaratively
-  \item Planning workload easily shared between agents
-\end{itemize}
-\ \\
-\pause
-Golog has been successfully used for a RoboCup team \cite{Ferrein2005readylog}.
 \end{frame}
 
-
-\section{Ongoing Work}
+\section{Knowledge}
 
 \begin{frame}
-\frametitle{Ongoing Work}
-
-The current implementation assumes the world is fully observable.
-\begin{itemize}
-  \item What if agents have different ideas about the state of the world?
-  \item What is they can't see what the other agents are doing?
-\end{itemize}
-\ \\
-\ \\
-Although the workload can be distributed, \emph{control} over planning 
-an execution still centralised.
-
-\begin{itemize}
-  \item How can the execution be decentralised?
-\end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Knowledge}
-Knowledge in the S.C. is based on the standard "possible worlds" model:
-\[
-\begin{array}{c}
-\mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\ K(agt,s',s) \rightarrow \phi(s')\\
-\\
-K(agt,s'',do(a,s)) \equiv \exists s'\ s''=do(a,s') \wedge K(agt,s',s)
-\end{array}
-\]
-\pause
-This assumes that all actions are public.  This is unreasonable
-in a multi-agent setting, so we explicitly axiomatise action observability:
-\[
-\begin{array}{c}
-Unobs(agt,s'',s)\ \isdef\ \neg\exists s',a\ s<do(a,s')\leq s'' \wedge CanObs(agt,a,s')\\
-\\
-K(agt,s'',do(a,s)) \equiv \exists s'\ Unobs(agt,do(a,s'),s'') \wedge K(agt,s',s)
-\end{array}
-\]
+\section{Group Knowledge}
 
+\begin{frame}
 \end{frame}
 
+\section{Joint Execution}
+
 \begin{frame}
-\frametitle{Reasoning about Knowledge}
-Our account of knowledge requires reasoning about all possible future
-situations.  This typically requires second-order reasoning (Uh-Oh!)
-\pause
-\ \\
-\ \\
-We have developed an algorithm to calculate the "persistence conditions"
-of a formula - the conditions under which a formula is guaranteed to
-remain true as long as a certain class of actions do not occur:
-\[
-\mathcal{P}[\phi,\alpha] \equiv \forall s'' . s \leq s'' \rightarrow \phi(s'') \vee \exists a,s'\ s<do(a,s')\leq s'' \wedge \alpha(a,s)
-\]
-\pause
-We can thus handle multi-agent knowledge using purely first-order reasoning
-(Phew!)
 \end{frame}
 
 \section{Conclusions}
 
 \begin{frame}
-\frametitle{Conclusions}
-\begin{itemize}
-  \item High-Level Program Execution is a promising paradigm for multi-agent teams
-\end{itemize}
-\pause
-Contributions so far:
-\begin{itemize}
-  \item Expanded Golog semantics to handle true concurrency, natural actions
-  \item Developed more general theory of multi-agent knowledge
-  \item Identified "tractable" reasoning procedure for knowledge
-\end{itemize}
-\pause
-Ongoing:
-\begin{itemize}
-  \item Developing knowledge-based distributed coordination strategy
-  \item Building a reusable M.A. programming system\\(Prolog? Oz? Mercury?)
-\end{itemize}
 \end{frame}
-
-\bibliography{/storage/uni/pgrad/library/references}
-\bibliographystyle{plain}
 
 \end{document}
