@@ -1,8 +1,8 @@
 
-TEX2PDF = pdflatex
+PLTX = pdflatex
 BTX = bibtex -terse
 
-GRAPHICS = poss_worlds.png k_relation.png
+GRAPHICS = poss_worlds.png k_relation.png frame_soln.png
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm
 GARBAGE = $(LATEX_GARBAGE) *~
@@ -16,11 +16,11 @@ all: $(PDF)
 	dia -e $@ $<
 
 %.pdf: %.tex
-	$(TEX2PDF) $<
+	$(PLTX) $< || rm -f $*.pdf
 	$(BTX) $* || true
-	$(TEX2PDF) $<
+	$(PLTX) $< || rm -f $*.pdf
 	$(BTX) $* || true
-	$(TEX2PDF) $<
+	$(PLTX) $<
 
 view:	$(PDF)
 	evince $(PDF)
