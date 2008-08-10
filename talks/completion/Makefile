@@ -1,7 +1,8 @@
 
 TEX2PDF = pdflatex
+BTX = bibtex -terse
 
-GRAPHICS = 
+GRAPHICS = poss_worlds.png k_relation.png
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm
 GARBAGE = $(LATEX_GARBAGE) *~
@@ -16,7 +17,9 @@ all: $(PDF)
 
 %.pdf: %.tex
 	$(TEX2PDF) $<
+	$(BTX) $* || true
 	$(TEX2PDF) $<
+	$(BTX) $* || true
 	$(TEX2PDF) $<
 
 view:	$(PDF)

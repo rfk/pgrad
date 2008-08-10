@@ -22,6 +22,8 @@
 \mode<presentation>{\usetheme{Dresden}}
 
 \usepackage{fancyvrb}
+\usepackage{bibentry}
+\usepackage[numbers]{natbib}
 
 \title{Asynchronous Multi-Agent Domains\\ in the Situation Calculus}
 \author[Ryan Kelly]{Ryan Kelly\\ Supervisor: Adrian Pearce}
@@ -40,45 +42,50 @@
   \ \\
   \begin{itemize}
   \item Multi-agent Golog with distributed execution planning
-  \item Techniques for effective inductive reasoning
   \item Reasoning about knowledge with hidden actions
+  \item Techniques for effective inductive reasoning
   \item Reasoning about group-level knowledge modalities
   \item Planning joint executions with partial observability
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Outline}
-  \tableofcontents
 \end{frame}
 
 \section{Situation Calculus}
 
 \begin{frame}
 \frametitle{The Situation Calculus}
+A formalism for reasoning about dynamic worlds.
+\ \\
+\ \\
 \emph{Actions} are instantaneous events causing the world to change
 \begin{itemize}
   \item $pickup(Thomas,Bowl)$, $beginTask(Richard,mix(Bowl,1))$
 \end{itemize}
+\ \\
+\ \\
 \emph{Situations} are histories of actions that have been performed
 \begin{itemize}
   \item $S_0$, $do(pickup(Harriet,Knife),S_0)$
 \end{itemize}
+\ \\
+\ \\
 \emph{Fluents} are situation-dependent properties of the world
 \begin{itemize}
   \item $Poss(a,s)$, $Holding(Harriet,Knife,s)$
-\end{itemize}
-\emph{Successor State Axioms} define what holds after an action in terms of what held before the action
-\begin{itemize}
-  \item $Holding(agt,obj,do(a,s)) \equiv a = pickup(agt,obj)$ \\
-        $\,\,\,\,\,\,\,\,\,\,\,\,\,\vee Holding(agt,obj,s) \wedge \neg\left(a = drop(agt,obj)\right)$
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{The Situation Calculus}
+\emph{Successor State Axioms} define what holds after an action in terms of what held before the action
+\begin{itemize}
+  \item $Holding(agt,obj,do(a,s)) \equiv a = pickup(agt,obj)$ \\
+        $\,\,\,\,\,\,\,\,\,\,\,\,\,\vee Holding(agt,obj,s) \wedge \neg\left(a = drop(agt,obj)\right)$
+\end{itemize}
+\ \\
+\ \\
+\pause
 From these components we can built a first-order \emph{Theory of Action}
-$\Dt$, with which agents can:
+with which agents can:
 \begin{itemize}
   \item Reason about when actions are possible
   \item Reason about the effects of actions
@@ -86,21 +93,15 @@ $\Dt$, with which agents can:
 \left[a_1, a_2, a_3, a_4\right] \rightarrow do(a_4,do(a_3,do(a_2,do(a_1,S_0))))
 \]
 \end{itemize}
-\pause
-But, what about more complex actions and procedures?
-\begin{itemize}
-  \item $\mathbf{if}\ available(Item)\ \mathbf{then}\ pickup(Item)\ \mathbf{else}\ beSad$
-  \item $\mathbf{while}\ (\exists block)\ ontable(block)\ \mathbf{do}\ remove(block)\ \mathbf{endWhile}$
-  \item $\mathbf{proc}\ remove(block)\ [pickup(block);putaway(block)]\ \mathbf{endProc}$
-\end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Golog}
-Golog introduces programs to the SitCalc via "complex actions".
+Golog introduces programming to the situation calculus.\\
 Primitive actions are composed using operators such as:
 
 \begin{itemize}
+  \item $a$ - Perform a primitive action
   \item $\delta_1;\delta_2$ - Perform two programs in sequence
   \item $\phi?$ - Assert that a condition holds
   \item $\delta_1|\delta_2$ - Choose between programs to execute
@@ -123,13 +124,13 @@ ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
 (driveToUni\ |\ trainToUni); (time<9:00)?
 \end{array}\]
 
-There are potentially many ways to execute this progream, depending on which 
+There are potentially many ways to execute this program, depending on which 
 actions are possible in the world.
 \pause
 \ \\
 \ \\
 Use theory of action to plan a \emph{Legal Execution}:\[
-\mathbf{D} \models \exists s,\delta' . Trans*(\delta,S_0,\delta',s) \wedge Final(\delta',s)\]
+\Dt \models \exists s,\delta': Trans^{*}(\delta,S_0,\delta',s) \wedge Final(\delta',s)\]
 
 \end{frame}
 
@@ -170,6 +171,23 @@ Our work continues this proud tradition.
 \section{MIndiGolog}
 
 \begin{frame}
+\frametitle{Motivating Example: The Cooking Agents}
+Several robotic chefs inhabit a kitchen, along with various ingredients,
+appliances and utensils.  They must cooperate to produce a meal consisting
+of several dishes.\\
+\ \\
+\pause
+Challenges:
+\begin{itemize}
+  \item Encoding procedural knowledge
+  \item Concurrent execution of tasks
+  \item Conflict over shared resources
+  \item Coordination of shared actions
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
 \frametitle{MIndiGolog}
 Vision:
 \begin{itemize}
@@ -186,38 +204,11 @@ Contributions
 \end{frame}
 
 \begin{frame}
-\frametitle{Motivating Example: The Cooking Agents}
-Several robotic chefs inhabit a kitchen, along with various ingredients,
-appliances and utensils.  They must cooperate to produce a meal consisting
-of several dishes.\\
-\ \\
-\pause
-Challenges:
-\begin{itemize}
-  \item Encoding procedural knowledge
-  \item Concurrent execution of tasks
-  \item Conflict over shared resources
-  \item Coordination of shared actions
-\end{itemize}
-\end{frame}
-
-\begin{frame}
 \frametitle{Example Programs}
 
 Consider some programs we might write for this domain:
 
 \begin{columns}
-  \begin{column}{0.5\textwidth}
-\[
-\pause
-\begin{array}{c}
-\mathbf{proc}\ ChopTypeInto(type,dest)\\
-\pi((agt,obj), \ \ \ \ \ \ \ \\
-IsType(obj,type)?\ ;\\
-Chop(agt,obj)\ ;\\
-PlaceIn(agt,obj,dest))\\
-\mathbf{end}\end{array}\]
-  \end{column}
   \begin{column}{0.5\textwidth}
 \[
 \pause
@@ -229,27 +220,27 @@ ChopTypeInto(Tomato,bowl)\ )\ ;\\
 \pi(agt, Mix(agt,dest,1))\\
 \mathbf{end}\end{array}\]
   \end{column}
+  \begin{column}{0.5\textwidth}
+\[
+\pause
+\begin{array}{c}
+\mathbf{proc}\ ChopTypeInto(type,dest)\\
+\pi((agt,obj), \ \ \ \ \ \ \ \\
+IsType(obj,type)?\ ;\\
+Chop(agt,obj)\ ;\\
+PlaceIn(agt,obj,dest))\\
+\mathbf{end}\end{array}\]
+  \end{column}
 \end{columns}
 \end{frame}
 
 \begin{frame}
 \frametitle{MIndiGolog Semantics}
-Single-steps of computation are specified by  $Trans(\delta,s,\delta',s')$.
-\begin{itemize}
-  \item $Trans(a,s,nil,s')\ \equiv\ Poss(a,s)\wedge s'=do(a,s)$
-  \item $Trans(\delta_1|\delta_2,s,\delta',s')\ \equiv\ Trans(\delta_1,s,\delta',s')\vee Trans(\delta_2,s,\delta',s')$
-  \item $Trans(\delta_1||\delta_2,s,\delta',s')\ \equiv\ \exists\gamma:Trans(\delta_1,s,\gamma,s')\wedge\delta'=(\gamma||\delta_2)$\\
-        $\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \vee\ \exists\gamma:Trans(\delta_2,s,\gamma,s')\wedge\delta'=(\delta_1||\gamma)$
-  \item $\dots$
-\end{itemize}
-\ \\
-\pause
-Termination is indicated by $Final(\delta,s)$
-\begin{itemize}
-  \item $Final(nil,s) \equiv true$
-  \item $Final(\delta_1|\delta_2,s) \equiv Final(\delta_1,s)\vee Final(\delta_2,s)$
-  \item $\dots$
-\end{itemize}
+Agents should take advantage of true concurrency. Basic idea:
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\end{multline*}
 \end{frame}
 
 \begin{frame}
@@ -261,6 +252,78 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_
 \shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge}\\ 
 Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
 \end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{MIndiGolog Semantics}
+The combination of actions $(c_1\cup c_2)$ may not be possible.
+\begin{itemize}
+  \item Must check this explicitly
+\end{itemize}
+\ \\
+\ \\
+The same \emph{agent-initiated} action mustn't $Trans$ both programs.
+\begin{itemize}
+  \item otherwise dangerous 'skipping' of actions can occur
+  \item if two concurrent programs both call for $pay(Ryan,\$100)$ to be performed, it had better be performed twice!
+  \item Natural actions can transition both programs
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{MIndiGolog Semantics}
+\begin{multline*}
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
+\shoveright{\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_1||\gamma_2)\wedge s'=do(c_1\cup c_2,t,s)}\\
+\wedge Poss(c_1\cup c_2,t,s)\wedge\forall a.\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{MIndiGolog Semantics}
+Previous work required the programmer to explicitly predict natural actions
+and include them in the program.
+\ \\
+\ \\
+We modify $Trans$ to predict the occurrence of natural actions automatically.
+\begin{itemize}
+  \item The programmer can completely ignore natural actions
+  \item Relevant ones can be included directly in the program, to mean "wait for this natural action to occur"
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{MIndiGolog Execution}
+\begin{itemize}
+ \item Agents can each plan a legal execution individually
+ \item Identical search strategy produces identical results
+ \item Coordination without communication!
+\end{itemize}
+\ \\
+\ \\
+But, we can also take advantage of communication to share the planning
+workload between agents.
+\end{frame}
+
+\begin{frame}
+\frametitle{MIndiGolog Execution}
+The semantics of Golog can be neatly encoded as a logic program.
+Prolog is traditionally used.
+We use Oz for its strong distributed programming support.
+
+\VerbatimInput[fontsize=\scriptsize,frame=lines]{goloz_trans.oz}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{MIndiGolog Execution}
+Using the builtin ParallelSearch object, the agents can transparently
+share the planning workload:
+
+\VerbatimInput[fontsize=\scriptsize,frame=lines]{goloz_do_parallel.oz}
+
 \end{frame}
 
 \begin{frame}
@@ -280,15 +343,146 @@ Can give idle agents other work using:\[
 MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
 \end{frame}
 
+\begin{frame}
+\frametitle{Limitations}
+This works well, but it depends on two assumptions:
+\ \\
+\ \\
+\pause
+Complete knowledge:
+\begin{itemize}
+\item linear plan
+\item no sensing required
+\end{itemize}
+\ \\
+\ \\
+\pause
+Synchronous domain:
+\begin{itemize}
+\item agents proceed in lock-step
+\end{itemize}
+\end{frame}
+
 \section{Asynchronicity}
 
 \begin{frame}
+\frametitle{Synchronicity}
+Synchronous domains:
+\begin{itemize}
+\item when an action occurs, everyone knows an action has occurred
+\end{itemize}
+\ \\
+\ \\
+Nearly universal in the literature: "assume all actions are public".
+\ \\
+\ \\
+\pause
+\alert{Challenge:}  Regression depends intimately on synchronicity
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Regression}
+Regression operates by unwinding actions one at a time:
+\ \\
+\ \\
+$\Reg(Holding(agt,obj,do(c,s))) \Rightarrow$\\
+$\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,pickup(agt,obj) \in c$ \\
+$\,\,\,\,\,\,\,\,\,\,\,\,\,\vee Holding(agt,obj,s) \wedge \neg\left(drop(agt,obj) \in c\right)$
+\ \\
+\ \\
+\pause
+By repeatedly applying it, we get a query about $S_0$:
+\[
+\Dt\models\phi[do(c_1,do(c_2,\dots,S_0))]\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\models\Reg^{*}(\phi)[S_0]
+\]
+\ \\
+\ \\
+\pause
+If you don't know the current situation, you cannot reason using regression.
+\end{frame}
+
+\begin{frame}
+\frametitle{Observations}
+First, we must represent asynchronicity.\\
+We reify the \emph{observations} made by each agent:
+\ \\
+\ \\
+\small
+$Obs(agt,c,s) = o$
+\ \\
+\ \\
+$View(agt,S_0) = \epsilon$\\
+$Obs(agt,c,s) = \{\} \rightarrow View(agt,do(c,s)) = View(agt,s)$\\
+$Obs(agt,c,s) \neq \{\} \rightarrow View(agt,do(c,s)) = Obs(agt,c,s) \cdot View(agt,s)$
+\normalsize
+\ \\
+\ \\
+If $Obs(agt,c,s)=\{\}$ then the actions are completely hidden.
+\end{frame}
+
+\begin{frame}
+\frametitle{Observations}
+Action:  global event changing the state of the world\\
+Observation:  local event changing an agent's knowledge
+\ \\
+\ \\
+Situation:  global history of actions giving current world state\\
+View:  local history of observations giving current knowledge
+\ \\
+\ \\
+\pause
+How can we let agents reason using only their local view?
 \end{frame}
 
 \section{Knowledge}
 
 \begin{frame}
+\frametitle{Knowledge}
+If an agent is unsure about the state of the world, there must be several
+different states of the world that it considers possible.
+
+\begin{center}
+  \includegraphics[scale=0.4]{poss_worlds.png}
+\end{center}
+
+The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
 \end{frame}
+
+\begin{frame}
+\frametitle{Knowledge}
+Introduce a possible-worlds fluent $K(agt,s',s)$:
+
+\begin{center}
+  \includegraphics[scale=0.5]{k_relation.png}
+\end{center}
+
+We can then define knowledge as a simple macro:
+\[ \mathbf{Knows}(agt,\phi,s)\ \isdef\ \forall s'\left[K(agt,s',s)\rightarrow \phi(s')\right] \]
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge: The Synchronous Case}
+In the syncrhonous case, $K$ has a simple successor state axiom:
+\ \\
+\ \\
+\begin{multline*}
+ K_0(agt,s'',do(c,s)) \equiv \exists s',c':\ s''=do(c',s') \wedge K_0(agt,s',s)\\
+  \wedge Poss(c',s') \wedge Obs(agt,c,s) = Obs(agt,c',s')
+\end{multline*}
+\ \\
+\ \\
+And a correspondingly simple regression rule:
+\ \\
+\ \\
+\begin{multline*}
+ \Reg(\KnowsZ(agt,\phi,do(c,s))\ \isdef\ \exists o: Obs(agt,c,s)=o\\
+  \wedge \forall c': \KnowsZ(agt,Poss(c')\wedge Obs(agt,c')=o \rightarrow \Reg(\phi,c'))
+  \wedge Poss(c',s') \wedge Obs(agt,c,s) = Obs(agt,c',s')
+\end{multline*}
+
+\end{frame}
+
 
 \section{Group Knowledge}
 
@@ -303,6 +497,29 @@ MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
 \section{Conclusions}
 
 \begin{frame}
+  \frametitle{Contributions}
+  Powerful extensions to the Situation Calculus for representing and reasoning
+  about rich, asynchronous multi-agent domains:
+  \ \\
+  \ \\
+  \begin{itemize}
+  \item Multi-agent Golog with distributed execution planning
+  \item Techniques for effective inductive reasoning
+  \item Reasoning about knowledge with hidden actions
+  \item Reasoning about group-level knowledge modalities
+  \item Planning joint executions with partial observability
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Publications}
+\begin{itemize}
+\item \bibentry{kelly06hlp_dps}
+\item \bibentry{kelly07sc_persistence}
+\item \bibentry{kelly07sc_know_obs}
+\item \bibentry{kelly08complex_epistemic_modalities}
+\end{itemize}
+
 \end{frame}
 
 \end{document}
