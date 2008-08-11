@@ -426,11 +426,16 @@ How can we let agents reason using only their local view?
 If an agent is unsure about the state of the world, there must be several
 different states of the world that it considers possible.
 
+The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
+
 \begin{center}
   \includegraphics[scale=0.4]{poss_worlds.png}
 \end{center}
 
-The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
+\begin{equation*}
+\mathbf{Knows}(Q)\ \wedge\ \neg\mathbf{Knows}(P)\ \wedge\ \neg\mathbf{Knows}(R)\ \wedge\ \mathbf{Knows}(P \vee R)
+\end{equation*}
+
 \end{frame}
 
 \begin{frame}
@@ -578,7 +583,7 @@ The persistence condition can be calculated as a fixpoint:
 \end{equation*}
 \ \\
 \ \\
-This calculation can be done using \emph{static domain reasoning} and provably terminates in many interesting cases.
+This calculation can be done using \emph{static domain reasoning} and provably terminates in several important cases.
 \end{frame}
 
 \begin{frame}
@@ -637,12 +642,125 @@ arbitrarily-long sequences of hidden actions.
 \section{Group Knowledge}
 
 \begin{frame}
+\frametitle{Group-Level Knowledge}
+The basic group-level operator is "Everyone Knows":
+\begin{gather*}
+\mathbf{EKnows}(G,\phi,s)\ \isdef \bigwedge_{agt \in G} \mathbf{Knows}(agt,\phi,s)\\
+\mathbf{EKnows}^{2}(G,\phi,s)\ \isdef\ \mathbf{EKnows}(G,\mathbf{EKnows}(G,\phi),s)\\
+\dots \\
+\mathbf{EKnows}^{n}(G,\phi,s)\ \isdef\ \mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)
+\end{gather*}
+Eventually, we get "Common Knowledge":
+\begin{gather*}
+\mathbf{CKnows}(G,\phi,s)\ \isdef\ \mathbf{EKnows}^{\infty}(agt,\phi,s)
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Group Knowledge}
+Since $\mathbf{EKnows}$ is finite, it can be expanded to perform regression.
+\ \\
+\ \\
+$\mathbf{CKnows}$ is infinitary, so this won't work for common knowledge.
+
+We need to regress it directly.  Maybe like this?
+\begin{multline*}
+\mathcal{R}\{\mathbf{CKnows}(G,\phi,do(c,s))\}\ \Rightarrow \\
+\exists o: \mathbf{CObs}(G,c,s)=o\ \wedge\\
+\forall c': \mathbf{CKnows}(G,Poss(c') \wedge \mathbf{CObs}(agt,c')=o \rightarrow \mathcal{R}\{\phi[do(c',s)]\},s)
+\end{multline*}
+\ \\
+\ \\
+\pause
+It is \alert{impossible} to express $\mathcal{R}\{\mathbf{CKnows}\}$ in terms of $\mathbf{CKnows}$
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Group Knowledge}
+\begin{center}
+  \includegraphics[scale=0.55]{pk_regression.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Dynamic Logic}
+Dynamic Logics are formalisms for building programs from actions:
+\begin{gather*}
+A\ ;\ ?Poss(B)\ ;\ B \\
+A\ ;\ (B \cup C) \\
+A^*\ ;\ ?Done \\
+x:=?\ ;\ ?Avail(x)\ ;\ pickup(X)
+\end{gather*}
+But they don't \emph{have} to be interpreted as actions.\\
+More generally, DLs are logics of \emph{paths}.
+\end{frame}
+
+\begin{frame}
+\frametitle{Epistemic Paths}
+Idea from van Bentham, van Eijck and Kooi\\
+"Logics of Communication and Change", Info. \& Comp., 2006
+\ \\
+\ \\
+We can interpret Dynamic Logic epistemically:
+\begin{gather*}
+\mathbf{KDo}(agt,s,s')\ \isdef\ K(agt,s',s)\\
+\mathbf{KDo}(?\phi,s,s')\ \isdef\ s'=s \wedge \phi[s]\\
+\mathbf{KDo}(\pi_1;\pi_2,s,s')\ \isdef\ \exists s'': \mathbf{KDo}(\pi_1,s,s'') \wedge \mathbf{KDo}(\pi_2,s'',s')\\
+\mathbf{KDo}(\pi_1\cup\pi_2,s,s')\ \isdef\ \mathbf{KDo}(\pi_1,s,s'') \vee \mathbf{KDo}(\pi_2,s,s')\\
+\mathbf{KDo}(\pi^*,s,s')\ \isdef\ \mathrm{refl. tran. clos.}\left[\mathbf{KDo}(\pi,s,s'')\right]\\
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Epistemic Paths}
+New macro for path-based knowledge:
+\begin{equation*}
+\mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \forall s': \mathbf{KDo}(\pi,s,s') \rightarrow \phi[s']
+\end{equation*}
+Used like so:
+\begin{gather*}
+\mathbf{Knows}(agt,\phi,s)\ \equiv\ \mathbf{PKnows}(agt,\phi,s)\\
+\mathbf{Knows}(agt_1,\mathbf{Knows}(agt_2,\phi),s)\ \equiv\ \mathbf{PKnows}(agt_1 ; agt_2,\phi,s)\\
+\mathbf{EKnows}(G,\phi,s)\ \equiv\ \mathbf{PKnows}(\bigcup_{agt \in G}agt,\phi,s)\\
+\mathbf{CKnows}(G,\phi,s)\ \equiv\ \mathbf{PKnows}((\bigcup_{agt \in G}agt)^*,\phi,s)
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Epistemic Paths}
+It's now possible to formulate a regression rule for $\mathbf{PKnows}$ in synchronous domains:
+\begin{multline*}
+\mathcal{R}\{\mathbf{PKnows_0}(\pi,\phi,do(c,s))\} \Rightarrow \\
+ \forall c': \mathbf{PKnows_0}(\mathcal{T}\{\pi,c,c'\},\mathcal{R}\{\phi[c']\},s)
+\end{multline*}
+$\mathcal{T}$ basically encodes the semantics of $K$ and $\mathbf{KDo}$
+\begin{gather*}
+\mathcal{T}\{agt\}\ \isdef\ \mathrm{s.s.a.\ for}\ K\ \mathrm{fluent} \\
+\mathcal{T}\{?\phi\}\ \isdef\ ?\mathcal{R}\{\phi\} \\
+\mathcal{T}\{\pi_1\cup\pi_2\}\ \isdef\ \mathcal{T}\{\pi_1\}\cup\mathcal{T}\{\pi_2\} \\
+\mathcal{T}\{\pi^*\} \isdef\ \mathcal{T}\{\pi\}^*
+\end{gather*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Hidden Actions}
+For $\mathbf{PKnows}$, we fake it using $\mathbf{PKnows_0}$ and a stack of empty actions:
+\begin{gather*}
+\mathcal{E}\{do(c,s)\}\ \isdef\ do(\{\},do(c,\mathcal{E}\{s\})) \\
+\mathcal{E}^n\{s\}\ \isdef\ \mathcal{E}\{\mathcal{E}^{n-1}\{s\}\}
+\end{gather*}
+Using a fixpoint of this construction:
+\begin{equation*}
+\mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \mathbf{PKnows_0}(\pi,\phi,\mathcal{E}^{\infty}\{s\})
+\end{equation*}
+We can prove $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$ using these definitions.
 \end{frame}
 
 \begin{frame}
 \frametitle{Contribution}
 \textbf{Complex Epistemic Modalities:}  an encoding of group-level knowledge using the syntax of dynamic logic
 \begin{itemize}
+\item Built entirely use macro-expansion
 \item In which common knowledge is amenable to regression
 \item Incorporating arbitrarily-long sequences of hidden actions
 \end{itemize}
