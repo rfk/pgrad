@@ -23,7 +23,6 @@
 
 \usepackage{fancyvrb}
 \usepackage{bibentry}
-\usepackage[numbers]{natbib}
 
 \title{Asynchronous Multi-Agent Domains\\ in the Situation Calculus}
 \author[Ryan Kelly]{Ryan Kelly\\ Supervisor: Adrian Pearce}
@@ -282,32 +281,6 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_
 \end{frame}
 
 \begin{frame}
-\frametitle{MIndiGolog Semantics}
-Previous work required the programmer to explicitly predict natural actions
-and include them in the program.
-\ \\
-\ \\
-We modify $Trans$ to predict the occurrence of natural actions automatically.
-\begin{itemize}
-  \item The programmer can completely ignore natural actions
-  \item Relevant ones can be included directly in the program, to mean "wait for this natural action to occur"
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{MIndiGolog Execution}
-\begin{itemize}
- \item Agents can each plan a legal execution individually
- \item Identical search strategy produces identical results
- \item Coordination without communication!
-\end{itemize}
-\ \\
-\ \\
-But, we can also take advantage of communication to share the planning
-workload between agents.
-\end{frame}
-
-\begin{frame}
 \frametitle{MIndiGolog Execution}
 The semantics of Golog can be neatly encoded as a logic program.
 Prolog is traditionally used.
@@ -341,6 +314,17 @@ share the planning workload:
 \pause
 Can give idle agents other work using:\[
 MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
+\end{frame}
+
+\begin{frame}
+\frametitle{Contribution}
+\textbf{MIndiGolog:} a Golog semantics suitable for shared execution by a team 
+of cooperating agents:
+\begin{itemize}
+\item Safely taking advantage of true concurrency
+\item Automatically accounting for predictable environment behavior
+\item Using distributed logic programming to share the planning workload
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -462,8 +446,31 @@ We can then define knowledge as a simple macro:
 \end{frame}
 
 \begin{frame}
+\frametitle{Knowledge follows Observation}
+Halpern \& Moses, 1990:\\
+"an agent's knowledge at a given time must depend only on its local history:
+the information that it started out with combined with the events it has
+observed since then"
+\pause
+\ \\
+\ \\
+Clearly, we require:
+\begin{equation*}
+K(agt,s',s)\ \equiv\ View(agt,s') = View(agt,s)
+\end{equation*}
+We must enforce this in the successor state axiom for $K$.
+\end{frame}
+
+\begin{frame}
 \frametitle{Knowledge: The Synchronous Case}
-In the syncrhonous case, $K$ has a simple successor state axiom:
+\begin{center}
+  \includegraphics[scale=0.5]{frame_soln.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge: The Synchronous Case}
+In the syncrhonous case, $K_0$ has a simple successor state axiom:
 \begin{multline*}
  K_0(agt,s'',do(c,s)) \equiv \exists s',c':\ s''=do(c',s') \wedge K_0(agt,s',s)\\
   \wedge Poss(c',s') \wedge Obs(agt,c,s) = Obs(agt,c',s')
@@ -475,25 +482,186 @@ And a correspondingly simple regression rule:
  \Reg(\KnowsZ(agt,\phi,do(c,s))\ \isdef\ \exists o: Obs(agt,c,s)=o\\
   \wedge \forall c': \KnowsZ(agt,Poss(c')\wedge Obs(agt,c')=o \rightarrow \Reg(\phi,c'))
 \end{multline*}
-
 \end{frame}
 
 \begin{frame}
-\frametitle{Knowledge: The Synchronous Case}
+\frametitle{Knowledge: The Asynchronous Case}
 \begin{center}
-  \includegraphics[scale=0.5]{frame_soln.png}
+  \includegraphics[scale=0.5]{k_unobs.png}
 \end{center}
 \end{frame}
 
+\begin{frame}
+\frametitle{SSA for Knowledge}
+First, some notation:
+\begin{equation*}
+  s <_{\alpha} do(c,s')\ \equiv\ s \leq_{\alpha} s' \wedge \alpha(c,s')
+\end{equation*}
+\begin{equation*}
+  PbU(agt,c,s)\ \isdef\ Poss(c,s) \wedge Obs(agt,c,s) = \{\}
+\end{equation*}
+\pause
+Then the following successor state axiom captures the intended dynamics of
+knowledge update:
+\begin{multline*}
+  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
+  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
+  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Sync vs Async}
+We've gone from this:
+\begin{multline*}
+ K_0(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
+ \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+\end{multline*}
+\pause
+To this:
+\begin{multline*}
+  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
+  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
+  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
+\end{multline*}
+\pause
+It's messier, but it's also hiding a much bigger problem...
+\end{frame}
+
+\begin{frame}
+\frametitle{Regression}
+By using $\leq_{PbU(agt)}$, our new SSA quantifies over all possible futures situations.  Regression cannot be applied to such an expression.
+\ \\
+\ \\
+Observation-based knowledge \alert{cannot} be approached using
+the standard regression operator.
+\ \\
+\ \\
+\pause
+In fact, this quantification requires a second-order induction axiom.
+
+Must we abandon hope of an effective reasoning procedure?
+\end{frame}
+
+\begin{frame}
+\frametitle{Property Persistence}
+Suppose we could "factor out" the quantification. Then we could get
+on with the business of doing regression.
+\ \\
+\ \\
+Define the \emph{persistence condition} $\mathcal{P}[\phi,\alpha]$ of a formula
+ $\phi$ and action conditions $\alpha$ to mean: assuming all future actions
+satisfy $\alpha$, $\phi$ will remain true.
+\begin{equation*}
+  \mathcal{P}[\phi,\alpha](s)\ \equiv\ \forall s': s \leq_{\alpha} s' \rightarrow \phi(s')
+\end{equation*}
+Like $\mathcal{R}$, the idea is to transform a query into a form that is easier
+to deal with.
+\end{frame}
+
+\begin{frame}
+\frametitle{Property Persistence}
+The persistence condition can be calculated as a fixpoint:
+\begin{equation*}
+  \Pst^{1}[\phi,\alpha](s)\ \isdef\ \phi(s) \wedge \forall c: \alpha(c) \rightarrow \phi(do(c,s))
+\end{equation*}
+\begin{equation*}
+  \Pst^{n}[\phi,\alpha](s)\ \isdef\ \Pst^{1}[\Pst^{n-1}[\phi,\alpha],\alpha]
+\end{equation*}
+\ \\
+\ \\
+\pause
+\begin{equation*}
+  \left(\Pst^{n}[\phi,\alpha] \rightarrow \Pst^{n+1}[\phi,\alpha]\right) \Rightarrow \left(\Pst^{n}[\phi,\alpha] \equiv \Pst[\phi,\alpha]\right)
+\end{equation*}
+\ \\
+\ \\
+This calculation can be done using \emph{static domain reasoning} and provably terminates in many interesting cases.
+\end{frame}
+
+\begin{frame}
+\frametitle{$\mathcal{R}$ Graphically}
+\begin{center}
+  \includegraphics[scale=0.5]{k_unobs_highlighted.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regression using Persistence}
+It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
+\begin{multline*}
+  \mathcal{R}[\mathbf{Knows}(agt,\phi,do(c,s))] = \\
+     \left[ Obs(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
+     \wedge \left[ \exists o . Obs(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
+     \mathbf{Knows}(agt,\forall c' . Obs(agt,c',now)=o \rightarrow \\
+     \left.\mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],s)\right]
+\end{multline*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Over Observations}
+The regression operator can be modified to act over observation histories,
+instead of over situations:
+\begin{multline*}
+  \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
+  \mathbf{Knows}(agt,\forall c' . Obs(agt,c',s')=o \rightarrow \\
+     \mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],h)
+\end{multline*}
+We can equip agents with a situation calculus model of their own environment.
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Contribution}
+\textbf{Persistence Condition:}  a new technique for inductive reasoning
+\begin{itemize}
+\item Using restricted forms of domain reasoning
+\item Built on, and interacting well with, standard regression
+\item Allowing the inductive component to be "factored out" of other reasoning tasks
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Contribution}
+A robust account of \textbf{knowledge} based on observations, allowing for
+arbitrarily-long sequences of hidden actions.
+\begin{itemize}
+\item That subsumes existing accounts of knowledge
+\item With regression rules utilising the persistence condition
+\item Allowing agents to reason about their own knowledge using only their local information
+\end{itemize}
+\end{frame}
 
 \section{Group Knowledge}
 
 \begin{frame}
 \end{frame}
 
+\begin{frame}
+\frametitle{Contribution}
+\textbf{Complex Epistemic Modalities:}  an encoding of group-level knowledge using the syntax of dynamic logic
+\begin{itemize}
+\item In which common knowledge is amenable to regression
+\item Incorporating arbitrarily-long sequences of hidden actions
+\end{itemize}
+\end{frame}
+
 \section{Joint Execution}
 
 \begin{frame}
+\end{frame}
+
+\begin{frame}
+\frametitle{Contributions}
+\textbf{Joint Execution:}  a partially-ordered data structure representing actions to be performed by a group of agents
+\begin{itemize}
+\item That ensures syncrhonisation is always possible
+\item That can be reasoned about using standard sitcalc techniques
+\item That can replace situation terms in the Golog planning process
+\item That has been implemented in a MIndiGolog execution planner
+\end{itemize}
 \end{frame}
 
 \section{Conclusions}
@@ -515,16 +683,19 @@ And a correspondingly simple regression rule:
 
 \begin{frame}
 \frametitle{Publications}
-\begin{itemize}
-\item \bibentry{kelly06hlp_dps}
-\item \bibentry{kelly07sc_persistence}
-\item \bibentry{kelly07sc_know_obs}
-\item \bibentry{kelly08complex_epistemic_modalities}
-\end{itemize}
+\small
+\nocite{kelly06hlp_dps}
+\nocite{kelly07sc_persistence}
+\nocite{kelly07sc_know_obs}
+\nocite{kelly08complex_epistemic_modalities}
+\bibliographystyle{unsrt}
+\bibliography{../../library/references}
+\normalsize
 \end{frame}
 
 \begin{frame}
-\bibliography{../../library/references}
+\centering \large Thank You\\
 \end{frame}
+
 
 \end{document}
