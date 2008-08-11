@@ -57,19 +57,19 @@ A formalism for reasoning about dynamic worlds.
 \ \\
 \emph{Actions} are instantaneous events causing the world to change
 \begin{itemize}
-  \item $pickup(Thomas,Bowl)$, $beginTask(Richard,mix(Bowl,1))$
+  \item $pickup(Thomas,Bowl)$
 \end{itemize}
 \ \\
 \ \\
 \emph{Situations} are histories of actions that have been performed
 \begin{itemize}
-  \item $S_0$, $do(pickup(Harriet,Knife),S_0)$
+  \item $S_0$,\ \ $do(pickup(Harriet,Knife),S_0)$
 \end{itemize}
 \ \\
 \ \\
 \emph{Fluents} are situation-dependent properties of the world
 \begin{itemize}
-  \item $Poss(a,s)$, $Holding(Harriet,Knife,s)$
+  \item $Poss(a,s)$,\ \ $Holding(Harriet,Knife,s)$
 \end{itemize}
 \end{frame}
 
@@ -119,7 +119,7 @@ Key Point:  programs can include \alert{nondeterminism}
 Consider a Golog program for getting to uni of a morning:\[
 \begin{array}{c}
 ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
-\pi(food,\ edible(food)?;eat(food)); haveShower; brushTeeth\\
+\pi(food,\ edible(food)?;eat(food)); (haveShower || brushTeeth);\\
 (driveToUni\ |\ trainToUni); (time<9:00)?
 \end{array}\]
 
@@ -216,7 +216,7 @@ Consider some programs we might write for this domain:
 (ChopTypeInto(Lettuce,bowl)\ ||\\
 ChopTypeInto(Carrot,bowl)\ ||\\
 ChopTypeInto(Tomato,bowl)\ )\ ;\\
-\pi(agt, Mix(agt,dest,1))\\
+\pi(agt, Mix(agt,bowl,1))\\
 \mathbf{end}\end{array}\]
   \end{column}
   \begin{column}{0.5\textwidth}
@@ -283,7 +283,9 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_
 \begin{frame}
 \frametitle{MIndiGolog Execution}
 The semantics of Golog can be neatly encoded as a logic program.
+
 Prolog is traditionally used.
+
 We use Oz for its strong distributed programming support.
 
 \VerbatimInput[fontsize=\scriptsize,frame=lines]{goloz_trans.oz}
@@ -318,12 +320,12 @@ MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
 
 \begin{frame}
 \frametitle{Contribution}
-\textbf{MIndiGolog:} a Golog semantics suitable for shared execution by a team 
-of cooperating agents:
+\textbf{MIndiGolog:} a Golog semantics and implementation for shared program 
+ execution by a team  of cooperating agents:
 \begin{itemize}
 \item Safely taking advantage of true concurrency
 \item Automatically accounting for predictable environment behavior
-\item Using distributed logic programming to share the planning workload
+\item Using distributed logic programming to share the workload
 \end{itemize}
 \end{frame}
 
@@ -396,13 +398,33 @@ We reify the \emph{observations} made by each agent:
 $Obs(agt,c,s) = o$
 \ \\
 \ \\
+\pause
 $View(agt,S_0) = \epsilon$\\
 $Obs(agt,c,s) = \{\} \rightarrow View(agt,do(c,s)) = View(agt,s)$\\
 $Obs(agt,c,s) \neq \{\} \rightarrow View(agt,do(c,s)) = Obs(agt,c,s) \cdot View(agt,s)$
 \normalsize
 \ \\
 \ \\
+\pause
 If $Obs(agt,c,s)=\{\}$ then the actions are completely hidden.
+\end{frame}
+
+\begin{frame}
+\frametitle{Observations}
+In syncrhonous domains, everyone observes every action:
+\begin{equation*}
+a \in Obs(agt,c,s)\ \equiv\ a \in c
+\end{equation*}
+\pause
+Sensing results can be easily included:
+\begin{equation*}
+a\#r \in Obs(agt,c,s)\ \equiv\ a \in c \wedge SR(a,s)=r
+\end{equation*}
+\pause
+And observability can be axiomatised explicitly
+\begin{equation*}
+a \in Obs(agt,c,s)\ \equiv\ a \in c \wedge CanObs(agt,a,s)
+\end{equation*}
 \end{frame}
 
 \begin{frame}
@@ -427,11 +449,9 @@ If an agent is unsure about the state of the world, there must be several
 different states of the world that it considers possible.
 
 The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
-
 \begin{center}
-  \includegraphics[scale=0.4]{poss_worlds.png}
+  \includegraphics[scale=0.3]{poss_worlds}
 \end{center}
-
 \begin{equation*}
 \mathbf{Knows}(Q)\ \wedge\ \neg\mathbf{Knows}(P)\ \wedge\ \neg\mathbf{Knows}(R)\ \wedge\ \mathbf{Knows}(P \vee R)
 \end{equation*}
@@ -443,7 +463,7 @@ The agent \emph{knows} $\phi$ iff $\phi$ is true in all possible worlds.
 Introduce a possible-worlds fluent $K(agt,s',s)$:
 
 \begin{center}
-  \includegraphics[scale=0.5]{k_relation.png}
+  \includegraphics[scale=0.4]{k_relation}
 \end{center}
 
 We can then define knowledge as a simple macro:
@@ -469,7 +489,7 @@ We must enforce this in the successor state axiom for $K$.
 \begin{frame}
 \frametitle{Knowledge: The Synchronous Case}
 \begin{center}
-  \includegraphics[scale=0.5]{frame_soln.png}
+  \includegraphics[scale=0.4]{frame_soln}
 \end{center}
 \end{frame}
 
@@ -482,6 +502,7 @@ In the syncrhonous case, $K_0$ has a simple successor state axiom:
 \end{multline*}
 \ \\
 \ \\
+\pause
 And a correspondingly simple regression rule:
 \begin{multline*}
  \Reg(\KnowsZ(agt,\phi,do(c,s))\ \isdef\ \exists o: Obs(agt,c,s)=o\\
@@ -492,12 +513,12 @@ And a correspondingly simple regression rule:
 \begin{frame}
 \frametitle{Knowledge: The Asynchronous Case}
 \begin{center}
-  \includegraphics[scale=0.5]{k_unobs.png}
+  \includegraphics[scale=0.3]{k_unobs}
 \end{center}
 \end{frame}
 
 \begin{frame}
-\frametitle{SSA for Knowledge}
+\frametitle{Knowledge: The Asynchronous Case}
 First, some notation:
 \begin{equation*}
   s <_{\alpha} do(c,s')\ \equiv\ s \leq_{\alpha} s' \wedge \alpha(c,s')
@@ -506,13 +527,13 @@ First, some notation:
   PbU(agt,c,s)\ \isdef\ Poss(c,s) \wedge Obs(agt,c,s) = \{\}
 \end{equation*}
 \pause
-Then the following successor state axiom captures the intended dynamics of
-knowledge update:
+\ \\
+Then the intended dynamics of knowledge update are:
 \begin{multline*}
-  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
-  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
-  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
-  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
+  K(agt,s'',do(c,s))\ \equiv\ \exists o: Obs(agt,c,s) = o  \\
+  \wedge \left[o = \{\} \rightarrow K(agt,s'',s)\right] \\
+  \wedge \left[o \neq \{\} \rightarrow \exists c',s': K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right]
 \end{multline*}
 \end{frame}
 
@@ -520,27 +541,27 @@ knowledge update:
 \frametitle{Sync vs Async}
 We've gone from this:
 \begin{multline*}
- K_0(s'',do(a,s)) \equiv \exists s' . \ s''=do(a,s') \\
- \wedge K(s',s) \wedge Poss(a,s') \wedge SR(a,s) = SR(a,s')
+ K_0(agt,s'',do(c,s)) \equiv \exists s',c':\ s''=do(c',s') \wedge K_0(agt,s',s)\\
+  \wedge Poss(c',s') \wedge Obs(agt,c,s) = Obs(agt,c',s')
 \end{multline*}
 \pause
 To this:
 \begin{multline*}
-  K(agt,s'',do(c,s))\ \equiv\ \exists o . Obs(agt,c,s) = o  \\
-  \wedge \left(o = \{\} \rightarrow K(agt,s'',s)\right) \\
-  \wedge \left(o \neq \{\} \rightarrow \exists c',s' . K(agt,s',s)\right. \\
-  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right)
+  K(agt,s'',do(c,s))\ \equiv\ \exists o: Obs(agt,c,s) = o  \\
+  \wedge \left[o = \{\} \rightarrow K(agt,s'',s)\right] \\
+  \wedge \left[o \neq \{\} \rightarrow \exists c',s': K(agt,s',s)\right. \\
+  \left.\wedge Obs(agt,c',s') = o \wedge Poss(c',s') \wedge do(c',s') \leq_{PbU(agt)} s''\right]
 \end{multline*}
 \pause
 It's messier, but it's also hiding a much bigger problem...
 \end{frame}
 
 \begin{frame}
-\frametitle{Regression}
-By using $\leq_{PbU(agt)}$, our new SSA quantifies over all possible futures situations.  Regression cannot be applied to such an expression.
+\frametitle{Regressing Knowledge}
+Our new SSA uses $\leq_{PbU(agt)}$  to quantify over all future situations.  Regression cannot be applied to such an expression.
 \ \\
 \ \\
-Observation-based knowledge \alert{cannot} be approached using
+An asynchronous account of knowledge \alert{cannot} be approached using
 the standard regression operator.
 \ \\
 \ \\
@@ -587,31 +608,31 @@ This calculation can be done using \emph{static domain reasoning} and provably t
 \end{frame}
 
 \begin{frame}
-\frametitle{$\mathcal{R}$ Graphically}
+\frametitle{Regressing Knowledge}
 \begin{center}
-  \includegraphics[scale=0.5]{k_unobs_highlighted.png}
+  \includegraphics[scale=0.3]{k_unobs_highlighted}
 \end{center}
 \end{frame}
 
 \begin{frame}
-\frametitle{Regression using Persistence}
+\frametitle{Regressing Knowledge}
 It becomes possible to define the regression of our $\mathbf{Knows}$ macro:
 \begin{multline*}
   \mathcal{R}[\mathbf{Knows}(agt,\phi,do(c,s))] = \\
      \left[ Obs(agt,c,s) = \{\} \rightarrow \mathbf{Knows}(agt,\phi,s) \right] \\
-     \wedge \left[ \exists o . Obs(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
-     \mathbf{Knows}(agt,\forall c' . Obs(agt,c',now)=o \rightarrow \\
+     \wedge \left[ \exists o : Obs(agt,c,s) = o \wedge o\neq \{\} \rightarrow \right. \\
+     \mathbf{Knows}(agt,\forall c' : Obs(agt,c')=o \rightarrow \\
      \left.\mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],s)\right]
 \end{multline*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Regressing Over Observations}
+\frametitle{View-Based Reasoning}
 The regression operator can be modified to act over observation histories,
 instead of over situations:
 \begin{multline*}
   \mathcal{R}[\mathbf{Knows}(agt,\phi,o \cdot h)] = \\
-  \mathbf{Knows}(agt,\forall c' . Obs(agt,c',s')=o \rightarrow \\
+  \mathbf{Knows}(agt,\forall c' : Obs(agt,c',s')=o \rightarrow \\
      \mathcal{R}[\mathcal{P}[\phi,PbU(agt)](do(c',s'))],h)
 \end{multline*}
 We can equip agents with a situation calculus model of their own environment.
@@ -663,27 +684,30 @@ Since $\mathbf{EKnows}$ is finite, it can be expanded to perform regression.
 \ \\
 $\mathbf{CKnows}$ is infinitary, so this won't work for common knowledge.
 
-We need to regress it directly.  Maybe like this?
+We need to regress it directly.\pause Maybe like this?
 \begin{multline*}
-\mathcal{R}\{\mathbf{CKnows}(G,\phi,do(c,s))\}\ \Rightarrow \\
+\mathcal{R}[\mathbf{CKnows}(G,\phi,do(c,s))]\ \isdef \\
 \exists o: \mathbf{CObs}(G,c,s)=o\ \wedge\\
-\forall c': \mathbf{CKnows}(G,Poss(c') \wedge \mathbf{CObs}(agt,c')=o \rightarrow \mathcal{R}\{\phi[do(c',s)]\},s)
+\forall c': \mathbf{CKnows}(G,Poss(c') \wedge \mathbf{CObs}(agt,c')=o \rightarrow \mathcal{R}[\phi[do(c',s)]],s)
 \end{multline*}
 \ \\
 \ \\
 \pause
-It is \alert{impossible} to express $\mathcal{R}\{\mathbf{CKnows}\}$ in terms of $\mathbf{CKnows}$
+It is \alert{impossible} to express $\mathcal{R}[\mathbf{CKnows}]$ in terms of $\mathbf{CKnows}$
 \end{frame}
 
 \begin{frame}
 \frametitle{Regressing Group Knowledge}
 \begin{center}
-  \includegraphics[scale=0.55]{pk_regression.png}
+  \includegraphics[scale=0.35]{pk_regression}
 \end{center}
 \end{frame}
 
 \begin{frame}
-\frametitle{Dynamic Logic}
+\frametitle{Epistemic Path Language}
+$\Reg[\CKnows]$ requires a more expressive epistemic language.
+\ \\
+\ \\
 Dynamic Logics are formalisms for building programs from actions:
 \begin{gather*}
 A\ ;\ ?Poss(B)\ ;\ B \\
@@ -691,13 +715,13 @@ A\ ;\ (B \cup C) \\
 A^*\ ;\ ?Done \\
 x:=?\ ;\ ?Avail(x)\ ;\ pickup(X)
 \end{gather*}
-But they don't \emph{have} to be interpreted as actions.\\
+But they don't \emph{have} to be interpreted over actions.\\
 More generally, DLs are logics of \emph{paths}.
 \end{frame}
 
 \begin{frame}
-\frametitle{Epistemic Paths}
-Idea from van Bentham, van Eijck and Kooi\\
+\frametitle{Epistemic Path Language}
+Idea from van Bentham, van Eijck and Kooi.\\
 "Logics of Communication and Change", Info. \& Comp., 2006
 \ \\
 \ \\
@@ -707,12 +731,12 @@ We can interpret Dynamic Logic epistemically:
 \mathbf{KDo}(?\phi,s,s')\ \isdef\ s'=s \wedge \phi[s]\\
 \mathbf{KDo}(\pi_1;\pi_2,s,s')\ \isdef\ \exists s'': \mathbf{KDo}(\pi_1,s,s'') \wedge \mathbf{KDo}(\pi_2,s'',s')\\
 \mathbf{KDo}(\pi_1\cup\pi_2,s,s')\ \isdef\ \mathbf{KDo}(\pi_1,s,s'') \vee \mathbf{KDo}(\pi_2,s,s')\\
-\mathbf{KDo}(\pi^*,s,s')\ \isdef\ \mathrm{refl. tran. clos.}\left[\mathbf{KDo}(\pi,s,s'')\right]\\
+\mathbf{KDo}(\pi^*,s,s')\ \isdef\ \mathrm{refl. tran. closure}\left[\mathbf{KDo}(\pi,s,s'')\right]\\
 \end{gather*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Epistemic Paths}
+\frametitle{Epistemic Path Language}
 New macro for path-based knowledge:
 \begin{equation*}
 \mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \forall s': \mathbf{KDo}(\pi,s,s') \rightarrow \phi[s']
@@ -730,10 +754,10 @@ Used like so:
 \frametitle{Regressing Epistemic Paths}
 It's now possible to formulate a regression rule for $\mathbf{PKnows}$ in synchronous domains:
 \begin{multline*}
-\mathcal{R}\{\mathbf{PKnows_0}(\pi,\phi,do(c,s))\} \Rightarrow \\
- \forall c': \mathbf{PKnows_0}(\mathcal{T}\{\pi,c,c'\},\mathcal{R}\{\phi[c']\},s)
+\Reg[\mathbf{PKnows_0}(\pi,\phi,do(c,s))] \Rightarrow \\
+ \forall c': \mathbf{PKnows_0}(\Trn[\pi,c,c'],\Reg[\phi(c')],s)
 \end{multline*}
-$\mathcal{T}$ basically encodes the semantics of $K$ and $\mathbf{KDo}$
+$\mathcal{T}$ basically encodes the semantics of $\mathbf{KDo}$
 \begin{gather*}
 \mathcal{T}\{agt\}\ \isdef\ \mathrm{s.s.a.\ for}\ K\ \mathrm{fluent} \\
 \mathcal{T}\{?\phi\}\ \isdef\ ?\mathcal{R}\{\phi\} \\
@@ -743,17 +767,17 @@ $\mathcal{T}$ basically encodes the semantics of $K$ and $\mathbf{KDo}$
 \end{frame}
 
 \begin{frame}
-\frametitle{Hidden Actions}
-For $\mathbf{PKnows}$, we fake it using $\mathbf{PKnows_0}$ and a stack of empty actions:
+\frametitle{Asynchronicity}
+We can "fake" asynchronicity using $\mathbf{PKnows_0}$ and a stack of empty actions:
 \begin{gather*}
-\mathcal{E}\{do(c,s)\}\ \isdef\ do(\{\},do(c,\mathcal{E}\{s\})) \\
-\mathcal{E}^n\{s\}\ \isdef\ \mathcal{E}\{\mathcal{E}^{n-1}\{s\}\}
+\mathcal{E}[do(c,s)]\ \isdef\ do(\{\},do(c,\mathcal{E}[s])) \\
+\mathcal{E}^n[s] \isdef\ \mathcal{E}[\mathcal{E}^{n-1}[s]]
 \end{gather*}
-Using a fixpoint of this construction:
+Using a fixpoint construction that mirrors $\Pst$, define:
 \begin{equation*}
-\mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \mathbf{PKnows_0}(\pi,\phi,\mathcal{E}^{\infty}\{s\})
+\mathbf{PKnows}(\pi,\phi,s)\ \isdef\ \mathbf{PKnows_0}(\pi,\phi,\mathcal{E}^{\infty}[s])
 \end{equation*}
-We can prove $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$ using these definitions.
+We prove that $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$
 \end{frame}
 
 \begin{frame}

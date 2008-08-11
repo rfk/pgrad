@@ -2,10 +2,10 @@
 PLTX = pdflatex
 BTX = bibtex -terse
 
-GRAPHICS = poss_worlds.png k_relation.png frame_soln.png k_unobs.png k_unobs_highlighted.png
+GRAPHICS = poss_worlds.pdf k_relation.pdf frame_soln.pdf k_unobs.pdf k_unobs_highlighted.pdf pk_regression.pdf
 
-LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm
-GARBAGE = $(LATEX_GARBAGE) *~
+LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm *.bbl *.blg 
+GARBAGE = $(LATEX_GARBAGE) *~ *.eps
 
 PDF = async_sitcalc.pdf
 
@@ -14,6 +14,12 @@ all: $(PDF)
 
 %.png: %.dia
 	dia -e $@ $<
+
+%.eps: %.dia
+	dia -e $@ $<
+
+%.pdf: %.eps
+	epstopdf $<
 
 %.pdf: %.tex
 	$(PLTX) $< || rm -f $*.pdf
