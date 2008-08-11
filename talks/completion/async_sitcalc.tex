@@ -23,6 +23,7 @@
 
 \usepackage{fancyvrb}
 \usepackage{bibentry}
+\usepackage{tikz}
 
 \title{Asynchronous Multi-Agent Domains\\ in the Situation Calculus}
 \author[Ryan Kelly]{Ryan Kelly\\ Supervisor: Adrian Pearce}
@@ -411,7 +412,7 @@ If $Obs(agt,c,s)=\{\}$ then the actions are completely hidden.
 
 \begin{frame}
 \frametitle{Observations}
-In syncrhonous domains, everyone observes every action:
+In synchronous domains, everyone observes every action:
 \begin{equation*}
 a \in Obs(agt,c,s)\ \equiv\ a \in c
 \end{equation*}
@@ -495,7 +496,7 @@ We must enforce this in the successor state axiom for $K$.
 
 \begin{frame}
 \frametitle{Knowledge: The Synchronous Case}
-In the syncrhonous case, $K_0$ has a simple successor state axiom:
+In the synchronous case, $K_0$ has a simple successor state axiom:
 \begin{multline*}
  K_0(agt,s'',do(c,s)) \equiv \exists s',c':\ s''=do(c',s') \wedge K_0(agt,s',s)\\
   \wedge Poss(c',s') \wedge Obs(agt,c,s) = Obs(agt,c',s')
@@ -793,13 +794,133 @@ We prove that $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$
 \section{Joint Execution}
 
 \begin{frame}
+\frametitle{Representing Executions}
+The Golog execution planning process produces a \emph{situation} representing
+a legal execution of the program.
+\ \\
+\ \\
+This is a \emph{linear} and \emph{fully-ordered} sequence of actions, 
+demanding total synchronicity during execution.
+\ \\
+\ \\
+Multiple agents should be able to execute independent actions independently.
+\begin{itemize}
+\item need a \emph{partially-ordered} representation
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Prime Event Structures}
+Prime event structures are a canonical representation for partially-ordered
+branching sequences of events:
+\begin{itemize}
+\item A set of events, $\mathcal{V}$
+\item A partial order on events, $e_1 \prec e_2$
+\item A conflict relation, $e_1 \# e_2$
+\item A labelling function $\gamma(e) = l$
+\end{itemize}
+\ \\
+\ \\
+Define \emph{enablers} and \emph{alternatives} as follows:
+\begin{itemize}
+\item $j\in ens(i)\equiv j\prec i\,\wedge\,\forall k\in ens(i):\,\neg(j\prec k)$
+\item $j\in alts(i)\equiv j \# i\,\wedge\,\forall k\in ens(i):\,\neg(j \# k)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Independent Actions}
+Assume we can identify independent actions, $indep(a_1,a_2)$, such that:
+\begin{itemize}
+\item $\Dt \models Poss(a_1,s) \equiv Poss(a_1,do(a_2,s))$
+\item $\Dt \models Out(a_1,s) \equiv Out(a_1,do(a_2,s))$
+\item $\Dt \models \mathbf{Q}(do(a_1,do(a_2,s))) \equiv \mathbf{Q}(do(a_2,do(a_1,s)))$
+\item $\Dt \models \mathbf{F}(do(a_1,do(a_2,s))) = \mathbf{F}(do(a_2,do(a_1,s)))$
+\end{itemize}
+\ \\
+\ \\
+Situations that are identical up to re-ordering of independent actions are equivalent.
+\end{frame}
+
+\begin{frame}
+\frametitle{Joint Executions}
+We define \emph{joint executions} as a special kind of prime event structure:
+\begin{itemize}
+\item Disjoint sets of \emph{action} events $\mathcal{A}$ and \emph{outcome} events $\mathcal{O}$
+\item A total order $<$ that is consistent with $\prec$
+\end{itemize}
+\ \\
+\ \\
+Given a set of events $e$ from the JE, we can use $<$ to reduce it to a unique
+situation term $hist(e)$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Joint Executions}
+\begin{center}
+  picture of example JE goes here
+  %\includegraphics[scale=0.35]{pk_regression}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Restrictions on Joint Executions}
+To ensure a joint execution can actually be executed, we enforce the following 
+restrictions:
+\ \\
+\ \\
+\begin{itemize}
+\item Independent events have independent actions: \\
+\ \\
+$\ \ \forall i_1,i_2 \in \mathcal{A} :\ \  i_1 \prec i_2\ \vee\ i_2 \prec i_1\ \vee\ indep(\gamma(i_1),\gamma(i_2))$\\
+\ \\
+\item Every canonical history is legal: \\
+\ \\
+$\ \ \forall e \subset \mathcal{O} :\ \ Legal(hist(e))$ 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Restrictions on Joint Executions}
+\begin{itemize}
+\item All possible outcomes are considered:\\
+\ \\
+$\ \ \Dt \not\models Out(\gamma(i)) \neq r\ \ \Rightarrow\ \exists j : ens(j) = \{i\} \wedge \gamma(j)=r$\\
+\ \\
+\item Actions are enabled by observable events:\\
+\ \\
+$\ \ \forall i \in \mathcal{A} : \forall j \in ens(i) :\ \ \gamma(j)[actor(\gamma(i))] \neq \{\}$\\
+\ \\
+\item Overlapping views enable identical actions:\\
+\ \\
+$\ \ \forall i \in \mathcal{A} : \forall e \subset \mathcal{O} :$\\
+$\ \ \ \ \ overlaps(e,ens(i)) \rightarrow \exists j: \gamma(j)=\gamma(i) \wedge ens(j)=e$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Building Joint Executions}
+Our implementation maintains these restrictions while building a JE one action 
+at a time - just like an ordinary situation term.
+
+\VerbatimInput[fontsize=\scriptsize,frame=lines]{jeplan.oz}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Building Joint Executions}
+
+\tiny
+\input{plan}
+\normalsize
+
 \end{frame}
 
 \begin{frame}
 \frametitle{Contributions}
 \textbf{Joint Execution:}  a partially-ordered data structure representing actions to be performed by a group of agents
 \begin{itemize}
-\item That ensures syncrhonisation is always possible
+\item That ensures synchronisation is always possible
 \item That can be reasoned about using standard sitcalc techniques
 \item That can replace situation terms in the Golog planning process
 \item That has been implemented in a MIndiGolog execution planner
@@ -809,7 +930,7 @@ We prove that $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$
 \section{Conclusions}
 
 \begin{frame}
-  \frametitle{Contributions}
+  \frametitle{Summary}
   Powerful extensions to the Situation Calculus for representing and reasoning
   about rich, asynchronous multi-agent domains:
   \ \\
