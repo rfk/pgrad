@@ -177,37 +177,6 @@ appliances and utensils.  They must cooperate to produce a meal consisting
 of several dishes.\\
 \ \\
 \pause
-Challenges:
-\begin{itemize}
-  \item Encoding procedural knowledge
-  \item Concurrent execution of tasks
-  \item Conflict over shared resources
-  \item Coordination of shared actions
-\end{itemize}
-\end{frame}
-
-
-\begin{frame}
-\frametitle{MIndiGolog}
-Vision:
-\begin{itemize}
-\item Agents cooperate to plan and perform the execution of a shared Golog program
-\end{itemize}
-\ \\
-\ \\
-Contributions
-\begin{itemize}
-\item Merge concurrent actions with concurrent program execution
-\item Integrate time and natural actions for coordination
-\item Share planning workload using distributed logic programming
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Example Programs}
-
-Consider some programs we might write for this domain:
-
 \begin{columns}
   \begin{column}{0.5\textwidth}
 \[
@@ -235,6 +204,22 @@ PlaceIn(agt,obj,dest))\\
 \end{frame}
 
 \begin{frame}
+\frametitle{MIndiGolog}
+Vision:
+\begin{itemize}
+\item Agents cooperate to plan and perform the execution of a shared Golog program
+\end{itemize}
+\ \\
+\ \\
+Contributions
+\begin{itemize}
+\item Merge concurrent actions with concurrent program execution
+\item Integrate time and natural actions for coordination
+\item Share planning workload using distributed logic programming
+\end{itemize}
+\end{frame}
+
+\begin{frame}
 \frametitle{MIndiGolog Semantics}
 Agents should take advantage of true concurrency. Basic idea:
 \begin{multline*}
@@ -256,22 +241,7 @@ Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2
 
 \begin{frame}
 \frametitle{MIndiGolog Semantics}
-The combination of actions $(c_1\cup c_2)$ may not be possible.
-\begin{itemize}
-  \item Must check this explicitly
-\end{itemize}
-\ \\
-\ \\
-The same \emph{agent-initiated} action mustn't $Trans$ both programs.
-\begin{itemize}
-  \item otherwise dangerous 'skipping' of actions can occur
-  \item if two concurrent programs both call for $pay(Ryan,\$100)$ to be performed, it had better be performed twice!
-  \item Natural actions can transition both programs
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{MIndiGolog Semantics}
+Agents should take advantage of true concurrency. Basic idea:
 \begin{multline*}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
 \shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
@@ -330,40 +300,21 @@ MakeSalad(Bowl1)\ ||\ MakeCake(Bowl2)\ ||\ \dots\]
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Limitations}
-This works well, but it depends on two assumptions:
-\ \\
-\ \\
-\pause
-Complete knowledge:
-\begin{itemize}
-\item linear plan
-\item no sensing required
-\end{itemize}
-\ \\
-\ \\
-\pause
-Synchronous domain:
-\begin{itemize}
-\item agents proceed in lock-step
-\end{itemize}
-\end{frame}
-
 \section{Asynchronicity}
 
 \begin{frame}
-\frametitle{Synchronicity}
-Synchronous domains:
+\frametitle{Limitation: Synchronicity}
+This works well, but it depends on two assumptions:
 \begin{itemize}
-\item when an action occurs, everyone knows an action has occurred
+\item Complete knowledge (linear plan, no sensing)
+\item Synchronous domain (agents proceed in lock-step)
 \end{itemize}
+\pause
 \ \\
 \ \\
 Nearly universal in the literature: "assume all actions are public".
 \ \\
 \ \\
-\pause
 \alert{Challenge:}  Regression depends intimately on synchronicity
 
 \end{frame}
@@ -672,6 +623,7 @@ The basic group-level operator is "Everyone Knows":
 \dots \\
 \mathbf{EKnows}^{n}(G,\phi,s)\ \isdef\ \mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)
 \end{gather*}
+\pause
 Eventually, we get "Common Knowledge":
 \begin{gather*}
 \mathbf{CKnows}(G,\phi,s)\ \isdef\ \mathbf{EKnows}^{\infty}(agt,\phi,s)
@@ -794,7 +746,7 @@ We prove that $\mathbf{PKnows}(agt,\phi,s) \equiv \mathbf{Knows}(agt,\phi,s)$
 \section{Joint Execution}
 
 \begin{frame}
-\frametitle{Representing Executions}
+\frametitle{Joint Executions}
 The Golog execution planning process produces a \emph{situation} representing
 a legal execution of the program.
 \ \\
@@ -817,7 +769,7 @@ branching sequences of events:
 \item A set of events, $\mathcal{V}$
 \item A partial order on events, $e_1 \prec e_2$
 \item A conflict relation, $e_1 \# e_2$
-\item A labelling function $\gamma(e) = l$
+\item A labelling function, $\gamma(e) = lbl$
 \end{itemize}
 \ \\
 \ \\
@@ -829,72 +781,23 @@ Define \emph{enablers} and \emph{alternatives} as follows:
 \end{frame}
 
 \begin{frame}
-\frametitle{Independent Actions}
-Assume we can identify independent actions, $indep(a_1,a_2)$, such that:
-\begin{itemize}
-\item $\Dt \models Poss(a_1,s) \equiv Poss(a_1,do(a_2,s))$
-\item $\Dt \models Out(a_1,s) \equiv Out(a_1,do(a_2,s))$
-\item $\Dt \models \mathbf{Q}(do(a_1,do(a_2,s))) \equiv \mathbf{Q}(do(a_2,do(a_1,s)))$
-\item $\Dt \models \mathbf{F}(do(a_1,do(a_2,s))) = \mathbf{F}(do(a_2,do(a_1,s)))$
-\end{itemize}
-\ \\
-\ \\
-Situations that are identical up to re-ordering of independent actions are equivalent.
-\end{frame}
-
-\begin{frame}
-\frametitle{Joint Executions}
-We define \emph{joint executions} as a special kind of prime event structure:
-\begin{itemize}
-\item Disjoint sets of \emph{action} events $\mathcal{A}$ and \emph{outcome} events $\mathcal{O}$
-\item A total order $<$ that is consistent with $\prec$
-\end{itemize}
-\ \\
-\ \\
-Given a set of events $e$ from the JE, we can use $<$ to reduce it to a unique
-situation term $hist(e)$.
-\end{frame}
-
-\begin{frame}
 \frametitle{Joint Executions}
 \begin{center}
-  picture of example JE goes here
-  %\includegraphics[scale=0.35]{pk_regression}
+  \includegraphics[scale=0.31]{jointexec}
 \end{center}
 \end{frame}
 
 \begin{frame}
-\frametitle{Restrictions on Joint Executions}
-To ensure a joint execution can actually be executed, we enforce the following 
-restrictions:
+\frametitle{Joint Executions}
+We enforce several restrictions to ensure a JE can always be executed.
 \ \\
 \ \\
 \begin{itemize}
-\item Independent events have independent actions: \\
-\ \\
-$\ \ \forall i_1,i_2 \in \mathcal{A} :\ \  i_1 \prec i_2\ \vee\ i_2 \prec i_1\ \vee\ indep(\gamma(i_1),\gamma(i_2))$\\
-\ \\
-\item Every canonical history is legal: \\
-\ \\
-$\ \ \forall e \subset \mathcal{O} :\ \ Legal(hist(e))$ 
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Restrictions on Joint Executions}
-\begin{itemize}
-\item All possible outcomes are considered:\\
-\ \\
-$\ \ \Dt \not\models Out(\gamma(i)) \neq r\ \ \Rightarrow\ \exists j : ens(j) = \{i\} \wedge \gamma(j)=r$\\
-\ \\
-\item Actions are enabled by observable events:\\
-\ \\
-$\ \ \forall i \in \mathcal{A} : \forall j \in ens(i) :\ \ \gamma(j)[actor(\gamma(i))] \neq \{\}$\\
-\ \\
-\item Overlapping views enable identical actions:\\
-\ \\
-$\ \ \forall i \in \mathcal{A} : \forall e \subset \mathcal{O} :$\\
-$\ \ \ \ \ overlaps(e,ens(i)) \rightarrow \exists j: \gamma(j)=\gamma(i) \wedge ens(j)=e$
+\item Independent events have independent actions
+\item Every canonical history is legal
+\item All possible outcomes are considered
+\item Actions are enabled by observable events:
+\item Overlapping views enable identical actions:
 \end{itemize}
 \end{frame}
 
@@ -917,13 +820,13 @@ at a time - just like an ordinary situation term.
 \end{frame}
 
 \begin{frame}
-\frametitle{Contributions}
+\frametitle{Contribution}
 \textbf{Joint Execution:}  a partially-ordered data structure representing actions to be performed by a group of agents
 \begin{itemize}
 \item That ensures synchronisation is always possible
 \item That can be reasoned about using standard sitcalc techniques
 \item That can replace situation terms in the Golog planning process
-\item That has been implemented in a MIndiGolog execution planner
+\item Implemented in a MIndiGolog execution planner
 \end{itemize}
 \end{frame}
 
@@ -931,16 +834,12 @@ at a time - just like an ordinary situation term.
 
 \begin{frame}
   \frametitle{Summary}
-  Powerful extensions to the Situation Calculus for representing and reasoning
-  about rich, asynchronous multi-agent domains:
-  \ \\
-  \ \\
   \begin{itemize}
-  \item Multi-agent Golog with distributed execution planning
-  \item Techniques for effective inductive reasoning
-  \item Reasoning about knowledge with hidden actions
-  \item Reasoning about group-level knowledge modalities
-  \item Planning joint executions with partial observability
+  \item Semantics for a multi-agent Golog variant, and an implementation allowing distributed execution planning.
+  \item An account of hidden and partially-observable actions, in which agents can reason about their own knowledge using only their local information.
+  \item A new meta-operator allowing regression rules that quantify over all future situations.
+  \item A formal account of common knowledge that is amenable to effective automated reasoning using regression rules.
+  \item A data structure for building partially-ordered branching sequences of actions during Golog execution planning.
   \end{itemize}
 \end{frame}
 
