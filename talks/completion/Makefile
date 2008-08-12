@@ -2,7 +2,7 @@
 PLTX = pdflatex
 BTX = bibtex -terse
 
-GRAPHICS = poss_worlds.pdf k_relation.pdf frame_soln.pdf k_unobs.pdf k_unobs_highlighted.pdf pk_regression.pdf jointexec.pdf
+GRAPHICS = poss_worlds.pdf k_relation.pdf frame_soln.pdf k_unobs.pdf k_unobs_highlighted.pdf pk_regression.pdf jointexec.pdf plan.pdf
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.nav *.out *.snm *.bbl *.blg 
 GARBAGE = $(LATEX_GARBAGE) *~ *.eps
