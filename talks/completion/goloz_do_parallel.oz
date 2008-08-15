@@ -1,6 +1,6 @@
-proc {ParallelDo D S}
+proc {ParallelMIndiGolog D S}
     PSearch={New Search.parallel
-        init(richard:1#ssh harriet:1#ssh thomas:1#ssh)}
+        init(richard:1#ssh thomas:1#ssh harriet:1#ssh)}
   in
-    Exec={PSearch one(MIndiGolog D $)}
+    S={PSearch one(MIndiGolog D $)}
 end 

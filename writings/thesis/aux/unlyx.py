@@ -21,6 +21,8 @@ def unlyx(inF,outF):
         #  Ignore any \newcommand lines, they are in the preamble/macros file
         if ln.startswith("\\newcommand"): continue
         if ln.startswith(" \\newcommand"): continue
+        #  Ignore line spacing declarations
+        if ln.startswith("\\onehalfspace"): continue
         #  Remove stupid square-bracket escaping
         ln = unescape_sqb(ln)
         #  Recurse to any subfiles LyX might have touched

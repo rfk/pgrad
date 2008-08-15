@@ -49,12 +49,12 @@
   \end{itemize}
 \end{frame}
 
+
+\section{Situation Calculus}
+
 \begin{frame}
 \centering \large The Situation Calculus\\
 \end{frame}
-
-
-\section{Situation Calculus}
 
 \begin{frame}
 \frametitle{The Situation Calculus}
@@ -126,7 +126,7 @@ Consider a Golog program for getting to uni of a morning:\[
 \begin{array}{c}
 ringAlarm;(hitSnooze; ringAlarm)^*;turnOffAlarm;\\
 \pi(food,\ edible(food)?;eat(food)); (haveShower || brushTeeth);\\
-(driveToUni\ |\ trainToUni); (time<9:00)?
+(driveToUni\ |\ trainToUni); (time<11:00)?
 \end{array}\]
 
 There are potentially many ways to execute this program, depending on which 
@@ -143,17 +143,17 @@ Use theory of action to plan a \emph{Legal Execution}:\[
 \frametitle{Extending the Situation Calculus}
 \begin{itemize}
 \pause
-\item Concurrent Actions:\ \ \ $do(\{a_1,a_2\},s)$
+\item Concurrent Actions:\pause\ \ \ $do(\{a_1,a_2\},s)$
 \pause
-\item Continuous time:\ \ \ $do(c,t,s)$
+\item Continuous time:\pause\ \ \ $do(c,t,s)$
 \pause
-\item Long-running tasks:\ \ \ $begin(t)$, $doing(t,s)$, $end(t)$
+\item Long-running tasks:\pause\ \ \ $begin(t)$, $doing(t,s)$, $end(t)$
 \pause
-\item Natural processes:\ \ \ $Legal(a,s)\rightarrow\neg\exists n: nat(n) \wedge Poss(n,s)$
+\item Natural processes:\pause\ \ \ $Legal(a,s)\rightarrow\neg\exists n: nat(n) \wedge Poss(n,s)$
 \pause
-\item Incomplete knowledge:\ \ \ $\Knows(\phi,s)$
+\item Incomplete knowledge:\pause\ \ \ $\Knows(\phi,s)$
 \pause
-\item Asynchronous multi-agent domains:\ \ \ ???
+\item Asynchronous multi-agent domains:\pause\ \ \ ???
 \end{itemize}
 \ \\
 \ \\
@@ -219,8 +219,8 @@ Contributions
 \frametitle{MIndiGolog Semantics}
 Agents should take advantage of true concurrency. Basic idea:
 \begin{multline*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
-\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma:\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma:\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
 \end{multline*}
 \end{frame}
 
@@ -228,9 +228,9 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_
 \frametitle{MIndiGolog Semantics}
 Agents should take advantage of true concurrency. Basic idea:
 \begin{multline*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
-\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
-\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge}\\ 
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma:\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma:\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t:\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))\wedge}\\ 
 Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do(c_{1}\cup c_{2},t,s)
 \end{multline*}
 \end{frame}
@@ -239,11 +239,11 @@ Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_{1}||\gamma_{2
 \frametitle{MIndiGolog Semantics}
 Agents should take advantage of true concurrency. Basic idea:
 \begin{multline*}
-Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma\,.\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
-\shoveright{\vee\exists\gamma\,.\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
-\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t\,.\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
+Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\exists\gamma:\, Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})\\
+\shoveright{\vee\exists\gamma:\, Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)}\\
+\shoveright{\vee\exists c_{1},c_{2},\gamma_{1},\gamma_{2},t:\, Trans(\delta_{1},s,\gamma_{1},do(c_{1},t,s))}\\
 \shoveright{\wedge Trans(\delta_{2},s,\gamma_{2},do(c_{2},t,s))\wedge\delta'=(\gamma_1||\gamma_2)\wedge s'=do(c_1\cup c_2,t,s)}\\
-\wedge Poss(c_1\cup c_2,t,s)\wedge\forall a.\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]
+\wedge Poss(c_1\cup c_2,t,s)\wedge\forall a:\left[a\in c_{1}\wedge a\in c_{2}\rightarrow Natural(a)\right]
 \end{multline*}
 \end{frame}
 
@@ -347,7 +347,12 @@ We reify the \emph{observations} made by each agent:
 \ \\
 \ \\
 \small
+\begin{center}
 $Obs(agt,c,s) = o$
+\end{center}
+\ \\
+\ \\
+If $Obs(agt,c,s)=\{\}$ then the actions are completely hidden.
 \ \\
 \ \\
 \pause
@@ -355,10 +360,6 @@ $View(agt,S_0) = \epsilon$\\
 $Obs(agt,c,s) = \{\} \rightarrow View(agt,do(c,s)) = View(agt,s)$\\
 $Obs(agt,c,s) \neq \{\} \rightarrow View(agt,do(c,s)) = Obs(agt,c,s) \cdot View(agt,s)$
 \normalsize
-\ \\
-\ \\
-\pause
-If $Obs(agt,c,s)=\{\}$ then the actions are completely hidden.
 \end{frame}
 
 \begin{frame}
@@ -548,7 +549,7 @@ to deal with.
 \frametitle{Property Persistence}
 The persistence condition can be calculated as a fixpoint:
 \begin{equation*}
-  \Pst^{1}[\phi,\alpha](s)\ \isdef\ \phi(s) \wedge \forall c: \alpha(c) \rightarrow \phi(do(c,s))
+  \Pst^{1}[\phi,\alpha](s)\ \isdef\ \phi(s) \wedge \forall c: \alpha(c) \rightarrow \Reg[\phi(do(c,s))]
 \end{equation*}
 \begin{equation*}
   \Pst^{n}[\phi,\alpha](s)\ \isdef\ \Pst^{1}[\Pst^{n-1}[\phi,\alpha],\alpha]

@@ -68,6 +68,8 @@ all: thesis.pdf
 	echo -n '\' >> $@
 	echo 'begin{document}' >> $@
 	cat mathmacros.tex >> $@
+	echo -n '\' >> $@
+	echo 'onehalfspace' >> $@
 	cat $< >> $@
 	cat bibcmds.tex >> $@
 	echo -n '\' >> $@
@@ -80,6 +82,8 @@ all: thesis.pdf
 	echo -n '\' >> $@
 	echo 'begin{document}' >> $@
 	cat mathmacros.tex >> $@
+	echo -n '\' >> $@
+	echo 'onehalfspace' >> $@
 	cat $< >> $@
 	echo -n '\' >> $@
 	echo 'end{document}' >> $@
@@ -89,6 +93,8 @@ rawchapters.tex: $(CHAPTERS)
 	echo -n '\' >> $@
 	echo 'begin{document}' >> $@
 	cat mathmacros.tex >> $@
+	echo -n '\' >> $@
+	echo 'onehalfspace' >> $@
 	for FN in $(CHAPTERS); do cat $$FN >> $@; done;
 	echo -n '\' >> $@
 	echo 'end{document}' >> $@
@@ -170,16 +176,11 @@ warnings: thesis.dvi
 	echo ""
 	grep --color 'Warning' thesis.log || true
 	echo ""
-	grep --color -A 1 '^Underfull' thesis.log || true
-	echo ""
 	grep --color -A 1 '^Overfull' thesis.log || true
 
 
 ##  Specific dependenices
 
 thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES)
-
-overview.pdf: thesis.pdf
-	pdfnup --nup 1x1 --pages "1,3,11-12,17-19" --outfile overview.pdf thesis.pdf 
 
 
