@@ -143,12 +143,15 @@ view-%: %.ch.pdf
 
 # easy editing of chapters in lyx
 edit-%: %.ch.tex
+	# Fail is already editing
+	if [ -f $*.ed.lyx ] ; then false ; fi
 	# Generate lyx file from the latex
 	rm -rf $*.ed.lyx $*.ed.tex
 	tex2lyx -c thesis $< $*.ed.lyx
 	# Run lyx for editing, then export back to latex
 	lyx $*.ed.lyx
 	lyx --export latex $*.ed.lyx
+	rm $*.ed.lyx $*.ed.tex
 	# Remove LyX cruft
 	python aux/unlyx.py < $*.ed.tex > $*.tex
 
