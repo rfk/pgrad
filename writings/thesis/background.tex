@@ -1,4 +1,3 @@
- \onehalfspace \onehalfspace
 
 
 \chapter{Background}
@@ -38,18 +37,17 @@ calculus should note our generalisation of the $Poss$ fluent to action
 description predicates, and the corresponding $<_{\alpha}$ notation.
 
 
-\subsection{Notation and Axioms\label{sub:Notation-and-Axioms}}
+\subsection{Notation and Axioms\label{sec:Background:SC:Notation-and-Axioms}}
 
 The situation calculus is a many-sorted language of first-order logic
 augmented with a second-order induction axiom. Its has the following
 sorts: \noun{Agent} terms represent the agents operating in the world;
 \emph{\noun{Action}} terms are functions denoting individual instantaneous
 events that can cause the state of the world to change, with the initiating
-agent indicated by their first argument; \noun{Concurrent} terms are
-sets of actions that occur simultaneously; \noun{Situation} terms
-are histories of the actions that have occurred in the world, with
-the initial situation represented by $S_{0}$ and successive situations
-built using the function $do\,:\, Concurrent\times Situation\rightarrow Situation$;
+agent indicated by their first argument; \noun{Situation} terms are
+histories of the actions that have occurred in the world, with the
+initial situation represented by $S_{0}$ and successive situations
+built using the function $do\,:\, Action\times Situation\rightarrow Situation$;
 \noun{Object} terms represent any other object in the domain. \emph{Fluents}
 are predicates or functions that represent properties of the world
 that may change between situations; they take a situation term as
@@ -64,34 +62,15 @@ knife after he picks it up''. Formally:\begin{gather*}
 Holding(Bob,Knife1,do(pickup(Bob,Knife1),S_{0}))\end{gather*}
 
 
-The dynamics of a particular domain are captured by a set of sentences
-called a \emph{basic action theory}. Queries about the behaviour of
-the world are posed as logical entailment queries relative to this
-theory.
+\medskip{}
 
-\begin{defnL}
-[{Basic~Action~Theory}] A basic action theory, denoted
-$\Dt$, is a set of situation calculus sentences (of the specific
-syntactic form outlined below) describing a particular dynamic world.
-It consists of the following disjoint sets: the foundational axioms
-of the situation calculus ($\Sigma$); unique names axioms for actions
-($\Dt_{una}$); action description axioms defining preconditions etc
-for each action ($\Dt_{ad}$); successor state axioms describing how
-primitive fluents change between situations ($\Dt_{ssa}$); and axioms
-describing the value of primitive fluents in the initial situation
-($\Dt_{S_{0}}$):\[
-\Dt=\Sigma\cup\Dt_{una}\cup\Dt_{ad}\cup\Dt_{ssa}\cup\Dt_{S_{0}}\]
 
-\end{defnL}
-These axioms must satisfy some simple consistency criteria to constitute
-a valid domain description \citet{pirri99contributions_sitcalc}.
-We assume an arbitrary, but fixed, basic action theory.
-
-The \emph{uniform formulae} can be thought of as properties of the
-state of the world. They are basically logical combinations of fluents
-referring to a common situation term. For the moment we restrict ourselves
-to \emph{objective} uniform formulae; the complete definition includes
-statements about knowledge and will be introduced following that material.
+These primitive fluents can be generalised to \emph{uniform formulae},
+which represent more complex properties of the state of the world.
+They are basically logical combinations of fluents referring to a
+common situation term. For the moment we restrict ourselves to \emph{objective}
+uniform formulae; the complete definition includes statements about
+knowledge and will be introduced following that material.
 
 \begin{defnL}
 [{Objective~Uniform~Formulae}] Let $s$ be a fixed situation
@@ -109,15 +88,48 @@ different situation terms. We will frequently suppress the situation
 term in $\phi$ to simplify the presentation. The notation $\phi[s']$
 represents a uniform formula with the particular situation $s'$ inserted
 into all its fluents, while $\phi^{-1}$ represents a uniform formula
-with the situation argument removed from all its fluents.
+with the situation argument removed from all its fluents. For example,
+if $\phi$ represents $Holding(Ann,Knife,s)\wedge Holding(Bob,Bowl,s)$,
+then we have:\begin{gather*}
+\phi[s']\,=\, Holding(Ann,Knife,s')\wedge Holding(Bob,Bowl,s')\\
+\phi^{-1}\,=\, Holding(Ann,Knife)\wedge Holding(Bob,Bowl)\end{gather*}
+
+
+\medskip{}
+
+
+The dynamics of a particular domain are captured by a set of sentences
+called a \emph{basic action theory}. Queries about the behaviour of
+the world are posed as logical entailment queries relative to this
+theory.
+
+\begin{defnL}
+[{Basic~Action~Theory}] A basic action theory, denoted
+$\Dt$, is a set of situation calculus sentences (of the specific
+syntactic form outlined below) describing a particular dynamic world.
+It consists of the following disjoint sets: the foundational axioms
+of the situation calculus ($\Sigma$); unique names axioms for actions
+($\Dt_{una}$); action description axioms defining preconditions etc
+for each action ($\Dt_{ad}$); successor state axioms describing how
+primitive fluents change between situations ($\Dt_{ssa}$); axioms
+describing the value of primitive fluents in the initial situation
+($\Dt_{S_{0}}$); and axioms giving situation-independent background
+facts ($\Dt_{bg}$):\[
+\Dt=\Sigma\cup\Dt_{una}\cup\Dt_{ad}\cup\Dt_{ssa}\cup\Dt_{S_{0}}\cup\Dt_{bg}\]
+
+\end{defnL}
+These axioms must satisfy some simple consistency criteria to constitute
+a valid domain description \citep{pirri99contributions_sitcalc}.
+We assume an arbitrary, but fixed, basic action theory.
 
 \medskip{}
 
 
 The set $\Dt_{una}$ restricts action terms to a finite number of
 action types, and ensures that actions with different types or different
-arguments are in fact different. The function $actor(a)$ gives the
-agent performing an action, which is always the action's first argument.
+arguments are in fact different. It also defines the function $actor(a)$
+to give the agent performing an action, which is always the action's
+first argument.
 
 \medskip{}
 
@@ -125,17 +137,13 @@ agent performing an action, which is always the action's first argument.
 The set $\Dt_{ssa}$ contains one \emph{successor state axiom} for
 each primitive fluent in the domain, providing a monotonic solution
 to the frame problem for that fluent. These axioms have the following
-general form%
-\footnote{We follow standard naming conventions for the situation calculus:
-lower-case roman names indicate variables, and free variables are
-implicitly universally quantified at the outermost scope%
-}: \[
-F(\vars{x},do(c,s))\equiv\Phi_{F}^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},c,s)\]
+general form: \[
+F(\vars{x},do(a,s))\equiv\Phi_{F}^{+}(\vars{x},a,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},a,s)\]
 
 
 Here $\Phi_{F}^{+}$ and $\Phi_{F}^{-}$ are formulae uniform in $s$.
-This may be read as {}``$F$ is true after performing $c$ if $c$
-made it true, or it was previously true and $c$ did not make it false''.
+This may be read as {}``$F$ is true after performing $a$ if $a$
+made it true, or it was previously true and $a$ did not make it false''.
 
 \medskip{}
 
@@ -146,24 +154,12 @@ various aspects of the performance of an action, which we call \emph{action
 description predicates}. The predicate $Poss(a,s)$ is the canonical
 example, indicating whether it is possible to perform an action in
 a given situation. For example, it is only possible for an agent to
-leave the room if they are actually in it:\[
-Poss(leave(agt),s)\equiv InRoom(agt,s)\]
+pickup an object if nobody is current holding it:\[
+Poss(pickup(agt,obj),s)\equiv\neg\exists agt_{2}:\, Holding(agt_{2},obj,s)\]
  $\Dt_{ad}$ contains one axiom of the form $Poss(A(\vars{x}),s)\equiv\Phi_{Poss}^{A}(\vars{x},s)$
-for each type of action $A$. These are combined into a generalised
-$Poss$ axiom for sets of concurrent actions, which in its simplest
-form is just:\[
-Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\in c:\, Poss(a,s)\]
- Note that it is never possible to perform an empty set of actions.
-In more complex domains actions may interact, so that they cannot
-be performed concurrently even if possible individually. We assume
-that $\Dt_{ad}$ contains an appropriate axiomatisation of such interaction;
-\citet{pinto94temporal} provides a full discussion of this issue;
-
-In principle any number of predicates and functions can be defined
-in this way, and we will use the meta-variable $\alpha$ to represent
-an arbitrary action description predicate. Forthcoming examples include
-the sensing-result function $SR(a,s)$ of Section \ref{sub:Knowledge-and-Sensing}
-and the observability predicate $CanObs(agt,a,s)$ of Section \ref{sub:Knowledge-and-Observation}.
+for each type of action $A$. In principle any number of predicates
+and functions can be defined in this way, and we will use the meta-variable
+$\alpha$ to represent an arbitrary action description predicate.
 
 We assume that these definitions are finitely enumerable and well-founded,
 allowing them to be expanded down to primitive fluents even when they
@@ -176,35 +172,34 @@ Poss(a,s)\equiv\,\, a=A_{1}(\vars{x}_{1})\wedge\Phi_{Poss}^{A_{1}}(\vars{x}_{1},
 
 
 The foundational axioms $\Sigma$ ensure that situations form a branching-time
-account of the world state. There are initial situations identified
-by the predicate $Init(s)$, and a distinguished initial situation
-$S_{0}$ called the \emph{actual} initial situation. Other initial
-situations are used to represent the agents' epistemic uncertainty,
-and will be discussed in the following section. Situations in general
-form a tree structure with an initial situation at the root and $do(c,s)$
-constructing the successor situation resulting when the actions $c$
-are performed in $s$. We abbreviate the performance of several successive
+account of the world state. There is a distinguished initial situation
+$S_{0}$ called the \emph{initial situation}. Situations in general
+form a tree structure with the initial situation at the root and $do(a,s)$
+constructing the successor situation resulting when the action $a$
+is performed in $s$. We abbreviate the performance of several successive
 actions by writing:\[
-do([c_{1},\dots,c_{n}],s)\,\isdef\, do(c_{n},do(\dots,do(c_{1},s)))\]
+do([a_{1},\dots,a_{n}],s)\,\isdef\, do(a_{n},do(\dots,do(a_{1},s)))\]
 
 
 The relation $s\sqsubset s'$ indicates that $s'$ is in the future
 of $s$ and is defined as follows:\begin{gather*}
-Init(s)\,\rightarrow\,\neg(s'\sqsubset s)\\
-s\sqsubset do(c,s')\equiv s\sqsubseteq s'\end{gather*}
+\neg(s\sqsubset S_{0})\\
+s\sqsubset do(a,s')\equiv s\sqsubseteq s'\end{gather*}
 
 
 Here $s\sqsubseteq s'$ is the standard abbreviation for $s\sqsubset s'\vee s=s'$.
 There is also a second-order induction axiom asserting that all situations
 must be constructed in this way, which is needed to prove statements
-that universally quantify over situations
+that universally quantify over situations:\[
+\forall P:\,\left[P(S_{0})\wedge\forall s,a:\,\left(P(s)\rightarrow P(do(a,s))\right)\right]\,\rightarrow\,\forall s:\, P(s)\]
 
-This notation for {}``in the future of'' can be extended to consider
+
+The notation for {}``in the future of'' can be extended to consider
 only those futures in which all actions satisfy a particular action
 description predicate. We include a relation $<_{\alpha}$ for each
 action description predicate $\alpha$, with the following definitions:\begin{gather*}
-Init(s)\,\rightarrow\,\neg\left(s'<_{\alpha}s\right)\\
-s<_{\alpha}do(c,s')\equiv s\leq_{\alpha}s'\wedge\alpha(c,s')\end{gather*}
+\neg\left(s<_{\alpha}S_{0}\right)\\
+s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s')\end{gather*}
 
 
 The \emph{legal situations} are those in which every action was possible
@@ -212,19 +207,23 @@ to perform in the preceding situation. These are of fundamental importance,
 as they are the only situations that could be reached in the real
 world. The \emph{root} of a situation is the initial situation from
 which it was constructed:\begin{gather*}
-Init(s)\,\rightarrow\, root(s)=s\\
+root(S_{0})=s\\
 root(do(c,s))=root(s)\\
 Legal(s)\,\equiv\, root(s)\leq_{Poss}s\end{gather*}
 
 
+\medskip{}
+
+
 The set $\Dt_{S_{0}}$ describes the actual state of the world before
 any actions are performed. It is a collection of sentences of the
-form $\phi[S_{0}]$ stating what holds in the actual initial situation.
-It also defines the initial knowledge of each agent, as described
-in the next section.
+form $\phi[S_{0}]$ stating what holds in the initial situation.\medskip{}
 
 
-\subsection{Reasoning and Regression}
+TODO: The set $\Dt_{bg}$
+
+
+\subsection{Reasoning}
 
 One of the attractions of the situation calculus is the existence
 of effective reasoning procedures for certain types of query. These
@@ -237,9 +236,16 @@ $\Dt$ is a theorem-proving task in second-order logic (denoted SOL)
 due to the induction axiom included in the foundational axioms. This
 is clearly problematic for effective automated reasoning, but fortunately
 there exist particular syntactic forms for which some of the axioms
-in $\mathcal{D}$ are not required \citet{pirri99contributions_sitcalc}.
-In particular, queries about the initial situation can be answered
-using only first-order logic (FOL) and a limited set of axioms:\[
+in $\mathcal{D}$ are not required \citep{pirri99contributions_sitcalc}. 
+
+If a query existentially quantifies over situation terms, it can be
+answered without the induction axiom (denote $I$) and thus using
+only first-order logic (FOL):\[
+\Dt\models_{SOL}\exists s:\,\phi(s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\models_{FOL}\exists s:\,\phi(s)\]
+
+
+Even simpler are queries about the initial situation, which can be
+answered using only first-order logic and a limited set of axioms:\[
 \mathcal{D}\models_{SOL}\phi[S_{0}]\,\,\,\,\,\mathit{\mathrm{iff}}\,\,\,\,\,\Dt_{S_{0}}\cup\Dt_{una}\models_{FOL}\phi[S_{0}]\]
 
 
@@ -251,17 +257,17 @@ queries into more easily-handled forms such as this. \\
 
 The principle tool for effective reasoning in the situation calculus
 is the regression meta-operator $\Reg_{\Dt}$ \citet{pirri99contributions_sitcalc},
-a syntactic manipulation that can transform a formula uniform in $do(c,s)$
+a syntactic manipulation that can transform a formula uniform in $do(a,s)$
 into an equivalent formula that is uniform in $s$:\[
-\Dt\,\models\,\phi[do(c,s)]\equiv\Reg_{\Dt}(\phi[do(c,s)])[s]\]
+\Dt\,\models\,\phi[do(a,s)]\equiv\Reg_{\Dt}(\phi[do(a,s)])[s]\]
 
 
 Since $\Dt$ is fixed, we drop the subscript and simply write $\Reg$
 for regression. Its operation is defined by a set of \emph{regression
 rules} such as those shown below:\begin{align*}
 \Reg(\phi_{1}\wedge\phi_{2})\isdef & \,\,\,\Reg(\phi_{1})\wedge\Reg(\phi_{2})\\
-\Reg(Poss(a,s))\isdef & \,\,\, a=A{}_{1}(\vars{x}_{1})\wedge\Reg(\Phi_{Poss}^{A_{1}}(\vars{x}_{1},s))\,\vee\,\dots\,\vee\, a=A_{n}(\vars{x}_{n})\wedge\Reg(\Phi_{Poss}^{A_{n}}(\vars{x}_{n},s))\\
-\Reg(F(\vars{x},do(c,s)))\isdef & \,\,\,\Phi_{F}^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},c,s)\end{align*}
+\Reg(Poss(a,s))\isdef & \,\,\, a=A_{1}(\vars{x}_{1})\wedge\Reg(\Phi_{Poss}^{A_{1}}(\vars{x}_{1},s))\,\vee\,\dots\,\vee\, a=A_{n}(\vars{x}_{n})\wedge\Reg(\Phi_{Poss}^{A_{n}}(\vars{x}_{n},s))\\
+\Reg(F(\vars{x},do(a,s)))\isdef & \,\,\,\Phi_{F}^{+}(\vars{x},a,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},a,s)\end{align*}
 
 
 Each application of the regression operator replaces action description
@@ -276,37 +282,24 @@ $\Dt_{ad}$ and $\Dt_{ssa}$ are essentially {}``compiled into''
 the query. The trade-off is that the length of the regressed query
 may be exponential in the length of $\phi$. While an efficiency gain
 is not guaranteed, regression has proven a very effective technique
-in practice \citet{levesque97golog,pirri99contributions_sitcalc}.
+in practice \citep{levesque97golog,pirri99contributions_sitcalc}.
 
 When dealing with situation-suppressed uniform formulae, we will use
-a two-argument operator $\Reg(\phi,c)$ to indicate the regression
-of $\phi$ over the action $c$. It should be read as a shorthand
-for $\Reg(\phi[do(c,s)])^{-1}$ using the situation-suppression operator
-from Section \ref{sub:Notation-and-Axioms}.
+a two-argument operator $\Reg(\phi,a)$ to indicate the regression
+of $\phi$ over the action $a$. It should be read as a shorthand
+for $\Reg(\phi[do(a,s)])^{-1}$ using the situation-suppression operator
+from section \ref{sec:Background:SC:Notation-and-Axioms}.
 
-TODO
+TODO: reasoning in the {}``fluent domain''
 
-\begin{itemize}
-\item Careful qualification of what we mean by \char`\"{}Effective\char`\"{} 
-\item Review basics of reasoning in more detail, esp. regression. 
-\item SitCalc as a re-writing system 
-\item reasoning in the \char`\"{}fluent domain\char`\"{}: \[
-\mathcal{D}_{una}\models\forall s.\phi(\bar{x},s)\,\,\,\,\,\, iff\,\,\,\,\,\,\mathcal{D}_{una}\models\phi(\bar{x})\]
+TODO: decidability: \citep{giacomo99impl_robots} \citep{levesque04krr_book}
+\citep{yu07twovar_sitcalc}
 
-\item using typing of functions to guarantee a finite herbrand universe
-(\citet{levesque04krr_book}, pp69) and therefore decidability 
-\end{itemize}
-Sentences that contain only existential quantification over situation
-terms can be proven without the induction axiom and so are more amenable
-to automated reasoning \citep{pirri99contributions_sitcalc}. It is
-therefore important for systems built on a situation calculus theory
-of action to limit queries to existential form. Much of the work on
-implementing systems with the situation calculus has been on reducing
-the number of axioms required to answer a given query, to allow more
-efficient reasoning.
+TODO: restricted forms of axioms: local effect axioms, context-free
+axioms
 
 
-\subsection{TODO}
+\subsection{TODO: Extensions}
 
 \textbf{\emph{Time:}} An explicit notion of time can make coordination
 between agents easier, as joint actions may be performed at a particular
@@ -378,7 +371,20 @@ Lntp(s,t)\equiv\\
 
 
 
-\subsection{Related Formalisms}
+\subsection{TODO: Applications}
+
+Golog
+
+Reasoning about multi-agent games \citep{delgrande01sitcalc_cleudo}
+
+process specification language \citep{gruninger04psl}
+
+casl
+
+
+
+
+\subsection{TODO: Related Formalisms}
 
 There are a wide range of related formalisms for reasoning about knowledge,
 action and change, which we do not directly consider in this paper.
@@ -435,7 +441,7 @@ $\Sigma\delta$  & Plan execution offline (IndiGolog)\tabularnewline
 \end{tabular}
 \par\end{centering}
 
-\caption{ Some Golog Operators\label{tbl:Golog-Operators} }
+\caption{ Some Golog Operators\label{tbl:Background:Golog-Operators} }
 
 \end{table}
 
@@ -464,7 +470,7 @@ the remainder $\gamma$ left to execute concurrently with the other
 program:\begin{multline}
 Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\\
 \shoveright{\exists\gamma.Trans(\delta_{1},s,\gamma,s')\wedge\delta'=(\gamma||\delta_{2})}\\
-\vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)\label{eqn:trans_conc_orig}\end{multline}
+\vee\,\exists\gamma.Trans(\delta_{2},s,\gamma,s')\wedge\delta'=(\delta_{1}||\gamma)\label{eqn:Background:trans_conc_orig}\end{multline}
  Clearly there are two notions of concurrency to be considered: the
 possibility of performing several actions at the same instant (\emph{true
 concurrency}), and the possibility of interleaving the execution of
@@ -481,7 +487,7 @@ a theorem proving task as shown in equation (\ref{eqn:golog_execution}).
 Here $Trans*$ indicates reflexive transitive closure. The situation
 $s$ gives a sequence of actions forming a legal execution of the
 program.\begin{equation}
-\mathcal{D}\models\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]\label{eqn:golog_execution}\end{equation}
+\mathcal{D}\models\exists s.\left[Trans*(\delta,S_{0},\delta',s)\wedge Final(\delta',s)\right]\label{eqn:Background:golog_execution}\end{equation}
  In IndiGolog agents can also proceed without planning a full terminating
 execution of their program, by searching for a legal {}``next step''
 action $a$ such that $\mathcal{D}\models\exists a\,.\, Trans*(\delta,s,\delta',do(a,s))$.
@@ -498,7 +504,7 @@ a simple salad:\begin{multline}
 \left.\pi(agt)(ChopTypeInto(agt,Tomato,dest))\right]\,;\\
 \pi(agt)\left[acquire(agt,dest)\,;\,\right.\\
 beginTask(agt,mix(dest,1))\,;\\
-\left.\, release(agt,dest)\right]\,\,\mathbf{end}\label{eqn:MakeSalad}\end{multline}
+\left.\, release(agt,dest)\right]\,\,\mathbf{end}\label{eqn:Background:MakeSalad}\end{multline}
  The sub-procedure $ChopTypeInto$ (not shown) picks an object of
 the given type and an available chopping board, chops the object using
 the board, then transfers it into the destination container. $MakeSalad$
@@ -544,7 +550,7 @@ situation $s'$ to be possible''. The macro $\Knows$ is then defined
 as a shorthand for the standard possible-worlds definition of knowledge,
 stating that an agent knows $\phi$ when $\phi$ is true in all situations
 considered possible: \begin{equation}
-\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:knows_def}\end{equation}
+\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:Background:knows_def}\end{equation}
 
 
 Readers familiar with modal logic will recognise $K(agt,s',s)$ as

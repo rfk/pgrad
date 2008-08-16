@@ -32,7 +32,7 @@
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt *.maf
 GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx rawchapters.tex
 
-CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf outline.pdf
+CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf
 
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex persistence.tex knowledge.tex cknowledge.tex jointexec.tex implementation.tex conclusion.tex 
 APPENDICES = app_code.tex proofs.tex
@@ -151,9 +151,9 @@ edit-%: %.ch.tex
 	# Run lyx for editing, then export back to latex
 	lyx $*.ed.lyx
 	lyx --export latex $*.ed.lyx
-	rm $*.ed.lyx $*.ed.tex
 	# Remove LyX cruft
 	python aux/unlyx.py < $*.ed.tex > $*.tex
+	rm $*.ed.lyx $*.ed.tex
 
 
 # publish latest versions to my CSSE website
