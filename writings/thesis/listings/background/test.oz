@@ -18,6 +18,8 @@ define
   {System.show first(L FirstMem)}
   AllMem = {Search.base.all proc {$ E} {MyList.member E L} end }
   {System.show all(L AllMem)}
+  Pairs = {MyList.allPairs [1 2 3] [a b c]}
+  {System.show pairs(Pairs)}
   {Application.exit 0}
 
 end

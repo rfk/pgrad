@@ -6,7 +6,7 @@
 
 This chapter covers general background material for the thesis, and
 serves as a brief literature review. More specific background material
-may be found at the beginning of each subsequent chaper.
+may be found at the beginning of each subsequent chapter.
 
 We begin by introducing the base language of the situation calculus
 in section \ref{sec:Background:The-Situation-Calculus}, along with
@@ -66,7 +66,7 @@ than $S_{0}$ and $do$ take values of sort \noun{Situation.}
 $\mathcal{L}_{sitcalc}$ contains the standard alphabet of logical
 connectives, countably infinitely many variables of each sort, countably
 infinitely many predicates of each arity, etc; for a complete definition,
-consult the founational paper by \citet{pirri99contributions_sitcalc}.
+consult the foundational paper by \citet{pirri99contributions_sitcalc}.
 We follow standard naming conventions for the situation calculus:
 upper-case roman names indicate constants; lower-case roman names
 indicate variables; greek names indicate meta-variables or formula
@@ -87,7 +87,7 @@ the performing agent.
 For concreteness, let us present some formulae from an example domain
 that will be used throughout the thesis. In the {}``cooking agents''
 domain, a group of robotic chefs inhabit a kitchen containing various
-ingedianets and utensiles and must cooperate to prepare a meal. Some
+ingredients and utensils and must cooperate to prepare a meal. Some
 example statements from this domain include {}``Ann is not holding
 the knife initially'' and {}``Bob is holding the knife after he
 picks it up''. Formally:\begin{gather*}
@@ -759,58 +759,140 @@ The Mozart system \citep{vanroy99mozart} is an implementation of
 the Oz programming language \citep{vanRoyHaridi04ctm} with strong
 support for logic programming and distributed computing. While a full
 explanation of its features is well outside the scope of this thesis,
-we provide a gentle introduction to the subset of its features we
-will be using -- in particular, doing prolog-style logic programming
-in Oz. Familiarity with logic programming in the style of prolog is
-assumed.
+we provide a short introduction to the subset of its features we will
+be using -- in particular, doing prolog-style logic programming in
+Oz. Familiarity with logic programming in the style of prolog is assumed.
 
-While terms, variables and unification in Mozart work similarly to
-prolog, the syntax for defining predicates differs substantially.
-Predicates are implemented as ordinary procedures and cannot be defined
-as a set of indepedent clauses. Figure {[}TODO] shows a Mozart implementation
-of a classic prolog example predicate, naive list reverse.%
+Terms, variables and unification in Mozart work similarly to prolog,
+although arguments in compound terms are separated by whitespace rather
+than a comma. Predicates are implemented as ordinary procedures and
+cannot be defined as a set of independent clauses. Figure \ref{fig:Background:Naive-List-Reverse}
+shows a Mozart implementation of a classic Prolog example predicate,
+naive list reverse. Some things to note about this example include:
+
+\begin{itemize}
+\item The syntax for procedure definition is $\mathbf{proc}\,\{Name\, Arg\,\dots\,\}$ 
+\item The syntax for procedure calls is $\{Name\, Arg\,\dots\,\}$ 
+\item The $\mathbf{case}$ statement is used to pattern match the contents
+of a variable 
+\item Local variables must be explicitly introduced using the keyword $\mathbf{in}$ 
+\item Mozart separates functionality into modules, such as $List$ 
+\end{itemize}
+%
 \begin{figure}[t]
  \programinput{listings/background/Reverse.oz}
 
-\caption{Naive List Reverse implemented in Mozart/Oz}
+\caption{Naive List Reverse implemented in Mozart/Oz\label{fig:Background:Naive-List-Reverse}}
 
 \end{figure}
 
 
-Some things to note about this example:
-
-\begin{itemize}
-\item The syntax for procedure definition is $\mathbf{proc}\,\{\, Name\, Arg\,\dots\,\}$ 
-\item The syntax for procedure calls is $\{\, Name\, Arg\,\dots\,\}$ 
-\item The $\mathbf{case}$ statement is used to pattern match the contents
-of a variable 
-\item Local variables must be explicitly introduced using the keyword $\mathbf{in}$ 
-\item Mozart separates functionality into distinct \emph{modules}, such
-as the $List$ module used in this example 
-\end{itemize}
 Procedures in Mozart are deterministic by default, and there is no
-in-built search strategy for exploring different alternatives. Instead,
+default search strategy for exploring different alternatives. Instead,
 Mozart provides independent facilities for creating choicepoints and
-for exploring procedures that contain choicepoints. The resul tis
+for exploring procedures that contain choicepoints. The result is
 a much more flexible, although syntactically more cumbersome, approach
 to logic programming \citep{lpinoz99}.
 
 The creation of choice points is explicit in Mozart, and performed
 using the $\mathbf{choice}$ keyword. To demonstrate, consider another
-classic prolog example, the nondeterministic list member predicate..
+classic Prolog example: the nondeterministic list member predicate
+demonstrated in figure \ref{fig:Background:Nondet-Member}. In the
+case of the empty list, $Member$ simply fails. For a non-empty list,
+$Member$ explicitly creates a \emph{choice point} with two options
+- either bind $E$ to the head of the list, or bind $E$ to a member
+of the tail of the list.
 
 %
 \begin{figure}[t]
  \programinput{listings/background/Member.oz}
 
-\caption{Nondeterministic List Member implemented in Mozart/Oz}
+\caption{Nondeterministic List Member implemented in Mozart/Oz\label{fig:Background:Nondet-Member}}
 
 \end{figure}
 
 
-TODO:
+It is at this point that the use of Mozart for logic programming differs
+most from Prolog. If the $Member$ procedure is simply invoked directly,
+it will suspend its execution when the $\mathbf{choice}$ statement
+is reached. To resolve the nondeterminism, one must execute the procedure
+inside an explicit \emph{search} \emph{object}. These objects are
+responsible for exploring the various choicepoints until a non-failing
+computation is achieved. They operate by executing the procedure in
+a separate \emph{computation space} through which the state of the
+underlying computation can be managed \citep{schulte00constraint_services}.
 
-\begin{itemize}
-\item Distributed Logi Programming: Parallel Search \citet{schulte00oz_parallel} 
-\item include some simple example programs 
-\end{itemize}
+As a demonstration, figure \ref{fig:Background:All-Pairs} uses the
+$Member$ procedure to define a procedure $Pairs$, which nondeterministically
+selects a pair of elements from a pair of lists. The procedure $AllPairs$
+then uses the builtin $Search.base.all$ object to find all solutions
+from this procedure, returning a list of all possible pairs from the
+two lists. By encapsulating the calls to nondeterministic procedures
+inside a search object, $AllPairs$ will not expose any choicepoints
+to code that calls it.
+
+Also of note in figure \ref{fig:Background:All-Pairs} is the use
+of a \emph{closure} over the procedure $Pair$ to create the one-argument
+procedure $FindP$. Search objects work with a one-argument procedure,
+which is expected to bind its argument to a result. The dollar symbol
+is used to translate a statement (in this case the $\mathbf{proc}$
+definition) into an expression. The value that would be bound to the
+dollar synbol by the statement becomes the return value of the expression,
+so $FindP=proc\,\{\$\, P\}$ is equivalent to $proc\,\{FindP\, P\}$.
+
+%
+\begin{figure}[t]
+ \programinput{listings/background/Pairs.oz}
+
+\caption{Finding all pairs in Mozart/Oz\label{fig:Background:All-Pairs}}
+
+\end{figure}
+
+
+The power of this decoupled approach to nondeterminism becomes apparent
+when defining new search strategies, which can then be used to evaluate
+any procedure. For example, it is straightforward to implement breadth-first
+or iterative-deepening strategies to replace the standard depth-first
+traversal of the $Search.base$ object \citep{schulte00constraint_services}.
+
+Coupled with Mozart's strong support for distributed computing, these
+programmable search strategies offer a unique opportunity - it becomes
+possible to implement a parallel search object which can automatically
+distribute work between several networked machines. Moreover, this
+parallel search can be applied without modification to any nondeterministic
+procedure. Mozart comes with a built-in $ParallelSearch$ object,
+which is described in detail in \citep{schulte00oz_parallel} and
+which is our main motivation for the use of Oz in this thesis.
+
+To demonstrate the power of the approach, consider figure \ref{fig:Background:Parallel-All-Pairs},
+which describes a parallel-search version of the $AllPairs$ procedure.
+In this instance we define $FindP$ as a \emph{functor}, a Mozart
+abstraction for code that is portable between machines. This functor
+imports the module $MyList$ containing the procedures we defined
+earlier, and exports a one-argument procedure $Script$ which will
+be executed by the parallel search object. The parallel search object
+$Seacher$ launches one instance of Mozart on the machine {}``mango''
+and two instances on the machine {}``rambutan'', then is asked to
+enumerate all solutions for $FindP$.
+
+%
+\begin{figure}[t]
+ \programinput{listings/background/PPairs.oz}
+
+\caption{Finding all pairs in Mozart/Oz\label{fig:Background:Parallel-All-Pairs}}
+
+\end{figure}
+
+
+In chapter \ref{ch:mindigolog} we will use this parallel search object
+to automatically share the workload of planning a Golog execution
+amongst a team of cooperating agents.
+
+As a multi-paradigm programming language with significant research
+history, there is much more to Oz than we have described here. However,
+these brief examples should be sufficient for a reader well-versed
+in Prolog to understand the Oz code used throughout this thesis. For
+more information and further examples, consult the general Oz tutorial
+\citep{haridi99oz_tutorial} or the specialised tutorial on logic
+programming in Oz \citep{lpinoz99}, which are both available online.
+
