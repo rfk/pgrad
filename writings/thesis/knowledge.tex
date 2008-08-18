@@ -1,12 +1,116 @@
 
 
-
 \chapter{Knowledge with Hidden Actions}
 
 \label{ch:knowledge}
 
 This chapter develops a formalism for individual knowledge in the
 face of hidden actions.
+
+
+\section{Background}
+
+The foundational axioms $\Sigma$ define a special fluent $K_{0}(agt,s',s)$
+that is used to model the initial epistemic uncertainty of the agents,
+with $\Dt_{S_{0}}$ containing sentences of the form $\KnowsZ(agt,\phi,S_{0})$
+to specify what is initially known%
+\footnote{The standard account does not require a separate $K_{0}$ fluent,
+as evidenced by equation \eqref{eq:k_s0_standard}. It is required
+when incorporating hidden actions, so we introduce it now to maintain
+consistency. %
+}:\begin{gather*}
+K_{0}(agt,s',s)\,\rightarrow Init(s)\wedge Init(s')\\
+\KnowsZ(agt,\phi,s)\isdef\forall s':\, K_{0}(agt,s',s')\rightarrow\phi[s']\end{gather*}
+
+
+The action description function $SR(a,s)$ specifies the sensing result
+returned by action $a$ when executed in situation $s$. For non-sensing
+actions the value of $SR$ is set to an arbitrary constant.
+
+The dynamics of knowledge are then specified by an additional set
+of axioms, which we will denote $\Dt_{K}$. In the standard account
+of knowledge $\Dt_{K}$ contains the following axioms:\begin{equation}
+Init(s)\rightarrow\left(K(agt,s',s)\,\equiv\, K_{0}(agt,s',s)\right)\label{eq:k_s0_standard}\end{equation}
+ \begin{align}
+K(agt,s'',do(c,s))\equiv\exists s': & \, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\nonumber \\
+ & \wedge\,\forall a\in c:\,\left(actor(a)=agt\,\rightarrow\, SR(a,s)=SR(a,s')\right)\label{eq:k_ssa_standard}\end{align}
+
+
+Equation \eqref{eq:k_s0_standard} ensures that the agents begin with
+their knowledge as specified by $\Dt_{S_{0}}$. Equation \eqref{eq:k_ssa_standard}
+takes the form of a standard successor state axiom for the $K$ fluent.
+It ensures that $s''$ is considered a possible alternative to $do(c,s)$
+when $s''$ is the result of doing the same actions $c$ in a situation
+$s'$ that is considered a possible alternative to $s$. It must furthermore
+have been possible to perform those actions in $s'$, and the sensing
+results must match for each action that was carried out by the agent
+in question. Thus an agent's knowledge after the occurrence of an
+action is completely determined by the combination of its knowledge
+before the action, and the sensing results from the action.
+
+\medskip{}
+
+
+\begin{defn}
+We will denote by $\Dt_{K}^{std}$ the axioms of the standard account
+of knowledge due to \citet{scherl03sc_knowledge}, as detailed in
+equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard}) above. 
+\end{defn}
+While powerful, this knowledge-representation formalism has an important
+limitation: it is fundamentally \emph{synchronous.} Each agent is
+assumed to have full knowledge of all actions that have occurred -
+in other words, all actions are public. While suitable for some domains,
+there are clearly many multi-agent domains where achieving total awareness
+of actions would be infeasible. A major contribution of this paper
+is a more flexible formalism for knowledge that can be applied to
+a much wider range of domains.
+
+A key contribution of \citet{scherl03sc_knowledge} was showing how
+to apply the regression operator to formulae containing the $\mathbf{Knows}$
+macro, allowing it to be treated syntactically as if it were a primitive
+fluent. This means that epistemic queries can be approached using
+standard reasoning techniques of the situation calculus. Although
+we have changed the notation somewhat to foreshadow the techniques
+we will develop in Section \ref{sec:Obs-Knowledge}, their definition
+operates as follows. First, define the \emph{results} of a concurrent
+action to be the set of $action\#result$ pairs for all primitive
+actions perform by the agent in question:\[
+\mathbf{res}(agt,c,s)\isdef\{a\#SR(a,s)\,\,|\,\, a\in c\,\wedge\, actor(a)=agt\}\]
+
+
+This definition is then used to formulate a regression rule as follows:\begin{multline}
+\Reg(\Knows(agt,\phi,do(c,s))\isdef\\
+\exists y:\, y=\mathbf{res}(agt,c,s)\,\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi[do(c,s)]),s)\label{eq:reg_k_std}\end{multline}
+
+
+This works by collecting the sensing results from each action performed
+by the agent into the set $y$, then ensuring matching sensing results
+in every situation considered possible. It expresses the knowledge
+of the agent after a concurrent action in terms of what it knew before
+the action, along with the information returned by the action. This
+technique relies heavily on the fact that all actions are public,
+since it requires every agent's knowledge to be updated in response
+to every action.
+
+Repeated applications of $\Reg$ can thus transform a knowledge query
+into one that is uniform in the initial situation. While it would
+be valid to then expand the $\Knows$ macros and handle the query
+using first-order logic, in practice the reasoning procedure would
+leave $\Knows$ intact and use a specialised prover based on modal
+logic.
+
+It is possible to formulate an alternate successor state axiom for
+knowledge that does not assume all actions are public, such as that
+of \citet{Lesperance99sitcalc_approach}. Such formulations invariably
+require universal quantification over situation terms, to account
+for arbitrarily-long sequences of hidden actions. This is incompatible
+with regression rules like the above, and these formulations offer
+no reasoning procedure other than general second-order theorem proving.
+By utilising a new reasoning technique called the {}``persistence
+condition'' to reason about universal quantification over situation
+terms, our work is the first to provide an account of knowledge with
+hidden actions while maintaining regression in the style presented
+above as an effective reasoning tool.
 
 
 \section{Intuitions}
@@ -106,10 +210,10 @@ The concept of a \emph{view} follows naturally - it is the sequence
 of all the observations made by an agent as the world has evolved.
 
 \begin{defnL}
-[{Views}] An agent's view in a given situation $\mathrm{s}$ is the
-corresponding sequence of observations made by the agent as a result
-of each action in $\mathrm{s}$, excluding those actions for which
-no observations were made. 
+[{Views}] An agent's view in a given situation $\mathrm{s}$
+is the corresponding sequence of observations made by the agent as
+a result of each action in $\mathrm{s}$, excluding those actions
+for which no observations were made. 
 \end{defnL}
 We introduce another sort \noun{Views} consisting of sequences of
 sets of observations, with $\epsilon$ being the empty sequence and
@@ -486,7 +590,7 @@ $Obs$ to obtain:\[
 
 
 This tautology is clearly entailed by the domain.\\
- 
+
 
 \begin{example}
 Initially, Bob knows that Ann doesn't know where the party is:\[
