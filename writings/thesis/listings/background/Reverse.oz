@@ -1,10 +1,3 @@
-functor
-
-export
-
-  Reverse
-
-define
 
   proc {Reverse LIn LOut}
     case LIn of nil then
@@ -15,4 +8,3 @@ define
     end
   end
 
-end

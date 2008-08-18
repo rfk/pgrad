@@ -1,10 +1,3 @@
-functor
-
-export
-
-  Member
-
-define
 
   proc {Member E List}
     case List of nil then
@@ -18,4 +11,3 @@ define
     end
   end
 
-end
