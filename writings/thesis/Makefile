@@ -35,7 +35,7 @@ GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx rawchapters.tex
 CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf
 
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex persistence.tex knowledge.tex cknowledge.tex jointexec.tex implementation.tex conclusion.tex 
-APPENDICES = app_code.tex proofs.tex
+APPENDICES = code.tex proofs.tex
 AUXFILES = preamble.tex mathmacros.tex bibcmds.tex
 
 ## Additional variables
@@ -74,6 +74,10 @@ all: thesis.pdf
 	cat bibcmds.tex >> $@
 	echo -n '\' >> $@
 	echo 'end{document}' >> $@
+
+%.ch.pdf: thesis.pdf
+	for CHAP in $(CHAPTERS) $(APPENDICES) references.tex; do if [ "$$LASTCHAP" = "$*.tex" ]; then NEXTCHAP=`basename $$CHAP .tex`; fi; LASTCHAP=$$CHAP; done && PGNUM_S=`grep "\\newlabel{ch:$*}" * | cut -d '{' -f 5 | tr -d '}'` && PGNUM_E=`grep "\\newlabel{ch:$$NEXTCHAP}" * | cut -d '{' -f 5 | tr -d '}'` && echo `expr $$PGNUM_S + 18`-`expr $$PGNUM_E + 17` && pdfnup --nup 1x1 --pages `expr $$PGNUM_S + 18`-`expr $$PGNUM_E + 17` --outfile $@ thesis.pdf
+	
 
 # Generate a temporary latex file that will build a single chapter,
 # without bibliography
