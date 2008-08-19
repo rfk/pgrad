@@ -165,9 +165,10 @@ publish:
 	make thesis.pdf
 	for FN in $(CHAPTERS); do make `basename $$FN .tex`.ch.pdf; done;
 	for FN in $(APPENDICES); do make `basename $$FN .tex`.ch.pdf; done;
+	make references.ch.pdf
 	mkdir upload-thesis
 	cp *.pdf ./upload-thesis/
-	tar -czvf upload-thesis/thesis.tar.gz *.tex Makefile
+	tar -czvf upload-thesis/thesis.tar.gz *.tex Makefile listings
 	tar -czvf upload-thesis.tar.gz upload-thesis
 	scp upload-thesis.tar.gz rfk@mundula.cs.mu.oz.au:
 	ssh mundula.cs.mu.oz.au 'gunzip upload-thesis.tar.gz && cd www_public && tar -xvf ~/upload-thesis.tar && mv upload-thesis/* thesis/ && rm -r upload-thesis ~/upload-thesis.tar && chmod 755 thesis && chmod 644 thesis/*'
