@@ -76,7 +76,7 @@ all: thesis.pdf
 	echo 'end{document}' >> $@
 
 %.ch.pdf: thesis.pdf
-	rm rawchapters.aux
+	rm -f rawchapters.aux *.ch.aux
 	for CHAP in $(CHAPTERS) references.tex $(APPENDICES); do if [ "$$LASTCHAP" = "$*.tex" ]; then NEXTCHAP=`basename $$CHAP .tex`; fi; LASTCHAP=$$CHAP; done && echo N_$$NEXTCHAP && PGNUM_S=`grep "\\newlabel{ch:$*}" * | cut -d '{' -f 5 | tr -d '}'` && echo S_$$PGNUM_S && PGNUM_S=`expr $$PGNUM_S + 18` && echo S_$$PGNUM_S && if [ "$$NEXTCHAP"x = "x" ]; then PGNUM_E=`grep "Output written" thesis.log | cut -d '(' -f 2 | cut -d ' ' -f 1` && echo E_$$PGNUM_E; else PGNUM_E=`grep "\\newlabel{ch:$$NEXTCHAP}" * | cut -d '{' -f 5 | tr -d '}'` && echo E_$$PGNUM_E && PGNUM_E=`expr $$PGNUM_E + 17` && echo E_$$PGNUM_E ; fi && echo $$PGNUM_S-$$PGNUM_E && pdfnup --nup 1x1 --pages $$PGNUM_S-$$PGNUM_E --outfile $@ thesis.pdf
 	
 

@@ -18,6 +18,7 @@ def unlyx(inF,outF):
         ln = inF.next()
         if ln.startswith("\\bibliographystyle"): break
         if ln.startswith("\\end{document}"): break
+        if ln.startswith("\\label{ch:references}"): break
         #  Ignore any \newcommand lines, they are in the preamble/macros file
         if ln.startswith("\\newcommand"): continue
         if ln.startswith(" \\newcommand"): continue

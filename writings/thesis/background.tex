@@ -4,17 +4,17 @@
 
 \label{ch:background}
 
-This chapter covers general background material for the thesis, and
-serves as a brief literature review. More specific background material
-may be found at the beginning of subsequent chapters.
+This chapter covers general background material for the thesis and
+provides an overview of the related literature. We defer more specific
+technical details and discussion of related work to the individual
+chapters that follow, where it will have greater context.
 
 We begin by introducing the base language of the situation calculus
-in section \ref{sec:Background:The-Situation-Calculus}, along with
-the {}``cooking agents'' example domain which will be used throughout
-the thesis. Section \ref{sec:Background:Golog} introduces the Golog
-family of programming languages, which are the standard formalism
-for representing complex tasks in the situation calculus. Reasoning
-about knowledge is covered in section \ref{sec:Background:Epistemic-Reasoning}.
+in section \ref{sec:Background:The-Situation-Calculus}, illustrated
+using examples from the {}``cooking agents'' domain. Section \ref{sec:Background:Golog}
+introduces the Golog family of programming languages, which are the
+standard formalism for representing complex tasks in the situation
+calculus. Reasoning about knowledge is covered in section \ref{sec:Background:Epistemic-Reasoning}.
 Finally, section \ref{sec:Background:Mozart/Oz} introduces the Mozart
 programming system, which forms the basis of our implementation. Basic
 familiarity with with formal logic (including first-order, second-order,
@@ -29,37 +29,33 @@ It is introduced here to maintain consistency of the presentation.
 
 \section{The Situation Calculus\label{sec:Background:The-Situation-Calculus}}
 
-The situation calculus is a formalism for describing and reasoning
-about dynamic worlds. It was first introduced by \citet{McCHay69sitcalc}
+The situation calculus is a powerful formalism for describing and
+reasoning about dynamic worlds. It was first introduced by \citet{McCHay69sitcalc}
 and has since been significantly expanded and formalised \citep{reiter91frameprob,pirri99contributions_sitcalc}.
 We use the particular variant due to Reiter et. al. at the University
 of Toronto, sometimes called the {}``Toronto school'' or {}``situations-as-histories''
 version \citep{levesque98sc_foundations,pirri99contributions_sitcalc}.
 
+Among the advantages offered by the situation calculus are: straightforward
+representations of rich domain features such as concurrent actions
+and continuous time; effective reasoning procedures based on regression;
+flexible task specification using familiar programming constructs;
+a mature formalism for epistemic reasoning; and a straightforward
+implementation by translation into a logic program. But as we will
+highlight throughout this chapter, the situation calculus also currently
+suffers several limitations that make it unsuitable for reasoning
+about asynchronous multi-agent domains. It is these limitations that
+are overcome in this thesis.
+
 A brief overview is presented below. Readers familiar with the situation
 calculus should note some slightly modified notation: the unique names
 axioms $\Dt_{una}$ are incorporated into a general background theory
-$\Dt_{bg}$; the $Poss$ fluent is subsumed by generalised \emph{action
-description predicates}; we parameterise the {}``future situations''
-predicate $s\prec s'$ to assert that all intervening actions satisfy
-a given predicate with the notation $s<_{\alpha}s'$; and we use the
-single-step variant of the regression operator, with corresponding
-definitions of regressable formulae.
-
-
-\subsubsection{TODO: incorporate this}
-
-The situation calculus, along with the programming language Golog
-that is built upon it, is a powerful formalism for reasoning about
-dynamic worlds and specifying the behaviour of autonomous agents.
-Among its advantages are: straightforward representations of rich
-domain features such as concurrent actions and continuous time; effective
-reasoning procedures based on regression; flexible task specification
-using familiar programming constructs; a mature formalism for epistemic
-reasoning; and a straightforward implementation by translation into
-a logic program. But while powerful, existing situation calculus techniques
-suffer several major limitations that make them unsuitable for reasoning
-about asynchronous multi-agent domains.
+$\Dt_{bg}$; the $Poss$ fluent is subsumed by a general class of
+\emph{action description predicates}; we parameterise the {}``future
+situations'' predicate $s\prec s'$ to assert that all intervening
+actions satisfy a given predicate using the notation $s<_{\alpha}s'$;
+and we use the single-step variant of the regression operator, with
+corresponding definitions of regressable formulae.
 
 
 \subsection{Notation\label{sec:Background:SC:Notation}}
@@ -83,7 +79,25 @@ term as their final argument. Predicates and functions that do not
 take a situation term are called \emph{rigid}. We use the term \emph{primitive
 fluent} to describe fluents that are directly affected by actions,
 rather than being defined in terms of other fluents. No functions
-other than $S_{0}$ and $do$ take values of sort \noun{Situation.}
+other than $S_{0}$ and $do$ take values of sort \noun{Situation.}\medskip{}
+
+
+For concreteness, let us present some formulae from an example domain
+that will be used throughout the thesis. In the {}``cooking agents''
+domain a group of robotic chefs inhabit a kitchen containing various
+ingredients and utensils, and they must cooperate to prepare a meal.
+Some example statements from this domain include {}``Joe is not holding
+the knife initially'', {}``Jim is holding the knife after he picks
+it up'' and {}``It is only possible to pick up an object if nobody
+is holding it''. Formally:\begin{gather*}
+\neg Holding(Joe,Knife1,S_{0})\\
+Holding(Jim,Knife1,do(pickup(Jim,Knife1),S_{0}))\\
+Poss(pickup(agt,obj),s)\equiv\neg\exists agt_{2}:\, Holding(agt_{2},obj,s)\end{gather*}
+
+
+Here $Holding$ is a primitive fluent while $Poss$ is defined in
+terms of $Holding$.\medskip{}
+
 
 $\mathcal{L}_{sitcalc}$ contains the standard alphabet of logical
 connectives, countably infinitely many variables of each sort, countably
@@ -100,31 +114,9 @@ $\equiv$, $\forall$ defined in the usual manner.
 
 In multi-agent domains it is customary to introduce the sort \noun{Agent
 }as a sub-sort of \noun{Object} to explicitly represent the agents
-operating in the world, and we will do so here. The first argument
-of each action term gives the performing agent.
-
-\medskip{}
-
-
-For concreteness, let us present some formulae from an example domain
-that will be used throughout the thesis. In the {}``cooking agents''
-domain a group of robotic chefs inhabit a kitchen containing various
-ingredients and utensils, and they must cooperate to prepare a meal.
-Some example statements from this domain include {}``Ann is not holding
-the knife initially'', {}``Bob is holding the knife after he picks
-it up'' and {}``It is only possible to pick up an object if nobody
-is holding it''. Formally:\begin{gather*}
-\neg Holding(Ann,Knife1,S_{0})\\
-Holding(Bob,Knife1,do(pickup(Bob,Knife1),S_{0}))\\
-Poss(pickup(agt,obj),s)\equiv\neg\exists agt_{2}:\, Holding(agt_{2},obj,s)\end{gather*}
-
-
-\medskip{}
-
-
-Here $Holding$ is a primitive fluent while $Poss$ is defined in
-terms of $Holding$. As we shall see, the behavior of two fluents
-would be axiomatised quite differently.
+operating in the world, and we will do so here. As seen in the example
+formulae above, the first argument of each action term gives the performing
+agent.
 
 \medskip{}
  Complex properties of the state of the world are represented using
@@ -135,32 +127,28 @@ definition includes statements about knowledge and will be introduced
 following that material.
 
 \begin{defnL}
-[{Uniform~Terms}] Let $s$ be a fixed situation term, $r$
-an arbitrary rigid function symbol, $f$ an arbitrary fluent function
-symbol, $\vars{t}$ a vector of terms not mentioning any term of sort
-\noun{Situation}, and $x$ a variable that is not of sort \noun{Situation}.
-Then the terms uniform in $s$ are the smallest set of syntactically-valid
+[{Uniform~Terms}] Let $\sigma$ be a fixed situation term,
+$r$ an arbitrary rigid function symbol, $f$ an arbitrary fluent
+function symbol, and $x$ a variable that is not of sort \noun{Situation}.
+Then the terms uniform in $\sigma$ are the smallest set of syntactically-valid
 terms satisfying:\[
-\tau\,::=x\,|\, r(\vars{t})\,|\, f(\vars{t},s)\]
+\tau\,::=x\,|\, r(\vars{\tau})\,|\, f(\vars{\tau},\sigma)\]
 
 \begin{defnL}
-[{Objective~Uniform~Formulae}] Let $s$ be a fixed situation
-term, $R$ an arbitrary rigid predicate, $F$ an arbitrary fluent
-predicate, $\tau$ a term uniform in $s$, $\vars{t}$ a vector of
-terms not mentioning any term of sort \noun{Situation}, and $x$ an
-arbitrary variable that is not of sort \noun{Situation}. Then the
-objective formulae uniform in $s$ are the smallest set of syntactically-valid
-formulae satisfying:\[
-\phi::=F(\vars{t},s)\,|\, R(\vars{t})\,|\,\tau_{1}=\tau_{2}\,|\,\phi_{1}\wedge\phi_{2}\,|\,\neg\phi\,|\,\exists x:\phi\]
+[{Objective~Uniform~Formulae}] Let $\sigma$ be a fixed
+situation term, $R$ an arbitrary rigid predicate, $F$ an arbitrary
+primitive fluent predicate, $\tau$ an arbitrary term uniform in $\sigma$,
+and $x$ an arbitrary variable that is not of sort \noun{Situation}.
+Then the objective formulae uniform in $\sigma$ are the smallest
+set of syntactically-valid formulae satisfying:\[
+\phi::=F(\vars{\tau},\sigma)\,|\, R(\vars{\tau})\,|\,\tau_{1}=\tau_{2}\,|\,\phi_{1}\wedge\phi_{2}\,|\,\neg\phi\,|\,\exists x:\phi\]
 
 \end{defnL}
 \end{defnL}
-The important aspect of this definition is that all fluents must have
-$s$ as their final argument, and must not refer to any situation
-term in their other agurments. In particular, functional fluents may
-only appear as arguments to the equality operator. There is no loss
-of generality here, since we may freely extract functional fluents
-from other positions by adding existentially-quantified variables.
+The important aspect of this definition is that the formula refers
+to no fluent other than $\sigma$, which appears as the final argument
+in all fluents in the formula. In particular, uniform formulae cannot
+quantify over situation terms and cannot contain non-primitive fluents.
 
 The meta-variable $\phi$ is used throughout to refer to an arbitrary
 uniform formula. Since they represent properties of the world, it
@@ -170,10 +158,10 @@ with the particular situation $s'$ inserted into all its fluents.
 We will often suppress the situation term in $\phi$ to simplify the
 presentation, using $\phi^{-1}$ to represent a uniform formula with
 the situation argument removed from all its fluents. For example,
-if $\phi=Holding(Ann,Knife,s)\wedge Holding(Bob,Bowl,s)$, then we
+if $\phi=Holding(Jim,Knife,s)\wedge Holding(Joe,Bowl,s)$, then we
 have:\begin{gather*}
-\phi[s']\,=\, Holding(Ann,Knife,s')\wedge Holding(Bob,Bowl,s')\\
-\phi^{-1}\,=\, Holding(Ann,Knife)\wedge Holding(Bob,Bowl)\end{gather*}
+\phi[s']\,=\, Holding(Jim,Knife,s')\wedge Holding(Joe,Bowl,s')\\
+\phi^{-1}\,=\, Holding(Jim,Knife)\wedge Holding(Joe,Bowl)\end{gather*}
 
 
 Note that these are strictly meta-level operations, corresponding
@@ -204,52 +192,69 @@ of the domain ($\Dt_{bg}$):\[
 \end{defnL}
 These axioms must satisfy some simple consistency criteria to constitute
 a valid domain description; see \citep{pirri99contributions_sitcalc}
-for the detail. We assume an arbitrary, but fixed, basic action theory.
+for the details. We assume an arbitrary, but fixed, basic action theory.
 
 
 \subsubsection{Background Axioms}
 
 The set $\Dt_{bg}$ characterises the static aspects of the domain,
-and contains all axioms defining rigid predicates or functions. It
-contains unique names axioms asserting that action terms with different
-types or arguments are in fact different, e.g.:\begin{gather*}
+and contains all axioms defining rigid predicates or functions. In
+particular, it must contain a set of unique names axioms asserting
+that action terms with different types or arguments are in fact different,
+e.g.:\begin{gather*}
 pickup(agt,obj)\neq drop(agt,obj)\\
 pickup(agt_{1},obj_{1})=pickup(agt_{2},obj_{2})\,\rightarrow\, agt_{1}=agt_{2}\,\wedge\, obj_{1}=obj_{2}\end{gather*}
 
 
 It also contains domain closure axioms for the sorts \noun{Action,
 Agent} and \noun{Object}, and defines the function $actor(a)$ to
-give the agent performing an action.
+give the agent performing an action. This is a generalisation of the
+set $\Dt_{una}$ commonly found in the literature, which contains
+only the unique names axioms.
 
 
 \subsubsection{Successor State Axioms}
 
 The set $\Dt_{ssa}$ contains one \emph{successor state axiom} for
-each primitive fluent in the domain, providing a monotonic solution
-to the frame problem for that fluent \citep{reiter91frameprob}. These
-axioms have the following general form: \[
+each primitive fluent in the domain. These axioms provide an elegant
+monotonic solution to the frame problem for that fluent \citep{reiter91frameprob}
+which has been instrumental to the popularity and utility of the situation
+calculus. They have the following general form: \[
 F(\vars{x},do(a,s))\equiv\Phi_{F}^{+}(\vars{x},a,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},a,s)\]
 
 
 Here $\Phi_{F}^{+}$ and $\Phi_{F}^{-}$ are formulae uniform in $s$.
 This may be read as {}``$F$ is true after performing $a$ if $a$
 made it true, or it was previously true and $a$ did not make it false''.
-For example, the $Holding$ fluent may be specified using:\begin{flalign*}
-Holding(agt,obj,do(a,s))\,\equiv\,\, \& a=pickup(agt,obj)\\
- \& \vee\, Holding(agt,obj,s)\wedge a\ne drop(agt,obj)\end{flalign*}
+For example, the $Holding$ fluent may be specified using:\begin{multline*}
+Holding(agt,obj,do(a,s))\,\equiv\, a=pickup(agt,obj)\\
+\vee\,\, Holding(agt,obj,s)\wedge a\neq drop(agt,obj)\end{multline*}
+
+
+When we do not wish to call attention to the special form of successor
+state axioms, we will denote the axiom for fluent $F$ by:\[
+F(\vars{x},do(a,s))\,\equiv\,\Phi_{F}(\vars{x},a,s)\]
+
+
+For functional fluents, $\Dt_{ssa}$ contains a similar axioms specifying
+the value $v$ of the fluent:\[
+f(\vars{x},do(a,s))=v\,\equiv\,\Phi_{f}(v,\vars{x},a,s)\]
+
 
 
 \subsubsection{Action Description Predicates}
 
 The set $\Dt_{ad}$ generalises the standard \emph{action precondition
-axioms} \citep{pirri99contributions_sitcalc} to define fluents describing
-various aspects of the performance of an action, which we call \emph{action
-description predicates}. The predicate $Poss(a,s)$ is the canonical
-example, indicating whether it is possible to perform an action in
-a given situation. The set $\Dt_{ad}$ contains a single axiom of
-the form $Poss(a,s)\equiv\Pi_{Poss}(a,s)$ defining the complete set
-of preconditions for the action variable $a$, where $\Pi_{Poss}(a,s)$
-is uniform in $s$.
+axioms} \citep{pirri99contributions_sitcalc} to define that fluents
+describe various aspects of the performance of an action, which we
+call \emph{action description predicates}. These are the only non-primitive
+fluents permitted in a basic action theory. The predicate $Poss(a,s)$
+is the canonical example, indicating whether it is possible to perform
+an action in a given situation. The set $\Dt_{ad}$ contains a single
+axiom of the following form, defining the complete set of preconditions
+for the action variable $a$, where $\Pi_{Poss}$ is uniform in $s$:\[
+Poss(a,s)\,\equiv\,\Pi_{Poss}(a,s)\]
+
 
 Note that this is a slight departure from the standard approach of
 \citep{pirri99contributions_sitcalc}, in which the preconditions
@@ -316,12 +321,14 @@ Legal(s)\equiv S_{0}\leq_{Poss}s\]
 
 The set $\Dt_{S_{0}}$ describes the actual state of the world before
 any actions are performed. It is a collection of sentences uniform
-in $S_{0}$ stating what holds in the initial situation.
+in $S_{0}$ stating what holds in the initial situation. In many domains
+the initial state can be completely specified, so $\Dt_{S_{0}}$ is
+often in a closed form suitable for efficient automated reasoning.
 
 
 \subsection{Reasoning}
 
-One of the attractions of the situation calculus is the existence
+One of the main attractions of the situation calculus is the existence
 of effective reasoning procedures for certain types of query. These
 are generally based on syntactic manipulation of a query into a form
 that is more amenable to reasoning -- for example, because it can
@@ -329,8 +336,6 @@ be proven without using some of the axioms from $\Dt$.
 
 
 \subsubsection{Types of Reasoning}
-
-TODO: reasoning in the {}``fluent domain''
 
 In the general case, answering a query about a basic action theory
 $\Dt$ is a theorem-proving task in second-order logic (denoted SOL)
@@ -346,14 +351,21 @@ only first-order logic (FOL) \citep{pirri99contributions_sitcalc}:\[
 \Dt\models_{SOL}\exists s:\,\psi(s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt-\{I\}\models_{FOL}\exists s:\,\psi(s)\]
 
 
-In some instances it is possible to transform queries into forms where
-more of the axioms from $\Dt$ can be ignored. For example, \citet{Lin94-StateConstraints}
-show how to reduce some reasoning tasks to what we call \emph{static
-domain reasoning}, where only the background axioms need to be considered:\[
+While this is a substantial improvement over requiring a second-order
+theorem prover, it is still far from an effective technique. Effective
+reasoning requires that the set of axioms be reduced as much as possible.
+
+In their work on state constraints, \citet{Lin94-StateConstraints}
+show how to reduce the task of verifying a state constraint to a reasoning
+task we call \emph{static domain reasoning}, where only the background
+axioms need to be considered:\[
 \Dt_{bg}\models_{FOL}\forall s:\,\phi[s]\]
 
 
-TODO: more on static domain reasoning.
+This is a major improvement because the universal quantification over
+situation terms usually requires the second-order induction axiom.
+Their work has shown that this requirement can be circumvented in
+some cases.
 
 Simpler still are queries uniform in the initial situation, which
 can be answered using only first-order logic and a limited set of
@@ -370,46 +382,77 @@ type of query quite effectively.
 \subsubsection{Regression}
 
 The principle tool for effective reasoning in the situation calculus
-is the regression meta-operator $\Reg_{\Dt}$ \citep{pirri99contributions_sitcalc},
-a syntactic manipulation that encodes the effects of actions into
-the query, meaning fewer axioms are needed for reasoning.
+is the regression meta-operator $\Reg_{\Dt}$ , a syntactic manipulation
+that encodes the effects of actions into the query, meaning fewer
+axioms are needed for the final reasoning task \citep{pirri99contributions_sitcalc}.
+The idea is to reduce a query about some future situation to a query
+about the initial situation only.
+
+There are two styles of regression operator commonly defined in the
+literature: the single-pass operator as defined in \citep{pirri99contributions_sitcalc}
+which reduces to $S_{0}$ in a single application, the the single-step
+operator as defined in \citep{scherl03sc_knowledge} which operates
+one action at a time. We use the single-step variant because it is
+the more expressive of the two -- while it is straightforward to define
+the single-pass operator in terms of the single-step operator, the
+reverse is not the cause.
 
 Regression can only be applied to a certain class of formulae, called
 the \emph{regressable formulae}.
 
 \begin{defnL}
-[{Regressable~Formulae}] The regressable formulae are the
-smallest set of syntactically-valid formulae satisfying: (TODO: regressible
-terms?)\[
-\varphi::=F(\vars{t},\sigma)\,|\,\alpha(\vars{t},a,\sigma)\,|\, R(\vars{t})\,|\,\tau_{1}=\tau_{2}\,|\,\neg\varphi\,|\,\varphi_{1}\wedge\varphi_{2}\,|\,\exists x:\,\varphi\]
+[{{[}{Regressable}] Terms}] Let $\sigma$ be an arbitrary situation
+term, $x$ an arbitrary variable not of sort situation, $r$ an arbitrary
+rigid function and $f$ an arbitrary fluent function. Then the regressable
+terms are the smallest set of syntactically-valid terms satisfying:
+\[
+\nu::=\sigma\,|\, x\,|\, f(\vars{\nu},\sigma)\,|\, r(\vars{\nu})\]
+
+\begin{defnL}
+[{Regressable~Formulae}] Let $\sigma$ be an arbitrary situation
+term, $x$ an arbitrary variable not of sort situation, $\nu$ an
+arbitrary regressable term, $R$ an arbitrary rigid predicate, $F$
+an arbitrary primitive fluent predicate, and $\alpha$ an arbitrary
+action description predicate. Then the regressable formulae are the
+smallest set of syntactically-valid formulae satisfying: \[
+\varphi::=F(\vars{\nu},\sigma)\,|\,\alpha(\vars{\nu},a,\sigma)\,|\, R(\vars{\nu})\,|\,\nu_{1}=\nu_{2}\,|\,\neg\varphi\,|\,\varphi_{1}\wedge\varphi_{2}\,|\,\exists x:\,\varphi\]
 
 \end{defnL}
-Its operation is defined by a set of \emph{regression rules} as shown
-below.
+\end{defnL}
+Regressable formulae are more general than uniform formulae - in particular,
+they can contain action description predicates and may mention different
+situation terms. They cannot, however, quantify over situation terms
+or compare situations using the $<$ predicate.
+
+With these definitions in place, the operation of $\Reg_{\Dt}$ is
+defined by a set of \emph{regression rules} as shown below.
 
 \begin{defnL}
 [{Regression~Operator}] Let $R$ be a rigid predicate, $\alpha$
-be an action description predicate with axiom $\alpha(a,s)\equiv\Pi_{\alpha}(a,s)$
+be an action description predicate with axiom $\alpha(\vars{\nu},a,s)\equiv\Pi_{\alpha}(a,s)$
 in $\Dt_{ad}$, and $F$ be a primitive fluent with axiom $F(\vars{x},s)\equiv\Phi_{F}(\vars{x},s)$
 in $\Dt_{ssa}$. Then the \emph{regression} of $\phi$, denoted $\Reg_{\Dt}(\phi)$,
-is defined according to the following rules: (TODO: finish details
-of regression)\begin{gather*}
+is defined according to the following rules:\begin{gather*}
 \Reg_{\Dt}(\varphi_{1}\wedge\varphi_{2})\,\isdef\,\Reg_{\Dt}(\varphi_{1})\wedge\Reg_{\Dt}(\varphi_{2})\\
 \Reg_{\Dt}(\exists x:\,\varphi)\,\isdef\,\exists x:\,\Reg_{\Dt}(\varphi)\\
 \Reg_{\Dt}(\neg\varphi)\,\isdef\,\neg\Reg_{\Dt}(\varphi)\\
-\Reg_{\Dt}(\alpha(\vars{t},a,\sigma))\,\isdef\,\Reg_{\Dt}(\Pi_{\alpha}(\vars{t},a,s))\\
-\Reg_{\Dt}(\tau_{1}=\tau_{2})\,\isdef\, TODO\\
-\Reg_{\Dt}(F(\vars{t},do(a,\sigma)))\,\isdef\,\Phi_{F}(\vars{t},a,\sigma)\end{gather*}
+\Reg_{\Dt}(\alpha(\vars{\nu},a,\sigma))\,\isdef\,\Reg_{\Dt}(\Pi_{\alpha}(\vars{\nu},a,\sigma))\\
+\Reg_{\Dt}(F(\vars{\nu},do(a,\sigma)))\,\isdef\,\Phi_{F}(\vars{\nu},a,\sigma)\\
+\Reg_{\Dt}(F(\vars{\nu},s))\,\isdef\,\Phi_{F}(\vars{\nu},a,s)\\
+\Reg_{\Dt}(F(\vars{\nu},S_{0}))\,\isdef\,\Phi_{F}(\vars{\nu},a,S_{0})\end{gather*}
 
 \end{defnL}
-Each application of the regression operator replaces action description
-predicates with their definitions from $\Dt_{ad}$ and primitive fluents
-with their successor state axioms from $\Dt_{ssa}$, {}``unwinding''
-a single action from each situation term in the query. If the situation
-term is not constructed using $do$, it is left unchanged.
+Since $\Dt$ is fixed, we will henceforth drop the subscript and simply
+write $\Reg$ for the regression operator.
 
-Since $\Dt$ is fixed, we will drop the subscript and simply write
-$\Reg$ for regression.
+We have omitted some technical details here, such as the handling
+of functional fluents; consult \citep{pirri99contributions_sitcalc}
+for the details. The key point is that each application of the regression
+operator replaces action description predicates with their definitions
+from $\Dt_{ad}$ and primitive fluents with their successor state
+axioms from $\Dt_{ssa}$, {}``unwinding'' a single action from each
+$do(a,\sigma)$ situation term in the query. If the situation term
+is not constructed using $do$, it is left unchanged.
 
 Repeated applications of this operator, denoted by $\Reg^{*}$, can
 transform a query about some future situation into a query about the
@@ -419,14 +462,6 @@ the query. The trade-off is that the length of the regressed query
 may be exponential in the length of $\phi$. While an efficiency gain
 is not guaranteed, regression has proven a very effective technique
 in practice \citep{levesque97golog,pirri99contributions_sitcalc}.
-
-Note that we are using the single-step regression operator, as defined
-in e.g. \citep{scherl03sc_knowledge}. It is also common to find a
-single-pass version of the regression operator, as defined in \citep{pirri99contributions_sitcalc},
-which operates like $\Reg^{*}$ defined above. It is straightforward
-to define the single-pass regression operator in terms of the single-step
-operator, but not vice-versa, so we utilise the more primitive operator
-here.
 
 When dealing with situation-suppressed uniform formulae, we will use
 a two-argument operator $\Reg(\phi,a)$ to indicate the regression
@@ -438,8 +473,16 @@ One shortcoming of the regression operator is the potential for an
 exponential growth in the length of the query \citep{reiter91frameprob}.
 While this cannot be completely overcome in general, there are certain
 restrictions that can be placed on the domain to ensure it is not
-a problem. TODO: find references: context-free SSAs, local-effect
-SSAs.
+a problem. One example is domains with \emph{context free} successor-state
+axioms \citep{reiter01kia}, where the components $\Phi_{F}^{+}(\vars{x},a,s)$
+and $\Phi_{F}^{-}(\vars{x},a,s)$ in the successor state axiom for
+$F$ are independent of the situation $s$. In other words, the effects
+of an action depend only on the action, not on the situation it is
+executed in. Surprisingly many domains satisfy this restriction; for
+example, the axiom for $Holding(agt,obj,do(a,s))$ present earlier
+is context-free. Successor state axioms have been proven to increase
+the size of the regressed query at most linearly with the number of
+regression steps performed.
 
 
 \subsubsection{Decidability}
@@ -451,7 +494,7 @@ calculus typically enforce additional restrictions on the domain in
 order to gain decidability. For example, implementations in Prolog
 typically assume that the axioms about the initial situation satisfy
 the closed-world assumption, so initial situation reasoning can be
-performed using Prologs more effecient theorem proving instead of
+performed using Prologs more efficient theorem proving instead of
 a full first-order prover.
 
 Another option is to assume the \noun{Action} and \noun{Object} domains
@@ -459,8 +502,42 @@ are finite, allowing static domain reasoning to be performed using
 propositional logic, which is decidable \citep{giacomo99impl_robots,levesque04krr_book}.
 Recent work by \citet{yu07twovar_sitcalc} shows how domains can be
 restricted to the two-variable fragment of first-order logic, which
-is also decidable.\\
+is also decidable.
 
+
+\subsubsection{Inductive Reasoning}
+
+One class of query that cannot be answered effectively using regression
+is formulae that quantify over situations. Examples of such queries
+include verifying state constraints ({}``for all situations, the
+constraint is satisfied'') and determining the impossibility of a
+goal ({}``for all situations, the goal is not satisfied''). The
+difficulty, as mentioned above, is the induction axioms.
+
+\citet{Reiter93proving} has shown how the induction operator can
+be used in manual proofs of queries that universally quantify over
+situation terms, but offers no procedure for answering such queries
+automatically. Other work considering inductive reasoning has focused
+exclusively on verifying state constraints. The work of \citet{Lin94-StateConstraints}
+{}``compiles away'' the induction axiom when verifying a state constraint,
+by means of the following equivalence:\begin{gather*}
+\Sigma\cup\mathcal{D}_{bg}\cup\mathcal{D}_{ssa}\models\phi[S_{0}]\rightarrow\left(\forall s\,.\, S_{0}\leq s\rightarrow\phi[s]\right)\\
+\mathit{iff}\\
+\mathcal{D}_{bg}\models\forall s,a\,.\,\phi[s]\wedge\mathcal{R}_{\mathcal{D}}[Poss(a,s)]\,\rightarrow\,\mathcal{R}_{\mathcal{D}}[\phi[do(a,s)]]\end{gather*}
+ Verification of a state constraint can thus be reduced to static
+domain reasoning, a relatively straightforward reasoning task. This
+problem is also approached by \citep{bertossi96automating}, who develop
+a system for automatically verifying state constraints based on an
+induction theorem prover.
+
+However, there are no general-purpose automated tools for handling
+queries that universally quantify over situation terms. It is this
+limitation, more than any other, that has restricted the situation
+calculus to synchronous domains. In asynchronous domains agents must
+account for potentially arbitrarily-long sequences of hidden actions,
+which requires universal quantification over situation terms. In chapter
+\ref{ch:persistence} we develop a new reasoning technique to overcome
+this limitation.
 
 
 \subsubsection{Progression}
@@ -474,7 +551,7 @@ An alternative approach is \emph{progression}, in which the initial
 state of the world $\Dt_{S_{0}}$ is updated with each action performed
 to give a new set of axioms about the current situation. The intuition
 is that although this increase the upfront complexity when an action
-is performed, this work is amortized over many queries about the updated
+is performed, this work is amortised over many queries about the updated
 state. \citet{thielscher04case_for_progression} produced quite compelling
 data that progression gives better runtime performance in domains
 with many actions. Why, then, do we focus only on regression in this
@@ -486,7 +563,7 @@ caveat: the progression of a first-order database is not always first-order
 definable. While it is possible to define first-order progressions
 of a database that are valid for restricted classes of query, a first-order
 progressed database cannot be complete \citep{vassos08progression_future_queries}.
-As such, work on progression in the situation calculus has focussed
+As such, work on progression in the situation calculus has focused
 on restricted queries or restricted databases for which progression
 can be defined \citep{liu05sc_progression_knowledge,vassos07progression}.
 
@@ -509,7 +586,7 @@ domains. However, a number of important extensions have been proposed
 which increase the domain features that can be modelled while maintaining
 the elegance and simplicity of the base situation calculus. We will
 now discuss several such extensions that are important when modelling
-mtul-agent domains.
+multi-agent domains.
 
 
 \subsubsection{Concurrent Actions}
@@ -518,9 +595,9 @@ In the basic situation calculus only a single action can occur at
 any instant. While suitable for most single-agent domains, this limitation
 is emphatically not suitable for multi-agent systems - several actions
 can easily occur simultaneously if performed by different agents.
-Modeling this \emph{true concurrency} is necessary to avoid problems
+Modelling this \emph{true concurrency} is necessary to avoid problems
 with conflicting or incompatible actions. There is also the potential
-to utilize concurrency to execute tasks more efficiently. Clearly
+to utilise concurrency to execute tasks more efficiently. Clearly
 a solid account of concurrency is required for programming multi-agent
 teams.
 
@@ -590,7 +667,7 @@ and attach the temporal component to the set of actions itself, rather
 than to each individual action. Predicates and functions taking actions
 are modified to take \noun{Concurrent\#Timepoint }pairs.
 
-TODO: define $start$ and $time$ functions.
+TODO: define $start$ and $time$ functions as needed for next chapter.
 
 
 \subsubsection{TODO: Long-Running Tasks}
@@ -613,20 +690,20 @@ They are classified according to the following requirement: natural
 actions must occur at their predicted times, provided no earlier actions
 prevent them from occurring. For example, a timer will ring at the
 time it was set for, unless it is switched off. Such actions are used
-to model the predicatable behavior of the environment.
+to model the predictable behaviour of the environment.
 
 Natural actions are indicated by the truth of the predicate $Natural(a)$.
 The times at which natural actions may occur are specified by the
 $Poss$ predicate as usual. For example, suppose that the fluent $TimerSet(m,s)$
 represents the fact that a timer is set to ring in $m$ minutes in
 situation $s$. The possibility predicate for the $ringTimer(t)$
-action would entail:\begin{multline*}
-Poss(ringTimer(t),s)\equiv\\
-\exists m.\left[TimerSet(m,s)\wedge t=start(s)+m\right]\end{multline*}
+action would entail:\[
+Poss(ringTimer(t),s)\equiv\exists m.\left[TimerSet(m,s)\wedge t=start(s)+m\right]\]
  The timer may thus ring only at its predicted time. To enforce the
 requirement that natural actions \emph{must} occur whenever possible,
-the action description predicate $Legal(c\#t,s)$ is introduced:\[
-Legal(c\#t,s)\equiv Poss(c\#t,s)\wedge\forall a,t':\,\left[Natural(a)\wedge Poss(\{a\}\#t',s)\,\rightarrow\,\left(a\in c\vee t<t'\right)\right]\]
+the action description predicate $Legal(c\#t,s)$ is introduced:\begin{multline*}
+Legal(c\#t,s)\equiv\\
+Poss(c\#t,s)\wedge\forall a,t':\,\left[Natural(a)\wedge Poss(\{a\}\#t',s)\,\rightarrow\,\left(a\in c\vee t<t'\right)\right]\end{multline*}
  This is is only legal to perform actions $c$ at time $t$ if no
 natural actions can occur in $s$ at a time less than $t$. We modify
 the definition of legal situations to use $Legal$ instead of $Poss$:\[
@@ -638,8 +715,7 @@ natural time point (LNTP) of a situation, defined as the earliest
 time at which a natural action may occur. We assume that the theory
 of action avoids certain pathological cases, so that absence of an
 LNTP implies that no natural actions are possible.\begin{multline*}
-Lntp(s,t)\equiv\\
-\exists a.\left[Natural(a)\wedge Poss(a,s)\wedge time(a)=t\right]\wedge\\
+Lntp(s,t)\equiv\exists a.\left[Natural(a)\wedge Poss(a,s)\wedge time(a)=t\right]\wedge\\
 \forall a.\left[Natural(a)\wedge Poss(a,s)\rightarrow t\leq time(a)\right]\end{multline*}
 
 
@@ -648,12 +724,14 @@ Lntp(s,t)\equiv\\
 
 TODO: briefly discuss state constraints? \citep{Lin94-StateConstraints}
 
+Including state constraints in $\Dt_{bg}$ can assist in calculating
+the persistence condition. Revisit this section after that chapter.
+
 
 \subsubsection{Summary}
 
-TODO: clearly many nice extensions, and they play nice together, simple
-modifications to standard notation - summarize which parts we will
-use when.
+TODO: revisit this section to summarise how and when we use these
+extensions - after we've actually used them in later chapters :-)
 
 
 \subsection{Applications}
@@ -662,19 +740,19 @@ The most prominent application of the situation calculus has been
 the programming language Golog \citep{levesque97golog} and its descendants,
 which will be discussed in detail in section \ref{sec:Background:Golog}.
 That the Situation Calculus and Golog are viable tools for specifying
-and implementing agent behavior is highlighted by the many successful
+and implementing agent behaviour is highlighted by the many successful
 applications of the techniques in different planning tasks, including:
 open-world planning \citep{Finzi00open_world_sitcalc}; planning with
 natural actions \citep{pirri00planning_nat_acts}; planning under
 uncertainty \citep{baier03golog_planning}; control and coordination
-in robotic soccur \citep{Ferrein2005readylog}; and specifying the
-behavior of computer-controlled characters in video games \citep{jacobs05unrealgolog}.
+in robotic soccer \citep{Ferrein2005readylog}; and specifying the
+behaviour of computer-controlled characters in video games \citep{jacobs05unrealgolog}.
 
 In more theoretical settings, the situation calculus has formed the
 basis for reasoning about multi-agent games \citep{delgrande01sitcalc_cleudo}
 and system specifications \citep{shapiro02casl,lesperance05ecasl}.
 It has formed the basis for a standard process specification language
-in manufactoring \citep{gruninger04psl} and has been applied to the
+in manufacturing \citep{gruninger04psl} and has been applied to the
 automated composition of semantic web services \citep{mcilraith02golog_web_services}.
 
 TODO: find ref for automated verification of CASL properties
@@ -684,12 +762,17 @@ TODO: more on applications
 
 \subsection{TODO: Related Formalisms}
 
-There are a wide range of related formalisms for reasoning about knowledge,
+There are a range of related formalisms for reasoning about knowledge,
 action and change, which we do not directly consider in this thesis.
 
-TODO: fluent calculus \citep{thielscher99fluentcalc}
+TODO: fluent calculus \citep{thielscher99fluentcalc}. Explicitly
+derived from the situation calculus using progression instead of regression.
 
-TODO: event calculus \citep{kowalski86event_calculus}
+TODO: event calculus \citep{kowalski86event_calculus}. Linear time,
+uses timepoints rather than situations. But, it is good for partially-ordered
+events. Comparing the two: \citet{kowalski97reconcile_sitcalc_evtcalc},
+\citet{belleghem97sitcalc_evtcalc}. Combining the two: \citet{belleghem95combine_sitcalc_evtcalc}
+.
 
 We find the notation and meta-theory of the situation calculus particularly
 suitable for expressing our main ideas. Moreover, the strong underlying
@@ -782,7 +865,7 @@ performed in any order.
 \end{minipage}} 
 \par\end{centering}
 
-\caption{A Golog program for wasing the dishes\label{fig:Background:Golog:Washing-Dishes}}
+\caption{A Golog program for washing the dishes\label{fig:Background:Golog:Washing-Dishes}}
 
 \end{figure}
 
@@ -790,8 +873,8 @@ performed in any order.
 Figure \ref{fig:Background:Golog:MakeSalad} shows a program that
 we will return to throughout the thesis, giving instructions for how
 to prepare a simple salad. The procedure $ChopTypeInto$ (not shown)
-directs the specified agent to acquire an ingrediate of the specified
-type, chope it, and place it into the indicated bowl. The procedure
+directs the specified agent to acquire an ingredient of the specified
+type, chop it, and place it into the indicated bowl. The procedure
 $MakeSalad$ nondeterministically selects an agent to do this for
 a lettuce, a carrot, and a tomato, and allows the chopping to proceed
 concurrently if possible. Note the nondeterminism in this program
@@ -879,15 +962,15 @@ There has been a wide range of Golog extensions developed which we
 will not consider in this thesis. Among them have been extensions
 to include decision-theoretic \citep{boutilier00dtgolog} and game-theoretic
 aspects \citep{finzi03gtgolog,finzi05pogtgolog}, additional control
-operators such as partial ordered sequencs of actions \citep{son00htn_golog}
+operators such as partial ordered sequences of actions \citep{son00htn_golog}
 and hierarchical task networks \citep{Gabaldon02htn_in_golog,Son04golog+htn+time},
 controlling cooperating members of a team \citep{farinelli07team_golog},
-and accounting for contiuous change and event triggering \citep{grosskreutz00ccgolog}.
+and accounting for continuous change and event triggering \citep{grosskreutz00ccgolog}.
 
 While we will not consider these Gologs in any detail, we do note
 that each has been a relatively straightforward matter of extending
 the underlying situation calculus theory and/or the semantics of the
-Golog operators, and as a resul there has been rich cross-pollination
+Golog operators, and as a result there has been rich cross-pollination
 between different works. We therefore expect that our work in turn
 may be combined with some of these extensions to provide an even richer
 formalism.
@@ -931,7 +1014,7 @@ events. Each agent has some subset of these events which it can observe,
 and in any state of the system thus has a local history of events
 that it has observed. From the agent's perspective, the system may
 be in any of the states that would produce its current local history.
-This equivalance relation between the states of the system defines
+This equivalence relation between the states of the system defines
 the agent's possible worlds, and thus its knowledge.
 
 TODO: do I need a picture or something here? It's a pretty important
@@ -963,13 +1046,75 @@ the situation calculus analogue of the modal reachability relation
 $K_{agt}$, and the macro $\Knows(agt,\phi,s)$ as the equivalent
 of the modal box operator $[K_{agt}]\phi$.
 
-TODO: regression, synchronicity
-
 
 \subsection{Group-Level Knowledge}
 
-TODO: group-level knowledge, important of common knowledge, inability
-to do regression
+We briefly review the various group-level epistemic modalities commonly
+found in the literature; an excellent overview and discussion can
+be found in the work of \citet{halpern90knowledge_distrib}. Let $G$
+be a finite group of agents. The basic group-level modality is {}``everyone
+knows $\phi$'', which is defined as:\[
+\EKnows(G,\phi,s)\isdef\,\forall agt\in G:\,\Knows(agt,\phi,s)\]
+
+
+Since $G$ is a finite set, this can be written equivalently as a
+finite conjunction:\[
+\mathbf{EKnows}(G,\phi,s)\,\isdef\,\bigwedge_{agt\in G}\,\mathbf{Knows}(agt,\phi,s)\]
+
+
+To assert more complete knowledge by members of the group, one can
+say {}``everyone knows that everyone knows $\phi$'' by nesting
+$\mathbf{EKnows}$ operators. In general:\begin{gather*}
+\mathbf{EKnows}^{1}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\phi,s)\\
+\mathbf{EKnows}^{n}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\mathbf{EKnows}^{n-1}(G,\phi),s)\end{gather*}
+
+
+The higher the value of $n$, the stronger an assertion is made about
+the knowledge of the group. The strongest group-level modality is
+{}``it is common knowledge that $\phi$''. Intuitively this indicates
+that everyone knows $\phi$, everyone knows that everyone knows $\phi$,
+and so on ad infinitum. Formally, it can be defined as the infinite
+conjunction:\[
+\mathbf{CKnows}(G,\phi,s)\,\isdef\,\bigwedge_{n\in\mathbb{N}}\mathbf{EKnows}^{n}(G,\phi,s)\]
+
+
+Equivalently, it can be defined as a fixpoint or transitive closure
+of the $\EKnows$ relation. Common knowledge is an extremely powerful
+form of knowledge that has deep implications for coordinated group
+behaviour. For example, in the famous {}``Coordinated Attack'' problem,
+the proof that the generals cannot coordinate an attack depends heavily
+on their inability to obtain common knowledge \citep{halpern90knowledge_distrib}.
+
+Existing treatments of common knowledge in the situation calculus
+and related literature specify it as the transitive closure of $\EKnows$
+using an explicit second-order axiom \citep{davis05fo_ma_theory,ghaderi07sc_joint_ability}.
+While logically sound, this approach forgoes the use of regression
+as an effective reasoning technique. Indeed, reasoning in such formalisms
+requires a second-order theorem prover.
+
+This difficulty in effectively handling common knowledge can be attributed
+to a famous expressivity result from the related field of dynamic
+epistemic logic:
+
+\begin{quote}
+Epistemic logic with actions and common knowledge is more expressive
+than epistemic logic with common knowledge alone \citep{baltag98pa_ck} 
+\end{quote}
+In our terminology: given a formula $\CKnows(G,\phi,do(c,s))$, it
+is impossible in general to find an equivalent formula $\CKnows(G,\psi,s)$.
+It is thus impossible to formulate a regression rule for common knowledge
+using only the $\Knows$ and $\CKnows$ operators.
+
+Given the deep similarities between the situation calculus and dynamic
+epistemic logic \citep{vanbentham07ml_sitcalc}, we can be confident
+that this expressivity limitation also holds in the situation calculus.
+
+Recent work in dynamic epistemic logic as overcome this limitation
+by using a more expressive epistemic language. In the Logic of Communication
+and Change or {}``LCC'' \citep{vanBenthem06lcc} use the syntax
+of dynamic logic to formulate complex epistemic modalities, and derive
+the equivalent of a regression rule for this language. We incorporate
+this new technique into the situation calculus.
 
 
 \subsection{Belief}
@@ -980,18 +1125,26 @@ agent's knowledge is always true:\[
 \Knows(agt,\phi,s)\,\rightarrow\,\phi[s]\]
 
 
-If this is not the case, one is performing \emph{doxastic} or belif-based
+If this is not the case, one is performing \emph{doxastic} or belief-based
 reasoning.
+
+TODO: refs here.
 
 
 \subsection{Alternative Formalisms }
 
-decidability/weakening \citep{demolombe00tractable_sc_belief} \citep{petrick02knowledge_equivalence}
+TODO: decidability/weakening \citep{demolombe00tractable_sc_belief}
+\citep{petrick02knowledge_equivalence}
+
+Not sure how much of this belongs here and how much in the individual
+chapter.
 
 
 \subsection{Applications}
 
 TODO: epistemic feasibility of plans \citep{giacomo04sem_delib_indigolog,Lesperance01epi_feas_casl}
+
+Revisit after jointexec chapter to see if I really need this.
 
 
 \section{Mozart/Oz\label{sec:Background:Mozart/Oz}}
@@ -1078,7 +1231,7 @@ procedure $FindP$. Search objects work with a one-argument procedure,
 which is expected to bind its argument to a result. The dollar symbol
 is used to translate a statement (in this case the $\mathbf{proc}$
 definition) into an expression. The value that would be bound to the
-dollar synbol by the statement becomes the return value of the expression,
+dollar symbol by the statement becomes the return value of the expression,
 so $FindP=proc\,\{\$\, P\}$ is equivalent to $proc\,\{FindP\, P\}$.
 
 %
@@ -1136,9 +1289,4 @@ in Prolog to understand the Oz code used throughout this thesis. For
 more information and further examples, consult the general Oz tutorial
 \citep{haridi99oz_tutorial} or the specialised tutorial on logic
 programming in Oz \citep{lpinoz99}, which are both available online.
-
-\label{ch:references} \bibliographystyle{plainnat} \bibliographystyle{plainnat}
-
-\label{ch:references} \bibliographystyle{plainnat} \bibliographystyle{plainnat}
-\bibliography{../../library/references}
 
