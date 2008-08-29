@@ -13,44 +13,61 @@ logic programming. But while powerful, the situation calculus currently
 suffers several major limitations that make it unsuitable for reasoning
 about asynchronous multi-agent domains.
 
-Existing multi-agent applications of the situation calculus all demand
-some means of global synchronisation between the agents, frequently
-going so far as to require that every agent is aware of every action
-performed. This ensures that each agent's local perspective on the
+First, let us note that there is a significant body of work on modelling
+and implementing multi-agent systems in the situation calculus, including:
+the cognitive agent specification language and verification environment
+\citep{shapiro02casl}; theories of coordination and ability \citep{ghaderi07sc_joint_ability};
+artificial intelligence competitions such as robot soccer \citep{Ferrein2005readylog}
+and robot rescue \citep{farinelli07team_golog}; reasoning about the
+epistemic feasibility of plans \citep{Lesperance01epi_feas_casl};
+analysing multi-player games \citep{delgrande01sitcalc_cleudo}; and
+the cooperative execution of Golog programs \citep{Ferrein2005readylog,kelly06hlp_dps}.
+
+However, each of these works has been limited to \emph{synchronous}
+domains -- domains in which each agent's local perspective on the
 world is updated in lock-step with the global perspective available
-to the system designer -- while an agent may not know the full state
-of the world, it will always know precisely how many actions have
-been performed.
+to the system designer. This restriction ensures that, while an agent
+may not know the full state of the world, it will always know precisely
+how many actions have been performed. In many cases the restriction
+is enforced using a blanket assumption that that all actions are publicly
+observable.
 
-In domains where such a restriction can be tolerated, it means that
-standard techniques for effective reasoning from an omniscient perspective
-can be used directly to reason from the perspective of an individual
-agent. It also allows techniques for single-agent planning to be used
-directly when planning cooperative behaviour for a team of agents.
-But in domains where synchronicity cannot be guaranteed, the situation
-calculus currently offers no tools for reasoning effectively about
-the knowledge of an agent or for planning the cooperative execution
-of a task.
+The motivation for this restriction is clear and compelling: regression.
+Regression is the standard technique for effective reasoning in the
+situation calculus and the core of the Golog execution planning procedure.
+It operates by systematically removing actions from a query until
+it is in a form that is easy to answer. In synchronous domains, all
+agents know the number of actions performed and can directly use existing
+regression-based techniques for reasoning and planning from their
+local perspective. But in domains where synchronicity cannot be guaranteed,
+the situation calculus offers no tools for effective reasoning from
+the local perspective of a single agent.
 
-This thesis overcomes these limitations by explicitly representing
-the local perspective of each agent. Whenever an action occurs, each
-agent makes a corresponding set \emph{observations} that are local
-to that agent. We can then formalise the case where the lack of global
-synchronicity means some actions may be completely hidden from some
-agents, by allowing the set of observations to be empty. On top of
-this seemingly simple extension, we construct a new technique for
-effective inductive reasoning, a principled axiomatisation of multi-agent
-knowledge, and techniques for planning with partially-ordered action
-sequences. These new techniques allow the situation calculus to be
-used to much greater effect in asynchronous multi-agent domains.
+This thesis extends the situation calculus with reasoning and planning
+techniques for \emph{asynchronous }domains -- domains in which the
+state of the world can change without updating the local perspective
+of each agent%
+\footnote{This usage of the term {}``asynchronous'' differs from its use in
+e.g. network theory but is standard in epistemic logic. We will expand
+on its precise definition in the next chapter. %
+}. We begin by explicitly representing that local perspective. Whenever
+an action occurs, each agent makes a corresponding set \emph{observations}
+that are local to that agent. We explicitly allow this set of observations
+to be empty, formalising the case where asynchronicity means some
+actions are completely hidden from some agents. On top of this seemingly
+simple extension, we construct a planning process based on partially-ordered
+action sequencss, a new technique for effective inductive reasoning
+to augment standard regression, and a principled axiomatisation of
+multi-agent knowledge coupled with an effective reasoning procedure.
+These new extensions allow the situation calculus to be used to much
+greater effect in asynchronous multi-agent domains.
 
 
 \section{Motivation}
 
 Let us begin by introducing two motivating examples that will be used
-throughout the thesis. While these domains cannot be adequately treated
-using existing techniques from the situation calculus, our new contributions
-allow an effective treatment of each.
+throughout the thesis, along with an overview of the challenges they
+pose to existing techniques from the situation calculus literature.
 
 
 \subsection*{Example 1: The Cooking Agents}
@@ -66,13 +83,34 @@ the tasks to be performed as a single shared program, and have the
 agents automatically distribute the work amongst themselves.\\
 
 
-The situation calculus offers a compelling solution for problems such
-as this, by having the team of agents cooperate to plan and perform
-the execution of a shared Golog program. However, existing techniques
-produce a plan that requires constant synchronisation between the
-agents. In asynchronous domains the agents' plan must require synchronisation
-only when necessary, and should permit actions to be performed out-of-order
-whenever possible, to take advantage of concurrency between the agents.
+The situation calculus offers a compelling approach for this example
+domain: have the team of agents cooperate to plan and perform the
+execution of a shared Golog program. However, existing Golog implementations
+generate raw situation terms as the output of their planning process.
+These are linear, fully-ordered sequences of the actions to be performed,
+and require constant synchronisation if the agents are to perform
+them cooperatively.
+
+In synchronous domains this is not a problem, as the agents will always
+know how far the execution has progressed and thus what actions should
+be performed next. But it is still undesirable as it makes it difficult
+to take advantage of the natural concurrency present when planning
+for a team of agents. The Golog planning process must be modified
+to reason about and allow such concurrency.
+
+In asynchronous domains, an agent may not necessarily know how far
+execution has progressed, and may thus be unsure when or if to perform
+its next action. The planning process should account for this by only
+calling for agents to perform an action if they will know, based on
+their local information, that the action should be performed. But
+the situation calculus currently has no means to represent this kind
+of partially-ordered action action structure.\\
+
+
+Rather than demand that Cathy equip her robots with a global synchronisation
+mechanism of some kind, we will extend the situation calculus and
+the semantics of Golog execution planning to better handle inter-agent
+synchronisation in asynchronous, partially-observable domains.
 
 
 \subsection*{Example 2: The Party Invitation}
@@ -80,21 +118,39 @@ whenever possible, to take advantage of concurrency between the agents.
 Alice and Bob have heard about Cathy's party but don't know where
 it is, and have just received an invitation telling them the location.
 Having suffered decades of trouble with their communications, they
-like to reason about each other's knowledge based on the actions they
-have performed. If Alice reads the invitation, she will know the location
+like to reason about each other's knowledge by observing each other's
+actions. If Alice reads the invitation, she will know the location
 of the party. But will Bob know that she knows this? What if he temporarily
 leaves the room, meaning Alice is able to read the invitation in secret?
 And most importantly, can they achieve common knowledge of the party's
 location in order to coordinate their travel plans for the evening?\\
 
 
-While the situation calculus permits an elegant axiomatisation of
-this domain, its standard account of knowledge lacks the ability to
-reason effectively about two features critical in asynchronous multi-agent
-domains: the possibility of hidden actions, and the attainment of
-common knowledge. Alice and Bob require a more sophisticated formalism
-for knowledge that includes effective reasoning procedures capable
-of handling these features.
+The situation calculus permits an elegant axiomatisation of this domain,
+but its standard account of knowledge uses regression for effective
+reasoning and so cannot handle two important aspects of this example
+without resorting the general second-order theorem proving.
+
+First, using regression to handle knowledge queries requires that
+whenever an action occurs, all agents \emph{know} that an action has
+occurred. If this restriction is lifted then each agent's knowledge
+must account for arbitrarily-long sequences of hidden actions. This
+requires a second-order induction axiom which precludes the use of
+regression for effective automated reasoning. 
+
+Second, the situation calculus lacks a comprehensive treament of group-level
+epistemic modalities. While simple cases such as {}``every knows''
+can be handled by expanding them down to individial-level knowledge
+operators, common knowledge is infinitary and cannot be handled in
+this way. Instead, it is typically introduced using an explicit second-order
+definition, again precluding the use of regression for effective automated
+reasoning.\\
+
+
+Rather than demand that Alice and Bob perform open-ended second-order
+theorem proving, we will develop a new technique for inductive reasoning
+in the situation calculus and a new formulation of group-level modalities
+which can capture a regression rule for common knowledge.
 
 
 \section{Contributions}
@@ -104,9 +160,9 @@ represent the local \emph{observations} made by each agent when an
 action is performed. We introduce a function $Obs(agt,a,s)$ that
 returns the set of observations made by agent $agt$ when action $a$
 is performed in situation $s$. From this, we associate with each
-situation $s$ an agent-local view $View(agt,s)$ which is the sequence
-of observations made by the agent, excluding cases where $Obs(agt,a,s)$
-is empty.
+situation $s$ an agent-local view, denoted $View(agt,s)$, which
+is the sequence of observations made by the agent but excluding cases
+where $Obs(agt,a,s)$ is empty.
 
 With a principled axiomatisation of the local perspective of each
 agent in hand, we construct new formalisms and techniques for effective
@@ -114,37 +170,20 @@ use of the situation calculus in asynchronous multi-agent domains.
 The specific contributions are:
 
 \begin{itemize}
-\item \textbf{MIndiGolog:} a multi-agent variant of Golog with semantics
-suitable for cooperative execution by a team of agents, and an implementation
-using off-the-shelf techniques for distributed logic programming to
-share the computational workload between the agents. 
-\item \textbf{Persistence Condition:} a new technique for inductive reasoning
-in the situation calculus, using a meta-level fixpoint calculation
-on top of the standard regression operator. 
-\item \textbf{Knowledge:} an extension of the standard semantics of knowledge
-in the situation calculus, based explicitly on the local perspective
-of each agent, and adding support for:
-
-\begin{itemize}
-\item \textbf{Hidden Actions:} the regression rule for knowledge uses the
-persistence condition operator to account for arbitrarily-long sequences
-of hidden actions. 
-\item \textbf{Common Knowledge:} a new formalism for group-level epistemic
-modalities in which common knowledge can be handled effectively using
-a regression rule. 
-\item \textbf{View-Based Reasoning:} a regression rule for knowledge based
-on an agent's local view, rather than a full situation term, allowing
-the agent to reason about its own knowledge using only its local information 
+\item A new multi-agent variant of Golog, with semantics suitable for cooperative
+execution by a team of agents, and a planning procedure that builds
+a partially-ordered sequence of actions rather than a raw situation
+term. The planning process ensures synchronisation by ensuring agents
+need only act based on their local view.
+\item A new procedure for effective inductive reasoning, using a meta-level
+fixpoint calculation on top of the standard regression operator. 
+\item A new formalism for individual-level knowledge based explicitly on
+the agent's local view, with accompanying regression rules that use
+our new technique for inductive reasoning to handle arbitrarily-long
+sequences of hidden actions. On top of this we intorduce a new language
+for group-level epistemic modalities that is expressive enough to
+formulate a regression rule for common knowledge.
 \end{itemize}
-\item \textbf{Joint Executions:} a new data structure for representing action
-sequences during Golog execution planning, allowing independent actions
-to be executed independently while automatically managing inter-agent
-synchronisation based on their local observations. 
-\end{itemize}
-Each contribution is demonstrated with reference to the example domains
-described above, and is accompanied by an implementation using the
-Mozart programming system.
-
 
 \section{Thesis Outline}
 
@@ -153,7 +192,7 @@ The thesis proceeds as follows:
 \begin{itemize}
 \item Chapter \ref{ch:background} provides a brief literature review and
 presents the necessary background material on the situation calculus,
-Golog, epistemic reasoning, and the Mozart programming system. 
+Golog, and the Mozart programming system. 
 \item Chapter \ref{ch:mindigolog} introduces a variant of Golog with semantics
 suitable for planning the cooperative execution of a shared task,
 which we call \emph{MIndiGolog.} We demonstrate an implementation
@@ -161,20 +200,22 @@ using the distributed logic programming capabilities of Mozart to
 share the planning workload among agents. We also highlight the limitations
 of the situation calculus that restrict this technique to synchronous
 domains. 
-\item Chapter \ref{ch:jointexec} develops joint executions as a restricted
-kind of prime event structure, and shows how to use them as a data
-structure in planning the execution of a shared MIndiGolog program. 
+\item Chapter \ref{ch:jointexec} formalises the agent-local perspective
+by reifying the \emph{observations} made by each agent as the world
+evolves. We then develops \emph{joint executions} as a restricted
+kind of prime event structure where synchronisation is based on observations,
+and shows how to use them as a data structure in planning the execution
+of a shared MIndiGolog program.
 \item Chapter \ref{ch:persistence} develops a new reasoning technique for
 effectively handling queries that universally quantify over situation
 terms, which we call the \emph{Persistence Condition} operator. It
 uses a restricted fixpoint calculation to replace a second-order induction
 axiom. 
 \item Chapter \ref{ch:knowledge} develops a formalism for individual knowledge
-in the face of hidden actions, by explicitly reifying the \emph{observations}
-made by each agent as the world evolves, and specifying an agent's
-knowledge in terms of what it has observed. The persistence condition
-operator is used to augment the traditional regression rule for knowledge
-to account for arbitrarily-long sequences of hidden actions. 
+in the face of hidden actions, by specifying an agent's knowledge
+in terms of its local perspective. The persistence condition operator
+is used to augment the traditional regression rule for knowledge to
+account for arbitrarily-long sequences of hidden actions. 
 \item Chapter \ref{ch:cknowledge} introduces common knowledge by using
 the syntax of dynamic logic to formulate a more expressive epistemic
 language than existing situation calculus theories. We formulate a
@@ -182,4 +223,8 @@ regression rule for these complex epistemic modalities and formally
 relate them to our account of individual knowledge.
 \item Chapter \ref{ch:conclusion} concludes with a summary of our achievements
 and suggestions for future work. 
+\item Appendix \ref{ch:implementation} discusses our implementation in
+more detail.
+\item Appendix \ref{ch:implementation} provides full proofs for all theorems
+in the thesis.
 \end{itemize}
