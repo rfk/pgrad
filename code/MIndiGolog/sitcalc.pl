@@ -8,13 +8,12 @@
 %%
 %%    This implementation is a slight modification of the work
 %%    of Reiter ("Natural Actions, Concurrency and Continuous
-%%    Time in the Situation Calculus"), implemented in CIAO prolog.
+%%    Time in the Situation Calculus"), implemented in SWI prolog.
 %%    In this case, the temporal component is attached to situations
 %%    instead of actions.  So do(A,S) becomes do(A,T,S), poss(A,S)
-%%    becomes poss(A,T,S), etc.  I hypothesis that the resulting
-%%    languages are equiavlently expressive in terms of legal situations,
+%%    becomes poss(A,T,S), etc.  I hypothesise that the resulting
+%%    languages are equivalently expressive in terms of legal situations,
 %%    but make no attempt at this stage to prove it.
-%%
 %%
 %%    The worlds modelled using this framework must conform to the
 %%    following structural rules:

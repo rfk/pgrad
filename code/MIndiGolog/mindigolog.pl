@@ -272,8 +272,7 @@ trans_true_conc(conc(D1,D2),S,Dp,Sp) :-
     Dp = conc(Dr1,Dr2).
 
 trans(conc(D1,D2),S,Dp,Sp) :-
-    call_with_depth_limit(trans_true_conc(conc(D1,D2),S,Dp,Sp),4,R),
-    R \= depth_limit_exceeded
+    trans_true_conc(conc(D1,D2),S,Dp,Sp)
     ;
     Dp = conc(Dr1,D2), trans(D1,S,Dr1,Sp)
     ;

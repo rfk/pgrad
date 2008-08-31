@@ -5,12 +5,12 @@
 %%
 %%  Date Created:  28/07/05
 %%
-%%    This file is the entry-point for an MIndiGolog program consistint
+%%    This file is the entry-point for an MIndiGolog program consisting
 %%    of the following files:
 %%
 %%      * Axioms of the Concurrent, Temporal Situation Calculus with
 %%        Natural Actions, from sitcalc.pl
-%%      * The MIndiGolog semantics, from mindigolo.pl
+%%      * The MIndiGolog semantics, from mindigolog.pl
 %%      * A domain axiomatisation, from domain.pl
 %%
 %%    It imports the necessary prolog libraries and performs other
@@ -27,7 +27,7 @@
 %%  to allow the solver to infer the values of variables which have been
 %%  constrained to a constant value.
 %%
-:- use_module('clpqr/clpq').
+:- use_module(library('clpq')).
 
 
 :- discontiguous(trans/4, final/2, prim_action/1, natural/1, poss/3,
@@ -61,7 +61,7 @@
 %%
 main(Args) :-
     ( length(Args,0) ->
-        nl, ol_do(simple(thomas) // simple(richard) // simple(harriet),s0), nl
+        nl, do(control,s0,S), nl
     ;
         nl, display('ERROR: No arguments can be given'), nl
     ).

@@ -300,7 +300,7 @@ used(Obj,do(C,_,S)) :-
     (
       used(Obj,S)
       ;
-      member(acquire_object(_,Obj),C)
+      member(place_in(_,Obj,_),C)
     ).
 
 %%
@@ -449,7 +449,5 @@ history_length(0,s0).
 %%  the most part no fluents hold in the initial situation, so 
 %%  there arent many clauses here.
 %%
-
 start(s0,0).
-
 

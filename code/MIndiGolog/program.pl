@@ -114,7 +114,7 @@ proc(makeSalad(Dest),
 
 %%  Main control program - prepare a nice meal
 proc(control,
-     makeSalad(bowl1) // makeCake(bowl2) // makeCake(bowl3)
+     makeSalad(bowl1)
     ).
 
 %%  Tests the operation of the LNTP condition
@@ -138,6 +138,7 @@ proc(piTest,
          )
     ).
 
+%%  A simple little program for testing purposes
 proc(simple(Agt),
      pi(obj, ?and(obj_is_type(obj,lettuce),not(used(obj,now)))
              : acquire_object(Agt,obj))).
