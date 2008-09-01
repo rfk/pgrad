@@ -4,6 +4,15 @@
 
 \label{ch:knowledge}
 
+In multi-agent domains, it is important to be able to reason not only
+from the global perspective of the system designer, but also from
+the local perspective of each individual agent -- after all, agents
+can only be expected to act based on their own local information.
+This requires \emph{epistemic} reasoning, or reasoning about the knowledge
+of an agent, the standard tool for which is modal logic. We will focus
+on epistemic reasoning in the situation calculus; for a general overview
+consult \citep{fagin95}.
+
 This chapter develops a formalism for individual knowledge in the
 face of hidden actions.
 
@@ -20,6 +29,56 @@ appropriate query.
 
 
 \section{Background}
+
+The standard semantics of epistemic logic are given by the Kripke
+structures of modal logic, based on the idea of \emph{possible worlds}.
+If an agent is unsure about the state of the world, then there must
+be several candidate states of the world that it considers possible.
+The agent is then said to \emph{know} a proposition if it is true
+in all worlds considered possible. In modal epistemic logics this
+is typically written as $[K_{agt}]\phi$, but we will consistently
+use the standard situation calculus notation of $\Knows(agt,\phi,s)$.
+
+While this works well for a static knowledge base, there is also the
+question of how each agent's knowledge changes over time as actions
+are performed in the world. Various formal systems have been devised
+to represent the interaction between knowledge and action, including
+those of \citet{fagin95}, \citet{parikh85dist_knowledge} and \citet{baltag98pa_ck}.
+Recent work on the foundations of epistemic dynamic logic has shown
+these different perspectives to be essentially equivalent \citep{vanBentham06tree_of_knowledge,pacuit07history_structures},
+and we will present quite a high-level overview here.
+
+A system is considered to have a set of possible events which could
+occur, and the system state at any time is given by a sequence of
+events. Each agent has some subset of these events which it can observe,
+and in any state of the system thus has a local history of events
+that it has observed. From the agent's perspective, the system may
+be in any of the states that would produce its current local history.
+This equivalence relation between the states of the system defines
+the agent's possible worlds, and thus its knowledge.
+
+Epistemic reasoning was first introduced to the situation calculus
+by \citet{moore80know_act}, and formalised extensively by \citet{scherl03sc_knowledge}
+whose paper is now the canonical reference for these techniques. Their
+work has been extended to include concurrent actions \citep{scherl03conc_knowledge}
+and multiple agents \citep{shapiro98specifying_ma_systems}. We further
+extend this family of techniques in this paper.
+
+The semantics of knowledge are based on a reification of the {}``possible
+worlds'' semantics of modal logic, using situation terms rather than
+abstract worlds. A special fluent $K(agt,s',s)$ is used to indicate
+that {}``in situation $s$, the agent $agt$ considers the alternate
+situation $s'$ to be possible''. The macro $\Knows$ is then defined
+as a shorthand for the standard possible-worlds definition of knowledge,
+stating that an agent knows $\phi$ when $\phi$ is true in all situations
+considered possible: \begin{equation}
+\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:Background:knows_def}\end{equation}
+
+
+Readers familiar with modal logic will recognise $K(agt,s',s)$ as
+the situation calculus analogue of the modal reachability relation
+$K_{agt}$, and the macro $\Knows(agt,\phi,s)$ as the equivalent
+of the modal box operator $[K_{agt}]\phi$.
 
 The foundational axioms $\Sigma$ define a special fluent $K_{0}(agt,s',s)$
 that is used to model the initial epistemic uncertainty of the agents,
