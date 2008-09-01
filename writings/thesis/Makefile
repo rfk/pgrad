@@ -32,7 +32,7 @@
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt *.maf
 GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx rawchapters.tex
 
-CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf
+CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf ./upload-thesis/
 
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex jointexec.tex persistence.tex knowledge.tex cknowledge.tex conclusion.tex 
 APPENDICES = implementation.tex proofs.tex
