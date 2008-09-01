@@ -23,12 +23,13 @@ using examples from the {}``cooking agents'' domain. Section \ref{sec:Background
 introduces the Golog family of programming languages, which are the
 standard formalism for representing complex tasks in the situation
 calculus. Related formalisms for reasoning about action and change
-are briefly discussed in section \ref{sec:Background:Related-Formalisms}. Finally, section \ref{sec:Background:Mozart/Oz}
-introduces the Mozart programming system, which will be used to implement
-the various techniques developed throughout the thesis. Basic familiarity
-with formal logic is assumed throughout; readers requiring background
-on such material may find a gentle introduction in \citep{kelly96logic}
-and a more detailed treatment in \citep{fitting96fol_book}.
+are briefly discussed in section \ref{sec:Background:Related-Formalisms}.
+Finally, section \ref{sec:Background:Mozart/Oz} introduces the Mozart
+programming system, which will be used to implement the various techniques
+developed throughout the thesis. Basic familiarity with formal logic
+is assumed throughout; readers requiring background on such material
+may find a gentle introduction in \citep{kelly96logic} and a more
+detailed treatment in \citep{fitting96fol_book}.
 
 
 \section{The Situation Calculus\label{sec:Background:The-Situation-Calculus}}
@@ -648,14 +649,14 @@ to utilise concurrency to execute tasks more efficiently. Clearly
 a solid account of concurrency is required for programming multi-agent
 teams.
 
-The work of \citep{lin92sc_conc,reiter96sc_nat_conc} adds true concurrency
-to the situation calculus by replacing action terms with \emph{sets}
-of actions that are performed simultaneously. The additional sort
-\noun{Concurrent} is added to $\mathcal{L}_{sitcalc}$, and the appropriate
-axioms for set theory are added to $\Dt_{bg}$. All functions and
-predicates that take an \noun{Action} term are are modified to take
-a \noun{Concurrent} term instead. For example, $do(a,s)$ becomes
-$do(\{a_{1},a_{2},...\},s)$. Successor state axioms are modified
+The work of \citep{lin92sc_conc,reiter96sc_nat_conc,pinro95reasoning_time}
+adds true concurrency to the situation calculus by replacing action
+terms with \emph{sets} of actions that are performed simultaneously.
+The additional sort \noun{Concurrent} is added to $\mathcal{L}_{sitcalc}$,
+and the appropriate axioms for set theory are added to $\Dt_{bg}$.
+All functions and predicates that take an \noun{Action} term are are
+modified to take a \noun{Concurrent} term instead. For example, $do(a,s)$
+becomes $do(\{a_{1},a_{2},...\},s)$. Successor state axioms are modified
 to test for set membership rather than equality of action terms. For
 example, the successor state axiom for $Holding$ would become:\begin{multline*}
 Holding(agt,obj,do(c,s))\equiv pickup(agt,obj)\in c\\
@@ -712,10 +713,15 @@ and attach the temporal component to the set of concurrent actions
 itself, rather than to each individual action.
 
 Predicates and functions taking terms of sort \noun{Action} are modified
- to take \noun{Concurrent\#Timepoint}
-pairs, e.g. $do(c,s)$ becomes $do(c\#t,s)$. The new function $start$
-is added to the background theory with the following definition:\[
+to take \noun{Concurrent\#Timepoint} pairs, e.g. $do(c,s)$ becomes
+$do(c\#t,s)$. The new function $start$ is added to the background
+theory with the following definition:\[
 start(do(c\#t,s))=t\]
+
+
+We must ensure that successor situations have later start times than
+their preceeding situations, by modifying the definition of $Legal$:\[
+Legal(c\#t,s)\,\equiv\, Poss(c\#t,s)\wedge start(s)<t\]
 
 
 Introducing timepoints does not affect the regression operator, but
@@ -745,16 +751,17 @@ Poss(ringTimer(t),s)\equiv\exists m:\,\left[TimerSet(m,s)\wedge t=start(s)+m\rig
  The timer may thus ring only at its predicted time. To enforce the
 requirement that natural actions \emph{must} occur whenever possible,
 the action description predicate $Legal(c\#t,s)$ is modified to ensure
-that $c\#t$ is not legal is natural actions could occur at some earlier
+that $c\#t$ is not legal if natural actions could occur at some earlier
 time:\begin{multline*}
 Legal(c\#t,s)\equiv Poss(c\#t,s)\\
 \wedge\,\,\forall a,t':\,\left[Natural(a)\wedge Poss(\{a\}\#t',s)\,\rightarrow\,\left(a\in c\vee t<t'\right)\right]\end{multline*}
  Thus it is only legal to perform actions $c$ at time $t$ if no
 natural actions can occur in $s$ at a time less than $t$.
 
-The least natural time point (or {}``LNTP'') of a situation is defined
-as the earliest time at which a natural action may occur. Rather than
-adding another axiom, this can be defined using a simple macro: \begin{multline*}
+The \emph{least natural time point} (or {}``LNTP'') of a situation
+is defined as the earliest time at which a natural action may occur.
+Rather than adding another axiom, this can be defined using a simple
+macro: \begin{multline*}
 \LNTP(s,t)\isdef\exists a:\left[Natural(a)\wedge Poss(\{a\}\#t,s)\right]\wedge\\
 \forall a',t':\left[Natural(a')\wedge Poss(\{a'\}\#t,s)\rightarrow t\leq t'\right]\end{multline*}
 
@@ -765,6 +772,13 @@ actions are possible. The LNTP is important when planning in the presence
 of natural actions -- one cannot plan to perform some actions at time
 $t$ if $t$ is greater than the least natural timepoint of the current
 situation.
+
+We also define a related concept, the set of \emph{pending natural
+actions}, as the set of all natural actions that are possible at the
+least natural time point:\begin{multline*}
+\PNA(s,c)\isdef\exists t:\,\LNTP(s,t)\wedge\forall a:\left[Natural(a)\wedge Poss(\{a\}\#t,s)\equiv a\in c\right]\\
+\vee\neg\exists t:\,\LNTP(s,t)\wedge c=\{\}\end{multline*}
+
 
 
 \subsubsection{Long-Running Tasks}
@@ -845,7 +859,7 @@ of the language.%
 Operator  & Meaning\tabularnewline
 \hline
 \hline 
-$nil$  & The empty program\tabularnewline
+$Nil$  & The empty program\tabularnewline
 \hline 
 $a$  & Execute action $a$ in the world\tabularnewline
 \hline 
@@ -952,7 +966,9 @@ to be true if program $\delta$ could be successfully executed in
 situation $s$, leaving the world in situation $s'$. However, these
 semantics could not support the concurrent execution of two programs
 and were modified with the introduction of ConGolog \citep{giacomo00congolog}
-to use two predicates $Trans(\delta,s,\delta',s')$ and $Final(\delta,s)$.
+to use two predicates $Trans(\delta,s,\delta',s')$ and $Final(\delta,s)$
+which are capable of representing single-steps of execution of the
+program.
 
 The predicate $Trans(\delta,s,\delta',s')$ holds when executing a
 step of program $\delta$ can cause the world to move from situation
@@ -968,14 +984,14 @@ The transition rule for a programing consisting of a single action
 is straightforward -- it transitions by performing the action, provided
 it is possible in the current situation. Such a program may not terminate
 its execution since the action remains to be performed:\begin{alignat*}{1}
-Trans(a,s,\delta',s')\,\equiv\, & \, Poss(a,s)\wedge\delta'=nil\wedge s'=do(a,s)\\
+Trans(a,s,\delta',s')\,\equiv\, & \, Poss(a,s)\wedge\delta'=Nil\wedge s'=do(a,s)\\
 Final(a,s)\,\equiv\, & \, false\end{alignat*}
 
 
 The transition rule for a test operator proceeds only if the test
 is true, leaving the situation unchanged, and likewise cannot terminate
 execution until the test has been satisfied:\begin{alignat*}{1}
-Trans(?\phi,s,\delta',s')\,\equiv\, & \,\phi[s]\wedge\delta'=nil\wedge s'=s\\
+Trans(?\phi,s,\delta',s')\,\equiv\, & \,\phi[s]\wedge\delta'=Nil\wedge s'=s\\
 Final(?\phi,s)\,\equiv\, & \, false\end{alignat*}
 
 
@@ -1074,7 +1090,9 @@ turn be combined with some of these extensions to provide an even
 richer formalism.
 
 
-\section{Related Formalisms}\label{sec:Background:Related-Formalisms}
+\section{Related Formalisms}
+
+\label{sec:Background:Related-Formalisms}
 
 There are a range of related formalisms for reasoning about knowledge,
 action and change, which we do not directly consider in this thesis.
@@ -1287,6 +1305,8 @@ Reference and discuss \citep{pinto98sc_observations} in great detail
 
 More on advantages of Golog other other approaches? (e.g. HTN stuff
 from MIndiGolog paper?)
+
+Exlicitly define Exogenous actions
 
 Leftover paragraph: Among the advantages offered by the situation
 calculus are: straightforward representations of rich domain features
