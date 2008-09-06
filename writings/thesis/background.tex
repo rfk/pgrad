@@ -546,10 +546,12 @@ reasoning still requires first-order logic and is thus only semi-decidable
 in general. Practical systems implemented on top of the situation
 calculus typically enforce additional restrictions on the domain in
 order to gain decidability. The most common, since it is straightforward
-to implementing in Prolog, assumes that axioms $\Dt_{bg}$ and $\Dt_{S_{0}}$
+to implement in Prolog, assumes that axioms $\Dt_{bg}$ and $\Dt_{S_{0}}$
 satisfy the closed-world assumption. This allows initial situation
 reasoning to be performed using Prolog instead of a full first-order
 prover.
+
+TODO: quality this further: prolog $\neq$ decidability
 
 Another option is to assume that the \noun{Action} and \noun{Object}
 domains are finite. This allows quantification over these variables
@@ -606,7 +608,7 @@ Although this increases the upfront complexity when an action is performed,
 this work is amortised over many queries about the updated state.
 \citet{thielscher04case_for_progression} makes a compelling case
 that progression gives better runtime performance in domains with
-many actions. Why, then, do we focus only on regression in this paper?
+many actions. Why, then, do we focus only on regression in this thesis?
 
 The theoretical foundations of progression in the situation calculus
 were laid out by \citet{reiter97progression} and come with an important
@@ -779,7 +781,8 @@ least natural time point:\begin{multline*}
 \PNA(s,c)\isdef\exists t:\,\LNTP(s,t)\wedge\forall a:\left[Natural(a)\wedge Poss(\{a\}\#t,s)\equiv a\in c\right]\\
 \vee\neg\exists t:\,\LNTP(s,t)\wedge c=\{\}\end{multline*}
 
-TODO: LNTP condition: $\exists a: Natural(a) \wedge Poss(a,s) \rightarrow \exists t: \LNTP(s,t)$
+
+TODO: LNTP condition: $\exists a:Natural(a)\wedge Poss(a,s)\rightarrow\exists t:\LNTP(s,t)$
 
 
 \subsubsection{Long-Running Tasks}
@@ -852,8 +855,6 @@ and nondeterministic choice. Table \ref{tbl:Background:Golog-Operators}
 lists the some of the operators available in various incarnations
 of the language.%
 \begin{table}[h]
- 
-
 \begin{centering}
 \begin{tabular}{|c|c|}
 \hline 
@@ -1052,9 +1053,22 @@ the reflexive transitive closure of $Trans$.\begin{equation}
 A constructive proof of this query would produce an instantiation
 of $s$, a situation term giving a sequence of actions constituting
 a legal execution of the program. In the original Golog and in ConGolog
-this forms the entirety of the execution planning process, as those
+this forms the entirety of the execution planning process, as these
 variants require a full legal execution to be planned before any actions
 are performed in the world.
+
+
+\begin{algorithm}[t]
+\caption{The Golog/ConGolog Execution Algorithm}
+\label{alg:golog_exec}
+\begin{algorithmic}
+\STATE Find a situation $s$ such that: $\Dt \cup \Dt_{golog} \models \exists \delta':\ \left[Trans^*(\delta,S_0,\delta',s) \wedge Final(\delta',s)\right]$
+\FOR{each action in the resulting situation term}
+  \STATE execute that action
+\ENDFOR
+\end{algorithmic} 
+\end{algorithm}
+
 
 By contrast, IndiGolog allows agents to proceed without planning a
 full terminating execution of their program, instead searching for
@@ -1066,6 +1080,22 @@ This next step is then performed immediately, and the process repeats
 until a terminating configuration is reached. This allows the agents
 to include sensing actions in their programs without having to plan
 for every possible outcome of the action.
+
+\begin{algorithm}[t]
+\caption{The IndiGolog Execution Algorithm}
+\label{alg:indigolog_exec}
+\begin{algorithmic}
+\STATE $s\ \Leftarrow\ S_0$
+\WHILE{$\Dt \cup \Dt_{golog} \not\models Final(\delta,s)$}
+  \STATE Find an action $a$ and program $\delta'$ such that: $\Dt \cup \Dt_{golog} \models Trans^*(\delta,s,\delta',do(a,s))$
+  \STATE Execute the action $a$
+  \STATE $s\ \Leftarrow\ do(a,s)$
+  \STATE $\delta\ \Leftarrow\ \delta'$
+\ENDWHILE
+\end{algorithmic} 
+\end{algorithm}
+
+TODO: semantics of plan operator
 
 TODO: histories, planning with sensing results, as needed for JE chapter.
 
@@ -1124,7 +1154,7 @@ One particular strength of the event calculus is in planning with
 partially-ordered sequences of events, highlighted by a reimplementation
 of Golog using the event calculus that supports partially-ordered
 plans \citep{pereira04ec_golog}. We add a similar ability to the
-situation calculus in this paper.
+situation calculus in this thesis.
 
 There is also the family of approaches known as {}``dynamic epistemic
 logic'', which are based on modal logic \citep{baltag98pa_ck,vanBenthem06lcc,vanBentham06tree_of_knowledge}
