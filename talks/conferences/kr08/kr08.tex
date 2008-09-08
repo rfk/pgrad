@@ -3,7 +3,7 @@
 \mode<presentation>
 {
   \usetheme{Dresden}
-  \setbeamercovered{transparent}
+%  \setbeamercovered{transparent}
 }
 
 \usepackage[english]{babel}
@@ -66,15 +66,64 @@ and Adrian R. Pearce}
   \titlepage
 \end{frame}
 
-\section{Introduction}
+\section{Motivation}
 
 \begin{frame}
-\centering "Complex Epistemic Modalities in the Situation Calculus"
-\ \\
-\ \\
+\frametitle{Motivation}
+We want:
 \begin{itemize}
-\item TODO: outline
+\item A rich theory of knowledge and action; with
+\item Group-level knowledge operators; and
+\item An effective reasoning procedure
 \end{itemize}
+\ \\
+\ \\
+\pause
+We obtain:
+\begin{itemize}
+\item The Situation Calculus; with
+\item Common Knowledge; and
+\item A Regression Rule
+\end{itemize}
+\end{frame}
+
+\section{Background}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+\emph{Actions} are instantaneous events causing the world to change
+\begin{itemize}
+  \item $open(Bob,Letter)$, $read(Ann,Letter)$
+\end{itemize}
+\ \\
+\ \\
+\emph{Situations} are histories of actions that have been performed
+\begin{itemize}
+  \item $S_0$,\ \ \ $do(\{read(Ann,Letter)\},S_0)$
+\end{itemize}
+\ \\
+\ \\
+\emph{Fluents} are situation-dependent properties of the world
+\begin{itemize}
+  \item $Poss(c,s)$, $Sealed(obj,s)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Situation Calculus}
+\emph{Successor State Axioms} for the frame problem:
+\begin{multline*}
+Sealed(obj,do(c,s)) \equiv seal(agt,obj) \in c \\
+  \vee Sealed(obj,s) \wedge \neg\left(open(agt,obj) \in c\right)
+\end{multline*}
+\ \\
+\ \\
+\emph{Regression} provides an effective reasoning procedure:
+\begin{multline*}
+\Reg(Sealed(obj,do(c,s))) \Rightarrow \\
+  seal(agt,obj) \in c \\
+ \vee Sealed(obj,s) \wedge \neg\left(open(agt,obj) \in c\right)
+\end{multline*}
 \end{frame}
 
 \begin{frame}
@@ -83,14 +132,21 @@ Reify possible worlds using "possible situations":
 \begin{equation*}
  K(agt,s',s)
 \end{equation*}
+\ \\
+\ \\
 And define knowledge using a simple macro:
 \begin{equation*}
-\Knows(agt,\phi,s) \isdef \forall s': \left( K(agt,s',s) \rightarrow \phi[s']\right)
+\Knows(agt,\phi,s)\,\,\isdef\,\,\forall s': \left[ K(agt,s',s) \rightarrow \phi[s']\right]
 \end{equation*}
 \end{frame}
 
 \begin{frame}
-\frametitle{Knowledge and Action}
+\frametitle{Knowledge in the Situation Calculus}
+Sensing etc axiomatised by \emph{observations}:
+\begin{gather*}
+Obs(Ann,\{read(Ann,Letter)\},s) = \{read(Ann,Letter)\#loc(s)\}\\
+Obs(Bob,\{read(Ann,Letter)\},s) = \{read(Ann,Letter)\}
+\end{gather*}
 Successor state axiom for $K$:
 \begin{multline*}
 K(agt,s'',do(c,s)) \equiv \exists c',s': s'' = do(c',s') \wedge K(agt,s',s)\\
@@ -100,41 +156,57 @@ K(agt,s'',do(c,s)) \equiv \exists c',s': s'' = do(c',s') \wedge K(agt,s',s)\\
 
 \begin{frame}
 \frametitle{Reasoning about Knowledge}
-Regression rule for knowledge
+Regression rule for knowledge:
 \begin{multline*}
-\Reg(\Knows(agt,\phi,do(c,s))) \isdef \exists y: y = Obs(agt,c,s) \wedge \Knows(agt,\\
-  \forall c': \Reg(Poss(c')\wedgeObs(agt,c')=y) \rightarrow \Reg(\phi,c'),s)
+\Reg(\Knows(agt,\phi,do(c,s)))\,\,\isdef\,\,\exists o: o = Obs(agt,c,s)\,\wedge \\
+  \Knows(agt,\forall c': Poss(c')\wedge Obs(agt,c')=o \rightarrow \Reg(\phi,c'),s)
 \end{multline*}
-
-Repeated applications can reduce it to a query about knowledge in the initial situation.
+\ \\
+\ \\
+We can reduce a query about future knowledge to a query about initial knowledge.
 \end{frame}
+
+\section{Group Knowledge}
 
 \begin{frame}
 \frametitle{Group-Level Knowledge}
-Simple group-level modalities can be expanded down to individual level knowledge.
-$\EKnows(G,\phi,s) \isdef \bigwedge_{agt \in G} \Knows(agt,\phi,s)$
-But common knowledge cannot be handled in this way.
+Simple group-level modalities like "everyone knows" can be expanded down to individual-level knowledge:
+\begin{gather*}
+\EKnows(G,\phi,s)\,\,\isdef\,\,\bigwedge_{agt \in G} \Knows(agt,\phi,s)\\
+\EKnows^{n}(G,\phi,s)\,\,\isdef\,\,\EKnows(G,\EKnows^{n-1}(G,\phi),s)
+\end{gather*}
+\ \\
+\ \\
+\pause
+But common knowledge is infinitary:
+\begin{equation*}
+\CKnows(G,\phi,s)\,\,\,\isdef\,\,\,\EKnows^{\infty}(G,\phi,s)\,\,\,\isdef\,\,\,???
+\end{equation*}
 \end{frame}
 
 \begin{frame}
 \frametitle{Common Knowledge}
-Instead, it is usually introduced using an explicit second-order axioms.
+Usually introduce $\CKnows$ using a second-order axiom.
 
-This precludes the use of regression for reasoning about common knowledge.
-\end{frame}
-
-\begin{frame}
-\frametitle{Common Knowledge}
-Perhaps we can formulate a separate regression rule?
- 
-Impossible!
+This precludes using regression for common knowledge.
+\ \\
+\ \\
+\pause
+But maybe we can formulate a special-case rule?
+\begin{multline*}
+\Reg(\CKnows(G,\phi,do(c,s)))\,\,\isdef\,\,\exists o: o = \mathbf{CObs}(G,c,s)\,\wedge \\
+  \CKnows(G,\forall c': Poss(c')\wedge \mathbf{CObs}(agt,c')=o \rightarrow \Reg(\phi,c'),s)
+\end{multline*}
+\pause
+This is \alert{impossible} even in very restricted domains.
 \end{frame}
 
 \begin{frame}
 \frametitle{Common Knowledge}
 Diagram explaining why this is not possible.
-Need a richer epistemic language.
 \end{frame}
+
+\section{Epistemic Paths}
 
 \begin{frame}
 \frametitle{Dynamic Logic}
@@ -145,7 +217,32 @@ More generally, it is a language for exploring Kripke structures.
 
 \begin{frame}
 \frametitle{Epistemic Path Language}
-vanBentham et al, LCC: let's interpret dynamic logic epistemically.
+van Bentham, van Eijck \& Kooi,\\
+"Logics of Communication and Change":
+\ \\
+\ \\
+\begin{centering}
+What if we interpret dynamic logic epistemically?
+\end{centering}
+\ \\
+\ \\
+We lift this idea to the situation calculus:
+\begin{itemize}
+\item first-order preconditions and effects
+\item de-dicto/de-re
+\item sets of concurrent actions
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Knowledge using Epistemic Path}
+We introduce a new macro $\PKnows$ subsuming all group-level knowledge modalities:
+\begin{alignat*}
+\Knows(Ann,\phi) & \,\,\Rightarrow\,\,\PKnows(Ann,\phi) \\
+\Knows(Ann,\Knows(Bob,\phi)) & \,\,\Rightarrow\,\,\PKnows(Ann ; Bob,\phi) \\
+\EKnows(\{Ann,Bob\},\phi) & \,\,\Rightarrow\,\,\PKnows(Ann \cup Bob,\phi) \\
+\CKnows(\{Ann,Bob\},\phi) & \,\,\Rightarrow\,\,\PKnows((Ann \cup Bob)^*,\phi)
+\end{alignat*}
 \end{frame}
 
 
