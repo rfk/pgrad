@@ -93,37 +93,20 @@ We obtain:
 \frametitle{The Situation Calculus}
 \emph{Actions} are instantaneous events causing the world to change
 \begin{itemize}
-  \item $open(Bob,Letter)$, $read(Ann,Letter)$
+  \item $open(Bob)$, $read(Ann)$
 \end{itemize}
 \ \\
 \ \\
 \emph{Situations} are histories of actions that have been performed
 \begin{itemize}
-  \item $S_0$,\ \ \ $do(\{read(Ann,Letter)\},S_0)$
+  \item $S_0$,\ \ \ $do(\{read(Ann)\},S_0)$
 \end{itemize}
 \ \\
 \ \\
 \emph{Fluents} are situation-dependent properties of the world
 \begin{itemize}
-  \item $Poss(c,s)$, $Sealed(obj,s)$
+  \item $Poss(c,s)$, $loc(s) = x$
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{The Situation Calculus}
-\emph{Successor State Axioms} for the frame problem:
-\begin{multline*}
-Sealed(obj,do(c,s)) \equiv seal(agt,obj) \in c \\
-  \vee Sealed(obj,s) \wedge \neg\left(open(agt,obj) \in c\right)
-\end{multline*}
-\ \\
-\ \\
-\emph{Regression} provides an effective reasoning procedure:
-\begin{multline*}
-\Reg(Sealed(obj,do(c,s))) \Rightarrow \\
-  seal(agt,obj) \in c \\
- \vee Sealed(obj,s) \wedge \neg\left(open(agt,obj) \in c\right)
-\end{multline*}
 \end{frame}
 
 \begin{frame}
@@ -142,10 +125,10 @@ And define knowledge using a simple macro:
 
 \begin{frame}
 \frametitle{Knowledge in the Situation Calculus}
-Sensing etc axiomatised by \emph{observations}:
+Sensing etc. is axiomatised by \emph{observations}:
 \begin{gather*}
-Obs(Ann,\{read(Ann,Letter)\},s) = \{read(Ann,Letter)\#loc(s)\}\\
-Obs(Bob,\{read(Ann,Letter)\},s) = \{read(Ann,Letter)\}
+Obs(Ann,\{read(Ann\},s) = \{read(Ann)\#loc(s)\}\\
+Obs(Bob,\{read(Ann)\},s) = \{read(Ann)\}
 \end{gather*}
 Successor state axiom for $K$:
 \begin{multline*}
@@ -155,15 +138,21 @@ K(agt,s'',do(c,s)) \equiv \exists c',s': s'' = do(c',s') \wedge K(agt,s',s)\\
 \end{frame}
 
 \begin{frame}
+\frametitle{Knowledge in the Situation Calculus}
+diagram showing K fluent
+\end{frame}
+
+\begin{frame}
 \frametitle{Reasoning about Knowledge}
 Regression rule for knowledge:
 \begin{multline*}
-\Reg(\Knows(agt,\phi,do(c,s)))\,\,\isdef\,\,\exists o: o = Obs(agt,c,s)\,\wedge \\
+\Reg(\Knows(agt,\phi,do(c,s)))\,\,\isdef \\
+  \exists o: o = Obs(agt,c,s)\,\wedge \\
   \Knows(agt,\forall c': Poss(c')\wedge Obs(agt,c')=o \rightarrow \Reg(\phi,c'),s)
 \end{multline*}
 \ \\
 \ \\
-We can reduce a query about future knowledge to a query about initial knowledge.
+We can reason effectively by reducing a query about future knowledge to a query about initial knowledge.
 \end{frame}
 
 \section{Group Knowledge}
@@ -180,7 +169,7 @@ Simple group-level modalities like "everyone knows" can be expanded down to indi
 \pause
 But common knowledge is infinitary:
 \begin{equation*}
-\CKnows(G,\phi,s)\,\,\,\isdef\,\,\,\EKnows^{\infty}(G,\phi,s)\,\,\,\isdef\,\,\,???
+\CKnows(G,\phi,s)\,\,\,\isdef\,\,\,\EKnows^{\infty}(G,\phi,s)\,\,\,\pause \isdef\,\,\,???
 \end{equation*}
 \end{frame}
 
@@ -198,7 +187,7 @@ But maybe we can formulate a special-case rule?
   \CKnows(G,\forall c': Poss(c')\wedge \mathbf{CObs}(agt,c')=o \rightarrow \Reg(\phi,c'),s)
 \end{multline*}
 \pause
-This is \alert{impossible} even in very restricted domains.
+This is \alert{impossible}, even in very restricted domains.
 \end{frame}
 
 \begin{frame}
@@ -210,23 +199,29 @@ Diagram explaining why this is not possible.
 
 \begin{frame}
 \frametitle{Dynamic Logic}
-Dynamic logic typically thought of as a logic of action.
-
+Dynamic logic is typically conceived as a logic of action:
+\begin{gather*}
+A_1\,;\,A_2 \\
+A_1\,\cup\,A_2 \\
+?\phi\,;\,A_1 \\
+(A_1\,;\,?\phi\,;\,A_2)^*
+\end{gather*}
+\ \\
+\ \\
 More generally, it is a language for exploring Kripke structures.
 \end{frame}
 
 \begin{frame}
 \frametitle{Epistemic Path Language}
-van Bentham, van Eijck \& Kooi,\\
+van Bentham, van Eijck \& Kooi, 2006,\\
 "Logics of Communication and Change":
 \ \\
 \ \\
-\begin{centering}
 What if we interpret dynamic logic epistemically?
-\end{centering}
 \ \\
 \ \\
-We lift this idea to the situation calculus:
+\pause
+Great idea!  Let's capture it in the situation calculus:
 \begin{itemize}
 \item first-order preconditions and effects
 \item de-dicto/de-re
@@ -237,12 +232,12 @@ We lift this idea to the situation calculus:
 \begin{frame}
 \frametitle{Knowledge using Epistemic Path}
 We introduce a new macro $\PKnows$ subsuming all group-level knowledge modalities:
-\begin{alignat*}
-\Knows(Ann,\phi) & \,\,\Rightarrow\,\,\PKnows(Ann,\phi) \\
-\Knows(Ann,\Knows(Bob,\phi)) & \,\,\Rightarrow\,\,\PKnows(Ann ; Bob,\phi) \\
-\EKnows(\{Ann,Bob\},\phi) & \,\,\Rightarrow\,\,\PKnows(Ann \cup Bob,\phi) \\
-\CKnows(\{Ann,Bob\},\phi) & \,\,\Rightarrow\,\,\PKnows((Ann \cup Bob)^*,\phi)
-\end{alignat*}
+%\begin{alignat*}
+%\Knows(Ann,\phi) & \,\,\Rightarrow\,\,\PKnows(Ann,\phi) \\
+%\Knows(Ann,\Knows(Bob,\phi)) & \,\,\Rightarrow\,\,\PKnows(Ann ; Bob,\phi) \\
+%\EKnows(\{Ann,Bob\},\phi) & \,\,\Rightarrow\,\,\PKnows(Ann \cup Bob,\phi) \\
+%\CKnows(\{Ann,Bob\},\phi) & \,\,\Rightarrow\,\,\PKnows((Ann \cup Bob)^*,\phi)
+%\end{alignat*}
 \end{frame}
 
 
