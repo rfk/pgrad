@@ -55,7 +55,7 @@ and Adrian R. Pearce}
 }
 
 \date[The University of Melbourne]
-{19th September 2007}
+{19th September 2008}
 
 \pgfdeclareimage[height=1.2cm]{university-logo}{MINSilvr}
 \logo{\pgfuseimage{university-logo}}
@@ -73,17 +73,17 @@ and Adrian R. Pearce}
 We want:
 \begin{itemize}
 \item A rich theory of knowledge and action; with
-\item Group-level knowledge operators; and
-\item An effective reasoning procedure
+\item group-level knowledge operators; and
+\item an effective reasoning procedure
 \end{itemize}
 \ \\
 \ \\
 \pause
-Or, more concretely:
+More concretely:
 \begin{itemize}
 \item The Situation Calculus; with
-\item Common Knowledge; and
-\item A Regression Rule
+\item common knowledge; and
+\item a regression rule
 \end{itemize}
 \end{frame}
 
@@ -125,9 +125,9 @@ And define knowledge using a macro:
 
 \begin{frame}
 \frametitle{Knowledge in the Situation Calculus}
-Sensing etc. is axiomatised by \emph{observations}:
+Sensing etc. is axiomatised by \emph{observations}, $Obs(agt,c,s)$:
 \begin{gather*}
-Obs(Ann,\{read(Ann\},s) = \{read(Ann)\#loc(s)\}\\
+Obs(Ann,\{read(Ann)\},s) = \{read(Ann)\#loc(s)\}\\
 Obs(Bob,\{read(Ann)\},s) = \{read(Ann)\}
 \end{gather*}
 \pause
@@ -163,16 +163,25 @@ K(agt,s'',do(c,s)) \equiv \exists c',s': s'' = do(c',s') \wedge K(agt,s',s)\\
 \end{frame}
 
 \begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{k_regression5}
+\end{center}
+\end{frame}
+
+\begin{frame}
 \frametitle{Reasoning about Knowledge}
-This permits a regression rule for knowledge:
+We can reason about knowledge using \emph{regression}.\\
+The basic idea:
+\begin{equation*}
+\phi[do(c,s)]\,\,\equiv\,\,\Reg(\phi,c)[s]
+\end{equation*}
+\pause
+The regression rule for knowledge:
 \begin{multline*}
 \Reg(\Knows(agt,\phi,do(c,s)))\,\,\isdef \\
   \exists o: o = Obs(agt,c,s)\,\wedge \\
   \Knows(agt,\forall c': Poss(c')\wedge Obs(agt,c')=o \rightarrow \Reg(\phi,c'),s)
 \end{multline*}
-\ \\
-\ \\
-We can reason effectively by reducing a query about future knowledge to a query about initial knowledge.
 \end{frame}
 
 \section{Group Knowledge}
@@ -212,7 +221,37 @@ This is \alert{impossible}, even in very restricted domains.
 
 \begin{frame}
 \begin{center}
-  \includegraphics[scale=0.35]{pk_regression}
+  \includegraphics[scale=0.35]{pk_regression1}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression2}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression3}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression4}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression5}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression6}
 \end{center}
 \end{frame}
 
@@ -244,21 +283,69 @@ van Bentham, van Eijck \& Kooi, 2006,\\
 "Logics of Communication and Change":
 \ \\
 \ \\
-What if we interpret dynamic logic epistemically?
+What if we interpret PDL epistemically?
+\pause
+\ \\
+\ \\
+\begin{equation*}
+[ C_G ] \phi \,\,\Rightarrow\,\,[ (\bigcup_{a \in G} a)^* ] \phi
+\end{equation*}
 \ \\
 \ \\
 \pause
+This allows reasoning about common knowledge using techniques akin to regression
+\end{frame}
+
+\begin{frame}
+\frametitle{Epistemic Path Language}
 Great idea!  Let's capture it in the situation calculus:
 \begin{itemize}
 \item first-order preconditions and effects
 \item quantifying-in, de-dicto/de-re
 \item sets of concurrent actions
 \end{itemize}
+\ \\
+\ \\
+We need \emph{first-order} dynamic logic
+\pause
+\ \\
+\ \\
+Following a long tradition in the situation calculus, we build it entirely as a series of macros.
+\end{frame}
+
+\begin{frame}
+\frametitle{Semantics of Epistemic Paths}
+Paths are interpreted relative to a current situation and a current variable binding:
+\begin{equation*}
+\KDo(\pi,s,s') \,\,\isdef\,\,\exists \mu,\mu': \KDo(\pi,\mu,s,\mu',s')
+\end{equation*}
+\begin{align*}
+\KDo(agt,\mu,s,\mu',s') & \,\,\isdef\,\,\mu = \mu' \wedge K(agt,s',s) \\
+\KDo(?\phi,\mu,s,\mu',s') & \,\,\isdef\,\,s = s' \wedge \mu = \mu' \wedge \mu(\phi)[s] \\
+\KDo(\exists x,\mu,s,\mu',s') & \,\,\isdef\,\,s = s' \wedge \exists z: \mu' = \mu[x/z] \\
+\end{align*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Semantics of Epistemic Paths}
+\begin{align*}
+\KDo(\pi_1 ; \pi_2,\mu,s,\mu',s') & \,\,\isdef\,\,\exists \mu'',s'': \KDo(\pi_1,\mu,s,\mu'',s'') \\
+\,\,  & \,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, \wedge \KDo(\pi_2,\mu'',s'',\mu',s')\\
+ & \\
+\KDo(\pi_1 \cup \pi_2,\mu,s,\mu',s') & \,\,\isdef\,\,\,\, \KDo(\pi_1,\mu,s,\mu',s') \\
+\,\,  & \,\,\,\,\,\,\,\,\, \vee \KDo(\pi_2,\mu,s,\mu',s')\\
+ & \\
+\KDo(\pi^{*},\mu,s,\mu',s') & \,\,\isdef\,\, RTC[\KDo(\pi,\mu,s,\mu',s')]
+\end{align*}
 \end{frame}
 
 \begin{frame}
 \frametitle{Knowledge using Epistemic Paths}
 We introduce a new macro $\PKnows(\pi,\phi,s)$ subsuming all group-level knowledge modalities:
+\begin{equation*}
+\PKnows(\pi,\phi,s)\,\,\isdef\,\,\forall s': \left[ \KDo(\pi,s,s') \rightarrow \phi[s']\right]
+\end{equation*}
+\pause
 \begin{align*}
 \Knows(Ann,\phi) &  \,\,\Rightarrow\,\,\PKnows(Ann,\phi) \\
 \Knows(Ann,\Knows(Bob,\phi)) & \,\,\Rightarrow\,\,\PKnows(Ann ; Bob,\phi) \\
@@ -268,33 +355,16 @@ We introduce a new macro $\PKnows(\pi,\phi,s)$ subsuming all group-level knowled
 \end{frame}
 
 \begin{frame}
-\frametitle{Semantics of Epistemic Paths}
-We need to use \emph{first-order} dynamic logic:
-\begin{align*}
-\KDo(\pi,s,s') & \,\,\isdef\,\,\exists \mu,\mu': \KDo(\pi,\mu,s,\mu',s') \\
-\KDo(agt,\mu,s,\mu',s') & \,\,\isdef\,\,\mu = \mu' \wedge K(agt,s',s) \\
-\KDo(?\phi,\mu,s,\mu',s') & \,\,\isdef\,\,s = s' \wedge \mu = \mu' \wedge \mu(\phi)[s] \\
-\KDo(\pi_1 ; \pi_2,\mu,s,\mu',s') & \,\,\isdef\,\,\exists \mu'',s'': \KDo(\pi_1,\mu,s,\mu'',s'') \\
-\,\,  & \,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\, \wedge \KDo(\pi_2,\mu'',s'',\mu',s')\\
-\KDo(\exists x,\mu,s,\mu',s') & \,\,\isdef\,\,s = s' \wedge \exists z: \mu' = \mu[x/z] \\
-\dots & \dots\dots
-\end{align*}
-\end{frame}
-
-\begin{frame}
-\frametitle{Knowledge using Epistemic Paths}
-The definition of $\PKnows$ mirrors $\Knows$:
-\begin{equation*}
-\PKnows(\pi,\phi,s)\,\,\isdef\,\,\forall s': \left[ \KDo(\pi,s',s) \rightarrow \phi[s']\right]
-\end{equation*}
-\ \\
-\ \\
-\pause
-The regression rule for this modality is:
+\frametitle{Regressing Epistemic Paths}
+To regress a complex epistemic modality, we transform both the enclosed formula and the epistemic path:
 \begin{multline*}
 \Reg(\PKnows(\pi,\phi,do(c,s)))\,\,\isdef \\
   \forall c': \PKnows(\Trn(\pi,c,c'),\Reg(\phi,c'),s)
 \end{multline*}
+The epistemic path regressor $\Trn$ ensures that:
+\begin{equation*}
+\KDo(\pi,do(c,s),do(c',s'))\,\,\equiv\,\,\KDo(\Trn(\pi,c,c'),s,s')
+\end{equation*}
 \end{frame}
 
 \section{Path Regressor}
@@ -306,6 +376,7 @@ The epistemic path regressor $\Trn$ uses a fresh variable $x$ to track the actio
 \Trn(\pi,c,c')\,\,\isdef\,\,\exists x ; ?x=c ; \TrnA(\pi,x) ; ?x=c'
 \end{equation*}
 
+\pause
 And the auxiliary regressor $\TrnA$ encodes the local semantics of each operator:
 \begin{multline*}
 \TrnA(agt,x) \,\,\isdef \,\,\,\exists o\,;\,?Obs(agt,x)=o\,;\,agt\,;\\
@@ -315,13 +386,49 @@ And the auxiliary regressor $\TrnA$ encodes the local semantics of each operator
 
 \begin{frame}
 \begin{center}
-  \includegraphics[scale=0.35]{pk_regression}
+  \includegraphics[scale=0.35]{pk_regression_example1}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression_example2}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression_example3}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression_example4}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression_example5}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression_example6}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\begin{center}
+  \includegraphics[scale=0.35]{pk_regression_example7}
 \end{center}
 \end{frame}
 
 \begin{frame}
 \frametitle{The Epistemic Path Regressor}
-The other cases for $\TrnA$ are straightforward:
+The other cases for $\TrnA$ are then straightforward:
 \begin{align*}
 \TrnA(?\phi,x) & \,\,\,\isdef\,\,\,?\Reg(\phi,x) \\
 \TrnA(\exists y,x) & \,\,\,\isdef\,\,\,\exists y \\
@@ -329,6 +436,15 @@ The other cases for $\TrnA$ are straightforward:
 \TrnA(\pi_1 \cup \pi_2,x) & \,\,\,\isdef\,\,\,\TrnA(\pi_1,x) \cup \TrnA(\pi_2,x) \\
 \TrnA(\pi^*,x) & \,\,\,\isdef\,\,\,\TrnA(\pi,x)^*
 \end{align*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Regressing Common Knowledge}
+The regression of common knowledge looks roughly like:
+\begin{multline*}
+\Reg(\PKnows((Ann \cup Bob)^*,\phi,do(c,s)))\,\,\Rightarrow \\
+  \forall c': \PKnows(((Ann ; ?\varphi_A) \cup (Bob ; ?\varphi_B))^*,\Reg(\phi,c'),s)  
+\end{multline*}
 \end{frame}
 
 \begin{frame}
@@ -357,8 +473,8 @@ The other cases for $\TrnA$ are straightforward:
 We now have:
 \begin{itemize}
 \item The Situation Calculus; with
-\item Common Knowledge; and
-\item A Regression Rule
+\item common knowledge; and
+\item a regression rule
 \end{itemize}
 \ \\
 \ \\
@@ -366,8 +482,8 @@ We now have:
 Which gives us:
 \begin{itemize}
 \item A rich theory of knowledge and action; with
-\item Group-level knowledge operators; and
-\item An effective reasoning procedure
+\item group-level knowledge operators; and
+\item an effective reasoning procedure
 \end{itemize}
 \end{frame}
 
@@ -377,9 +493,10 @@ Which gives us:
 Answering the regressed query:
 \begin{itemize}
 \item FODL is highly undecidable in general!
-\item But for finite domains, our paths are reducible to PDL.
+\item But for finite domains, our paths are reducible to PDL
 \item Is there a fragment of FODL with nicer properties?
 \end{itemize}
+\pause
 \ \\
 \ \\
 Asynchronous domains:
