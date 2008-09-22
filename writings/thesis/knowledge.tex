@@ -13,22 +13,30 @@ of an agent, the standard tool for which is modal logic. We will focus
 on epistemic reasoning in the situation calculus; for a general overview
 consult \citep{fagin95}.
 
-This chapter develops a formalism for individual knowledge in the
-face of hidden actions.
-
-First, existing accounts of epistemic reasoning in the situation calculus
+Existing accounts of epistemic reasoning in the situation calculus
 require that whenever an action occurs, all agents \emph{know} that
 an action has occurred. This demands a level of synchronicity that
 is unreasonable in many multi-agent domains. But if the restriction
 is lifted, each agent's knowledge must account for arbitrarily-long
-sequences of hidden actions. This requires a second-order induction
+sequences of \emph{hidden actions}. This requires a second-order induction
 axiom which precludes the use of regression for effective automated
 reasoning. It also means that agents cannot reason about their own
 knowledge, as they may not have enough information to formulate an
 appropriate query.
 
+This chapter develops a new theory of knowledge that overcomes these
+limitations. We begin by developing an axiomatisation of knowledge
+based on the explicit representation of an agent's local view from
+chapter TODO. The property persistence operator developed in chapter
+TODO is then used to formulate a regression rule that respects this
+axiomatisation. We show that our regression rule can be used by a
+situated agent to reason about its own knowledge based solely on its
+local observations.
+
 
 \section{Background}
+
+TODO: breifly mention other approaches, then defer to discussion section
 
 The standard semantics of epistemic logic are given by the Kripke
 structures of modal logic, based on the idea of \emph{possible worlds}.
@@ -43,10 +51,10 @@ While this works well for a static knowledge base, there is also the
 question of how each agent's knowledge changes over time as actions
 are performed in the world. Various formal systems have been devised
 to represent the interaction between knowledge and action, including
-those of \citet{fagin95}, \citet{parikh85dist_knowledge} and \citet{baltag98pa_ck}.
+those of \citep{fagin95}, \citep{parikh85dist_knowledge} and \citep{baltag98pa_ck}.
 Recent work on the foundations of epistemic dynamic logic has shown
 these different perspectives to be essentially equivalent \citep{vanBentham06tree_of_knowledge,pacuit07history_structures},
-and we will present quite a high-level overview here.
+and can be briefly summarised as follows.
 
 A system is considered to have a set of possible events which could
 occur, and the system state at any time is given by a sequence of
@@ -72,7 +80,7 @@ situation $s'$ to be possible''. The macro $\Knows$ is then defined
 as a shorthand for the standard possible-worlds definition of knowledge,
 stating that an agent knows $\phi$ when $\phi$ is true in all situations
 considered possible: \begin{equation}
-\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:Background:knows_def}\end{equation}
+\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:Knowledge:knows_def}\end{equation}
 
 
 Readers familiar with modal logic will recognise $K(agt,s',s)$ as
@@ -80,22 +88,18 @@ the situation calculus analogue of the modal reachability relation
 $K_{agt}$, and the macro $\Knows(agt,\phi,s)$ as the equivalent
 of the modal box operator $[K_{agt}]\phi$.
 
-The foundational axioms $\Sigma$ define a special fluent $K_{0}(agt,s',s)$
-that is used to model the initial epistemic uncertainty of the agents,
-with $\Dt_{S_{0}}$ containing sentences of the form $\KnowsZ(agt,\phi,S_{0})$
-to specify what is initially known%
-\footnote{The standard account does not require a separate $K_{0}$ fluent,
-as evidenced by equation \eqref{eq:k_s0_standard}. It is required
-when incorporating hidden actions, so we introduce it now to maintain
-consistency. %
+The foundational axioms $\Sigma$ are augmented with a special fluent
+$K_{0}(agt,s',s)$ that is used to model the initial epistemic uncertainty
+of the agents, with $\Dt_{S_{0}}$ containing sentences of the form
+$\KnowsZ(agt,\phi,S_{0})$ to specify what is initially known%
+\footnote{Technically, the standard account does not require a separate $K_{0}$
+fluent, as evidenced by equation \eqref{eq:k_s0_standard}. It is
+required when incorporating hidden actions, so we introduce it now
+to maintain consistency. %
 }:\begin{gather*}
 K_{0}(agt,s',s)\,\rightarrow Init(s)\wedge Init(s')\\
 \KnowsZ(agt,\phi,s)\isdef\forall s':\, K_{0}(agt,s',s')\rightarrow\phi[s']\end{gather*}
 
-
-The action description function $SR(a,s)$ specifies the sensing result
-returned by action $a$ when executed in situation $s$. For non-sensing
-actions the value of $SR$ is set to an arbitrary constant.
 
 The dynamics of knowledge are then specified by an additional set
 of axioms, which we will denote $\Dt_{K}$. In the standard account
@@ -176,11 +180,11 @@ require universal quantification over situation terms, to account
 for arbitrarily-long sequences of hidden actions. This is incompatible
 with regression rules like the above, and these formulations offer
 no reasoning procedure other than general second-order theorem proving.
-By utilising a new reasoning technique called the {}``persistence
-condition'' to reason about universal quantification over situation
-terms, our work is the first to provide an account of knowledge with
-hidden actions while maintaining regression in the style presented
-above as an effective reasoning tool.
+By using our new {}``persistence condition'' meta-operator to reason
+about universal quantification over situation terms, our work is the
+first to provide an account of knowledge with hidden actions while
+maintaining regression in the style presented above as an effective
+reasoning tool.
 
 
 \section{Intuitions}
@@ -190,26 +194,9 @@ express the dynamics of knowledge update in terms of the actions that
 have occurred in the world, as seen in Section \ref{sub:Knowledge-and-Sensing}.
 This works well when agents can be assumed to have full knowledge
 of the actions that have been performed, but quickly becomes cumbersome
-when trying to allow for hidden actions. In this section we first
-develop a principled axiomatisation of the \emph{observability} of
-actions, then build a powerful yet succinct axiomatisation of knowledge
-upon it.
-
-The basic idea is as follows: each occurrence of an action results
-in an agent making a set of \emph{observations}. Every situation then
-corresponds to a local \emph{view} for that agent: the sequence of
-all its observations, excluding cases where the set of observations
-was empty. An agent knows something if it is true in all situations
-matching its current view. Decoupling knowledge in this manner makes
-it easy to express various degrees of observability of actions, from
-public actions through to actions that are completely hidden.
-
-To maintain the elegant solution to the frame problem for knowledge
-developed by \citet{scherl03sc_knowledge}, the regression rule of
-knowledge must be modified to account for arbitrarily long sequences
-of hidden actions. We present a new regression rule for knowledge
-that uses the persistence condition meta-operator to augment standard
-regression and perform the necessary inductive reasoning.
+when trying to allow for hidden actions. Instead, we base our approach
+on the explicit representation of an agent's local perspective developed
+in chapter TODO.
 
 The direct coupling between knowledge and action also has undesirable
 implications for situated agents reasoning about their own knowledge.
@@ -225,85 +212,19 @@ cannot use this formulation to reason about their own knowledge. Since
 knowledge is directly coupled to actions, and hence to situation terms,
 they cannot construct the appropriate query.
 
+To maintain the elegant solution to the frame problem for knowledge
+developed by \citet{scherl03sc_knowledge}, the regression rule of
+knowledge must be modified to account for arbitrarily long sequences
+of hidden actions. We present a new regression rule for knowledge
+that uses the persistence condition meta-operator to augment standard
+regression and perform the necessary inductive reasoning.
+
 Further demonstrating the power of our approach, we show how the new
 regression rules can be applied using an agent's individual view,
 rather than requiring a full situation term. Agents can thus use our
 techniques to reason about their own knowledge using only their local
 information, making the formalism suitable both for reasoning \emph{about},
 and reasoning \emph{in}, rich multi-agent domains.
-
-
-\section{Observations}
-
-To remove the direct coupling between knowledge and actions, we introduce
-an explicit notion of \emph{observations}. These are internal notifications
-that agents receive when an action has occurred. By expressing knowledge
-in terms of observations rather than actions, we ensure that agents
-can always reason about their own knowledge based on their own internal
-history of observations.
-
-\begin{defnL}
-[{Observations}] An observation is a notification event received
-by an agent, making it aware of some change in the state of the world.
-When an agent receives such a notification, we say that it {}``observed'',
-{}``made'' or {}``perceived'' that observation. 
-\end{defnL}
-Since the state of the world may only change in response to some action,
-observations can only be made as a result of some action. For simplicity
-we assume that agents perceive observations instantaneously, i.e.
-in the same instant as the actions that cause them.
-
-Since {}``observation'' is quite a loaded term, it is worth re-iterating
-this point: observations are instantaneous \emph{events} generated
-internally by each agent in response to actions occurring in the world.
-We make no commitment as to how these events are generated, preferring
-a clean delineation between the task of observing change and the dynamics
-of knowledge update based on those observations. As with the work
-of \citep{scherl03sc_knowledge}, we consider change-awareness to
-be the responsibility of a lower-level component of the agent's control
-software.
-
-To make this idea concrete, let us introduce an additional sort \noun{Observations}
-to the language of the situation calculus, for the moment without
-any particular commitment towards what this sort will contain. We
-then add to $\Dt_{ad}$ the action description function:\[
-Obs(agt,c,s)=o\]
- This function returns a set of observations, and should be read as
-{}``when actions $c$ are performed in situation $s$, agent $agt$
-will perceive $o$''. Using a set of observations allows an agent
-to perceive any number of observations in response to an action occurrence
-- perhaps several observations, perhaps none. When $Obs(agt,c,s)$
-is the empty set (denoted $\{\}$) then the agent makes no observations
-and the actions $c$ are completely hidden.
-
-The concept of a \emph{view} follows naturally - it is the sequence
-of all the observations made by an agent as the world has evolved.
-
-\begin{defnL}
-[{Views}] An agent's view in a given situation $\mathrm{s}$
-is the corresponding sequence of observations made by the agent as
-a result of each action in $\mathrm{s}$, excluding those actions
-for which no observations were made. 
-\end{defnL}
-We introduce another sort \noun{Views} consisting of sequences of
-sets of observations, with $\epsilon$ being the empty sequence and
-the functional fluent $View$ giving the history of observations associated
-with a particular situation:\begin{align}
-Init(s)\,\rightarrow & \, View(agt,s)=\epsilon\nonumber \\
-Obs(agt,a,s)=\{\}\,\rightarrow & \, View(agt,do(a,s))=View(agt,s)\nonumber \\
-Obs(agt,a,s)\neq\{\}\,\rightarrow & \, View(agt,do(a,s))=Obs(agt,a,s)\cdot View(agt,s)\label{eq:view_defn}\end{align}
-
-
-Observations and views can be seen as localised analogues of actions
-and situations respectively. An action is a global event that causes
-the state of the world to change, while an observation is an internal
-event that causes an agent's knowledge of the state of the world to
-change. Similarly, a situation represents a complete, global history
-of all the actions that have occurred in the world, while a view is
-an agent's local history of all the observations it has made. The
-situation is an omniscient perspective on the world, the view a local
-perspective. As we shall see, this distinction is fundamental to developing
-a truly general multi-agent semantics for knowledge.
 
 
 \section{Knowledge and Observation\label{sub:Knowledge-and-Observation}}

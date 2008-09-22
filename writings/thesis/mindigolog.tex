@@ -72,21 +72,20 @@ agent itself, it performs the action immediately. When the next step
 is to be performed by another agent, it waits for its teammate to
 perform the action before proceeding to the next step.
 
+%
 \begin{algorithm}[t]
+ 
+
 \caption{ReadyLog Execution Algorithm}
-\label{alg:readylog_exec}
-\begin{algorithmic}[1]
-\STATE $s\ \Leftarrow\ S_0$
-\WHILE{$\Dt \cup \Dt_{golog} \not\models Final(\delta,s)$}
-  \STATE Find an action $a$ and program $\delta'$ such that:\\$\Dt \cup \Dt_{golog} \models Trans^*(\delta,s,\delta',do(a,s))$
-  \IF{the action is to be performed by me}
-    \STATE Execute the action $a$
-  \ELSE
-    \STATE Wait for the action to be executed
-  \ENDIF
-  \STATE $s\ \Leftarrow\ do(a,s)$ 
-  \STATE $\delta\ \Leftarrow\ \delta'$
-\ENDWHILE
+
+
+\label{alg:readylog_exec} \begin{algorithmic} \STATE $s\ \Leftarrow\ S_{0}$
+\WHILE{$\Dt\cup\Dt_{golog}\not\models Final(\delta,s)$} \STATE
+Find an action $a$ and program $\delta'$ such that:\\
+$\Dt\cup\Dt_{golog}\models Trans^{*}(\delta,s,\delta',do(a,s))$ \IF{the
+action is to be performed by me} \STATE Execute the action $a$
+\ELSE \STATE Wait for the action to be executed \ENDIF \STATE
+$s\ \Leftarrow\ do(a,s)$ \STATE $\delta\ \Leftarrow\ \delta'$ \ENDWHILE
 \end{algorithmic} 
 \end{algorithm}
 
@@ -424,53 +423,48 @@ also encoded as records. For example, the program:\[
 is represented as follows:
 
 \programinput{listings/mindigolog/goloz_ex_prog.oz}
-
 The predicates $Trans$ and $Final$ have a straightforward encoding
 as Oz procedures, using the \textbf{case} statement to encode each
 individual clause using pattern matching, and the \textbf{choice}
 statement to explicitly introduce choice points:
 
-\programinput{listings/mindigolog/goloztrans.oz}
-
-\programinput{listings/mindigolog/golozfinal.oz}
-
+\programinput{listings/mindigolog/goloz_trans.oz}
+\programinput{listings/mindigolog/goloz_final.oz}
 A procedure $Do(\delta,s,s')\equiv Trans^{*}(\delta,s,\delta',s')\wedge Final(\delta',s')$
 is defined that determines a legal execution \textbf{\emph{Sp}} for
 a given program \textbf{\emph{D}}:
 
-\programinput{listings/mindigolog/golozdo.oz}
-
+\programinput{listings/mindigolog/goloz_do.oz}
 This \textbf{\emph{Do}} procedure can then be passed to the parallel
 search functionality to plan a program execution. Here {}``agent1''
 and {}``agent2'' are the DNS names of agents in the team, and {}``Goloz''
 is an Oz functor that exports the \textbf{\emph{Do}} procedure defined
 above:
 
-\programinput{listings/mindigolog/golozdoparallel.oz}
-
+\programinput{listings/mindigolog/goloz_do_parallel.oz}
 When this code is run, it will utilise the computational resources
 of both agents to plan a legal execution of a given MIndiGolog program.
 This requires that the same information is available to each agent,
 which restricts the technique to fully-observable domains. For more
 details on our implementation, see Appendix TODO.
 
+%
 \begin{algorithm}[t]
+ 
+
 \caption{MIndiGolog Execution Algorithm}
-\label{alg:mindigolog_exec}
-\begin{algorithmic}
-\STATE $s\ \Leftarrow\ S_0$
-\WHILE{$\Dt \cup \Dt_{golog} \not\models Final(\delta,s)$}
-  \STATE Find an action $a$ and program $\delta'$ such that: $\Dt \cup \Dt_{golog} \models Trans^*(\delta,s,\delta',do(a,s))$
-  \IF{the action is to be performed by me}
-    \STATE Execute the action $a$
-  \ELSE
-    \STATE Wait for the action to be executed
-  \ENDIF
-  \STATE $s\ \Leftarrow\ do(a,s)$ 
-  \STATE $\delta\ \Leftarrow\ \delta'$
-\ENDWHILE
+
+
+\label{alg:mindigolog_exec} \begin{algorithmic} \STATE $s\ \Leftarrow\ S_{0}$
+\WHILE{$\Dt\cup\Dt_{golog}\not\models Final(\delta,s)$} \STATE
+Find an action $a$ and program $\delta'$ such that: $\Dt\cup\Dt_{golog}\models Trans^{*}(\delta,s,\delta',do(a,s))$
+\IF{the action is to be performed by me} \STATE Execute the action
+$a$ \ELSE \STATE Wait for the action to be executed \ENDIF \STATE
+$s\ \Leftarrow\ do(a,s)$ \STATE $\delta\ \Leftarrow\ \delta'$ \ENDWHILE
 \end{algorithmic} 
 \end{algorithm}
+
+
 
 \section{Example Execution\label{sec:MIndiGolog:Example-Execution}}
 

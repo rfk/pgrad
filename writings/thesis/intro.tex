@@ -23,7 +23,7 @@ epistemic feasibility of plans \citep{Lesperance01epi_feas_casl};
 analysing multi-player games \citep{delgrande01sitcalc_cleudo}; and
 the cooperative execution of Golog programs \citep{Ferrein2005readylog,kelly06hlp_dps}.
 This literature shows the power and flexibility of the situation calculus,
-but also highlights two current weaknesses when working with rich
+but also highlights three current weaknesses when working with rich
 multi-agent domains.
 
 First, each of these works has been limited to \emph{synchronous}
@@ -43,15 +43,27 @@ it is in a form that is easy to answer. In synchronous domains, all
 agents know the number of actions performed and can directly use existing
 regression-based techniques for reasoning and planning from their
 local perspective. While the situation calculus makes is straightforward
-to model domains in which synchronicity cannot be guaranteed \citep{Lesperance99sitcalc_approach},
-it offers no tools for effective reasoning from the local perspective
-of an individual agent.
+to \emph{model} domains in which synchronicity cannot be guaranteed
+\citep{Lesperance99sitcalc_approach}, it offers no tools for effective
+reasoning from the local perspective of an individual agent.
 
-Second, the situation calculus lacks a comprehensive treatment of
-group-level epistemic modalities such as \emph{common knowledge},
-which are fundamental to coordination in multi-agent domains. While
-common knowledge can easily be modelled using an explicit second-order
-axiom \citep{delgrande01sitcalc_cleudo,davis05fo_ma_theory,ghaderi07sc_joint_ability},
+Second, the fundamental unit of reasoning, and the output of the Golog
+execution planning process, is the \emph{situation}: a complete, ordered
+history of all actions that are to be performed. Having to executing
+a totally-ordered sequence of actions is far from ideal in a multi-agent
+setting, as it requires constant synchronization between the agents.
+While this may be acceptable for systems that are already limited
+to synchronous domains, it severely limits their ability to exploit
+the concurrency inherant in a multi-agent team. In asynchronous domains
+the required synchronisation of actions may be impossible to achieve,
+and a partially-ordered representation must be used instead. But there
+have been no formal acctions of such a representation in the existing
+situation calculus literature.
+
+Third, the situation calculus lacks a comprehensive treatment of group-level
+epistemic modalities such as \emph{common knowledge}, which are fundamental
+to coordination in multi-agent domains. While common knowledge can
+easily be modelled using an explicit second-order axiom \citep{delgrande01sitcalc_cleudo,davis05fo_ma_theory,ghaderi07sc_joint_ability},
 this again precludes the use of regression for effective automated
 reasoning. In synchronous domains agents can often coordinate their
 activities without reasoning explicitly about common knowledge, but
@@ -100,10 +112,11 @@ agents automatically distribute the work amongst themselves.\\
 
 
 The situation calculus offers a compelling approach for this example
-domain: have the team of agents cooperate to plan and perform the
-execution of a shared Golog program. However, existing Golog implementations
-generate raw situation terms as the output of their planning process.
-These are linear, fully-ordered sequences of the actions to be performed,
+domain: each recpie can be represented as a Golog program, and the
+team of agents cooperate to plan and perform the shared execution
+of these programs. However, existing Golog implementations generate
+raw situation terms as the output of their planning process. These
+are linear, fully-ordered sequences of the actions to be performed,
 and require constant synchronisation if the agents are to perform
 them cooperatively.
 
@@ -112,7 +125,7 @@ know how far the execution has progressed and thus what actions should
 be performed next. But it is still desirable to take advantage of
 the natural concurrency present when planning for a team of agents.
 The Golog planning process must be modified to reason about and allow
-such concurrency.
+such \emph{true concurrency}.
 
 In asynchronous domains, an agent may not necessarily know how far
 execution has progressed, and may thus be unsure when or if to perform
@@ -172,11 +185,16 @@ which can capture a regression rule for common knowledge.
 
 \section{Scope}
 
-set scope w.r.t asyncrhonicity
+This thesis aims to provide a foundational account of reasoning with
+the situation calculus in asyncrhonous domains. However, the term
+{}``asynchronous domain'' is potentially quite confusing -- precisely
+what aspects of the domain are asyncrhonous? Is it a property of the
+agents themselves, or their communication mechanism?
 
 HandM: copresent with the occurrence of the fact.
 
-Our notion is more primitive, c.f. van bentham paper - local perspective not updated in lock step with global state.  
+Our notion is more primitive, c.f. van bentham paper - local perspective
+not updated in lock step with global state.
 
 
 \section{Contributions}
