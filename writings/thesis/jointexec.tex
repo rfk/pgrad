@@ -106,90 +106,6 @@ to convert these structures into a kind of finite automaton for efficient
 execution.
 
 
-\section{Observations and Views}
-
-TODO: introductory paragraph
-
-The basic idea is as follows: each occurrence of an action results
-in an agent making a set of \emph{observations}. Every situation then
-corresponds to a local \emph{view} for that agent: the sequence of
-all its observations, excluding cases where the set of observations
-was empty. An agent knows something if it is true in all situations
-matching its current view. Decoupling knowledge in this manner makes
-it easy to express various degrees of observability of actions, from
-public actions through to actions that are completely hidden.
-
-To remove the direct coupling between knowledge and actions, we introduce
-an explicit notion of \emph{observations}. These are internal notifications
-that agents receive when an action has occurred. By expressing knowledge
-in terms of observations rather than actions, we ensure that agents
-can always reason about their own knowledge based on their own internal
-history of observations.
-
-\begin{defnL}
-[{Observations}] An observation is a notification event received
-by an agent, making it aware of some change in the state of the world.
-When an agent receives such a notification, we say that it {}``observed'',
-{}``made'' or {}``perceived'' that observation. 
-\end{defnL}
-Since the state of the world may only change in response to some action,
-observations can only be made as a result of some action. For simplicity
-we assume that agents perceive observations instantaneously, i.e.
-in the same instant as the actions that cause them.
-
-Since {}``observation'' is quite a loaded term, it is worth re-iterating
-this point: observations are instantaneous \emph{events} generated
-internally by each agent in response to actions occurring in the world.
-We make no commitment as to how these events are generated, preferring
-a clean delineation between the task of observing change and the dynamics
-of knowledge update based on those observations. As with the work
-of \citep{scherl03sc_knowledge}, we consider change-awareness to
-be the responsibility of a lower-level component of the agent's control
-software.
-
-To make this idea concrete, let us introduce an additional sort \noun{Observations}
-to the language of the situation calculus, for the moment without
-any particular commitment towards what this sort will contain. We
-then add to $\Dt_{ad}$ the action description function:\[
-Obs(agt,c,s)=o\]
- This function returns a set of observations, and should be read as
-{}``when actions $c$ are performed in situation $s$, agent $agt$
-will perceive $o$''. Using a set of observations allows an agent
-to perceive any number of observations in response to an action occurrence
-- perhaps several observations, perhaps none. When $Obs(agt,c,s)$
-is the empty set (denoted $\{\}$) then the agent makes no observations
-and the actions $c$ are completely hidden.
-
-The concept of a \emph{view} follows naturally - it is the sequence
-of all the observations made by an agent as the world has evolved.
-
-\begin{defnL}
-[{Views}] An agent's view in a given situation $\mathrm{s}$
-is the corresponding sequence of observations made by the agent as
-a result of each action in $\mathrm{s}$, excluding those actions
-for which no observations were made. 
-\end{defnL}
-We introduce another sort \noun{Views} consisting of sequences of
-sets of observations, with $\epsilon$ being the empty sequence and
-the functional fluent $View$ giving the history of observations associated
-with a particular situation:\begin{align}
-Init(s)\,\rightarrow & \, View(agt,s)=\epsilon\nonumber \\
-Obs(agt,a,s)=\{\}\,\rightarrow & \, View(agt,do(a,s))=View(agt,s)\nonumber \\
-Obs(agt,a,s)\neq\{\}\,\rightarrow & \, View(agt,do(a,s))=Obs(agt,a,s)\cdot View(agt,s)\label{eq:view_defn}\end{align}
-
-
-Observations and views can be seen as localised analogues of actions
-and situations respectively. An action is a global event that causes
-the state of the world to change, while an observation is an internal
-event that causes an agent's knowledge of the state of the world to
-change. Similarly, a situation represents a complete, global history
-of all the actions that have occurred in the world, while a view is
-an agent's local history of all the observations it has made. The
-situation is an omniscient perspective on the world, the view a local
-perspective. As we shall see, this distinction is fundamental to developing
-a truly general multi-agent semantics for knowledge.
-
-
 \section{Joint Executions}
 
 \label{sec:Joint-Execs}
@@ -718,6 +634,4 @@ transition semantics. Our approach can be considered roughly equivalent
 to \emph{deordering} of a totally-ordered plan as described in \citep{backstrom99reordering},
 except performed during plan construction rather than as a post-processing
 step. \bibliographystyle{plainnat} \bibliographystyle{plainnat}
-\bibliography{../../library/references}
-
 

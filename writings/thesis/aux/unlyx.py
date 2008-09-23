@@ -37,6 +37,8 @@ def unlyx(inF,outF):
 
 # Matches things like {{[}{LABEL}]}
 sqb_re = re.compile(r"\{\{\[\}\{([^\}]+)\}\]\}")
+# Matches the final [{LABEL}] form
+sqb_re2 = re.compile(r"\[\{([^\}]+)\}\]")
 def unescape_sqb(ln):
     """Unescape square brackets that have been mangled by LyX"""
     ln2 = sqb_re.sub(r"{\1}",ln)

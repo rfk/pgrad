@@ -1,0 +1,276 @@
+
+
+\chapter{Observations and Views}
+
+\label{ch:observations}
+
+In order to extend the techniques of the previous chapter to asyncrhonous
+multi-agent domains, we first require an explcit representation of
+the local perspective of each agent. Existing work leaves this perspective
+implicit, for example in the axioms defining an agent's knowledge
+\citep{scherl03sc_knowledge,Lesperance99sitcalc_approach}. In this
+chapter, we reify the local perspective of each agent by explicitly
+talking about what it has observed.
+
+The basic idea is as follows: each occurrence of an action results
+in an agent making a set of \emph{observations}. Every situation then
+corresponds to a local \emph{view} for that agent: the sequence of
+all its observations, excluding cases where the set of observations
+was empty. By having views as explicit terms in the locic, we are
+then in a position to demand that agents only reason and act based
+on their local view.
+
+TODO: talk about {}``decoupling''
+
+
+\section{Background}
+
+TODO: define $SR(a,s)$, talk about implicit axiomatisation in more
+detail.
+
+TODO: basic of epistemic reasoning, e.g. {}``tree of knowledge''
+paper.
+
+
+\section{Definitions}
+
+We begin by defining the notion of an \emph{observation.} This is
+an internal notification that an agent receives when some action has
+occurred
+
+\begin{defnL}
+[{Observations}] An observation is a notification event received
+by an agent, making it aware of some change in the state of the world.
+When an agent receives such a notification, we say that it {}``observed'',
+{}``made'' or {}``perceived'' that observation. 
+\end{defnL}
+Since {}``observation'' is quite a loaded term, it is worth re-iterating
+this point: observations are instantaneous \emph{events} generated
+internally by each agent in response to actions occurring in the world.
+We make no commitment as to how these events are generated, preferring
+a clean delineation between the task of observing change and the dynamics
+of knowledge update based on those observations.
+
+The state of the world may only change in response to some action,
+so observations can only be made as a result of some action. For simplicity
+we assume that agents perceive observations instantaneously, i.e.
+in the same instant as the actions that cause them. TODO: discuss
+more complex notions later?
+
+To make this idea concrete, let us introduce an additional sort \noun{Observations}
+to the language $\mathcal{L}_{sitcalc}$, for the moment without any
+particular commitment towards what this sort will contain. We then
+add an action description function of the following form to $\Dt_{ad}$:\[
+Obs(agt,c,s)=o\]
+ This function returns a set of observations, and should be read as
+{}``when actions $c$ are performed in situation $s$, agent $agt$
+will perceive $o$''. Using a set of observations allows an agent
+to perceive any number of observations in response to an action occurrence
+- perhaps several observations, perhaps none. When $Obs(agt,c,s)$
+is the empty set (denoted $\{\}$) then the agent makes no observations
+and the actions $c$ are completely hidden.
+
+The concept of a \emph{view} follows naturally - it is the sequence
+of all the observations made by an agent as the world has evolved.
+
+\begin{defnL}
+[{Views}] An agent's view in a given situation $\mathrm{s}$
+is the corresponding sequence of observations made by the agent as
+a result of each action in $\mathrm{s}$, excluding those actions
+for which no observations were made. 
+\end{defnL}
+We introduce another sort \noun{Views} consisting of sequences of
+sets of observations, with $\epsilon$ being the empty sequence and
+the functional fluent $View$ giving the history of observations associated
+with a particular situation. Since thiese definitions will not change
+from one domain to another, they are added to the foundation axioms
+$\Sigma$:\begin{align}
+Init(s)\,\rightarrow & \, View(agt,s)=\epsilon\nonumber \\
+Obs(agt,c,s)=\{\}\,\rightarrow & \, View(agt,do(c,s))=View(agt,s)\nonumber \\
+Obs(agt,c,s)\neq\{\}\,\rightarrow & \, View(agt,do(c,s))=Obs(agt,c,s)\cdot View(agt,s)\label{eq:view_defn}\end{align}
+
+
+The key point here, which makes the approach applicable to truly asynchronous
+domains, is that the agent's view excludes cases where $Obs(agt,c,s)$
+is empty. The agent thus may not know how many actions have been performed
+in the world.
+
+Observations and views can be seen as localised analogues of actions
+and situations respectively. An action is a global event that causes
+the state of the world to change, while an observation is an internal
+event that causes an agent's knowledge of the state of the world to
+change. Similarly, a situation represents a complete, global history
+of all the actions that have occurred in the world, while a view is
+an agent's local history of all the observations it has made. The
+situation is an omniscient perspective on the world, the view a local
+perspective. This distinction will be fundamental to the new techniques
+we develop throughout this thesis.
+
+
+\section{Standard Axiomatisation}
+
+We now proceed to show how these definitions can be used to model
+a variety of common cases from the situation calculus literature. 
+
+
+\subsection{Public Actions}
+
+The common assumption that {}``all actions are public'' can be rephrased
+as {}``when an action occurs, all agents will observe that action''.
+Letting the \noun{Observations }sort contain \noun{Action }terms,
+this can be captured using the following axiom to define $Obs$:\[
+a\in Obs(agt,c,s)\,\equiv\, a\in c\]
+
+
+When sensing actions are included, it is typically assumed that only
+the performing agent as access to the sensing results. This can be
+modelled by extending the \noun{Observations} sort to contain \noun{Action\#Result}
+pairs, and including the following in the definition for $Obs$:\[
+a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\]
+
+
+It should be clear that these definitions capture the intuition behind
+this most common model of action observability. When we develop our
+new axiomatisation of knowledge in chapter TODO, we will demonstrate
+that these definitions provide an equivalent account to the standard
+knowledge axioms defined by \citet{scherl03sc_knowledge}.
+
+This approach leads to syncrhonous domains, since it entails the following:\[
+Poss(c,s)\rightarrow Obs(agt,c,s)\neq\{\}\]
+
+
+
+\subsection{Private Actions}
+
+Another common model for action observability is to assume that {}``all
+actions are private'', which can be rephrased as {}``when an action
+occurs, only the performing agent will observe it''. This can be
+modelled using the following axioms for $Obs$:
+
+\[
+a\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\]
+
+
+\[
+a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\]
+
+
+As noted in \citep{Lesperance99sitcalc_approach}, this approach means
+that agents may need to consider arbitrarily-long sequences of hidden
+actions. By explicitly formalising this situation, we proide the first
+account of effective reasoning in such domains.
+
+
+\subsection{Communicative Actions}
+
+Communication in the situation calculus is tradionally modelled using
+explitic communicative actions. These actions are axiomatised as per
+standard actions, but special-case handling is introduced in the axioms
+for knowledge in order to model their communicative effects.
+
+The standard message is $inform(agt_{s},agt_{r},\phi)$, where the
+sender $agt_{s}$ informs the reciever $agt_{r}$ of the truth of
+some formula $\phi$. If we assert that only truthful speech acts
+are allowed, this requires no further axiomatisation:\[
+Poss(inform(agt_{s},agt_{r},\phi),s)\,\equiv\,\phi[s]\]
+
+
+In \citep{shapiro01casl_feat_inter} encrypted speech acts are introduced,
+to ensure that only the intended recipient of a message is able to
+access its contents. While it would be straightforward to copy this
+approach in our formalism, it is also unnecessary - we can directly
+limit the accessibility of the message contents to the receiving agent
+like so:\[
+inform(sender,recver)\in Obs(agt,c,s)\,\equiv\,\exists m:\, inform(sender,recver,m)\in c\]
+\[
+inform(sender,recver,m)\in Obs(agt,c,s)\,\equiv\, inform(sender,recver,m)\in c\wedge agt\in\{sender,recver\}\]
+
+
+
+\section{New Axiomatisations}
+
+We now introduce some new axiomatisations of knowledge that have not
+been dealt with explicitly in the situation calculus.
+
+
+\subsection{Explicit Observability Axioms}
+
+We now discuss one straightforward way to generalise our approach
+for partial observability of actions. A new action description predicate
+$CanObs(agt,a,s)$ is used to indicate that agent $agt$ would observe
+action $a$ being performed in situation $s$. If $CanObs(agt,a,s)$
+is false, then that action will be hidden. We can then formulate the
+$Obs()$ function according to:\[
+a\in Obs(agt,c,s)\equiv a\in c\wedge CanObs(agt,a,s)\]
+
+
+There is also a subtle limitation in the standard handling of sensing
+actions: only the agent performing a sensing action can be aware of
+its result. Such a restriction is common but certainly not universal.
+For example, if an agent waiting for a train activates a speaker to
+determine when it will arrive, the result of this sensing action would
+provide information to any other agent within earshot. To generalise
+the formalism, an analogous predicate $CanSense(agt,a,s)$ is used
+to indicate when sensing information is available to an agent. We
+then include bare action terms in an agent's observations when it
+observes the action but not its result, and \emph{$Action\#Result$}
+terms when it also senses the result:\begin{gather*}
+a\in Obs(agt,c,s)\equiv a\in c\wedge CanObs(agt,a,s)\wedge\neg CanSense(agt,a,s)\\
+a\#r\in Obs(agt,c,s)\equiv a\in c\wedge SR(a,s)=r\wedge CanObs(agt,a,s)\wedge CanSense(agt,a,s)\end{gather*}
+
+
+We feel that this formulation provides a good balance between simplicity
+and expressiveness; it allows the observability of actions to vary
+according to the state of the world, but provides agents with a complete
+description of each action that they are capable of observing.
+
+
+\subsection{Observing the Effects of Actions}
+
+
+\subsection{Delayed Communication}
+
+Delayed communication is typically modelled using separate $send$
+and $recv$ actions. The $recv$ action can be modelled as a natural
+action as introduced in Section TODO, since it must occur unless something
+happens to prevent it.
+
+This axiomatisation mirrors the standard account of long-running tasks,
+with a fluent $PendingMessage(agt_{s},agt_{r},m,t)$ indicating that
+some message is pending and will be delivered at time $t$. We have:\[
+natural(recv(agt_{s},agt_{r},m))\]
+\begin{multline*}
+PendingMessage(agt_{s},agt_{r},m,t_{m},do(c\#t,s))\,\equiv send(agt_{s},agt_{r},m)\in c\wedge t_{m}=t+delay(agt_{s},agt_{r},m,s)\\
+\vee PendingMessage(agt_{s},agt_{r},m,t_{m},s)\wedge\left(recv(agt_{s},agt_{r},m)\not\in c\vee t\neq t_{m}\right)\end{multline*}
+\[
+Poss(recv(agt_{s},agt_{r},m)\#t,s)\equiv PendingMessage(agt_{s},agt_{r},m,t,s)\]
+
+
+Thus a $send$ action causes the message to become pending, with its
+delivery time determined by the function $delay$. Once the delay
+time has elapsed, the natural action $recv$ will be triggered and
+the message delivered.
+
+If the agents have incomplete knowledge about the $delay$ function,
+this can easily model domains in which the message delay is unpredicatble.
+
+
+\subsection{Delayed Observations}
+
+Delayed observations can be modelled in a simlar way to delayed communications.
+
+TODO: OK, so model them.
+
+
+\section{Discussion}
+
+In this chapter we have developed a new account of the local perspective
+of each agent as the world evolves. We have shown that it can easily
+model the standard, implicit accounts found in the existnig situation
+calculus literature, as well as several more compelx cases which have
+not, to our knoweldge, been treated.
+
+This approach clearly paralles the view-based approach to knowlege
+of TODO:refs, although we have not yet axiomatised an agent's knowledge
+in terms of its view - this will be done in chapter TODO.
+
