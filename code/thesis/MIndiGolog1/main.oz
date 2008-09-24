@@ -55,8 +55,14 @@ define
 
   {System.show start}
   {Run pcall(main) s0}
-  %Holds = {Search.base.one proc{$ R} T in
-  %  {Sitcalc.holds hasObject(jim bowl1) res([acquire(jim bowl1)] 1 s0)}
+  %Holds = {Search.base.one proc{$ R} T T1 T2 T3 T4 S Rem in
+  %  {Time.decl T1} {Time.decl T2} {Time.decl T3} {Time.decl T4}
+  %  {Time.less 0 T1}
+  %  {Time.less T1 T2}
+  %  {Time.less T2 T3}
+  %  {Time.less T3 T4}
+  %  S = res([beginTask(jim chop(board1)) beginTask(joe chop(board2))] T4 res([placeIn(jim lettuce1 board1) placeIn(joe tomato1 board2)] T3 res([acquire(jim board1) acquire(joe board2)] T2 res([acquire(jim lettuce1) acquire(joe tomato1) acquire(jon carrot1)] T1 s0))))
+  %  {System.show {Sitcalc.lntp S}}
   %  R = unit
   %end}
   %{System.show Holds}

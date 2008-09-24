@@ -89,9 +89,10 @@ define
 
   proc {IsNatural Act}
     choice  Act = ringTimer(_)
-    []      Act = endTask(_)
+    []      Act = endTask(_ _)
     end
-    {IsAction Act}
+    % TODO: this generates far too many choicepoints
+    %{IsAction Act}
   end
 
   proc{IsExog Act}
@@ -146,7 +147,8 @@ define
                     % TODO: more here - on a board, holding a knife, etc
     [] Agt Tsk RemTime in A=endTask(Agt Tsk)
                   {Sitcalc.holds doingTask(Agt Tsk RemTime) S}
-                  T = {Sitcalc.start S} + RemTime
+                  {Time.decl RemTime}
+                  T =: {Sitcalc.start S} + RemTime
     end
   end
 
@@ -181,9 +183,10 @@ define
                        end
     []  timerSet(ID RemTime) then
              choice {LP.member setTimer(_ ID RemTime) C}
-             []  OldRem in
+             []  OldRem Dur in
                  {Sitcalc.holds timerSet(ID OldRem) S}
-                 RemTime = OldRem - (T - {Sitcalc.start S})
+                 Dur =: T - {Sitcalc.start S}
+                 RemTime =: OldRem - Dur
                  {LP.neg proc {$}
                    {LP.member ringTimer(ID) C}
                  end}
@@ -222,9 +225,10 @@ define
             choice {LP.member beginTask(Agt Tsk) C}
                    % TODO: definable task duration
                    RemTime=3
-            []   OldRem in
+            []   OldRem Dur in
                  {Sitcalc.holds doingTask(Agt Tsk OldRem) S}
-                 RemTime = OldRem - (T - {Sitcalc.start S})
+                 Dur =: T - {Sitcalc.start S}
+                 RemTime =: OldRem - Dur
                  {LP.neg proc {$} {LP.member endTask(Agt Tsk) C} end}
             end
     else {StaticFluent F} end

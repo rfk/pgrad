@@ -20,17 +20,17 @@ export
     Do
     Step
     TransStar
-    Tester
 
 define
 
   proc {Trans D S Dp Sp}
+      {System.show D#S}
       case D of nil then fail
-      []   test(Cond) then choice {Sitcalc.holds Cond S} Sp=S Dp=nil
-                           [] Tn Cn in {Sitcalc.lntp S Tn}
-                                       {Sitcalc.pna S Cn}
-                                       Dp=D Sp=res(Cn Tn S)
-                           end
+      []   test(Cond) then {Sitcalc.holds Cond S} Sp=S Dp=nil
+                           % TODO: reinstate this case
+                           %   {Sitcalc.lntp S Tn}
+                           %   {Sitcalc.pna S Cn}
+                           %   Dp=D Sp=res(Cn Tn S)
       []   seq(D1 D2) then choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
                            []            {Final D1 S} {Trans D2 S Dp Sp}
                            end
@@ -79,7 +79,9 @@ define
                           {Trans Body S Dp Sp}
       []   search(D1) then Sr Dr in
                            {Trans D1 S Dr Sp}
+                           {System.show search(Sp)}
                            {Do Dr Sp Sr}
+                           {System.show Sr}
                            Dp = dosteps({Sitcalc.toStepsList Sp Sr})
       []   dosteps(Steps) then C T Steps2 in
                                Steps = (C#T)|Steps2
@@ -89,9 +91,11 @@ define
            {Time.decl T}
            {LP.subInTerm now S D D1}
            {Sitcalc.toConcAct D1 C}
+           {System.show here}
            choice Tn={Sitcalc.lntp S}
                   Cn={Sitcalc.pna S}
                 in
+                  {System.show lntp(Tn Cn)}
                   {Time.greaterEq T {Sitcalc.start S}}
                   choice %% Can do before LNTP actions
                          {Time.less T Tn}
@@ -104,7 +108,7 @@ define
                          {Sitcalc.legal Cu Tn S}
                          Sp=res(Cu Tn S) Dp=nil
                   end
-           []     {LP.neg proc {$} {Sitcalc.lntp S _} end}
+           []     {System.show nolntp} {LP.neg proc {$} {Sitcalc.lntp S _} end}
                   {Sitcalc.legal C T S}
                   Sp=res(C T S) Dp=nil
            end
@@ -142,13 +146,12 @@ define
 
   proc {TransStar D S Dp Sp}
     choice  Dp=D Sp=S
-    []      Dr Sr in {Trans D S Dr Sr} {TransStar Dr Sr Dp Sp}
+    []      Dr Sr in {Trans D S Dr Sr} {System.show Sr} {TransStar Dr Sr Dp Sp}
     end
   end
 
   proc {Step D S Dp Sp}
     choice Sp=res(_ _ S) {Trans D S Dp Sp}
-           
     []     Dr in {Trans D S Dr S} {Step Dr S Dp Sp}
     end
   end
@@ -158,11 +161,6 @@ define
   in
      {TransStar D S Dp Sp}
      {Final Dp Sp}
-  end
-
-  proc {Tester D S Dp Sp}
-    Dp=nil
-    Sp=res(hi there S)
   end
 
 end
