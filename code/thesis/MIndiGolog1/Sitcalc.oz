@@ -20,8 +20,10 @@ export
   PreceedsEq
   Legal
   ToConcAct
+  ToStepsList
   lntp: LNTP
   pna: PNA
+  Holds
 
 define
 
@@ -58,12 +60,8 @@ define
   end
 
   proc {Legal C T S}
-    skip
-  end
-
-  proc {Legal1 C T S}
     {Poss C T S}
-    {Time.lessEq {Start S} T}
+    {Time.less {Start S} T}
     {LP.neg proc {$} An Tn in
       {Domain.isNatural An}
       {Domain.poss An Tn S}
@@ -105,7 +103,6 @@ define
   proc {Poss C T S}
     C = _|_
     {PossAll C T S}
-    {Time.less {Start S} T}
     {LP.neg proc {$} {Domain.conflicts C T S} end}
   end
 
@@ -120,6 +117,48 @@ define
   proc {ToConcAct A C}
     choice A=_|_ C=A
     []     C = [A]
+    end
+  end
+
+  % Convert two situations to a list of steps necessary to get from S1 to S2
+  %
+  proc {ToStepsList S1 S2 L}
+    if S1 == S2 then
+      L = nil
+    else C T Sp in
+      S2 = res(C T Sp)
+      L = (C#T)|{ToStepsList S1 Sp}
+    end
+  end
+
+  % Determine whether a fluent holds in a given situation
+  %
+  proc {Holds F S}
+    % Reduce the formula down to NNF
+    case F of conj(F1 F2) then {Holds F1 S} {Holds F2 S}
+    []   disj(F1 F2) then choice {Holds F1 S} [] {Holds F2 S} end
+    []   all(Var F1) then {Holds neg(ex(Var neg(F1))) S}
+    []   ex(Var F1) then F2 in {LP.subInTerm Var _ F1 F2}
+                               {Holds F2 S}
+    []   neg(F1) then case F1 of all(Var F2) then {Holds ex(Var neg(F2)) S}
+                      []   disj(F2 F3) then {Holds conj(neg(F2) neg(F3)) S}
+                      []   conj(F2 F3) then {Holds disj(neg(F2) neg(F3)) S}
+                      []   neg(F2) then {Holds F2 S}
+                      []   ex(Var F2) then
+                               {LP.neg proc {$} F3 in
+                                 {LP.subInTerm Var _ F2 F3}
+                                 {Holds F3 S}
+                               end}
+                      else {LP.neg proc {$}
+                               {Holds F1 S}
+                           end}
+                      end
+    % Then call into either SSA or Init
+    else choice S=s0
+                {Domain.init F}
+         [] C T Sp in S=res(C T Sp)
+                {Domain.ssa F C T Sp}
+         end
     end
   end
 

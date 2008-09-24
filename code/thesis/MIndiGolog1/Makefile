@@ -5,6 +5,9 @@ FUNCTORS = Domain.ozf Time.ozf Sitcalc.ozf MIndiGolog.ozf Procedures.ozf LP.ozf
 
 all: main.exe $(FUNCTORS)
 
+run: main.exe
+	./main.exe
+
 %.ozf: %.oz
 	ozc -g -p -c $< -o $@
 
@@ -13,4 +16,6 @@ all: main.exe $(FUNCTORS)
 
 clean:
 	rm -rf *.ozf *.exe *.ozf 
+
+main.exe: $(FUNCTORS)
 

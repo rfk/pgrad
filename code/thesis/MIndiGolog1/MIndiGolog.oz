@@ -37,24 +37,21 @@ define
       []   choose(D1 D2) then choice {Trans D1 S Dp Sp}
                             []       {Trans D2 S Dp Sp}
                             end
-      []   pick(V D1) then local D2 in
-                               {LP.subInTerm V _ D1 D2}
-                               {Trans D2 S Dp Sp}
-                            end
-      []   star(D1) then local D2 in
-                               {Trans D S D2 Sp}
-                               Dp=seq(D2 star(D1))
-                         end
+      []   pick(V D1) then D2 in
+                           {LP.subInTerm V _ D1 D2}
+                           {Trans D2 S Dp Sp}
+      []   star(D1) then D2 in
+                         {Trans D S D2 Sp}
+                         Dp=seq(D2 star(D1))
       []   ifte(Cond D1 D2) then choice {Sitcalc.holds Cond S}
                                         {Trans D1 S Dp Sp}
                                  []     {Sitcalc.holds neg(Cond) S}
                                         {Trans D2 S Dp Sp}
                                  end
-      []   wloop(Cond D1) then local D2 in
-                                 {Sitcalc.holds Cond S}
-                                 {Trans D1 S D2 Sp}
-                                 Dp=seq(D2 wloop(Cond D1))
-                               end
+      []   wloop(Cond D1) then D2 in
+                             {Sitcalc.holds Cond S}
+                             {Trans D1 S D2 Sp}
+                             Dp=seq(D2 wloop(Cond D1))
       []   conc(D1 D2) then choice D1r D2r C1 C2 Cu T in
                                      {Step D1 S D1r res(C1 T S)}
                                      {Step D2 S D2r res(C2 T S)}
@@ -73,38 +70,43 @@ define
                              []     D2r in {Trans D2 S D2r Sp} Dp=pconc(D1 D2r)
                                     {LP.neg proc {$} {Trans D1 S _ _} end}
                              end
-      []   cstar(D1) then local D2 in
-                              {Trans D1 S D2 Sp}
-                              Dp=conc(D2 cstar(D1))
-                          end
-      []   pcall(D1) then local Body D2 in
-                            {LP.subInTerm now S D1 D2}
-                            {Procedures.procdef D2 Body}
-                            {Trans Body S Dp Sp}
-                          end
-      else local D1 C T in
-              {Time.decl T}
-              {LP.subInTerm now S D D1}
-              {Sitcalc.toConcAct D1 C}
-              choice Tn={Sitcalc.lntp S}
-                     Cn={Sitcalc.pna S}
-                   in
-                     {Time.greaterEq T {Sitcalc.start S}}
-                     choice %% Can do before LNTP actions
-                            {Time.less T Tn}
-                            {Sitcalc.legal C T S}
-                            Sp=res(C T S) Dp=nil
-                     []     %% Can with with LNTP actions
-                            Cu={LP.union C Cn} in
-                            {Sitcalc.legal Cu Tn S}
-                            Sp=res(Cu Tn S) Dp=nil
-                     []     %% Can do LNTP actions first
-                            Sp=res(Cn Tn S) Dp=D
-                     end
-              []     {LP.neg proc {$} {Sitcalc.lntp S _} end}
-                     {Sitcalc.legal C T S}
-                     Sp=res(C T S) Dp=nil
-              end
+      []   cstar(D1) then D2 in
+                          {Trans D1 S D2 Sp}
+                          Dp=conc(D2 cstar(D1))
+      []   pcall(D1) then Body D2 in
+                          {LP.subInTerm now S D1 D2}
+                          {Procedures.procdef D2 Body}
+                          {Trans Body S Dp Sp}
+      []   search(D1) then Sr Dr in
+                           {Trans D1 S Dr Sp}
+                           {Do Dr Sp Sr}
+                           Dp = dosteps({Sitcalc.toStepsList Sp Sr})
+      []   dosteps(Steps) then C T Steps2 in
+                               Steps = (C#T)|Steps2
+                               Sp = res(C T S)
+                               Dp = dosteps(Steps)
+      else D1 C T in
+           {Time.decl T}
+           {LP.subInTerm now S D D1}
+           {Sitcalc.toConcAct D1 C}
+           choice Tn={Sitcalc.lntp S}
+                  Cn={Sitcalc.pna S}
+                in
+                  {Time.greaterEq T {Sitcalc.start S}}
+                  choice %% Can do before LNTP actions
+                         {Time.less T Tn}
+                         {Sitcalc.legal C T S}
+                         Sp=res(C T S) Dp=nil
+                  []     %% Can do LNTP actions first
+                         Sp=res(Cn Tn S) Dp=D
+                  []     %% Can with with LNTP actions
+                         Cu={LP.union C Cn} in
+                         {Sitcalc.legal Cu Tn S}
+                         Sp=res(Cu Tn S) Dp=nil
+                  end
+           []     {LP.neg proc {$} {Sitcalc.lntp S _} end}
+                  {Sitcalc.legal C T S}
+                  Sp=res(C T S) Dp=nil
            end
       end
   end
@@ -112,6 +114,7 @@ define
   proc {Final D S}
       case D of nil then skip
       []   seq(D1 D2) then {Final D1 S} {Final D2 S}
+      []   test(Cond) then {Sitcalc.holds Cond S}
       []   choose(D1 D2) then choice {Final D1 S} [] {Final D2 S} end
       []   pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 S} end
       []   star(_) then skip
@@ -131,6 +134,8 @@ define
                             {Procedures.procdef D2 D3}
                             {Final D3 S}
                           end
+      []   search(D1) then {Final D1 S}
+      []   dosteps(Steps) then Steps = nil
       else fail
       end
   end

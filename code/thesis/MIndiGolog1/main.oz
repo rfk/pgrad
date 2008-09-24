@@ -5,6 +5,8 @@ import
 
   MIndiGolog
   Time
+  Sitcalc
+  Domain
 
   Application
   Property
@@ -42,7 +44,8 @@ define
         try
           {NextStep D S Dp Sp}
           Sp = res(C T S)
-          {System.show execute(C {Time.min T}#{Time.max T})}
+          T = {Time.min T}
+          {System.show execute(C T)}
           {Run Dp Sp}
         catch _ then
           {System.show failed}
@@ -52,6 +55,11 @@ define
 
   {System.show start}
   {Run pcall(main) s0}
+  %Holds = {Search.base.one proc{$ R} T in
+  %  {Sitcalc.holds hasObject(jim bowl1) res([acquire(jim bowl1)] 1 s0)}
+  %  R = unit
+  %end}
+  %{System.show Holds}
 
   {Application.exit 0}
 
