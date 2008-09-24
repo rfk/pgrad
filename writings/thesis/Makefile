@@ -30,7 +30,7 @@
 ## Adjust $GARBAGE to add extra files for deletion in `make clean`
 
 LATEX_GARBAGE = *.aux *.lof *.dvi *.log *.toc *.lot *.mtc* *.bbl *.blg *.bmt *.maf *.loa
-GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx rawchapters.tex
+GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx rawchapters.tex *.txt *.bak
 
 CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf ./upload-thesis/
 
