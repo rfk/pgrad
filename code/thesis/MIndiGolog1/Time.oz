@@ -18,7 +18,9 @@ export
   LessEq
   Greater
   GreaterEq
-  Declare
+  Decl
+  Min
+  Max
   
 
 define
@@ -39,8 +41,18 @@ define
     T1 >=: T2
   end
 
-  proc {Declare T}
+  proc {Decl T}
     {FD.decl T}
+  end
+
+  proc {Min T M}
+    if {IsDet T} then M = T
+    else M = {FD.reflect.min T} end
+  end
+
+  proc {Max T M}
+    if {IsDet T} then M = T
+    else M = {FD.reflect.max T} end
   end
 
 end

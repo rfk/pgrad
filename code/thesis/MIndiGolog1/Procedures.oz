@@ -8,13 +8,18 @@ import
 
 export
 
+  Procdef
+
 define
 
-  proc {Proc Nm Body}
-    case Nm of doPlaceTypeIn(Agt Type Dest) then
-               Body=pick(obj seq(test(obj_is_type(obj Type))
-                               seq(acquire_object(Agt obj)
-                                   pcall(doPlaceIn(Agt obj Dest)))))
+  fun {Procdef Nm}
+    case Nm of main then
+           acquire_object(jim knife1)
+    [] doPlaceTypeIn(Agt Type Dest) then
+           pick(obj seq(test(obj_is_type(obj Type))
+                        seq(acquire_object(Agt obj)
+                            pcall(doPlaceIn(Agt obj Dest)))))
+    else fail
     end
   end
 

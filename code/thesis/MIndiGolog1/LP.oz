@@ -41,10 +41,8 @@ define
         nil then LF = L2
     []  H|T then local LI in 
           LI = {Union T L2}
-          if {Member H LI} then
-            LF = LI
-          else
-            LF = H|LI
+          choice {Member H LI} LF = LI
+          [] LF = H|LI
           end
         end
     end
@@ -61,7 +59,7 @@ define
         TOut = VNew
       else
         if {IsRecord TIn} then
-          {SubInTerm_Record Vold VNew TIn TOut}
+          {SubInTerm_Record VOld VNew TIn TOut}
         else
           TIn = TOut
         end

@@ -9,6 +9,8 @@ import
   LP
   Domain
   Time
+  Search
+  System
 
 export
 
@@ -18,6 +20,8 @@ export
   PreceedsEq
   Legal
   ToConcAct
+  lntp: LNTP
+  pna: PNA
 
 define
 
@@ -53,37 +57,21 @@ define
     end
   end
 
-  %  Assert that situation S1 is legal
-  %
-  proc {Legal1 S}
-    choice  S = s0
-    []  C T Sp in
-          S = res(C T Sp)
-          {Poss C T Sp}
-          {Time.lessEq {Start Sp} T}
-          {LP.neg proc {$} An Tn in
-            {Domain.isNatural An}
-            {Poss An Tn Sp}
-            {Time.lessEq Tn T}
-            {LP.neg proc {$}
-                  {LP.member NA C}
-            end}
-          end}
-    end
+  proc {Legal C T S}
+    skip
   end
 
-  proc {Legal C T S}
-    {Poss C T Sp}
-    {Time.lessEq {Start Sp} T}
+  proc {Legal1 C T S}
+    {Poss C T S}
+    {Time.lessEq {Start S} T}
     {LP.neg proc {$} An Tn in
       {Domain.isNatural An}
-      {Poss An Tn Sp}
+      {Domain.poss An Tn S}
       {Time.lessEq Tn T}
       {LP.neg proc {$}
-            {LP.member NA C}
+            {LP.member An C}
       end}
     end}
-    end
   end
 
   %  Determine LNTP of situation S1
@@ -92,12 +80,23 @@ define
     An
   in
     {Domain.isNatural An}
-    {Poss An Tn S}
+    {Domain.poss An Tn S}
+    Tn = {Time.min Tn}
     {LP.neg proc {$} An2 Tn2 in
       {Domain.isNatural An2}
-      {Poss An2 Tn2 S}
+      {Domain.poss An2 Tn2 S}
       {Time.less Tn2 Tn}
     end}
+  end
+
+  % Determine PNA of situation S1
+  proc {PNA S Cn}
+    Tn = {LNTP S}
+  in
+    Cn = {Search.base.all proc {$ A}
+           {Domain.isNatural A}
+           {Domain.poss A Tn S}
+         end}
   end
 
   % Generic possibility predicate - succeeds if C is not empty, each action

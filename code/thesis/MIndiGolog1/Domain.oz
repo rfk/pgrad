@@ -2,17 +2,18 @@
 functor 
 import
 
-  Time
   LP
-  Sitcalc
+  Time
 
 export
 
-  Natural
-  Poss
-  Agent
+  IsNatural
+  IsAction
+  IsAgent
+  IsExog
+
   Holds
-  Action
+  Poss
 
 define
 
@@ -40,16 +41,16 @@ define
   end
 
   proc {IsPrimObjT Obj Type}
-    choice Type=knife {IsMember Obj [knife1 knife2 knife3]}
-    []     Type=bowl {IsMember Obj [bowl1 bowl2 bowl3]}
-    []     Type=board {IsMember Obj [board1 board2]}
-    []     Type=oven {IsMember Obj [oven1]}
-    []     Type=flour {IsMember Obj [flour1 flour2 flour3 flour4 flour5]}
-    []     Type=sugar {IsMember Obj [sugar1 sugar2 sugar3 sugar4 sugar5]}
-    []     Type=egg {IsMember Obj [egg1 egg2 egg3]}
-    []     Type=tomato {IsMember Obj [tomato1 tomato2]}
-    []     Type=lettuce {IsMember Obj [lettuce1]}
-    []     Type=carrot {IsMember Obj [carrot1 carrot2 carrot3]}
+    choice Type=knife {LP.member Obj [knife1 knife2 knife3]}
+    []     Type=bowl {LP.member Obj [bowl1 bowl2 bowl3]}
+    []     Type=board {LP.member Obj [board1 board2]}
+    []     Type=oven {LP.member Obj [oven1]}
+    []     Type=flour {LP.member Obj [flour1 flour2 flour3 flour4 flour5]}
+    []     Type=sugar {LP.member Obj [sugar1 sugar2 sugar3 sugar4 sugar5]}
+    []     Type=egg {LP.member Obj [egg1 egg2 egg3]}
+    []     Type=tomato {LP.member Obj [tomato1 tomato2]}
+    []     Type=lettuce {LP.member Obj [lettuce1]}
+    []     Type=carrot {LP.member Obj [carrot1 carrot2 carrot3]}
     end
   end
 
@@ -58,9 +59,9 @@ define
   end
 
   proc {IsSuperType Type SType}
-    choice SType=container {IsMember Type [bowl board oven]}
+    choice SType=container {LP.member Type [bowl board oven]}
     []     SType=ingredient
-           {IsMember Type [flour egg sugar tomato lettuce carrot]}
+           {LP.member Type [flour egg sugar tomato lettuce carrot]}
     end
   end
 
@@ -92,7 +93,7 @@ define
 
 
   proc {Poss A T S}
-    skip
+    {Time.decl T}
   end
 
   proc {Holds F S}
