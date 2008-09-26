@@ -11,8 +11,11 @@ import
     Domain
     Procedures
     Time
-    System
     Control
+
+    System
+    Search
+    Module
 
 export
 
@@ -91,8 +94,9 @@ define
                            if Control.teamMember == Control.teamLeader then
                              {System.show planning}
                              {Trans D1 S Dr Sp}
-                             {Do Dr Sp Sr}
+                             {ParallelDo Dr Sp Sr}
                              Dp = dosteps({Sitcalc.toStepsList Sp Sr})
+                             {System.show toStepsDone}
                              {Control.sendMessage Dp#Sp}
                            else Msg in
                              {System.show waiting_for_plan}
@@ -177,6 +181,57 @@ define
   in
      {TransStar D S Dp Sp}
      {Final Dp Sp}
+  end
+  
+  proc {IParallelDo D S Sp}
+    PDo PSearch Ds Ss Machines
+  in
+    Ds = {LP.serialize D}
+    Ss = {LP.serialize S}
+    functor PDo
+      import
+        MG at '/storage/uni/pgrad/code/thesis/MIndiGolog1/MIndiGolog.ozf'
+        LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
+      export
+        Script
+    define
+        proc {Script R}
+          Dl Sl Spl
+        in
+          {LP.unserialize Ds Dl}
+          {LP.unserialize Ss Sl}
+          {MG.'do' Dl Sl Spl}
+          R = {LP.serialize (Dl#Sl#Spl)}
+        end
+    end
+    Machines = {Record.make init Control.agents}
+    for Agt in Control.agents do
+      Machines.Agt = 1#ssh
+    end
+    {System.show parallel_search_using(Machines)}
+    %PSearch = {New Search.parallel Machines}
+    PSearch = {New Search.parallel init(jon:1#ssh mango:1#ssh)}
+    [(D#S#Sp)] = {LP.unserialize {PSearch one(PDo $)}}
+  end
+
+  ParallelDo = _
+  local
+    IPort IStream
+  in
+    IPort = {Port.new IStream}
+    thread
+      for (Ds#Ss)#Sps in IStream do D S Sp in
+        {LP.unserialize (Ds#Ss) (D#S)}
+        {IParallelDo D S Sp}
+        {LP.serialize Sp Sps}
+      end
+    end
+    proc {ParallelDo D S Sp} Sps in
+      Sps = !!{Port.sendRecv IPort {LP.serialize (D#S)}}
+      {Value.wait Sps}
+      Sp = {LP.unserialize Sps}
+      {System.show done}
+    end
   end
 
 end

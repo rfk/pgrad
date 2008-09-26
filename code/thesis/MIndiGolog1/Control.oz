@@ -13,6 +13,7 @@ import
 
 export
 
+  Agents
   Init
   TeamLeader
   TeamMember
@@ -31,16 +32,22 @@ define
 
   CommPort = 8017
 
+  Agents = _
+  Subordinates = _
+
   proc {Init}
-    if TeamMember == TeamLeader then Tkt Skt Agents Serve in
+    Agents = {Search.base.all proc {$ Agt}
+               {Domain.isAgent Agt}
+             end}
+    Subordinates = {Search.base.all proc {$ Agt}
+                     {Domain.isAgent Agt}
+                     (Agt == TeamLeader)=false
+                   end}
+    if TeamMember == TeamLeader then Tkt Skt Serve in
       %  Open a socket on port CommPort.  Each incomming connection writes 
       %  its name to the socket, and we reply with the ticket.  Once all
       %  agents have checked in, we send a 'ready' message.
       %
-      Agents = {Search.base.all proc {$ Agt}
-                 {Domain.isAgent Agt}
-                 (Agt == TeamLeader)=false
-               end}
       {Connection.offerUnlimited Msgs Tkt}
       Skt = {New Open.socket init}
       {Skt bind(takePort:CommPort)}
@@ -62,7 +69,7 @@ define
           {Serve RemAgents}
         end
       end
-      {Serve Agents}
+      {Serve Subordinates}
       {Skt close}
       {SendMessage ready}
     else Tkt Skt Msg in

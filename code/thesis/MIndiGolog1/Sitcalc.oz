@@ -127,9 +127,8 @@ define
   % Convert two situations to a list of steps necessary to get from S1 to S2
   %
   proc {ToStepsList S1 S2 L}
-    if S1 == S2 then
-      L = nil
-    else C T Sp in
+    try S1 = S2 L = nil
+    catch _ then C T Sp in
       S2 = res(C T Sp)
       L = {List.append {ToStepsList S1 Sp} [(C#T)]}
     end
