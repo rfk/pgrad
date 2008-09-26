@@ -14,6 +14,7 @@ import
 export
 
   Agents
+  Subordinates
   Init
   TeamLeader
   TeamMember

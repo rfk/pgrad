@@ -96,7 +96,6 @@ define
                              {Trans D1 S Dr Sp}
                              {ParallelDo Dr Sp Sr}
                              Dp = dosteps({Sitcalc.toStepsList Sp Sr})
-                             {System.show toStepsDone}
                              {Control.sendMessage Dp#Sp}
                            else Msg in
                              {System.show waiting_for_plan}
@@ -204,13 +203,13 @@ define
           R = {LP.serialize (Dl#Sl#Spl)}
         end
     end
-    Machines = {Record.make init Control.agents}
-    for Agt in Control.agents do
+    %Machines = {Record.make init Control.agents}
+    Machines = {Record.make init Control.subordinates}
+    for Agt in {Record.arity Machines} do
       Machines.Agt = 1#ssh
     end
     {System.show parallel_search_using(Machines)}
-    %PSearch = {New Search.parallel Machines}
-    PSearch = {New Search.parallel init(jon:1#ssh jim:1#ssh)}
+    PSearch = {New Search.parallel Machines}
     [(D#S#Sp)] = {LP.unserialize {PSearch one(PDo $)}}
   end
 
