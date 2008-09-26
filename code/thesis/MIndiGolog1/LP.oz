@@ -12,6 +12,7 @@ export
 
   Neg
   Member
+  NotMember
   Union
   SubInTerm
 
@@ -30,8 +31,19 @@ define
   % Nondeterministic selection of list member
   %
   proc {Member Elem List}
+    {System.show mem(Elem List)}
     choice  List = Elem|_
     []      NewL in List=_|NewL {Member Elem NewL}
+    end
+    {System.show foundmem(Elem)}
+  end
+
+  % Assert that element is not a member of the lsit
+  %
+  proc {NotMember Elem List}
+    case List of nil then skip
+    []   H|T then not Elem = H end
+                  {NotMember Elem T}
     end
   end
 

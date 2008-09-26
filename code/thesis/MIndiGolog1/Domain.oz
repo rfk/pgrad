@@ -146,8 +146,8 @@ define
                     {Sitcalc.holds neg(ex(t ex(m doingTask(Agt t m)))) S}
                     % TODO: more here - on a board, holding a knife, etc
     [] Agt Tsk RemTime in A=endTask(Agt Tsk)
-                  {Sitcalc.holds doingTask(Agt Tsk RemTime) S}
                   {Time.decl RemTime}
+                  {Sitcalc.holds doingTask(Agt Tsk RemTime) S}
                   T =: {Sitcalc.start S} + RemTime
     end
   end
@@ -173,9 +173,7 @@ define
              choice {LP.member acquire(Agt Obj) C}
              [] {Sitcalc.holds F S}
                 {Sitcalc.holds neg(used(Obj)) res(C T S)}
-                {LP.neg proc{$}
-                    {LP.member release(Agt Obj) C}
-                end}
+                {LP.notMember release(Agt Obj) C}
              end
     []  used(Obj) then {ObjIsType Obj ingredient}
                        choice {Sitcalc.holds used(Obj) S}
@@ -187,9 +185,7 @@ define
                  {Sitcalc.holds timerSet(ID OldRem) S}
                  Dur =: T - {Sitcalc.start S}
                  RemTime =: OldRem - Dur
-                 {LP.neg proc {$}
-                   {LP.member ringTimer(ID) C}
-                 end}
+                 {LP.notMember ringTimer(ID) C}
              end 
     []   contents(Obj Conts) then
              choice % All the ways it can become true...
@@ -213,24 +209,26 @@ define
                  end
              [] % All the ways it can become false
                 {Sitcalc.holds contents(Obj Conts) S}
-                {LP.neg proc {$} {LP.member transfer(_ Obj _) C} end}
+                {LP.notMember transfer(_ Obj _) C}
                 {LP.neg proc {$} Obj2 in
                     {LP.member transfer(_ Obj2 Obj) C}
                     {Sitcalc.holds contents(Obj2 _) S}
                 end}
-                {LP.neg proc {$} {LP.member placeIn(_ _ Obj) C} end}
+                {LP.notMember placeIn(_ _ Obj) C}
                 % TODO: mixing, chopping, etc
             end
     []   doingTask(Agt Tsk RemTime) then
+            {Time.decl RemTime}
             choice {LP.member beginTask(Agt Tsk) C}
-                   % TODO: definable task duration
-                   RemTime=3
-            []   OldRem Dur in
-                 {Sitcalc.holds doingTask(Agt Tsk OldRem) S}
-                 Dur =: T - {Sitcalc.start S}
-                 RemTime =: OldRem - Dur
-                 {LP.neg proc {$} {LP.member endTask(Agt Tsk) C} end}
+                   RemTime=3  %TODO: definable task duration
+            %[]   OldRem Dur in
+            %     {System.show here}
+            %     {LP.notMember endTask(Agt Tsk) C}
+            %     {Sitcalc.holds doingTask(Agt Tsk OldRem) S}
+            %     Dur =: T - {Sitcalc.start S}
+            %     RemTime =: OldRem - Dur
             end
+            {System.show doing(Agt Tsk RemTime)}
     else {StaticFluent F} end
   end
 

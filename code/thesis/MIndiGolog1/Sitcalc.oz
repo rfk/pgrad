@@ -75,25 +75,32 @@ define
   %  Determine LNTP of situation S1
   %
   proc {LNTP S Tn}
-    An
+    proc {PotentialLNTP Tnp} An in
+      choice {Domain.isNatural An}
+             {System.show An}
+             {Domain.poss An Tnp S}
+             {System.show Tnp}
+      []  {System.show noMoreSols} fail end
+    end
+    Sol
   in
-    {Domain.isNatural An}
-    {Domain.poss An Tn S}
-    Tn = {Time.min Tn}
-    {LP.neg proc {$} An2 Tn2 in
-      {Domain.isNatural An2}
-      {Domain.poss An2 Tn2 S}
-      {Time.less Tn2 Tn}
-    end}
+    %Sol = {Search.base.best PotentialLNTP proc {$ BestSoFar Tnp}
+    %    ({Time.min Tnp} < {Time.min BestSoFar}) = true
+    %end}
+    Sol = {Search.base.one PotentialLNTP}
+    {System.show solfound}
+    {System.show Sol}
   end
 
   % Determine PNA of situation S1
   proc {PNA S Cn}
-    Tn = {LNTP S}
-  in
-    Cn = {Search.base.all proc {$ A}
+  %  Tn = {LNTP S}
+  %in
+    Cn = {Search.base.one proc {$ A}
            {Domain.isNatural A}
-           {Domain.poss A Tn S}
+           {System.show A}
+           {Domain.poss A _ S}
+           {System.show worksForMe}
          end}
   end
 
@@ -154,9 +161,9 @@ define
                            end}
                       end
     % Then call into either SSA or Init
-    else choice S=s0
+    else case S of s0 then
                 {Domain.init F}
-         [] C T Sp in S=res(C T Sp)
+         [] res(C T Sp) then
                 {Domain.ssa F C T Sp}
          end
     end
