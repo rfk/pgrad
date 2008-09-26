@@ -210,7 +210,7 @@ define
     end
     {System.show parallel_search_using(Machines)}
     %PSearch = {New Search.parallel Machines}
-    PSearch = {New Search.parallel init(jon:1#ssh jim:1#'ssh)}
+    PSearch = {New Search.parallel init(jon:1#ssh jim:1#ssh)}
     [(D#S#Sp)] = {LP.unserialize {PSearch one(PDo $)}}
   end
 
