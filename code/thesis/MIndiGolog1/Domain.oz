@@ -148,7 +148,7 @@ define
     [] Agt Tsk RemTime in A=endTask(Agt Tsk)
                   {Time.decl RemTime}
                   {Sitcalc.holds doingTask(Agt Tsk RemTime) S}
-                  T =: {Sitcalc.start S} + RemTime
+                  T = {Time.plus {Sitcalc.start S} RemTime}
     end
   end
 
@@ -173,7 +173,9 @@ define
              choice {LP.member acquire(Agt Obj) C}
              [] {Sitcalc.holds F S}
                 {Sitcalc.holds neg(used(Obj)) res(C T S)}
-                {LP.notMember release(Agt Obj) C}
+                {LP.neg proc {$}
+                  {LP.member {LP.copyTerm release(Agt Obj)} C}
+                end}
              end
     []  used(Obj) then {ObjIsType Obj ingredient}
                        choice {Sitcalc.holds used(Obj) S}
@@ -183,18 +185,20 @@ define
              choice {LP.member setTimer(_ ID RemTime) C}
              []  OldRem Dur in
                  {Sitcalc.holds timerSet(ID OldRem) S}
-                 Dur =: T - {Sitcalc.start S}
-                 RemTime =: OldRem - Dur
-                 {LP.notMember ringTimer(ID) C}
+                 Dur = {Time.minus T {Sitcalc.start S}}
+                 RemTime = {Time.minus OldRem Dur}
+                 {LP.neg proc {$}
+                    {LP.member {LP.copyTerm ringTimer(ID)} C}
+                 end}
              end 
     []   contents(Obj Conts) then
              choice % All the ways it can become true...
                  choice % It was previously empty, and contents were added
-                     {Sitcalc.holds neg(ex(c contents(Obj c))) S}
                      choice Obj2 in {LP.member transfer(_ Obj2 Obj) C}
                                     {Sitcalc.holds contents(Obj2 Conts) S}
                      []     {LP.member placeIn(_ Conts Obj) C}
                      end
+                     {Sitcalc.holds neg(ex(c contents(Obj c))) S}
                  []  % It previously had contents, which have been added to
                      OldConts1 OldConts NewConts in
                      {Sitcalc.holds contents(Obj OldConts1) S}
@@ -209,26 +213,30 @@ define
                  end
              [] % All the ways it can become false
                 {Sitcalc.holds contents(Obj Conts) S}
-                {LP.notMember transfer(_ Obj _) C}
-                {LP.neg proc {$} Obj2 in
-                    {LP.member transfer(_ Obj2 Obj) C}
-                    {Sitcalc.holds contents(Obj2 _) S}
+                {LP.neg proc {$} 
+                    {LP.member {LP.copyTerm transfer(_ Obj _)} C}
                 end}
-                {LP.notMember placeIn(_ _ Obj) C}
-                % TODO: mixing, chopping, etc
+                {LP.neg proc {$} Obj2 in
+                    {LP.member transfer(_ Obj2 {LP.copyTerm Obj}) C}
+                    {Sitcalc.holds contents(Obj2 _) {LP.copyTerm S}}
+                end}
+                {LP.neg proc {$} 
+                    {LP.member {LP.copyTerm placeIn(_ _ Obj)} C}
+                end}
             end
     []   doingTask(Agt Tsk RemTime) then
             {Time.decl RemTime}
             choice {LP.member beginTask(Agt Tsk) C}
                    RemTime=3  %TODO: definable task duration
-            %[]   OldRem Dur in
-            %     {System.show here}
-            %     {LP.notMember endTask(Agt Tsk) C}
-            %     {Sitcalc.holds doingTask(Agt Tsk OldRem) S}
-            %     Dur =: T - {Sitcalc.start S}
-            %     RemTime =: OldRem - Dur
+            []   OldRem Dur in
+                 {Time.decl Dur} {Time.decl OldRem}
+                 {LP.neg proc {$}
+                   {LP.member {LP.copyTerm endTask(Agt Tsk)} C}
+                 end}
+                 {Sitcalc.holds doingTask(Agt Tsk OldRem) S}
+                 Dur = {Time.minus T {Sitcalc.start S}}
+                 RemTime = {Time.minus OldRem Dur}
             end
-            {System.show doing(Agt Tsk RemTime)}
     else {StaticFluent F} end
   end
 

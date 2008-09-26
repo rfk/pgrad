@@ -14,7 +14,7 @@ define
 
   fun {Procdef Nm}
     case Nm of main then
-          search(pcall(makeSalad(bowl1)))
+          pcall(makeSalad(bowl1))
     [] ensureHas(Agt Obj) then
            ifte(hasObject(Agt Obj) nil acquire(Agt Obj))
     [] doPlaceIn(Agt Obj Dest) then

@@ -62,12 +62,14 @@ define
   proc {Legal C T S}
     {Poss C T S}
     {Time.less {Start S} T}
-    {LP.neg proc {$} An Tn in
+    {LP.neg proc {$} An Tn Sl Cl Tl in
+      (Sl#Tl) = {LP.copyTerm (S#T)}
       {Domain.isNatural An}
-      {Domain.poss An Tn S}
-      {Time.lessEq Tn T}
+      {Domain.poss An Tn Sl}
+      {Time.lessEq Tn Tl}
       {LP.neg proc {$}
-            {LP.member An C}
+          Cl = {LP.copyTerm C}
+          {LP.member An Cl}
       end}
     end}
   end
@@ -75,32 +77,24 @@ define
   %  Determine LNTP of situation S1
   %
   proc {LNTP S Tn}
-    proc {PotentialLNTP Tnp} An in
-      choice {Domain.isNatural An}
-             {System.show An}
-             {Domain.poss An Tnp S}
-             {System.show Tnp}
-      []  {System.show noMoreSols} fail end
+    proc {PotentialLNTP Tnp} An Sl in
+      Sl = {LP.copyTerm S}
+      {Domain.isNatural An}
+      {Domain.poss An Tnp Sl}
     end
-    Sol
   in
-    %Sol = {Search.base.best PotentialLNTP proc {$ BestSoFar Tnp}
-    %    ({Time.min Tnp} < {Time.min BestSoFar}) = true
-    %end}
-    Sol = {Search.base.one PotentialLNTP}
-    {System.show solfound}
-    {System.show Sol}
+    [Tn] = {Search.base.best PotentialLNTP proc {$ BestSoFar Tnp}
+        ({Time.min Tnp} < {Time.min BestSoFar}) = true
+    end}
   end
 
   % Determine PNA of situation S1
   proc {PNA S Cn}
-  %  Tn = {LNTP S}
-  %in
-    Cn = {Search.base.one proc {$ A}
+    Tn = {LNTP S}
+  in
+    Cn = {Search.base.all proc {$ A}
            {Domain.isNatural A}
-           {System.show A}
-           {Domain.poss A _ S}
-           {System.show worksForMe}
+           {Domain.poss A {LP.copyTerm Tn} {LP.copyTerm S}}
          end}
   end
 
@@ -110,7 +104,10 @@ define
   proc {Poss C T S}
     C = _|_
     {PossAll C T S}
-    {LP.neg proc {$} {Domain.conflicts C T S} end}
+    {LP.neg proc {$} Cl Tl Sl in
+        (Cl#Tl#Sl) = {LP.copyTerm (C#T#S)}
+        {Domain.conflicts Cl Tl Sl}
+     end}
   end
 
   proc {PossAll C T S}
@@ -153,11 +150,11 @@ define
                       []   neg(F2) then {Holds F2 S}
                       []   ex(Var F2) then
                                {LP.neg proc {$} F3 in
-                                 {LP.subInTerm Var _ F2 F3}
-                                 {Holds F3 S}
+                                 {LP.subInTerm Var _ {LP.copyTerm F2} F3}
+                                 {Holds F3 {LP.copyTerm S}}
                                end}
                       else {LP.neg proc {$}
-                               {Holds F1 S}
+                               {Holds {LP.copyTerm F1} {LP.copyTerm S}}
                            end}
                       end
     % Then call into either SSA or Init

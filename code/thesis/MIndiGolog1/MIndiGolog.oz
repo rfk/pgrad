@@ -24,7 +24,6 @@ export
 define
 
   proc {Trans D S Dp Sp}
-      {System.show D#S}
       case D of nil then fail
       []   test(Cond) then {Sitcalc.holds Cond S} Sp=S Dp=nil
                            % TODO: reinstate this case
@@ -39,7 +38,7 @@ define
                             end
       []   pick(V D1) then D2 in
                            {LP.subInTerm V _ D1 D2}
-                           {Trans D2 S Dp Sp}
+                           {Step D2 S Dp Sp}
       []   star(D1) then D2 in
                          {Trans D S D2 Sp}
                          Dp=seq(D2 star(D1))
@@ -68,7 +67,9 @@ define
                             end
       []   pconc(D1 D2) then choice D1r in {Trans D1 S D1r Sp} Dp=pconc(D1r D2)
                              []     D2r in {Trans D2 S D2r Sp} Dp=pconc(D1 D2r)
-                                    {LP.neg proc {$} {Trans D1 S _ _} end}
+                                    {LP.neg proc {$}
+                                        {Trans D1 {LP.copyTerm S} _ _}
+                                    end}
                              end
       []   cstar(D1) then D2 in
                           {Trans D1 S D2 Sp}
@@ -91,11 +92,9 @@ define
            {Time.decl T}
            {LP.subInTerm now S D D1}
            {Sitcalc.toConcAct D1 C}
-           {System.show here}
            choice Tn={Sitcalc.lntp S}
                   Cn={Sitcalc.pna S}
                 in
-                  {System.show lntp(Tn Cn)}
                   {Time.greaterEq T {Sitcalc.start S}}
                   choice %% Can do before LNTP actions
                          {Time.less T Tn}
@@ -108,7 +107,9 @@ define
                          {Sitcalc.legal Cu Tn S}
                          Sp=res(Cu Tn S) Dp=nil
                   end
-           []     {System.show nolntp} {LP.neg proc {$} {Sitcalc.lntp S _} end}
+           []     {LP.neg proc {$}
+                    {Sitcalc.lntp {LP.copyTerm S} _}
+                  end}
                   {Sitcalc.legal C T S}
                   Sp=res(C T S) Dp=nil
            end
@@ -146,7 +147,7 @@ define
 
   proc {TransStar D S Dp Sp}
     choice  Dp=D Sp=S
-    []      Dr Sr in {Trans D S Dr Sr} {System.show Sr} {TransStar Dr Sr Dp Sp}
+    []      Dr Sr in {Trans D S Dr Sr} {TransStar Dr Sr Dp Sp}
     end
   end
 

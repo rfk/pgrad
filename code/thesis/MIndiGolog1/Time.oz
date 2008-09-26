@@ -3,8 +3,7 @@
 %
 %  Timepoints are an abstract quantity with constraint-handling
 %  abilities.  Currently they are implemented as finite domain
-%  integers.  Another option could be as real interval variables
-%  using the RI module.
+%  integers.
 %
 
 functor 
@@ -21,38 +20,48 @@ export
   Decl
   Min
   Max
+  Plus
+  Minus
   
 
 define
 
-  proc {Less T1 T2}
+  Less = proc {$ T1 T2}
     T1 <: T2
   end
 
-  proc {LessEq T1 T2}
+  LessEq = proc {$ T1 T2}
     T1 =<: T2
   end
 
-  proc {Greater T1 T2}
+  Greater = proc {$ T1 T2}
     T1 >: T2
   end
 
-  proc {GreaterEq T1 T2}
+  GreaterEq = proc {$ T1 T2}
     T1 >=: T2
   end
 
-  proc {Decl T}
-    {FD.decl T}
+  Decl = proc {$ T}
+      {FD.decl T}
   end
 
-  proc {Min T M}
+  Min = proc {$ T M}
     if {IsDet T} then M = T
     else M = {FD.reflect.min T} end
   end
 
-  proc {Max T M}
+  Max = proc {$ T M}
     if {IsDet T} then M = T
     else M = {FD.reflect.max T} end
+  end
+
+  Plus = proc {$ T1 T2 T}
+    T =: T1 + T2
+  end
+
+  Minus = proc {$ T1 T2 T}
+    T =: T1 - T2
   end
 
 end

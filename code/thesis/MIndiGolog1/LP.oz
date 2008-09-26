@@ -7,6 +7,7 @@ import
 
   Search
   System
+  FD
 
 export
 
@@ -15,6 +16,7 @@ export
   NotMember
   Union
   SubInTerm
+  CopyTerm
 
 define
 
@@ -31,11 +33,9 @@ define
   % Nondeterministic selection of list member
   %
   proc {Member Elem List}
-    {System.show mem(Elem List)}
     choice  List = Elem|_
     []      NewL in List=_|NewL {Member Elem NewL}
     end
-    {System.show foundmem(Elem)}
   end
 
   % Assert that element is not a member of the lsit
@@ -87,6 +87,45 @@ define
     {ForAll Fields proc {$ F}
                      {SubInTerm VOld VNew RIn.F ROut.F}
                    end}
+  end
+
+
+  proc {CopyTerm TIn TOut}
+    if {IsFree TIn} then
+      TOut = _
+    else
+      if {IsDet TIn} then
+        if {IsRecord TIn} then
+          TOut = {CopyTerm_record TIn}
+        else
+          % TODO: any other tricky recursive cases?
+          TOut = TIn
+        end
+      else
+        if {IsKinded TIn} then Kind in
+          {Value.status TIn kinded(Kind)}
+          if Kind == int then
+              % We assume only linear constraints, so copying min/max is valid
+              {FD.decl TOut}
+              TOut >=: {FD.reflect.min TIn}
+              TOut =<: {FD.reflect.max TIn}
+          else
+              % TODO: copy other kinded constraints, e.g. records
+              TOut = _
+          end
+        else
+          % TODO: any other cases to consider?
+          TOut = TIn
+        end
+      end
+    end
+  end
+    
+  proc {CopyTerm_record TIn TOut}
+    TOut = {Record.make {Record.label TIn} {Record.arity TIn}}
+    {ForAll {Record.arity TIn} proc {$ F}
+               {CopyTerm TIn.F TOut.F}
+            end}
   end
 
 end
