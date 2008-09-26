@@ -26,7 +26,8 @@ define
   MyArgs = {Application.getArgs plain}
   Control.teamMember = {String.toAtom MyArgs.1}
   Control.teamLeader = jon
-  {Control.init}
+  %{Control.init}
+  Control.agents = [joe jim jon]
 
   % Search to determine whether current state is final
   proc {IsFinal D S B} F in
@@ -62,7 +63,7 @@ define
   end
 
   {System.show start}
-  {Run pcall(main) s0}
+  %{Run pcall(main) s0}
 
   %proc {Tester R} T1 T2 T3 T4 T5 S F in
   %  {Time.decl T1} {Time.decl T2} {Time.decl T3} {Time.decl T4} {Time.decl T5}
@@ -74,6 +75,27 @@ define
   %  R = unit
   %end
   %{System.show {Search.base.all Tester}}
+
+  proc {TestPara Sp}
+    PDo PSearch
+  in
+    functor PDo
+    export
+      Script
+    define
+        proc {Script R}
+          choice R = 1
+          []     R = 2
+          []     R = 3
+          end
+        end
+    end
+    PSearch = {New Search.parallel init(jim:1#ssh jon:1#ssh)}
+    Sp = {PSearch one(PDo $)}
+  end
+
+  R = {TestPara}
+  {System.show R}
 
   {Application.exit 0}
 

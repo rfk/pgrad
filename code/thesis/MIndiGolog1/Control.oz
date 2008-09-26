@@ -6,7 +6,6 @@ import
   LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
   Domain at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Domain.ozf'
 
-
   System
   Connection
   Open
