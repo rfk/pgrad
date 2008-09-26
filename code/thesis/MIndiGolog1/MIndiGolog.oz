@@ -6,12 +6,12 @@ functor
 
 import
 
-    Sitcalc
-    LP
-    Domain
-    Procedures
-    Time
-    Control
+    Sitcalc at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Sitcalc.ozf'
+    LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
+    Domain at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Domain.ozf'
+    Procedures at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Procedures.ozf'
+    Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
+    Control at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Control.ozf'
 
     System
     Search
@@ -210,7 +210,7 @@ define
     end
     {System.show parallel_search_using(Machines)}
     %PSearch = {New Search.parallel Machines}
-    PSearch = {New Search.parallel init(jon:1#ssh mango:1#ssh)}
+    PSearch = {New Search.parallel init(jon:1#ssh jim:1#'ssh)}
     [(D#S#Sp)] = {LP.unserialize {PSearch one(PDo $)}}
   end
 

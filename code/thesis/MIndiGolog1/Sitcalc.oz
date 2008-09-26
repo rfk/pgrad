@@ -6,9 +6,11 @@ functor
 
 import
 
-  LP
-  Domain
-  Time
+  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
+  Domain at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Domain.ozf'
+  Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
+
+
   Search
   System
 

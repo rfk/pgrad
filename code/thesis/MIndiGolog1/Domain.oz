@@ -3,9 +3,10 @@ functor
 
 import
 
-  LP
-  Time
-  Sitcalc
+  Sitcalc at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Sitcalc.ozf'
+  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
+  Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
+
   System
 
 export
