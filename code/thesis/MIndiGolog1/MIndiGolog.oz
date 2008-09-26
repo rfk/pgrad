@@ -12,6 +12,7 @@ import
     Procedures
     Time
     System
+    Control
 
 export
 
@@ -79,15 +80,29 @@ define
                           {Procedures.procdef D2 Body}
                           {Trans Body S Dp Sp}
       []   search(D1) then Sr Dr in
-                           {Trans D1 S Dr Sp}
-                           {System.show search(Sp)}
-                           {Do Dr Sp Sr}
-                           {System.show Sr}
-                           Dp = dosteps({Sitcalc.toStepsList Sp Sr})
+                           % Old, non-parallel-search way:
+                           %
+                           %  {Trans D1 S Dr Sp}
+                           %  {Do Dr Sp Sr}
+                           %  Dp = dosteps({Sitcalc.toStepsList Sp Sr})
+                           %
+                           % New, parallel-search way
+                           %
+                           if Control.teamMember == Control.teamLeader then
+                             {System.show planning}
+                             {Trans D1 S Dr Sp}
+                             {Do Dr Sp Sr}
+                             Dp = dosteps({Sitcalc.toStepsList Sp Sr})
+                             {Control.sendMessage Dp#Sp}
+                           else Msg in
+                             {System.show waiting_for_plan}
+                             {Control.waitForMessage Msg}
+                             (Dp#Sp) = Msg
+                           end
       []   dosteps(Steps) then C T Steps2 in
                                Steps = (C#T)|Steps2
                                Sp = res(C T S)
-                               Dp = dosteps(Steps)
+                               Dp = dosteps(Steps2)
       else D1 C T in
            {Time.decl T}
            {LP.subInTerm now S D D1}

@@ -15,8 +15,11 @@ export
   Member
   NotMember
   Union
+
   SubInTerm
   CopyTerm
+  Serialize
+  Unserialize
 
 define
 
@@ -90,6 +93,9 @@ define
   end
 
 
+  % TODO: this could cause multiple occurrences of a single variable to
+  %       be replaced with separate fresh variables.  Copy logic from
+  %       MIndiGolog2 to handle this.
   proc {CopyTerm TIn TOut}
     if {IsFree TIn} then
       TOut = _
@@ -125,6 +131,65 @@ define
     TOut = {Record.make {Record.label TIn} {Record.arity TIn}}
     {ForAll {Record.arity TIn} proc {$ F}
                {CopyTerm TIn.F TOut.F}
+            end}
+  end
+
+  proc {Serialize TIn TOut}
+    if {IsFree TIn} then
+      TOut = lp_var
+    else
+      if {IsDet TIn} then
+        if {IsRecord TIn} then
+          TOut = {Serialize_record TIn}
+        else
+          % TODO: any other tricky recursive cases?
+          TOut = TIn
+        end
+      else
+        if {IsKinded TIn} then Kind in
+          {Value.status TIn kinded(Kind)}
+          if Kind == int then
+              % We assume only linear constraints, so copying min/max is valid
+              TOut = lp_fd({FD.reflect.min TIn} {FD.reflect.max TIn})
+          else
+              % TODO: copy other kinded constraints, e.g. records
+              TOut = lp_var
+          end
+        else
+          % TODO: any other cases to consider?
+          TOut = TIn
+        end
+      end
+    end
+  end
+
+  proc {Unserialize TIn TOut}
+    if TIn == lp_var then
+      TOut = _
+    else Min Max in
+      if {IsRecord TIn} then
+        case TIn of lp_fd(Min Max) then
+             {FD.decl TOut}
+             TOut >=: Min
+             TOut =<: Max
+        else TOut = {Unserialize_record TIn} end
+      else
+        TOut = TIn
+      end
+    end
+  end
+
+  proc {Serialize_record TIn TOut}
+    TOut = {Record.make {Record.label TIn} {Record.arity TIn}}
+    {ForAll {Record.arity TIn} proc {$ F}
+               {Serialize TIn.F TOut.F}
+            end}
+  end
+
+  proc {Unserialize_record TIn TOut}
+    TOut = {Record.make {Record.label TIn} {Record.arity TIn}}
+    {ForAll {Record.arity TIn} proc {$ F}
+               {Unserialize TIn.F TOut.F}
             end}
   end
 

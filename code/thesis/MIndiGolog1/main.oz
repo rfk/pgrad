@@ -8,6 +8,7 @@ import
   Sitcalc
   Domain
   LP
+  Control
 
   Application
   System
@@ -22,6 +23,11 @@ define
   {Property.put 'errors.width' 1000}
   {Property.put 'errors.depth' 1000}
 
+  MyArgs = {Application.getArgs plain}
+  Control.teamMember = {String.toAtom MyArgs.1}
+  Control.teamLeader = jon
+  {Control.init}
+
   % Search to determine whether current state is final
   proc {IsFinal D S B} F in
     F = {Search.base.one proc {$ R} {MIndiGolog.final D S} R=unit end}
@@ -32,9 +38,9 @@ define
   % Search to determine next step for the current state
   proc {NextStep D S Dp Sp}
     [Dp#Sp] = {Search.base.one proc {$ R} DpR SpR in
-              {MIndiGolog.step D S DpR SpR}
-              R = DpR#SpR
-            end}
+                {MIndiGolog.step D S DpR SpR}
+                R = DpR#SpR
+              end}
   end
 
 

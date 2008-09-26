@@ -131,7 +131,7 @@ define
       L = nil
     else C T Sp in
       S2 = res(C T Sp)
-      L = (C#T)|{ToStepsList S1 Sp}
+      L = {List.append {ToStepsList S1 Sp} [(C#T)]}
     end
   end
 

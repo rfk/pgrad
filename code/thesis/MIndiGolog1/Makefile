@@ -1,12 +1,13 @@
 
 
-FUNCTORS = Domain.ozf Time.ozf Sitcalc.ozf MIndiGolog.ozf Procedures.ozf LP.ozf
+FUNCTORS = Domain.ozf Time.ozf Sitcalc.ozf MIndiGolog.ozf Procedures.ozf LP.ozf Control.ozf
 
 
 all: main.exe $(FUNCTORS)
 
-run: main.exe
-	./main.exe
+run-%: main.exe
+	./main.exe $*
+
 
 %.ozf: %.oz
 	ozc -g -p -c $< -o $@
