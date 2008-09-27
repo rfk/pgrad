@@ -10,9 +10,7 @@ import
   Domain at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Domain.ozf'
   Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
 
-
   Search
-  System
 
 export
 

@@ -1,3 +1,6 @@
+%
+%  Domain.oz:  procedures specifying the details of the domain
+%
 
 functor 
 
@@ -7,16 +10,15 @@ import
   LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
   Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
 
-  System
-
 export
 
+  %  Enumerate the different kinds of object
   IsNatural
   IsAction
   IsAgent
   IsExog
-  IsFluent
 
+  %  Primitive Poss, SSA and Init defnitions
   Poss
   Conflicts
   ssa: SSA
@@ -100,21 +102,6 @@ define
     {IsNatural Act}
   end
 
-  proc {IsFluent F}
-    Agt Obj Conts RemTime ID
-  in
-    choice F = hasObject(Agt Obj)
-           {IsAgent Agt}
-           {IsPrimObj Obj}
-    []     F = used(Obj)
-           {ObjIsType Obj ingredient}
-    []     F = timerSet(ID RemTime)
-    []     F = contents(Obj Conts)
-           {ObjIsType Obj container}
-    []     F = doingTask(Agt Obj RemTime)
-           {IsAgent Agt} {IsPrimObj Obj}
-    end
-  end
 
   proc {Poss A T S}
     {Time.decl T}
@@ -231,21 +218,22 @@ define
                    RemTime=3  %TODO: definable task duration
             []   OldRem Dur in
                  {Time.decl Dur} {Time.decl OldRem}
-                 {LP.neg proc {$}
-                   {LP.member {LP.copyTerm endTask(Agt Tsk)} C}
+                 {LP.neg proc {$} Al in
+                   Al = {LP.copyTerm endTask(Agt Tsk)}
+                   {LP.member Al C}
                  end}
                  {Sitcalc.holds doingTask(Agt Tsk OldRem) S}
                  Dur = {Time.minus T {Sitcalc.start S}}
                  RemTime = {Time.minus OldRem Dur}
             end
-    else {StaticFluent F} end
+    else {StaticFact F} end
   end
 
   proc {Init F}
-    {StaticFluent F}
+    {StaticFact F}
   end
 
-  proc {StaticFluent F}
+  proc {StaticFact F}
     case F of objIsType(Obj Type) then
              {ObjIsType Obj Type}
     []   isAgent(Agt) then
