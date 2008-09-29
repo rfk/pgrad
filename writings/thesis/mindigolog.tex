@@ -157,7 +157,9 @@ The semantics of MIndiGolog that we develop in this chapter follow
 a similar approach to ReadyLog, but we focus on incorporating rich
 domain features such as concurrency and continuous time. While these
 features have been added to Golog individually in existing works \citep{Reiter98seq_temp_golog,pinto99tcongolog,pirri00planning_nat_acts,reiter01kia},
-our work provides a more robust, combined integration.
+our work is the first to provide a combined integration. We also rectify
+some subtle problems with the semantics presented in existing approaches
+to provide a more robust combination of rich domain features.
 
 
 \section{Motivation\label{sec:MIndiGolog:Motivation}}
@@ -184,7 +186,7 @@ and somebody chop a tomato. Then, somebody mix them together''.
 \begin{figure}
 \begin{centering}
 \framebox{%
-\begin{minipage}[t][1\totalheight]{0.85\columnwidth}%
+\parbox[t][1\totalheight]{0.85\columnwidth}{%
 \begin{gather*}
 \mathbf{proc}\, MakeSalad(dest)\\
 \left[\pi(agt,ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
@@ -195,7 +197,7 @@ beginTask(agt,mix(dest,1))\,;\\
 endTask(agt,mix(dest,1))\,;\\
 \left.\, release(agt,dest)\right])\,\,\mathbf{end}\end{gather*}
  %
-\end{minipage}} 
+}} 
 \par\end{centering}
 
 \caption{A Golog program for making a salad\label{fig:MIndiGolog:MakeSalad}}
@@ -216,21 +218,22 @@ chops it, and transfers it to the destination container.
 \begin{figure}
 \begin{centering}
 \framebox{%
-\begin{minipage}[t][1\totalheight]{0.85\columnwidth}%
+\parbox[t][1\totalheight]{0.85\columnwidth}{%
 \begin{gather*}
 \mathbf{proc}\, ChopTypeInto(agt,type,dest)\\
 \left[\pi(board,\, IsType(board,Board)?\,;\right.\\
 \pi(obj,\, IsType(obj,type)?\,;\,\,\,\\
 acquire(agt,board)\,;\\
 acquire(agt,obj)\,;\\
-place\_in(agt,obj,board)\,;\\
-chop(agt,obj)\,;\\
+placeIn(agt,obj,board)\,;\\
+beginTask(agt,chop(board))\,;\\
+endTask(agt,chop(board))\,;\\
 acquire(agt,dest)\,;\\
 transfer(agt,board,dest)\,;\\
 release(agt,board)\,;\\
 \left.\, release(agt,dest)))\right]\,\,\mathbf{end}\end{gather*}
  %
-\end{minipage}} 
+}} 
 \par\end{centering}
 
 \caption{A Golog program for chopping an ingredient\label{fig:MIndiGolog:ChopTypeInto}}
@@ -244,14 +247,26 @@ operating in the world at all. A library of procedures such as this
 can be combined very flexibly to specify the behaviour of the cooking
 agents, and the resulting program could be given to any team of agents
 for execution. For example, the agents can prepare several dishes
-concurrently:\[
+concurrently:
+
+\framebox{%
+\parbox[t][1\totalheight]{0.85\columnwidth}{%
+\[
 MakeSalad()\,||\, MakePasta()\,||\, MakeCake()\]
+ %
+}}\\
 
 
 One may even specify that different dishes need to be ready at different
-times:\begin{multline*}
+times:
+
+\framebox{%
+\parbox[t][1\totalheight]{0.85\columnwidth}{%
+\begin{multline*}
 \left(\left[MakeSalad()\,||\, MakePasta()\right]\,;\,?(time<7:30)\right)\\
 ||\,\left(MakeCake()\,;\,?(8:15<time<8:30)\right)\end{multline*}
+ %
+}}\\
 
 
 In short, the situation calculus and Golog provide an extremely powerful
@@ -263,14 +278,29 @@ is far from ideal in a multi-agent setting. To illustrate this we
 have executed the $MakeSalad$ program using the standard semantics
 of IndiGolog \citep{giacomo99indigolog}, augmented with an explicit
 temporal component in the style of \citep{Reiter98seq_temp_golog}.
-The resulting execution is shown in Figure TODO.
+The resulting execution is shown in Figure \ref{fig:MIndiGolog:MakeSalad-in-IndiGolog}.
 
-The most obvious problem with this execution is that it does not take
-advantage of the concurrency inherent in a team of agents. Only a
-single agent acts at any one time, while the other agents are idle.
-Ideally the execution planner should, where possible, exploit \emph{true
-concurrency} by calling for multiple actions to be performed at each
-timestep.
+%
+\begin{figure}
+%
+\framebox{\parbox[t][1\totalheight]{1\columnwidth}{%
+\begin{center}
+{\footnotesize \verbatiminput{listings/mindigolog/output_MakeSalad_I.txt}}
+\par\end{center}%
+}}
+
+\caption{Execution of $MakeSalad$ program using IndiGolog semantics\label{fig:MIndiGolog:MakeSalad-in-IndiGolog}}
+
+\end{figure}
+
+
+In this domain there are three agents $Joe$, $Jon$ and $Jim$. While
+the resulting execution is legal, it is suboptimal in several ways.
+The most obvious problem is that it does not take advantage of the
+concurrency inherent in a team of agents. Only a single agent acts
+at any one time, while the other agents are idle. Ideally the execution
+planner should, where possible, exploit \emph{true concurrency} by
+calling for multiple actions to be performed at each timestep.
 
 Another shortcoming of the standard semantics are that they have no
 support for predicting natural actions. This means we must specifying
@@ -578,18 +608,18 @@ to ensure a high degree of concurrency in the generated executions,
 as we shall demonstrate in the next section.
 
 A procedure $Do(\delta,s,s')\equiv Trans^{*}(\delta,s,\delta',s')\wedge Final(\delta',s')$
-is defined that determines a legal execution \textbf{\emph{Sp}} for
-a given program \textbf{\emph{D}}:
+is defined that determines a legal execution $Sp$ for a given program
+$D$:
 
 \programinput{listings/mindigolog/goloz_do.oz}
 
-This can then be used to define the semantics of the search operator
-as shown below:
+This can then be used to define the semantics of the offline search
+operator:
 
 \programinput{listings/mindigolog/goloz_trans_search1.oz}
 
 Using this implementation, a team of agents can plan and perform the
-execution of a shared MIndiGolog program by following the Readylog
+execution of a shared MIndiGolog program by following the ReadyLog
 execution algorithm from Algorithm \ref{alg:readylog_exec}. The code
 for the main control loop is shown below:
 
@@ -600,18 +630,31 @@ When the next step contains an action that is to be performed be the
 agent, it execute it. Otherwise, it waits for the actions to be executed
 before proceeding to the next iteration.
 
-The effect of our new semantics can be seen in figure TODO. This shows
-the execution generated by our implementation for the $MakeSalad$
+The effect of our new semantics can be seen in figure \ref{fig:MIndiGolog:MakeSalad-in-MIndiGolog}.
+This shows the execution generated by our implementation for the $MakeSalad$
 program from figure \ref{fig:MIndiGolog:MakeSalad}, using the new
 semantics of MIndiGolog in a domain with thee agents. Note the execution
 of several actions at each timestep, demonstrating the integration
 of true concurrency into the language.
 
-\programinput{listings/mindigolog/output_MakeSalad_M.txt}
+%
+\begin{figure}
+%
+\framebox{\parbox[t][1\totalheight]{1\columnwidth}{%
+\begin{center}
+{\footnotesize \verbatiminput{listings/mindigolog/output_MakeSalad_M.txt}}
+\par\end{center}%
+}}
+
+\caption{Execution of $MakeSalad$ program using IndiGolog semantics\label{fig:MIndiGolog:MakeSalad-in-MIndiGolog}}
+
+\end{figure}
+
 
 Compared to the non-concurrent execution generated by the standard
-IndiGolog semantics (figure TODO), our semantics clearly provide advantages
-of planning cooperative execution in a multi-agent setting.
+IndiGolog semantics (figure \ref{fig:MIndiGolog:MakeSalad-in-IndiGolog}),
+our semantics clearly provide advantages of planning cooperative execution
+in a multi-agent setting.
 
 
 \section{Distributed Execution Planning\label{sec:MIndiGolog:Distributed-Planning}}

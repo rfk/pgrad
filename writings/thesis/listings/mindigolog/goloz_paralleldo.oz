@@ -5,8 +5,8 @@ in
   Ss = {LP.serialize S}
   functor PDo
     import
-      MG at '/storage/uni/pgrad/code/thesis/MIndiGolog1/MIndiGolog.ozf'
-      LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
+      MG at '/path/to/MIndiGolog.ozf'
+      LP at '/path/to/LP.ozf'
     export
       Script
   define
