@@ -4,32 +4,43 @@
 
 \label{ch:observations}
 
-In order to extend the techniques of the previous chapter to asyncrhonous
-multi-agent domains, we first require an explcit representation of
-the local perspective of each agent. Existing work leaves this perspective
-implicit, for example in the axioms defining an agent's knowledge
-\citep{scherl03sc_knowledge,Lesperance99sitcalc_approach}. In this
-chapter, we reify the local perspective of each agent by explicitly
+This chapter develops an explicit representation of the local perspective
+of each agent, so that we can approach reasoning in asyncrhonous domains
+in a principled manner. Existing work on multi-agent domains in the
+situation calculus leaves the local perspective largely implicit;
+for example, it is customary to introduce different kinds of sensing
+or communicating actions by directly modify the axioms that define
+the dynamics of knowledge \citep{scherl03sc_knowledge,Lesperance99sitcalc_approach}.
+Instead, we reify the local perspective of each agent by explicitly
 talking about what it has observed.
 
 The basic idea is as follows: each occurrence of an action results
 in an agent making a set of \emph{observations}. Every situation then
 corresponds to a local \emph{view} for that agent: the sequence of
 all its observations, excluding cases where the set of observations
-was empty. By having views as explicit terms in the locic, we are
-then in a position to demand that agents only reason and act based
-on their local view.
+was empty.
 
-TODO: talk about {}``decoupling''
+By having views as explicit terms in the locic, we are then in a position
+to ensure that agents only reason and act based on their local local
+information. Having factored out the precise details of each agent's
+local view, we can develop reasoning techniques and tools that can
+be applied in a variety of different domains.
+
+The chapter begins with some additional background material, discussing
+how the information available to each agent is traditionally modelled
+in the situation calculus. We then define the notion of observations
+and views, and discuss how the can be defined within the structure
+of a basic action theory. Section TODO discusses how a number of common
+domain dynamics can be modelled using observations, while Section
+TODO demonstrates the power and flexibility of the approach by axiomatising
+more complex domains that have not previously been approached in the
+situation calculus.
 
 
 \section{Background}
 
 TODO: define $SR(a,s)$, talk about implicit axiomatisation in more
 detail.
-
-TODO: basic of epistemic reasoning, e.g. {}``tree of knowledge''
-paper.
 
 
 \section{Definitions}
@@ -54,8 +65,7 @@ of knowledge update based on those observations.
 The state of the world may only change in response to some action,
 so observations can only be made as a result of some action. For simplicity
 we assume that agents perceive observations instantaneously, i.e.
-in the same instant as the actions that cause them. TODO: discuss
-more complex notions later?
+in the same instant as the actions that cause them.
 
 To make this idea concrete, let us introduce an additional sort \noun{Observations}
 to the language $\mathcal{L}_{sitcalc}$, for the moment without any
@@ -67,8 +77,8 @@ Obs(agt,c,s)=o\]
 will perceive $o$''. Using a set of observations allows an agent
 to perceive any number of observations in response to an action occurrence
 - perhaps several observations, perhaps none. When $Obs(agt,c,s)$
-is the empty set (denoted $\{\}$) then the agent makes no observations
-and the actions $c$ are completely hidden.
+is the empty set, the agent makes no observations and the actions
+$c$ are completely hidden.
 
 The concept of a \emph{view} follows naturally - it is the sequence
 of all the observations made by an agent as the world has evolved.
@@ -82,18 +92,30 @@ for which no observations were made.
 We introduce another sort \noun{Views} consisting of sequences of
 sets of observations, with $\epsilon$ being the empty sequence and
 the functional fluent $View$ giving the history of observations associated
-with a particular situation. Since thiese definitions will not change
-from one domain to another, they are added to the foundation axioms
+with a particular situation. Since these definitions will not change
+from one domain to another, they are added to the foundational axioms
 $\Sigma$:\begin{align}
 Init(s)\,\rightarrow & \, View(agt,s)=\epsilon\nonumber \\
 Obs(agt,c,s)=\{\}\,\rightarrow & \, View(agt,do(c,s))=View(agt,s)\nonumber \\
 Obs(agt,c,s)\neq\{\}\,\rightarrow & \, View(agt,do(c,s))=Obs(agt,c,s)\cdot View(agt,s)\label{eq:view_defn}\end{align}
 
 
-The key point here, which makes the approach applicable to truly asynchronous
-domains, is that the agent's view excludes cases where $Obs(agt,c,s)$
-is empty. The agent thus may not know how many actions have been performed
-in the world.
+The key point here is that the agent's view excludes cases where $Obs(agt,c,s)$
+is empty. Thus, the agent may not know how many actions have been
+performed in the world. As discussed in the introduction, this property
+is fundamentical to modelling asynchronous domains. Mirroring the
+terminology of \citet{vanBentham06tree_of_knowledge}, we can now
+explicitly define what it means for a domain to be \emph{synchronous.}
+
+\begin{defnL}
+[{Synchronous~Action~Theory:}] A basic action theory $\Dt$ is
+synchronous if every agent observes something whenever an action occurs:\[
+\Dt\,\models\,\forall agt,c,s:\, Poss(c,s)\,\rightarrow Obs(agt,c,s)\neq\{\}\]
+
+\end{defnL}
+As we have discussed in the introduction, and as will become clear
+throughout the subsequent chapters, the assumption of a synchronous
+domain can make reasoning much simpler.
 
 Observations and views can be seen as localised analogues of actions
 and situations respectively. An action is a global event that causes
@@ -106,11 +128,29 @@ situation is an omniscient perspective on the world, the view a local
 perspective. This distinction will be fundamental to the new techniques
 we develop throughout this thesis.
 
+Before proceeding with some example axiomatisations, let us briefly
+foreshadow how observations and views will be used in the coming chapters.
+In chapter TODO, we will define a partially-ordered action structure
+to be generated when planning a MIndiGolog execution. Since agents
+can only be expected to act based on their local information, we will
+require that if $s$ and $s'$ are two situations that could be reached
+during execution of the plan, and $View(agt,s)=View(agt,s')$, then
+the agent's next action in both situations must be the same.
+
+In chapter TODO, we formalism the notion that an agent's knowledge
+is based only on its local information. So if the agent belives that
+the world might be in situation $s$, then it must also consider possible
+any other situation $s'$ such that $View(agt,s)=View(agt,s')$.
+
+By factoring out the local perspective of the agent in this manner,
+our definitions can operate unchanged in a wide variety of domains
+TODO reference the upcoming sections below.
+
 
 \section{Standard Axiomatisation}
 
 We now proceed to show how these definitions can be used to model
-a variety of common cases from the situation calculus literature. 
+a variety of common cases from the situation calculus literature.
 
 
 \subsection{Public Actions}
@@ -182,7 +222,7 @@ approach in our formalism, it is also unnecessary - we can directly
 limit the accessibility of the message contents to the receiving agent
 like so:\[
 inform(sender,recver)\in Obs(agt,c,s)\,\equiv\,\exists m:\, inform(sender,recver,m)\in c\]
-\[
+ \[
 inform(sender,recver,m)\in Obs(agt,c,s)\,\equiv\, inform(sender,recver,m)\in c\wedge agt\in\{sender,recver\}\]
 
 
@@ -239,10 +279,10 @@ This axiomatisation mirrors the standard account of long-running tasks,
 with a fluent $PendingMessage(agt_{s},agt_{r},m,t)$ indicating that
 some message is pending and will be delivered at time $t$. We have:\[
 natural(recv(agt_{s},agt_{r},m))\]
-\begin{multline*}
+ \begin{multline*}
 PendingMessage(agt_{s},agt_{r},m,t_{m},do(c\#t,s))\,\equiv send(agt_{s},agt_{r},m)\in c\wedge t_{m}=t+delay(agt_{s},agt_{r},m,s)\\
 \vee PendingMessage(agt_{s},agt_{r},m,t_{m},s)\wedge\left(recv(agt_{s},agt_{r},m)\not\in c\vee t\neq t_{m}\right)\end{multline*}
-\[
+ \[
 Poss(recv(agt_{s},agt_{r},m)\#t,s)\equiv PendingMessage(agt_{s},agt_{r},m,t,s)\]
 
 
