@@ -94,10 +94,10 @@ define
                            if Control.teamMember == Control.teamLeader then
                              {Control.log planning}
                              try
-                               %{ParallelDo D1 S Sr}
-                               [Sr] = {Search.base.one proc {$ Sr}
-                                 {Do D1 {LP.copyTerm S} Sr}
-                               end}
+                               {ParallelDo D1 S Sr}
+                               %[Sr] = {Search.base.one proc {$ Sr}
+                               %  {Do D1 {LP.copyTerm S} Sr}
+                               %end}
                                Dr = dosteps({Sitcalc.toStepsList S Sr})
                                {Control.sendMessage Dr}
                                {Trans Dr S Dp Sp}

@@ -88,8 +88,9 @@ define
           seq(pcall(acquireType(jon sugar))
           seq(pcall(acquireType(joe egg))
           seq(pcall(acquireType(jim flour))
+          seq(pcall(acquireType(jon tomato))
               test(hasObject(joe carrot2))
-          )))))
+          ))))))
     else fail
     end
   end
