@@ -17,7 +17,7 @@ We begin by noting that there is a significant body of work on modelling
 and implementing multi-agent systems in the situation calculus, including:
 the cognitive agent specification language and verification environment
 \citep{shapiro02casl}; theories of coordination and ability \citep{ghaderi07sc_joint_ability};
-artificial intelligence competitions such as robot soccer \citep{Ferrein2005readylog}
+entries in AI competitions such as robot soccer \citep{Ferrein2005readylog}
 and robot rescue \citep{farinelli07team_golog}; reasoning about the
 epistemic feasibility of plans \citep{Lesperance01epi_feas_casl};
 analysing multi-player games \citep{delgrande01sitcalc_cleudo}; and
@@ -31,29 +31,19 @@ domains -- domains in which each agent's local perspective on the
 world is updated in lock-step with the global perspective available
 to the system designer. This restriction ensures that, while an agent
 may not know the full state of the world, it will always know precisely
-how many actions have been performed. In many cases the restriction
-is enforced using a blanket assumption that that all actions are publicly
-observable.
-
-The motivation for this restriction is clear and compelling: regression.
-Regression is the standard technique for effective reasoning in the
-situation calculus and the core of the Golog execution planning procedure.
-It operates by systematically removing actions from a query until
-it is in a form that is easy to answer. In synchronous domains, all
-agents know the number of actions performed and can directly use existing
-regression-based techniques for reasoning and planning from their
-local perspective. While the situation calculus makes is straightforward
-to \emph{model} domains in which synchronicity cannot be guaranteed
-\citep{Lesperance99sitcalc_approach}, it offers no tools for effective
-reasoning in such domains.
+how many actions have been performed. The agents can therefore perform
+effective automated reasoning using \emph{regression}, a process that
+depends on systematically removing action terms from a query. In many
+cases this synchronicity restriction is enforced using a blanket assumption
+that that all actions are publicly observable.
 
 Second, the fundamental unit of reasoning, and the output of the Golog
 execution planning process, is the \emph{situation}: a complete, ordered
 history of all actions that are to be performed. Having to execute
 a totally-ordered sequence of actions is far from ideal in a multi-agent
 setting, as it requires constant synchronization between the agents.
-While this may be acceptable for systems that are already limited
-to synchronous domains, it limits the ability to exploit the concurrency
+While this may be acceptable for systems that are already restricted
+to synchronous domains, it does not take advantage of the concurrency
 inherant in a multi-agent team. In asynchronous domains the required
 synchronisation of actions may be impossible to achieve, and a partially-ordered
 representation must be used instead. But there have been no formal
@@ -63,91 +53,42 @@ literature.
 Third, the situation calculus lacks a comprehensive treatment of group-level
 epistemic modalities such as \emph{common knowledge}, which are fundamental
 to coordination in multi-agent domains. While common knowledge can
-easily be modelled using an explicit second-order axiom \citep{delgrande01sitcalc_cleudo,davis05fo_ma_theory,ghaderi07sc_joint_ability},
-this again precludes the use of regression for effective automated
-reasoning. In synchronous domains agents can often coordinate their
-activities without reasoning explicitly about common knowledge, but
-in more general multi-agent domains the lack of an effective reasoning
-procedure for common knowledge can be a serious shortcoming.\\
+easily be modelled using an explicit second-order axiom , this precludes
+the use of regression for effective automated reasoning. In synchronous
+domains agents can often coordinate their activities without reasoning
+explicitly about common knowledge, but in more general multi-agent
+domains the lack of an effective reasoning procedure for common knowledge
+can be a serious shortcoming.\\
 
 
-This thesis overcomes these limitations by extending the situation
-calculus with reasoning and planning techniques for \emph{asynchronous}
-domains -- domains in which the state of the world can change without
-updating the local perspective of each agent. We begin by explicitly
-representing that local perspective: whenever an action occurs, each
-agent makes a corresponding set of \emph{observations} that are local
-to that agent. We allow this set of observations to be empty, formalising
-the case where asynchronicity means some actions are completely hidden
-from some agents.
+In each of these cases, the problem is not in modelling asynchronous
+multi-agent domains, but in combining such rich domains models with
+an effective reasoning procedure. The standard technique for effective
+reasoning in the situation calculus, and the core of the Golog execution
+planning procedure, is \emph{regression.} This technique operates
+by systematically removing actions from a query until it is in a form
+that is easy to answer. The traditional restriction of the situation
+calculus to synchronous domains allows all agents to know the number
+of actions performed, so they can directly use existing regression-based
+techniques for reasoning and planning.
+
+This thesis lifts that restriction by developing reasoning and planning
+techniques for \emph{asynchronous} domains -- domains in which the
+state of the world can change without updating the local perspective
+of each agent. We begin by explicitly representing that local perspective:
+whenever an action occurs, each agent makes a corresponding set of
+\emph{observations} that are local to that agent. We allow this set
+of observations to be empty, formalising the case where asynchronicity
+means some actions are completely hidden from some agents.
 
 On top of this seemingly simple extension, we construct a planning
 process based on partially-ordered action sequences, a new technique
 for effective inductive reasoning to augment standard regression,
-and a principled axiomatisation of multi-agent knowledge coupled with
-an effective reasoning procedure. These new extensions allow the situation
-calculus to be used to much greater effect in asynchronous multi-agent
-domains.
-
-
-\section{Asynchronicity}
-
-This thesis aims to provide a foundational account of reasoning with
-the situation calculus in asynchronous domains. However, the term
-{}``asynchronous domain'' is potentially quite confusing -- precisely
-what aspects of the domain are asynchronous? Is it a property of the
-environment, the agents themselves, or their communication mechanisms?
-Two common definitions of asynchronous domains are those having unbounded
-message delivery times \citep{fischer85distributed_consensus}, and
-those having delayed message delivery and no global clock \citep{halpern90knowledge_distrib}.
-
-The definition used in this thesis is more primitive than these, and
-corresponds to the account given in \citep{vanBentham06tree_of_knowledge}:
-a domain is \emph{synchronous} if at any time, all agents know precisely
-how many actions have been performed. The internal state of each agent
-is thus updated in lock-step with the global state of the world. By
-contrast, in asynchronous domains agents must allow for (potentially
-arbitrarily-many) hidden actions which may or may not have occurred.
-
-Where a more specific definition of asynchronicity is used, as in
-\citep{fischer85distributed_consensus,halpern90knowledge_distrib},
-the potential for such hidden actions is implicitly assumed. As discussed
-above, the situation calculus typically assumes the exact opposite,
-restricting itself to strictly synchronous domains. We therefore argue
-that modelling richer notions of asynchronous communication in the
-situation calculus first requires a robust account of the kind of
-foundational asynchronicity treated in this thesis. While we do not
-investigate asyncrhonous communication in any detail, chapter \ref{ch:observations}
-does briefly discuss how it can be modelled within our framework.
-\\
-
-
-One particular aspect of our work may, at first glance, seem to suggest
-that our definition of asynchronicity is flawed -- our work on reasoning
-about common knowledge. Based on the famous paper of \citet{halpern90knowledge_distrib},
-it has become something of a \char`\"{}grand theorem\char`\"{} in
-epistemic reasoning that common knowledge cannot be obtained in asynchronous
-domains. So how can this thesis devote an entire chapter to reasoning
-about common knowledge in such domains?
-
-The results of \citep{halpern90knowledge_distrib} apply to obtaining
-common knowledge via asynchronous \emph{communication}. They show
-that what is required for common knowledge is not synchroncity, per
-se, but \emph{simultenaiety} -- the copresence of the agents at a
-common event. Asynchronous communication is not a common event, and
-hence it cannot generate common knowledge.
-
-Our approach, in essence, offers an explicit axiomatisation of this
-simultenaitety -- by reasoning about their observations and the observations
-of others, the agents can deduce whether the occurence of an action
-is simultaneously observed and thus whether it can contribute to common
-knowledge. Indeed, it is straightforward to model systems with no
-simultaneous events in our framework, and correspondingly straightforward
-to demonstrate that the agents cannot obtain common knowlege of such
-events. This thesis thus complements the standard results on action
-and common knowledge, capturing them in the situation calculus and
-providing regression-based effective reasoning procedures with which
-they can be explored.
+and a principled axiomatisation of both individual and group-level
+knowledge coupled with an effective reasoning procedure. These contributions
+greatly extend the reach of the situation calculus, enabling its use
+for specifying, simulating, and implementing more realistic multi-agent
+systems.
 
 
 \section{Motivation}
@@ -185,7 +126,7 @@ know how many steps of execution have already been performed, and
 thus what actions should be performed next. But it is still desirable
 to take advantage of the natural concurrency present when planning
 for a team of agents. The Golog planning process must be modified
-to reason about and allow such concurrency. 
+to reason about and allow such concurrency.
 
 In asynchronous domains, an agent may not necessarily know how far
 execution has progressed, and may thus be unsure when or if to perform
@@ -220,8 +161,7 @@ plans for the evening?\\
 The situation calculus permits an elegant axiomatisation of this domain,
 but its standard account of knowledge uses regression for effective
 reasoning. Existing regression techniques cannot handle two important
-aspects of this example, which instead require egeneral second-order
-theorem proving -- hardy an attrative prospect for automated reasoning.
+aspects of this example.
 
 First, the standard account of knowledge requires that whenever an
 action occurs, all agents \emph{know} that an action has occurred.
@@ -238,7 +178,7 @@ again precluding the use of regression for effective automated reasoning.
 Rather than demand that Alice and Bob perform open-ended second-order
 theorem proving, we will develop a new technique for inductive reasoning
 in the situation calculus, use it to formalise an account of knowledge
-in the face of hidden actions, and provdie and a new formulation of
+in the face of hidden actions, and provide and a new formulation of
 group-level epistemic modalities which can capture a regression rule
 for common knowledge.
 
@@ -251,8 +191,9 @@ action is performed. We introduce a function $Obs(agt,a,s)$ that
 returns the set of observations made by agent $agt$ when action $a$
 is performed in situation $s$. From this, we associate with each
 situation $s$ an agent-local view, denoted $View(agt,s)$, which
-is the sequence of observations made by the agent but excluding cases
-where $Obs(agt,a,s)$ is empty.\\
+is the sequence of observations made by the agent in that situation.
+Crucially, the agent's view excludes cases where $Obs(agt,a,s)$ is
+empty, indicating actions that were completely hidden.\\
 
 
 With a principled axiomatisation of the local perspective of each
@@ -266,6 +207,10 @@ execution by a team of agents, and a planning procedure that builds
 a partially-ordered sequence of actions rather than a raw situation
 term. The planning process ensures synchronisation is always possible
 based on the local view of each agent. 
+\item An implementation of this Golog variant using the Mozart programming
+platform, taking advantage of its support for distributed logic programming
+to automatically share the planning workload amongst all members of
+the team. 
 \item A new procedure for effective inductive reasoning about a restricted
 form of query, using a meta-level fixpoint calculation on top of the
 standard regression operator. This allows the second-order aspects
@@ -276,9 +221,69 @@ the agent's local view, with accompanying regression rules that use
 our new technique for inductive reasoning to handle arbitrarily-long
 sequences of hidden actions. 
 \item A comprehensive treatment of group-level epistemic modalities such
-as common knowledge, using an epistemic language based on dynamic
+as common knowledge, using an epistemic interpretation of dynamic
 logic to capture a proper regression rule for common knowledge. 
 \end{itemize}
+These contributions provide the foundations for reasoning and planning
+with the situation calculus in asynchronous multi-agent domains.\\
+
+
+We note at this stage that the term {}``asynchronous domain'' has
+been used in a variety of different ways and is potentially quite
+confusing. Precisely what aspects of the domain are asynchronous?
+Is it a property of the environment, the agents themselves, or their
+communication mechanisms? Two common definitions of asynchronous domains
+are those having unbounded message delivery times \citep{fischer85distributed_consensus},
+and those having delayed message delivery and no global clock \citep{halpern90knowledge_distrib}.
+
+The definition used in this thesis is more primitive than these, and
+corresponds to the account given in \citep{vanBentham06tree_of_knowledge}:
+a domain is \emph{synchronous} if at any time, all agents know precisely
+how many actions have been performed. The internal state of each agent
+is thus updated in lock-step with the global state of the world. By
+contrast, in asynchronous domains agents must allow for potentially
+arbitrarily-many hidden actions which may or may not have occurred.
+
+Where a more specific definition of asynchronicity is used, as in
+\citep{fischer85distributed_consensus,halpern90knowledge_distrib},
+the potential for such hidden actions is implicitly assumed. The situation
+calculus typically assumes the exact opposite, limiting itself to
+strictly synchronous domains. We therefore argue that modelling richer
+notions of asynchronous communication in the situation calculus first
+requires a robust account of the kind of foundational asynchronicity
+treated in this thesis. While we do not specifically investigate asynchronous
+communication in the style of \citep{fischer85distributed_consensus,halpern90knowledge_distrib},
+chapter \ref{ch:observations} does briefly discuss how it can be
+modelled within our framework. \\
+
+
+One particular contribution may, at first glance, seem to suggest
+that our definition of asynchronicity is flawed: our work on reasoning
+about common knowledge. Based on the famous paper of \citet{halpern90knowledge_distrib},
+it has become something of a \char`\"{}grand theorem\char`\"{} in
+epistemic reasoning that common knowledge cannot be obtained in asynchronous
+domains. So how can this thesis devote an entire chapter to reasoning
+about common knowledge in such domains?
+
+The results of \citep{halpern90knowledge_distrib} apply specifically
+to obtaining common knowledge via asynchronous \emph{communication}.
+They show that what is required for common knowledge is not synchroncity,
+per se, but \emph{simultenaiety} -- the copresence of the agents at
+the occurrence of a common event. Asynchronous communication is not
+a common event, and hence it cannot generate common knowledge.
+
+Our approach, in essence, offers an explicit axiomatisation of this
+notion of simultenaitety. By reasoning about their observations and
+the observations of others, the agents can deduce whether the occurence
+of an action is simultaneously observed and thus whether it can contribute
+to common knowledge. Indeed, it is straightforward to model systems
+with no simultaneous events in our framework, and correspondingly
+straightforward to demonstrate that the agents cannot obtain common
+knowlege of such events. Our contributions thus complement the standard
+results on asynchronicity and common knowledge, capturing them in
+the situation calculus and providing regression-based reasoning procedures
+with which they can be explored.
+
 \newpage{}
 
 
@@ -300,11 +305,11 @@ situation calculus that restrict this technique to synchronous domains.
 \item Chapter \ref{ch:observations} formalises the notion of a {}``local
 perspective'' by reifying the \emph{observations} made by each agent
 as the world evolves. We show that this formalism generalises existing
-techniques in which this perspective is modelled implicitly. 
-\item Chapter \ref{ch:jointexec} develops \emph{joint executions}, a
-restricted kind of event structure where synchronisation is
-based on observations, and show how to use them as a data structure
-in planning the execution of a shared MIndiGolog program. 
+approaches in which this perspective is modelled implicitly. 
+\item Chapter \ref{ch:jointexec} develops \emph{joint executions}, a restricted
+kind of event structure where synchronisation is based on observations,
+and show how to use them as a data structure in planning the execution
+of a shared MIndiGolog program. 
 \item Chapter \ref{ch:persistence} develops a new technique for effective
 inductive reasoning, capable of handling a limited form of query that
 universally quantifies over situation terms. Dubbed the \emph{Persistence
@@ -312,9 +317,9 @@ Condition} operator, it uses a restricted fixpoint calculation to
 replace a second-order induction axiom. 
 \item Chapter \ref{ch:knowledge} develops a formalism for individual knowledge
 in the face of hidden actions, by specifying an agent's knowledge
-in terms of its local view. The persistence condition operator
-is used to augment the traditional regression rule for knowledge to
-account for arbitrarily-long sequences of hidden actions. 
+in terms of its local view. The persistence condition operator is
+used to augment the traditional regression rule for knowledge to account
+for arbitrarily-long sequences of hidden actions. 
 \item Chapter \ref{ch:cknowledge} introduces common knowledge by using
 the syntax of dynamic logic to formulate a more expressive epistemic
 language than existing situation calculus theories. We formulate a
