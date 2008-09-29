@@ -6,8 +6,7 @@ proc {TransStar D S Dp Sp}
 end
 
 proc {Do D S Sp}
-  local Dp in
-    {TransStar D S Dp Sp}
-    {Final Dp Sp}
-  end
+   Dp in
+   {TransStar D S Dp Sp}
+   {Final Dp Sp}
 end
