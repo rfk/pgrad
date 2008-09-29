@@ -453,6 +453,21 @@ introduce choice points:
 
 \programinput{listings/mindigolog/goloz_trans.oz}
 
+\programinput{listings/mindigolog/goloz_final.oz}
+
+Of particular interest is our implementation of the concurrency operator,
+reflecting the new semantics from equation TODO.  First, we introduce a
+subsidiary procedure \emph{Step} which calculates a series of transitions
+to produce a single next action:
+
+\programinput{listings/mindigolog/goloz_step.oz}
+
+Then we can encode the semantics of concurrency using the following case:
+
+\programinput{listings/mindigolog/goloz_trans_conc.oz}
+
+TODO: dept-first search generates highly concurrent programs.
+
 A procedure $Do(\delta,s,s')\equiv Trans^{*}(\delta,s,\delta',s')\wedge Final(\delta',s')$
 is defined that determines a legal execution \textbf{\emph{Sp}} for
 a given program \textbf{\emph{D}}:
@@ -461,12 +476,17 @@ a given program \textbf{\emph{D}}:
 
 Using this implementation, a team of agents can perform an on-line
 execution of a shared MIndiGolog program by following the Readylog
-execution algorithm (TODO: ref). This approach requires no communication
+execution algorithm (TODO: ref). The code for the control algorithm
+is shown below:
+
+\programinput{listings/mindigolog/goloz_control.oz}
+
+This approach requires no communication
 between agents, but assumes they operate syncrhonously in order to
 coordinate their concurrent actions. In such a setting, the semantics
 for the search operator are implemented as follows:
 
-TODO: original, non-parallel search implementation
+\programinput{listings/mindigolog/goloz_trans_search1.oz}
 
 However, the availability of Mozart's built-in parallel search facility
 offers a compelling alternative for implementing the search operator.
@@ -484,6 +504,8 @@ the parallel search procedure and, when a plan is found, sends the
 details to the other members of the team. Subordinate team members
 simply wait for the message to be recieved before continuing.
 
+\programinput{listings/mindigolog/goloz_trans_search2.oz}
+
 The ParallelDo procedure is shown below:
 
 \programinput{listings/mindigolog/goloz_do_parallel.oz}
@@ -495,7 +517,6 @@ agents have access to the same information, which restricts the technique
 to fully-observable domains.
 
 TODO: this highlights the greatness of our approach, yadda yadda
-
 
 \section{Example Execution\label{sec:MIndiGolog:Example-Execution}}
 
