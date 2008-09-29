@@ -14,7 +14,8 @@ define
 
   fun {Procdef Nm}
     case Nm of main then
-          pcall(makeSalad(bowl1))
+          %search(pcall(makeSalad(bowl1)))
+          search(pcall(hardToPlan))
     [] ensureHas(Agt Obj) then
            ifte(hasObject(Agt Obj) nil acquire(Agt Obj))
     [] doPlaceIn(Agt Obj Dest) then
@@ -77,6 +78,18 @@ define
                      )))
               )
           )
+    [] acquireType(Agt Type) then
+          pick(obj seq(test(objIsType(obj Type))
+                           acquire(Agt obj)
+          ))
+    [] hardToPlan then
+          seq(pcall(acquireType(joe carrot))
+          seq(pcall(acquireType(jim lettuce))
+          seq(pcall(acquireType(jon sugar))
+          seq(pcall(acquireType(joe egg))
+          seq(pcall(acquireType(jim flour))
+              test(hasObject(joe carrot2))
+          )))))
     else fail
     end
   end

@@ -94,24 +94,26 @@ define
                            if Control.teamMember == Control.teamLeader then
                              {Control.log planning}
                              try
-                               {Trans D1 S Dr Sp}
-                               {ParallelDo Dr Sp Sr}
-                               Dp = dosteps({Sitcalc.toStepsList Sp Sr})
-                               {Control.sendMessage Dp#Sp}
-                             catch failure then
+                               %{ParallelDo D1 S Sr}
+                               [Sr] = {Search.base.one proc {$ Sr}
+                                 {Do D1 {LP.copyTerm S} Sr}
+                               end}
+                               Dr = dosteps({Sitcalc.toStepsList S Sr})
+                               {Control.sendMessage Dr}
+                               {Trans Dr S Dp Sp}
+                             catch _ then
                                {Control.log plan_failed}
                                {Control.sendMessage plan_failed}
                                fail
                              end
-                           else Msg in
+                           else
                              {Control.log waiting_for_plan}
-                             {Control.waitForMessage Msg}
-                             if Msg == plan_failed then
+                             {Control.waitForMessage Dr}
+                             if Dr == plan_failed then
                                {Control.log plan_failed}
                                fail
-                             else
-                               (Dp#Sp) = Msg
                              end
+                             {Trans Dr S Dp Sp}
                            end
       []   dosteps(Steps) then C T Steps2 in
                                Steps = (C#T)|Steps2
@@ -210,7 +212,7 @@ define
   %  communicating on a Port.
   %
   proc {IParallelDo D S Sp}
-    PDo PSearch Ds Ss Machines
+    PDo PSearch Ds Ss Machines Soln
   in
     Ds = {LP.serialize D}
     Ss = {LP.serialize S}
@@ -230,14 +232,15 @@ define
           R = {LP.serialize (Dl#Sl#Spl)}
         end
     end
-    %Machines = {Record.make init Control.agents}
     Machines = {Record.make init Control.subordinates}
     for Agt in {Record.arity Machines} do
       Machines.Agt = 1#ssh
     end
     {Control.log parallel_search_using(Machines)}
     PSearch = {New Search.parallel Machines}
-    [(D#S#Sp)] = {LP.unserialize {PSearch one(PDo $)}}
+    Soln = {PSearch one(PDo $)}
+    if Soln == nil then Sp = nil
+    else [(D#S#Sp)] = {LP.unserialize Soln} end
   end
 
   ParallelDo = _
@@ -255,6 +258,7 @@ define
     proc {ParallelDo D S Sp} Sps in
       Sps = !!{Port.sendRecv IPort {LP.serialize (D#S)}}
       {Value.wait Sps}
+      if Sps == nil then fail end
       Sp = {LP.unserialize Sps}
     end
   end

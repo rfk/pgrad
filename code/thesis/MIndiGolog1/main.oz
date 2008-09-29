@@ -3,6 +3,7 @@ functor
 
 import
 
+  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
   Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
   Control at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Control.ozf'
   MIndiGolog at '/storage/uni/pgrad/code/thesis/MIndiGolog1/MIndiGolog.ozf'

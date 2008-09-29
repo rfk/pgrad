@@ -48,7 +48,7 @@ define
     []     Type=sugar {LP.member Obj [sugar1 sugar2 sugar3 sugar4 sugar5]}
     []     Type=egg {LP.member Obj [egg1 egg2 egg3]}
     []     Type=tomato {LP.member Obj [tomato1 tomato2]}
-    []     Type=lettuce {LP.member Obj [lettuce1]}
+    []     Type=lettuce {LP.member Obj [lettuce1 lettuce2]}
     []     Type=carrot {LP.member Obj [carrot1 carrot2 carrot3]}
     end
   end
