@@ -37,8 +37,8 @@ define
   %  Get the start time of a given situation
   %
   proc {Start S T}
-    choice  S = s0  T = 0
-    []      S = res(_ T _)
+    case S of s0 then T = 0
+    []   res(_ T1 _) then T = T1
     end
   end
 

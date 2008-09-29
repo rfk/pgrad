@@ -13,6 +13,8 @@ import
 export
 
   Neg
+  IfNot
+  Yield
   Member
   Union
 
@@ -43,6 +45,42 @@ define
     {Search.base.one proc {$ L} {P} L=unit end $} = nil
   end
 
+  % Execute Proc2 if Proc1 has no solutions.
+  % This is useful to avoid unnecesary re-computation of Proc1, as would
+  % be done by the following (equivalent) prolog:
+  %
+  %   ifnot(P1,P2,Res) :-  P1(Res) ; not(P1(_)), P2(Res)
+  %
+  % We expect Proc1 and Proc2 to be unary procedures as usual.
+  % Results will be bound to the output variable Res.
+  %
+  proc {IfNot Proc1 Proc2 Res}
+    Searcher Soln
+  in
+    Searcher = {New Search.object script(Proc1)}
+    {Searcher next(Soln)}
+    case Soln of stopped then fail
+    []  nil then {Proc2 Res}
+    []  [Res1] then choice Res = Res1
+                    [] {Yield Searcher Res}
+                    end
+    end
+  end
+
+  %  Yield the solutions found by the given Search.object, making
+  %  choicepoints for each.
+  %
+  proc {Yield Searcher Res}
+    Soln = {Searcher next($)}
+  in
+    case Soln of stopped then fail
+    []  nil then fail
+    []  [Res1] then choice Res = Res1
+                    [] {Yield Searcher Res}
+                    end
+    end
+  end
+
   % Nondeterministic selection of list member
   %
   proc {Member Elem List}
@@ -64,6 +102,7 @@ define
         end
     end
   end
+
 
   % Term substitution - replace all occurrences of VOld with VNew
   % in TIn, to produce new term TOut.

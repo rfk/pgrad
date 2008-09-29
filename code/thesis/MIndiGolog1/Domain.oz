@@ -180,38 +180,48 @@ define
                  end}
              end 
     []   contents(Obj Conts) then
-             choice % All the ways it can become true...
-                 choice % It was previously empty, and contents were added
-                     choice Obj2 in {LP.member transfer(_ Obj2 Obj) C}
-                                    {Sitcalc.holds contents(Obj2 Conts) S}
-                     []     {LP.member placeIn(_ Conts Obj) C}
-                     end
-                     {Sitcalc.holds neg(ex(c contents(Obj c))) S}
-                 []  % It previously had contents, which have been added to
-                     OldConts1 OldConts NewConts in
-                     {Sitcalc.holds contents(Obj OldConts1) S}
-                     choice Obj2 in {LP.member transfer(_ Obj2 Obj) C}
-                                    {Sitcalc.holds contents(Obj2 NewConts) S}
-                     []     {LP.member placeIn(_ NewConts Obj) C}
-                     end
-                     if OldConts1 == _|_ then OldConts = OldConts1
-                     else OldConts = [OldConts1] end
-                     {LP.union OldConts NewConts Conts}
+             choice OldConts NewConts Obj2 in
+                 choice
+                     {LP.member placeIn(_ NewConts Obj) C}
+                     OldConts = {LP.ifNot
+                         proc {$ OC} Conts1 in
+                           {Sitcalc.holds contents(Obj Conts1) {LP.copyTerm S}}
+                           if Conts1 == _|_ then OC = Conts1
+                           else OC = [Conts1] end
+                         end
+                         proc {$ OC}
+                           OC = nil
+                         end
+                     }
+                     Conts = {LP.union OldConts NewConts}
+                 []  {LP.member transfer(_ Obj2 Obj) C}
+                     {Sitcalc.holds contents(Obj2 NewConts) S}
+                     OldConts = {LP.ifNot
+                         proc {$ OC} Conts1 in
+                           {Sitcalc.holds contents(Obj Conts1) {LP.copyTerm S}}
+                           if Conts1 == _|_ then OC = Conts1
+                           else OC = [Conts1] end
+                         end
+                         proc {$ OC}
+                           OC = nil
+                         end
+                     }
+                     Conts = {LP.union OldConts NewConts}
                  % TODO: mixing, chopping, etc
                  end
              [] % All the ways it can become false
                 {Sitcalc.holds contents(Obj Conts) S}
                 {LP.neg proc {$} 
-                    {LP.member {LP.copyTerm transfer(_ Obj _)} C}
+                    {LP.member transfer(_ Obj _) C}
                 end}
                 {LP.neg proc {$} Obj2 in
-                    {LP.member transfer(_ Obj2 {LP.copyTerm Obj}) C}
+                    {LP.member transfer(_ Obj2 Obj) C}
                     {Sitcalc.holds contents(Obj2 _) {LP.copyTerm S}}
                 end}
                 {LP.neg proc {$} 
-                    {LP.member {LP.copyTerm placeIn(_ _ Obj)} C}
+                    {LP.member placeIn(_ _ Obj) C}
                 end}
-            end
+             end
     []   doingTask(Agt Tsk RemTime) then
             {Time.decl RemTime}
             choice {LP.member beginTask(Agt Tsk) C}

@@ -175,9 +175,11 @@ define
 
   %  Execute an action.
   %  Since we're not actually connected to anything, just print it to screen.
+  %  We want to print do(C T) but 'do' is an Oz keyword, so print it in parts.
   %
   proc {Execute C T}
-    {System.show execute(C T)}
+    {System.print d}
+    {System.show o(C T)}
   end
  
 
