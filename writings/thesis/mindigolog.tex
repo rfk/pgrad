@@ -10,7 +10,7 @@ domain, we want to allow a team of agents to cooperatively plan and
 perform the execution of a shared Golog program. As this chapter will
 demonstrate, the existing features of the situation calculus go a
 long way towards achieving this goal, but are ultimately limited to
-execution in synchronous domains.
+execution in synchronous domains. 
 
 We begin by integrating three existing extensions to the situation
 calculus into the semantics of Golog to better represent the dynamics
@@ -38,6 +38,9 @@ first incarnation of MIndiGolog - specifically, that it can only operate
 in fully-observable, synchronous domains. Subsequent chapters of this
 thesis develop new extensions to the situation calculus which will
 allow us to overcome these limitations.
+
+Some of the material in this chapter has previously been published
+as \citep{kelly06hlp_dps}.
 
 The chapter proceeds as follows: section \ref{sec:MIndiGolog:Background}
 provides some more detailed background material; section \ref{sec:MIndiGolog:Motivation}
@@ -260,7 +263,7 @@ To take advantage of true concurrency, we must first allow sets of
 concurrent actions to appear in a MIndiGolog execution. The modified
 $Trans$ clause for primitive actions shown in the previous section
 already ensures that sets of concurrent actions are performed rather
-than raw action terms. 
+than raw action terms.
 
 However, this is clearly not enough to truly exploit the potential
 for concurrency in a multi-agent team. As noted by \citet{pinto99tcongolog},
@@ -458,18 +461,42 @@ a given program \textbf{\emph{D}}:
 
 \programinput{listings/mindigolog/goloz_do.oz}
 
-This procedure can then be passed to the parallel search functionality
-to plan a program execution. Here {}``jim'' and {}``joe'' are
-the DNS names of agents in the team, and {}``Goloz'' is an Oz functor
-that exports the \textbf{\emph{Do}} procedure defined above:
+Using this implementation, a team of agents can perform an on-line
+execution of a shared MIndiGolog program by following the Readylog
+execution algorithm (TODO: ref). This approach requires no communication
+between agents, but assumes they operate syncrhonously in order to
+coordinate their concurrent actions. In such a setting, the semantics
+for the search operator are implemented as follows:
+
+TODO: original, non-parallel search implementation
+
+However, the availability of Mozart's built-in parallel search facility
+offers a compelling alternative for implementing the search operator.
+While program components that appear outside the scope of a search
+operator are expected to be executable on-line, and so will require
+little deliberation on behalf of the agent. However, program components
+enclosed within a search operator are likely to be quite computationally
+demanding, potentially involving lots of computation effort to find
+a solution. In particular, lots of backtracking. It therefore makes
+sense to share the planning workload amongst the team.
+
+The figure below shows the implementation of the search operator using
+parallel search. If the executing agent is the team leader, it initiates
+the parallel search procedure and, when a plan is found, sends the
+details to the other members of the team. Subordinate team members
+simply wait for the message to be recieved before continuing.
+
+The ParallelDo procedure is shown below:
 
 \programinput{listings/mindigolog/goloz_do_parallel.oz}
 
 When this code is run, it will utilise the computational resources
-of both agents to plan a legal execution of a given MIndiGolog program.
-This requires that the same information is available to each agent,
-which restricts the technique to fully-observable domains. For more
-details on our implementation, see Appendix TODO.
+of all team members to plan the execution of the enclosed MIndiGolog
+program. Naturally, this technique will only work correctly if all
+agents have access to the same information, which restricts the technique
+to fully-observable domains.
+
+TODO: this highlights the greatness of our approach, yadda yadda
 
 
 \section{Example Execution\label{sec:MIndiGolog:Example-Execution}}
