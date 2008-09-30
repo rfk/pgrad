@@ -5,14 +5,14 @@
 \label{ch:observations}
 
 This chapter develops an explicit representation of the local perspective
-of each agent, so that we can approach reasoning in asyncrhonous domains
-in a principled manner. Existing work on multi-agent domains in the
-situation calculus leaves the local perspective largely implicit;
-for example, it is customary to introduce different kinds of sensing
-or communicating actions by directly modify the axioms that define
-the dynamics of knowledge \citep{scherl03sc_knowledge,Lesperance99sitcalc_approach}.
-Instead, we reify the local perspective of each agent by explicitly
-talking about what it has observed.
+of each agent, so that we can approach reasoning and planning in asynchronous
+domains in a systematic way. Existing work on multi-agent domains
+in the situation calculus has left this the local perspective largely
+implicit; for example, it is customary to introduce different kinds
+of sensing or communicating actions by directly modify the axioms
+that define the dynamics of knowledge \citep{scherl03sc_knowledge,Lesperance99sitcalc_approach}.
+We choose instead to reify the local perspective of each agent by
+explicitly talking about what it has observed.
 
 The basic idea is as follows: each occurrence of an action results
 in an agent making a set of \emph{observations}. Every situation then
@@ -20,18 +20,24 @@ corresponds to a local \emph{view} for that agent: the sequence of
 all its observations, excluding cases where the set of observations
 was empty.
 
-By having views as explicit terms in the locic, we are then in a position
+By having views as explicit terms in the logic, we are then in a position
 to ensure that agents only reason and act based on their local local
 information. Having factored out the precise details of each agent's
 local view, we can develop reasoning techniques and tools that can
-be applied in a variety of different domains.
+be applied in a variety of different domains. To demonstate the appeal
+of this decoupling, we show how several different kinds of obserability
+and communication can be modelled using our approach. The techniques
+in subsequent chapters that build off this foundation - our planning
+formalism based on joint executions, our account of knowledge with
+hidden actions, our regression rule for common knowledge - can then
+be applied without modification in any of these domains.
 
 The chapter begins with some additional background material, discussing
 how the information available to each agent is traditionally modelled
 in the situation calculus. We then define the notion of observations
-and views, and discuss how the can be defined within the structure
-of a basic action theory. Section TODO discusses how a number of common
-domain dynamics can be modelled using observations, while Section
+and views, and discuss how they can be specified within the structure
+of a basic action theory. Section TODO discusses how some common domain
+dynamics can be modelled using observations and views, while Section
 TODO demonstrates the power and flexibility of the approach by axiomatising
 more complex domains that have not previously been approached in the
 situation calculus.
@@ -39,15 +45,110 @@ situation calculus.
 
 \section{Background}
 
-TODO: define $SR(a,s)$, talk about implicit axiomatisation in more
-detail.
+In many single-agent applications of the situation calculus, there
+is no need to consider the local perspective of the agent -- since
+the agent has complete knowledge and is the only entity acting in
+the world, it's local information is precisely equivalent to the global
+information about the state of the world. It's local perspective is
+simply the current situation.
+
+If the agent has incomplete knowledge of the state of the world, it
+may need to perform \emph{sensing actions} to obtain additional information.
+An additional sort \noun{Result }is added to $\mathcal{L}_{sitcalc}$,
+along with an action description function $SR(a,s)=r$ axiomatising
+the result returned by each action. The agent's local perspective
+on the world is then given by a \emph{history}, a sequence of pairs
+$a\#r$ giving each actions performed and its corresponding sensing
+result.
+
+When sensing actions are added to IndiGolog \citep{giacomo99indigolog},
+the agent must plan its execution using this history rather than a
+raw situation term. This is accomplished without any modifications
+to the underlying theory of action, by handling the history as a purely
+meta-level structure and modifying the way queries are posed.
+
+TODO: check the names of these macros
+
+First, a pair of macros are defined to convert a history into proper
+sentences of the situation calculus that capture the information it
+contains. The macro $\mathbf{end}$ gives the situation term corresponding
+to a history, while the macro $\mathbf{res}$ produces a formula asserting
+that the sensing results were obtained. Let $\epsilon$ be the empty
+history, then the definitions are:\begin{gather*}
+\mathbf{end}[\epsilon]\isdef S_{0}\\
+\mathbf{end}[(a\#r)\cdot h]\isdef do(a,\mathbf{end}[h])\\
+\mathbf{res}[\epsilon]\isdef\top\\
+\mathbf{res}[(a\#r)\cdot h]\isdef SR(a,\mathbf{end}[h])=r\,\wedge\,\mathbf{res}[h]\end{gather*}
+
+
+Then, instead of asking whether a query holds at the current situation
+$s$:
+
+\[
+\Dt\,\models\,\phi[s]\]
+
+
+The agent asks whether the query holds given its current history $h$:\[
+\Dt\cup\mathbf{res}[h]\,\models\,\phi[\mathbf{end}[h]]\]
+
+
+We are aware of no works extending this meta-level handling of histories
+to the multi-agent case.
+
+While the history-based approach of \citep{giacomo99indigolog} allows
+an agent to reason based on its local perspective, it is cumbersome
+for reasoning \emph{about} that local perspective. Do determine whether
+an agent \emph{knows} that a formula holds in a given situation, we
+must explicitly specify the agent's history of sensing results for
+that situation, which may not be available until run-time. This meta-level
+approach is not suitable for rich epistemic reasoning, where we may
+want to reason about what the agent (or a group of agents) will or
+will not know after a series actions.
+
+This kind of reasoning requires an explicit representation of what
+the agent knows, which has been developed for the situation calculus
+by \citet{scherl03sc_knowledge}. We will review such epistemic reasoning
+in more detail in chapter \ref{ch:knowledge}, but for now we discuss
+its use in axiomatising the local perspective of each agent.
+
+The basic use of sensing results in determining an agents knowledge
+is defined in \citep{scherl03sc_knowledge} by directly specifyng
+this in the successor state axiom for a special {}``knowledge fluent''
+$K$. As a variety of richer domains have been modelled using this
+formalism, their particular accounts of the local information available
+to each have been specified by directly modifying this successor state
+axiom.
+
+For example, when multiple agents are introduced in TODO, the successor
+state axiom for $K$ is modified to ensure that an agent knows the
+results of its own actions, but not the results generated by others.
+When communication actions are introduced in TODO, the successor state
+axiom for $K$ is modified to ensure that the agent's knowledge is
+updated to include the communicated information.
+
+TODO: knowledge with time - action\#time pairs are an ad-hoc version
+of views.
+
+In these works there is no explicit representation of the local perspective
+of each agent -- rather, the information each agent recieves from
+an action is specified only in terms of its effect on the agent's
+knowledge. As we will discuss in the coming chapters, this can also
+lead to subtle and unintuitive problems in the domain axiomatisation.
+
+Our approach can be seen as a generalisation of the history-based
+approach of \citep{giacomo99indigolog}, explicitly representing the
+information available to each agent. However, we encode this information
+as terms in the logic rather than in the meta-level reasoning machinery.
+This allows us to construct a theory of knowledge using the same formalism.
+
+TODO: more justification waffle here.
 
 
 \section{Definitions}
 
-We begin by defining the notion of an \emph{observation.} This is
-an internal notification that an agent receives when some action has
-occurred
+We begin by defining the notion of an \emph{observation}, which is
+fundamental to the entire approach\emph{.} This is simply an internal
+notification that an agent receives when some action has occurred.
 
 \begin{defnL}
 [{Observations}] An observation is a notification event received
@@ -67,7 +168,7 @@ so observations can only be made as a result of some action. For simplicity
 we assume that agents perceive observations instantaneously, i.e.
 in the same instant as the actions that cause them.
 
-To make this idea concrete, let us introduce an additional sort \noun{Observations}
+To make this idea concrete, let us introduce an additional sort \noun{Observation}
 to the language $\mathcal{L}_{sitcalc}$, for the moment without any
 particular commitment towards what this sort will contain. We then
 add an action description function of the following form to $\Dt_{ad}$:\[
@@ -89,9 +190,9 @@ is the corresponding sequence of observations made by the agent as
 a result of each action in $\mathrm{s}$, excluding those actions
 for which no observations were made. 
 \end{defnL}
-We introduce another sort \noun{Views} consisting of sequences of
-sets of observations, with $\epsilon$ being the empty sequence and
-the functional fluent $View$ giving the history of observations associated
+We introduce another sort \noun{View} consisting of sequences of sets
+of observations, with $\epsilon$ being the empty sequence and the
+functional fluent $View$ giving the history of observations associated
 with a particular situation. Since these definitions will not change
 from one domain to another, they are added to the foundational axioms
 $\Sigma$:\begin{align}
@@ -108,15 +209,12 @@ terminology of \citet{vanBentham06tree_of_knowledge}, we can now
 explicitly define what it means for a domain to be \emph{synchronous.}
 
 \begin{defnL}
-[{Synchronous~Action~Theory:}] A basic action theory $\Dt$ is
-synchronous if every agent observes something whenever an action occurs:\[
+[{Synchronous~Action~Theory:}] A basic action theory $\Dt$
+is synchronous if every agent observes something whenever an action
+occurs:\[
 \Dt\,\models\,\forall agt,c,s:\, Poss(c,s)\,\rightarrow Obs(agt,c,s)\neq\{\}\]
 
 \end{defnL}
-As we have discussed in the introduction, and as will become clear
-throughout the subsequent chapters, the assumption of a synchronous
-domain can make reasoning much simpler.
-
 Observations and views can be seen as localised analogues of actions
 and situations respectively. An action is a global event that causes
 the state of the world to change, while an observation is an internal
@@ -130,24 +228,24 @@ we develop throughout this thesis.
 
 Before proceeding with some example axiomatisations, let us briefly
 foreshadow how observations and views will be used in the coming chapters.
-In chapter TODO, we will define a partially-ordered action structure
-to be generated when planning a MIndiGolog execution. Since agents
-can only be expected to act based on their local information, we will
-require that if $s$ and $s'$ are two situations that could be reached
-during execution of the plan, and $View(agt,s)=View(agt,s')$, then
-the agent's next action in both situations must be the same.
+In chapter \ref{ch:jointexec}, we will define a partially-ordered
+action structure to be generated when planning a MIndiGolog execution.
+Since agents can only be expected to act based on their local information,
+we will require that if $s$ and $s'$ are two situations that could
+be reached during execution of the plan, and $View(agt,s)=View(agt,s')$,
+then the agent's next action in both situations must be the same.
 
-In chapter TODO, we formalism the notion that an agent's knowledge
-is based only on its local information. So if the agent belives that
-the world might be in situation $s$, then it must also consider possible
-any other situation $s'$ such that $View(agt,s)=View(agt,s')$.
+In chapter \ref{ch:knowledge}, we formalise the notion that an agent's
+knowledge should be based only on its local information. So if the
+agent belives that the world might be in situation $s$, then it must
+also consider possible any other situation $s'$ such that $View(agt,s)=View(agt,s')$.
+By decoupling the axiomatisation of knowledge from the specific details
+of how each action affects the agent's local information, we develop
+a very general formalism that can be applied without modification
+in a wide variety of domains.
 
-By factoring out the local perspective of the agent in this manner,
-our definitions can operate unchanged in a wide variety of domains
-TODO reference the upcoming sections below.
 
-
-\section{Standard Axiomatisation}
+\section{Axiomatising Observations: some simple cases}
 
 We now proceed to show how these definitions can be used to model
 a variety of common cases from the situation calculus literature.
@@ -155,8 +253,9 @@ a variety of common cases from the situation calculus literature.
 
 \subsection{Public Actions}
 
-The common assumption that {}``all actions are public'' can be rephrased
-as {}``when an action occurs, all agents will observe that action''.
+By far the most common assumption about the observaility of actions
+is that {}``all actions are public'', which can be rephrased as
+{}``when an action occurs, all agents will observe that action''.
 Letting the \noun{Observations }sort contain \noun{Action }terms,
 this can be captured using the following axiom to define $Obs$:\[
 a\in Obs(agt,c,s)\,\equiv\, a\in c\]

@@ -83,38 +83,33 @@ define
                           {Procedures.procdef D1 Body}
                           {Trans Body S Dp Sp}
       []   search(D1) then Sr Dr in
-                           % Old, non-parallel-search way:
-                           %
-                           %  {Trans D1 S Dr Sp}
-                           %  {Do Dr Sp Sr}
-                           %  Dp = dosteps({Sitcalc.toStepsList Sp Sr})
-                           %
-                           % New, parallel-search way
-                           %
-                           if Control.teamMember == Control.teamLeader then
-                             {Control.log planning}
-                             try
-                               {ParallelDo D1 S Sr}
-                               %[Sr] = {Search.base.one proc {$ Sr}
-                               %  {Do D1 {LP.copyTerm S} Sr}
-                               %end}
-                               Dr = dosteps({Sitcalc.toStepsList S Sr})
-                               {Control.sendMessage Dr}
-                               {Trans Dr S Dp Sp}
-                             catch _ then
-                               {Control.log plan_failed}
-                               {Control.sendMessage plan_failed}
-                               fail
-                             end
-                           else
-                             {Control.log waiting_for_plan}
-                             {Control.waitForMessage Dr}
-                             if Dr == plan_failed then
-                               {Control.log plan_failed}
-                               fail
-                             end
-                             {Trans Dr S Dp Sp}
-                           end
+                     if Control.teamMember == Control.teamLeader then
+                       {Control.log planning}
+                       try
+                         if Control.doParallelSearch then
+                           {ParallelDo D1 S Sr}
+                         else
+                           [Sr] = {Search.base.one proc {$ Sr}
+                             {Do D1 {LP.copyTerm S} Sr}
+                           end}
+                         end
+                         Dr = dosteps({Sitcalc.toStepsList S Sr})
+                         {Control.sendMessage Dr}
+                         {Trans Dr S Dp Sp}
+                       catch _ then
+                         {Control.log plan_failed}
+                         {Control.sendMessage plan_failed}
+                         fail
+                       end
+                     else
+                       {Control.log waiting_for_plan}
+                       {Control.waitForMessage Dr}
+                       if Dr == plan_failed then
+                         {Control.log plan_failed}
+                         fail
+                       end
+                       {Trans Dr S Dp Sp}
+                     end
       []   dosteps(Steps) then C T Steps2 in
                                Steps = (C#T)|Steps2
                                Sp = res(C T S)

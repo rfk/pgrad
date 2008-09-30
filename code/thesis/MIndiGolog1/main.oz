@@ -24,9 +24,11 @@ define
   % Read the agent name from command-line arguments, and
   % initialise Control module accordingly
   %
-  MyArgs = {Application.getArgs plain}
-  Control.teamMember = {String.toAtom MyArgs.1}
+  MyArgs = {Application.getArgs record(agent(single type:atom)
+                                       psearch(single type:bool default:false))}
   Control.teamLeader = jon
+  Control.teamMember = MyArgs.agent
+  Control.doParallelSearch = MyArgs.psearch
   {Control.init}
 
   % Search to determine whether current state (D,S) is final

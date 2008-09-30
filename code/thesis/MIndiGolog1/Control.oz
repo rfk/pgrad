@@ -26,6 +26,8 @@ export
   % List of all agents who are not team leader
   Subordinates
 
+  DoParallelSearch
+
   Init
   SendMessage
   WaitForMessage
@@ -38,6 +40,7 @@ define
   % We depend on the main script to bind these values
   TeamLeader = _
   TeamMember = _
+  DoParallelSearch = _
 
   % Open-ended stream to which messages will be writetn, and mutable
   % pointer to the (free) tail of the stream.
@@ -45,7 +48,7 @@ define
   MsgPntr = {Cell.new Msgs}
 
   % Port on which to perform initial team sync
-  CommPort = 8013
+  CommPort = 8014
 
   % These will be bound when Init is called
   Agents = _
