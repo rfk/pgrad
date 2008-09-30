@@ -42,12 +42,19 @@ time-test: main.exe
 	sleep 1
 	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
 
-run-all: main.exe
+run-serial: main.exe
 	./main.exe --agent=jon &
 	sleep 1
 	./main.exe --agent=jim &
 	sleep 1
-	./main.exe --agent=joe > OUTPUT.joe
+	./main.exe --agent=joe
+
+run-parallel: main.exe
+	./main.exe --agent=jon --psearch &
+	sleep 1
+	./main.exe --agent=jim --psearch &
+	sleep 1
+	./main.exe --agent=joe --psearch
 
 %.ozf: %.oz
 	ozc -g -p -c $< -o $@

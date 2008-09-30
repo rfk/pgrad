@@ -226,7 +226,7 @@ define
           R = {LP.serialize (Dl#Sl#Spl)}
         end
     end
-    Machines = {Record.make init Control.subordinates}
+    Machines = {Record.make init Control.agents}
     for Agt in {Record.arity Machines} do
       Machines.Agt = 1#ssh
     end
@@ -234,7 +234,7 @@ define
     PSearch = {New Search.parallel Machines}
     {PSearch trace}
     Soln = {PSearch one(PDo $)}
-    if Soln == nil then {Control.log no_solutions} local X in {Value.wait X} end Sp = nil
+    if Soln == nil then Sp = nil
     else [(D#S#Sp)] = {LP.unserialize Soln} end
   end
 
