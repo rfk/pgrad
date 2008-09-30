@@ -96,8 +96,9 @@ define
                          Dr = dosteps({Sitcalc.toStepsList S Sr})
                          {Control.sendMessage Dr}
                          {Trans Dr S Dp Sp}
-                       catch _ then
+                       catch E then
                          {Control.log plan_failed}
+                         {Control.log E}
                          {Control.sendMessage plan_failed}
                          fail
                        end

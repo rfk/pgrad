@@ -11,16 +11,16 @@ run-%: main.exe
 
 time-test: main.exe
 	rm -f TIME.*
-	./main.exe --agent=jon --nopsearch &
-	sleep 1
-	./main.exe --agent=jim --nopsearch &
-	sleep 1
-	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
 	./main.exe --agent=jon --psearch &
 	sleep 1
 	./main.exe --agent=jim --psearch &
 	sleep 1
 	$(TIME_CMD) TIME.p ./main.exe --agent=joe --psearch
+	./main.exe --agent=jon --nopsearch &
+	sleep 1
+	./main.exe --agent=jim --nopsearch &
+	sleep 1
+	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
 	./main.exe --agent=jon --psearch &
 	sleep 1
 	./main.exe --agent=jim --psearch &
