@@ -96,9 +96,8 @@ define
                          Dr = dosteps({Sitcalc.toStepsList S Sr})
                          {Control.sendMessage Dr}
                          {Trans Dr S Dp Sp}
-                       catch E then
+                       catch _ then
                          {Control.log plan_failed}
-                         {Control.log E}
                          {Control.sendMessage plan_failed}
                          fail
                        end
@@ -233,8 +232,9 @@ define
     end
     {Control.log parallel_search_using(Machines)}
     PSearch = {New Search.parallel Machines}
+    {PSearch trace}
     Soln = {PSearch one(PDo $)}
-    if Soln == nil then Sp = nil
+    if Soln == nil then {Control.log no_solutions} local X in {Value.wait X} end Sp = nil
     else [(D#S#Sp)] = {LP.unserialize Soln} end
   end
 
