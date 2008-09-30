@@ -48,7 +48,7 @@ define
   MsgPntr = {Cell.new Msgs}
 
   % Port on which to perform initial team sync
-  CommPort = 8014
+  CommPort = 8013
 
   % These will be bound when Init is called
   Agents = _

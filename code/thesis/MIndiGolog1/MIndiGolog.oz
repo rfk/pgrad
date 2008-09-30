@@ -30,11 +30,11 @@ define
   %
   proc {Trans D S Dp Sp}
       case D of nil then fail
-      []   test(Cond) then choice {Sitcalc.holds Cond S} Sp=S Dp=nil
-                           []     Tn = {Sitcalc.lntp S}
-                                  Cn = {Sitcalc.pna S} in
-                                  Dp=D Sp=res(Cn Tn S)
-                           end
+      []   test(Cond) then {Sitcalc.holds Cond S} Sp=S Dp=nil
+                           %[]     Tn = {Sitcalc.lntp S}
+                           %       Cn = {Sitcalc.pna S} in
+                           %       Dp=D Sp=res(Cn Tn S)
+                           %end
       []   seq(D1 D2) then choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
                            []            {Final D1 S} {Trans D2 S Dp Sp}
                            end
@@ -145,7 +145,6 @@ define
   proc {Final D S}
       case D of nil then skip
       []   seq(D1 D2) then {Final D1 S} {Final D2 S}
-      []   test(Cond) then {Sitcalc.holds Cond S}
       []   choose(D1 D2) then choice {Final D1 S} [] {Final D2 S} end
       []   pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 S} end
       []   star(_) then skip

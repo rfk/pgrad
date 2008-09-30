@@ -3,7 +3,6 @@ functor
 
 import
 
-  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
   Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
   Control at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Control.ozf'
   MIndiGolog at '/storage/uni/pgrad/code/thesis/MIndiGolog1/MIndiGolog.ozf'
@@ -70,6 +69,12 @@ define
   {Control.log start}
   {Run pcall(main) s0}
 
+  % Count to 1000, then exit...
+  proc {CountDown X}
+    if X == 0 then skip
+    else {CountDown (X-1)} end
+  end
+  {CountDown 10000}
   {Application.exit 0}
 
 end

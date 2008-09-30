@@ -2,35 +2,52 @@
 
 FUNCTORS = Domain.ozf Time.ozf Sitcalc.ozf MIndiGolog.ozf Procedures.ozf LP.ozf Control.ozf
 
-TIME_CMD = /usr/bin/time -f "%e" -o
+TIME_CMD = /usr/bin/time -f "%e" -a -o
 
 all: main.exe $(FUNCTORS)
 
 run-%: main.exe
-	./main.exe --agent=$*
+	./main.exe --agent=$* --psearch
 
-run-time-test: main.exe
-	rm TIME.*
+time-test: main.exe
+	rm -f TIME.*
 	./main.exe --agent=jon --nopsearch &
-	sleep 2
+	sleep 1
 	./main.exe --agent=jim --nopsearch &
-	sleep 2
-	$(TIME_CMD) TIME.np1 ./main.exe --agent=joe --nopsearch
+	sleep 1
+	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
 	./main.exe --agent=jon --psearch &
-	sleep 2
+	sleep 1
 	./main.exe --agent=jim --psearch &
-	sleep 2
-	$(TIME_CMD) TIME.p1 ./main.exe --agent=joe --psearch
+	sleep 1
+	$(TIME_CMD) TIME.p ./main.exe --agent=joe --psearch
+	./main.exe --agent=jon --psearch &
+	sleep 1
+	./main.exe --agent=jim --psearch &
+	sleep 1
+	$(TIME_CMD) TIME.p ./main.exe --agent=joe --psearch
 	./main.exe --agent=jon --nopsearch &
-	sleep 2
+	sleep 1
 	./main.exe --agent=jim --nopsearch &
-	sleep 2
-	$(TIME_CMD) TIME.np2 ./main.exe --agent=joe --nopsearch
+	sleep 1
+	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
 	./main.exe --agent=jon --psearch &
-	sleep 2
+	sleep 1
 	./main.exe --agent=jim --psearch &
-	sleep 2
-	$(TIME_CMD) TIME.p2 ./main.exe --agent=joe --psearch
+	sleep 1
+	$(TIME_CMD) TIME.p ./main.exe --agent=joe --psearch
+	./main.exe --agent=jon --nopsearch &
+	sleep 1
+	./main.exe --agent=jim --nopsearch &
+	sleep 1
+	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
+
+run-all: main.exe
+	./main.exe --agent=jon &
+	sleep 1
+	./main.exe --agent=jim &
+	sleep 1
+	./main.exe --agent=joe > OUTPUT.joe
 
 %.ozf: %.oz
 	ozc -g -p -c $< -o $@

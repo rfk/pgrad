@@ -84,15 +84,14 @@ define
           ))
     [] hardToPlan then
           seq(pcall(acquireType(joe carrot))
+          seq(pcall(acquireType(jon sugar))
           seq(pcall(acquireType(jim lettuce))
-          seq(pcall(acquireType(jon egg))
-          seq(pcall(acquireType(joe sugar))
-          seq(pcall(acquireType(jim flour))
-          %seq(pcall(acquireType(jon sugar))
-          seq(test(hasObject(joe carrot2))
-          seq(test(hasObject(jon egg3))
-              test(hasObject(jim lettuce2))
-          )))))))%)
+          seq(pcall(acquireType(joe flour))
+          seq(pcall(acquireType(jon flour))
+          seq(test(hasObject(joe carrot3))
+          seq(test(hasObject(joe flour5))
+              test(hasObject(jon sugar4))
+          )))))))
     else fail
     end
   end
