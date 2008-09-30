@@ -232,7 +232,6 @@ define
     end
     {Control.log parallel_search_using(Machines)}
     PSearch = {New Search.parallel Machines}
-    {PSearch trace}
     Soln = {PSearch one(PDo $)}
     if Soln == nil then Sp = nil
     else [(D#S#Sp)] = {LP.unserialize Soln} end
