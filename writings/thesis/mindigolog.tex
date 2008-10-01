@@ -105,8 +105,6 @@ Algorithm \ref{alg:readylog_exec}.
 
 %
 \begin{algorithm}[t]
- 
-
 \caption{The ReadyLog Execution Algorithm for program $\delta$}
 
 
@@ -282,10 +280,10 @@ The resulting execution is shown in Figure \ref{fig:MIndiGolog:MakeSalad-in-Indi
 
 %
 \begin{figure}
-%
-\framebox{\parbox[t][1\totalheight]{1\columnwidth}{%
+\framebox{%
+\parbox[t][1\totalheight]{1\columnwidth}{%
 \begin{center}
-{\footnotesize \verbatiminput{listings/mindigolog/output_MakeSalad_I.txt}}
+{\footnotesize \verbatiminput{listings/mindigolog/output_MakeSalad_I.txt}} 
 \par\end{center}%
 }}
 
@@ -639,10 +637,10 @@ of true concurrency into the language.
 
 %
 \begin{figure}
-%
-\framebox{\parbox[t][1\totalheight]{1\columnwidth}{%
+\framebox{%
+\parbox[t][1\totalheight]{1\columnwidth}{%
 \begin{center}
-{\footnotesize \verbatiminput{listings/mindigolog/output_MakeSalad_M.txt}}
+{\footnotesize \verbatiminput{listings/mindigolog/output_MakeSalad_M.txt}} 
 \par\end{center}%
 }}
 
@@ -699,11 +697,95 @@ and asking it for a solution to the functor. When this code is run,
 it will utilise the computational resources of all team members to
 plan the execution of the enclosed MIndiGolog program.
 
+As a brief demonstration of the advantages provided by this technique,
+consider the suggestively-named program {}``HardToPlan'' shown in
+Figure \ref{fig:MIndiGolog:HardToPlan}. This program asks the agents
+to nondeterministically select and acquire objects of a variety of
+types, and then tests whether certain specific objects have been acquired.
+It has been constructed so that a single bad choice in the early stages
+of execution planning - for example, having $Joe$ acquire $Carrot1$
+instead of $Carrot3$ - can invalidate all choices subseuently made.
+Planning a legal execution of this program thus requires a significant
+amount of backtracking and should benefit greatly from parallelisation.
+
+%
+\begin{figure}
+\begin{centering}
+\framebox{%
+\parbox[t][1\totalheight]{0.85\columnwidth}{%
+\begin{gather*}
+\mathbf{proc}\, HardToPlan()\\
+\left[AcquireType(Joe,Carrot)\,;\right.\\
+AcquireType(Jon,Sugar)\,;\\
+AcquireType(Jim,Lettuce)\,;\\
+AcquireType(Joe,Flour)\,;\\
+AcquireType(Jon,Flour)\,;\\
+HasObject(Jon,Carrot3)?\,;\\
+HasObject(Joe,Flour5)?\,;\\
+\left.\, HasObject(Jon,Sugar4)?\right]\,\,\mathbf{end}\\
+\\\mathbf{proc}\, AcquireType(Agt,Type)\\
+\pi(obj,\, IsType(obj,Type)?\,;\\
+\left.\, acquire(Agt,obj)))\right]\,\,\mathbf{end}\end{gather*}
+%
+}} 
+\par\end{centering}
+
+\caption{A Golog program for which execution planning is difficult\label{fig:MIndiGolog:HardToPlan}}
+
+\end{figure}
+
+
+We used our MIndiGolog implementation to execute the program $\Sigma(HardToPlan)$
+in two different ways - using parallel search as described above,
+and having the team leader search for a legal execution on its own.
+The program for team leader $Jon$ was executed on an AMD Althon 64
+3000+, while the subordinate team members $Jim$ and $Joe$ each executed
+on one core a TODO. Three test runs were performed for both parallel
+and individual search. The times required to find a legal execution
+are shown in Table \ref{tab:MIndiGolog:Execution-planning-times}
+along with the speedup factor achieved by using parallel search.
+
+%
+\begin{table}
+\begin{centering}
+\begin{tabular}{|c|c|c|c|}
+\hline 
+ & \textbf{Individal Search} & \textbf{Parallel Search} & \textbf{Ratio Indiv/Para}\tabularnewline
+\hline
+\hline 
+\textbf{Run 1} & 29.30 & 13.67 & 2.14\tabularnewline
+\hline 
+\textbf{Run 2} & 29.21 & 11.25 & 2.59\tabularnewline
+\hline 
+\textbf{Run 3} & 29.08 & 11.61 & 2.50\tabularnewline
+\hline
+\hline 
+\textbf{Average} & 29.19 & 12.17 & 2.39\tabularnewline
+\hline
+\end{tabular}
+\par\end{centering}
+
+\caption{Execution planning times for $HardToPlan$, in seconds\label{tab:MIndiGolog:Execution-planning-times}}
+
+
+
+\end{table}
+
+
+These results shown an impressive decrease in execution planning time
+with the use of parallel search - close to a factor of three speedup
+using the computational resources of three agents. Of course, on programs
+where execution planning is less difficult this advantage will be
+reduced, but on difficult problems it can clearly provide significant
+benefit.
+
 The ability to implement this distributed execution planning with
 so little code, and in a way that is completely transparent to the
 rest of the program, highlights one of the major advantages of using
-the situation calculus and Golog -- the ability to encode the domain
-and the program as a simple logic program.
+the situation calculus and Golog -- the ability to encode both the
+domain and the execution planning problem as a simple logic program,
+which is then amenable to off-the-shelf techniques for distributed
+logic programming.
 
 
 \section{Discussion\label{sec:MIndiGolog:Discussion}}
