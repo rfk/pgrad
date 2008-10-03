@@ -46,10 +46,6 @@ to handle such queries manually using an appropriate instantiation
 of the second-order induction axiom, but makes no mention of automating
 this reasoning.
 
-TODO: evgenia's fixpoint paper
-
-TODO: \citep{classen08golog_properties}
-
 Other work considering queries that universally quantify over situations
 seems to focus exclusively on verifying state constraints. These are
 uniform formulae that must hold in every possible situation, a highly
@@ -69,14 +65,33 @@ of state constraints has also also approached by \citet{bertossi96automating},
 who develop a system for automatic constraint verification based on
 an induction theorem prover.
 
-However, there are many issues that are not addressed by such work.
-What if we are interested in the future of some arbitrariy situation
-$\sigma$, rather than only $S_{0}$? What if want to restrict future
-actions according to an arbitrary action description predicate? Can
-we integrate a method for handling universally-quantified queries
-with existing regression technique? Our treatment of property persistence
-can provide a concrete basis for these considerations, and is hence
-significantly more general than existing work.
+However, there are many issues that are not addressed work specific
+to staet constraints. What if we are interested in the future of some
+arbitrariy situation $\sigma$, rather than only $S_{0}$? What if
+want to restrict future actions according to an arbitrary action description
+predicate? Can we integrate a method for handling universally-quantified
+queries with existing regression techniques? Our treatment of property
+persistence can provide a concrete basis for these considerations,
+and is hence significantly more general than this existing work.
+
+Another field that deals with induction over situations is the verification
+of ConGolog programs. TODO {[}evgenia's paper] show how to formulate
+various safety, liveness, and starvation properties of a ConGolog
+program as fixpoint queries in second-order logic. A preliminary model-checker
+capable of verifying these properties is described in {[}TODO: evgenia's
+\emph{other} paper]. \citet{classen08golog_properties} develop a
+logic of ConGolog programs in $\mathcal{ES}$, a variant of the situation
+calculus based on modal logic. They demonstrate the properties of
+a program can be verified using an iterative fixpoint computation
+similar to the one we propose in this chapter.
+
+As we shall see, property persistence queries are equivalent to a
+particular kind of safety property of a ConGolog program, so our work
+is in a sense \emph{less} general than that described above. However,
+the ConGolog verifiers are designed to operate in isolation, while
+we seek a method of handling universally-quantified queries that can
+integrate directly with the existing meta-theorical reasoning machinery
+of the situation calculus, in particular with the regression operator.
 
 
 \section{Property Persistence Queries\label{sec:Persistence:Definitions}}
@@ -472,8 +487,9 @@ produced by our algorithm would be:\begin{gather*}
 \mathcal{P}_{\mathcal{D}}^{n}(F(x,s))\equiv\bigwedge_{i=0}^{i=n}F(suc^{i}(x),s)\end{gather*}
  The persistence condition in this case is clearly: \[
 \mathcal{P}_{\mathcal{D}}(F(x,s))\equiv\forall y:\, x\leq y\rightarrow F(y,s)\]
- While this is the limit of the iteration in our algorithm, it will
-not be produced after any finite number of steps.
+ While this equivalent to the infinite conjunction produced as the
+limit of iteration in our algorithm, it will not be found after any
+finite number of steps.
 
 As discussed in the proof of Theorem \ref{thm:p-always-exists}, $\mathcal{P}_{\mathcal{D}}^{1}$
 operates over the boolean lattice of equivalence classes of formulae
@@ -617,7 +633,29 @@ termination of this reasoning in stronger classes of action theory,
 can now proceed independently from the development of formalisms that
 utilise persistence queries.
 
+Our use of fixpoints has much in common with the study of properties
+of ConGolog programs of {[}TODO: refs]. Indeed, a property persistence
+query is equivalent to a safety query stating that the property $\phi$
+never becomes false during the following program:\[
+\delta_{P\alpha}\isdef\left(\pi(a,\,\alpha(a)?\,;\, a)\right)^{*}\]
+
+
+Formally:\begin{gather*}
+\Dt\,\models\,\forall s:\,\sigma\leq_{\alpha}s\,\rightarrow\,\phi[s]\\
+\mathrm{iff}\\
+\Dt\cup\Dt_{golog}\,\models\,\forall s,\delta:\, Trans^{*}(\delta_{P\alpha},\sigma,\delta,s)\,\rightarrow\,\phi[s]\end{gather*}
+
+
+However, since we intend to use persistence queries as part of a larger
+reasoning apparatus, rather than as a stand-alone query, we cannot
+directly leverage the existing work on verifying ConGolog programs.
+However, given the similarity between the approaches, we are confident
+that advances in reasoning effectively about ConGolog programs will
+also advance our ability to effectively calculate the persistence
+condition.
+
 This chapter has thus significantly increased the scope of queries
 that can be posed when building practical systems using the situation
-calculus.
+calculus, and allowed us to treat the inductive aspects of reasoning
+as a separate component of the overall reasoning machinery.
 

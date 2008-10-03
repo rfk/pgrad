@@ -4,14 +4,9 @@
 
 \label{ch:knowledge}
 
-In multi-agent domains, it is important to be able to reason not only
-from the global perspective of the system designer, but also from
-the local perspective of each individual agent -- after all, agents
-can only be expected to act based on their own local information.
-This requires \emph{epistemic} reasoning, or reasoning about the knowledge
-of an agent, the standard tool for which is modal logic. We will focus
-on epistemic reasoning in the situation calculus; for a general overview
-consult \citep{fagin95}.
+This chapter develops a new theory of knowledge knowledge in the situation
+calculus that directly leverages the agent-local perspective developed
+in Chapter \ref{ch:observations}.
 
 Existing accounts of epistemic reasoning in the situation calculus
 require that whenever an action occurs, all agents \emph{know} that
@@ -24,19 +19,23 @@ reasoning. It also means that agents cannot reason about their own
 knowledge, as they may not have enough information to formulate an
 appropriate query.
 
-This chapter develops a new theory of knowledge that overcomes these
-limitations. We begin by developing an axiomatisation of knowledge
-based on the explicit representation of an agent's local view from
-chapter TODO. The property persistence operator developed in chapter
-TODO is then used to formulate a regression rule that respects this
-axiomatisation. We show that our regression rule can be used by a
-situated agent to reason about its own knowledge based solely on its
-local observations.
+As expected when dealing with asynchronous domains, we show that agents
+must reason about arbitrarily-long sequences of hidden actions in
+order to ensure that their knowledge is valid.
+
+TODO: revisit this
+
+We begin by developing an axiomatisation of knowledge based explicitly
+on each agent's local view. We demonstrate that this axiomatisation
+is sound and faithfully represents several important properties of
+knowledge. To formulate a regression rule for knowledge, we appeal
+to the persistence condition operator developed in Chapter \ref{ch:persistence}
+is then used to formulate a regression rule that respects this axiomatisation.
+We show that our regression rule can be used by a situated agent to
+reason about its own knowledge based solely on its local observations.
 
 
 \section{Background}
-
-TODO: breifly mention other approaches, then defer to discussion section
 
 The standard semantics of epistemic logic are given by the Kripke
 structures of modal logic, based on the idea of \emph{possible worlds}.
@@ -64,6 +63,12 @@ that it has observed. From the agent's perspective, the system may
 be in any of the states that would produce its current local history.
 This equivalence relation between the states of the system defines
 the agent's possible worlds, and thus its knowledge.
+
+While we focus on epistemic reasoning in the situation calculus in
+this chapter, our approach can be seen as a direct analogue of these
+modal-logic-based approaches, and we have selected our terminology
+(e.g. {}``observation'' and {}``view'') to deliberately mirror
+terminology used in these related fields.
 
 Epistemic reasoning was first introduced to the situation calculus
 by \citet{moore80know_act}, and formalised extensively by \citet{scherl03sc_knowledge}
@@ -166,12 +171,12 @@ technique relies heavily on the fact that all actions are public,
 since it requires every agent's knowledge to be updated in response
 to every action.
 
-Repeated applications of $\Reg$ can thus transform a knowledge query
-into one that is uniform in the initial situation. While it would
-be valid to then expand the $\Knows$ macros and handle the query
-using first-order logic, in practice the reasoning procedure would
-leave $\Knows$ intact and use a specialised prover based on modal
-logic.
+As with the non-epistemic case, repeated applications of $\Reg$ can
+transform a knowledge query into one that is uniform in the initial
+situation. While it would be valid to then expand the $\Knows$ macros
+and handle the query using first-order logic, in practice the reasoning
+procedure would leave $\Knows$ intact and use a specialised prover
+based on modal logic.
 
 It is possible to formulate an alternate successor state axiom for
 knowledge that does not assume all actions are public, such as that
@@ -180,11 +185,13 @@ require universal quantification over situation terms, to account
 for arbitrarily-long sequences of hidden actions. This is incompatible
 with regression rules like the above, and these formulations offer
 no reasoning procedure other than general second-order theorem proving.
-By using our new {}``persistence condition'' meta-operator to reason
-about universal quantification over situation terms, our work is the
-first to provide an account of knowledge with hidden actions while
-maintaining regression in the style presented above as an effective
-reasoning tool.
+By using our new persistence condition meta-operator to reason about
+universal quantification over situation terms, our work is the first
+to provide an account of knowledge with hidden actions while maintaining
+regression in the style presented above as an effective reasoning
+tool.
+
+TODO: how K is modified, elaboration tolerance, etc
 
 With each of these modifications, it is necessary to establish that
 the axioms of knowledge still entail several important properties
@@ -201,23 +208,28 @@ express the dynamics of knowledge update in terms of the actions that
 have occurred in the world, as seen in Section \ref{sub:Knowledge-and-Sensing}.
 This works well when agents can be assumed to have full knowledge
 of the actions that have been performed, but quickly becomes cumbersome
-when trying to allow for hidden actions. Instead, we base our approach
-on the explicit representation of an agent's local perspective developed
-in chapter TODO.
+when trying to allow for partial observability and hidden actions.
 
 The direct coupling between knowledge and action also has undesirable
 implications for situated agents reasoning about their own knowledge.
-As a consequence of using regression to handle knowledge queries,
-one can only reason about knowledge if one has a rooted situation
-term, as the required query is:\[
-\Dt_{S_{0}}\cup\Dt_{una}\,\models\,\Reg^{*}(\Knows(agt,\phi,do([c_{1},\dots,c_{n}],S_{0}))\]
+As a consequence of axiomatising knowledge directly in terms of actions,
+and using regression to handle knowledge queries, one can only reason
+about knowledge if one has a rooted situation term. The required query
+is:\[
+\Dt_{S_{0}}\cup\Dt_{bg}\,\models\,\Reg^{*}(\Knows(agt,\phi,do([c_{1},\dots,c_{n}],S_{0}))\]
 
 
-In asynchronous domains with hidden actions, where agents are not
-necessarily aware how many actions have been performed, the agents
-cannot use this formulation to reason about their own knowledge. Since
-knowledge is directly coupled to actions, and hence to situation terms,
-they cannot construct the appropriate query.
+In asynchronous domains, where agents are not necessarily aware how
+many actions have been performed, the agents cannot use this formulation
+to reason about their own knowledge. Since knowledge is directly coupled
+to actions, and hence to situation terms, they cannot construct the
+appropriate query. They can instead use the rather convoluted query:\[
+\Dt\,\models\,\forall s:\, View(agt,s)=v\,\rightarrow\,\Knows(agt,\phi,s)\]
+
+
+However, this requires second-order inductive reasoning. Indeed, this
+query cannot even be approached using the techniques of Chapter \ref{ch:persistence}
+since it is not in the appropriate form.
 
 To maintain the elegant solution to the frame problem for knowledge
 developed by \citet{scherl03sc_knowledge}, the regression rule of
@@ -232,6 +244,8 @@ rather than requiring a full situation term. Agents can thus use our
 techniques to reason about their own knowledge using only their local
 information, making the formalism suitable both for reasoning \emph{about},
 and reasoning \emph{in}, rich multi-agent domains.
+
+TODO: rethink this section...
 
 
 \section{Knowledge and Observation\label{sub:Knowledge-and-Observation}}
@@ -320,24 +334,23 @@ Using this new formulation, an agent's knowledge is completely decoupled
 from the global notion of actions, instead depending only on the local
 information that it has observed. It remains to specify precisely
 what the \noun{Observations} sort contains, and how the $Obs()$ function
-behaves. This will be the focus of the next subsection.
+behaves. Any of the axiomatisations demonstrated in Chapter TODO can
+be used, and out account of knowledge will be applied unmodified.
 
 
-\section{Axiomatising Observations}
+\section{Properties of Knowledge}
+
+TODO: reflexivity etc.
+
+highlyt elaboration tolerance
 
 Let us begin by considering again the standard account of knowledge
 due to \citep{scherl03sc_knowledge}. Its basic assumption that {}``all
-agents are aware of all actions'' may be rephrased as {}``when an
-action occurs, all agents will observe that action''. Allowing the
-\noun{Observations} sort to contain \noun{Action} terms, this assumption
-is akin to the following axiom for the $Obs()$ function:\begin{equation}
-a\in Obs(agt,c,s)\equiv a\in c\label{eq:ax_obs_std1}\end{equation}
+agents are aware of all actions'' is captured in our observation-based
+formulation using equations TODO from Chapter TODO, which we repeat
+here for convenience:
 
-
-What about sensing information? We can extend the \noun{Observations}
-sort to contain $Action\#Result$ pairs and axiomatise like so:\begin{equation}
-a\#r\in Obs(agt,c,s)\equiv a\in c\wedge SR(a,s)=r\wedge actor(a)=agt\label{eq:ax_obs_std2}\end{equation}
-
+TODO: repeat them
 
 Using these definitions, our new account of knowledge will behave
 identically to the standard account:
@@ -364,11 +377,7 @@ TODO: encrypted speech acts
 
 In Section \ref{sub:An-Illustrative-Example} we show how to use this
 formalism to model a domain in which agents can only observe actions
-performed in the same room as them. To show the flexibility of the
-observation-based approach, Section \ref{sub:Observing-Effects} outlines
-a more powerful axiomatisation of observations in which agents may
-know that some action has occurred without necessarily knowing precisely
-what the action was.
+performed in the same room as them.
 
 
 \section{Regression}
