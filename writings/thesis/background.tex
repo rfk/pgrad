@@ -851,6 +851,8 @@ of the language.
 
 %
 \begin{table}[h]
+ 
+
 \begin{centering}
 \begin{tabular}{|c|c|}
 \hline 
@@ -1058,6 +1060,8 @@ in Algorithm \ref{alg:golog_exec}.
 
 %
 \begin{algorithm}[t]
+ 
+
 \caption{The Golog/ConGolog Execution Algorithm for program $\delta$}
 
 
@@ -1083,6 +1087,8 @@ algorithm is presented in Algorithm \ref{alg:indigolog_exec}.
 
 %
 \begin{algorithm}[t]
+ 
+
 \caption{The IndiGolog Execution Algorithm for program $\delta$}
 
 
@@ -1118,6 +1124,107 @@ Golog operators, and as a result there has been rich cross-pollination
 between different works. We therefore expect that our work may in
 turn be combined with some of these extensions to provide an even
 richer formalism.
+
+
+\section{Epistemic Reasoning}
+
+The standard semantics of epistemic reasoning are given by the Kripke
+structures of modal logic, based on the idea of \emph{possible worlds}.
+If an agent is unsure about the state of the world, then there must
+be several candidate states of the world that it considers possible.
+The agent is then said to \emph{know} a proposition if it is true
+in all worlds considered possible. In modal epistemic logics this
+is typically written as $[K_{agt}]\phi$, but we will consistently
+use the standard situation calculus notation of $\Knows(agt,\phi,s)$.
+
+While this works well for a static knowledge base, there is also the
+question of how each agent's knowledge changes over time as actions
+are performed in the world. Various formal systems have been devised
+to represent the interaction between knowledge and action, including
+those of \citep{fagin95}, \citep{parikh85dist_knowledge} and \citep{baltag98pa_ck}.
+Recent work on the foundations of epistemic dynamic logic has shown
+these different perspectives to be essentially equivalent \citep{vanBentham06tree_of_knowledge,pacuit07history_structures},
+and can be briefly summarised as follows.
+
+A system is considered to have a set of possible events which could
+occur, and the system state at any time is given by a sequence of
+events. Each agent has some subset of these events which it can observe,
+and in any state of the system thus has a local history of events
+that it has observed. From the agent's perspective, the system may
+be in any of the states that would produce its current local history.
+This equivalence relation between the states of the system defines
+the agent's possible worlds, and thus its knowledge.
+
+While we focus on epistemic reasoning in the situation calculus in
+this chapter, our approach can be seen as a direct analogue of these
+modal-logic-based approaches, and we have selected our terminology
+(e.g. {}``observation'' and {}``view'') to deliberately mirror
+terminology used in these related fields.
+
+
+\subsection{Epistemic Reasoning in the Situation Calculus}
+
+Epistemic reasoning was first introduced to the situation calculus
+by \citet{moore80know_act}, and formalised extensively by \citet{scherl03sc_knowledge}
+whose paper is now the canonical reference for these techniques. Their
+work has been extended to include concurrent actions \citep{scherl03conc_knowledge}
+and multiple agents \citep{shapiro98specifying_ma_systems}. This
+chapter further extends these techniques.
+
+The semantics of knowledge are based on a reification of the {}``possible
+worlds'' semantics of modal logic, using situation terms rather than
+abstract worlds. A special fluent $K(agt,s',s)$ is used to indicate
+that {}``in situation $s$, the agent $agt$ considers the alternate
+situation $s'$ to be possible''. The macro $\Knows$ is then defined
+as a shorthand for the standard possible-worlds definition of knowledge,
+stating that an agent knows $\phi$ when $\phi$ is true in all situations
+considered possible: \begin{equation}
+\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:Knowledge:knows_def}\end{equation}
+
+
+Readers familiar with modal logic will recognise $K(agt,s',s)$ as
+the situation calculus analogue of the modal reachability relation
+$K_{agt}$, and the macro $\Knows(agt,\phi,s)$ as the equivalent
+of the modal box operator $[K_{agt}]\phi$.
+
+In preparation for the developments later in this chapter, we break
+slightly with standard situation calculus notation and introduce an
+additional fluent $K_{0}(agt,s',s)$ to model the initial epistemic
+uncertaintly of the agents, with the corresponding macro $\KnowsZ(agt,\phi,s)$
+defined in the obvious way. In synchronous domains these are always
+equivalent to $K$ and $\Knows$, but we introduce them here to maintain
+consistency of the presentation.
+
+To model initial epistemic uncertaintly, the foundational axioms $\Sigma$
+are modified to permit multiple initial situations, identified by
+the predicate $Init(s)$. $S_{0}$ then represents the \emph{actual}
+initial situation, while other initial situations represent alternatives
+that the agents consider possible. We have the following straightforward
+extensions of the foundational axioms presented in Section TODO:\begin{gather*}
+Init(s)\,\rightarrow\,\neg(s'\sqsubset s)\\
+s\sqsubset do(c,s')\equiv s\sqsubseteq s'\end{gather*}
+
+
+Situation terms in general are always \emph{rooted} at a particular
+initial situation:\begin{gather*}
+Init(s)\,\rightarrow\, root(s)=s\\
+root(do(c,s))=root(s)\end{gather*}
+
+
+The definition of legal situations is modified to permit alternate
+roots:\[
+Legal(s)\,\isdef\, root(s)\leq_{Legal}s\]
+
+
+Finally, we restrict the initial epistemic uncertaintly of the agents
+to be about initial situations only, so they initially know that no
+actions have been performed:\[
+K_{0}(agt,s',s)\,\rightarrow Init(s)\wedge Init(s')\]
+
+
+With this infrastructure in place, the initial situation axioms $\Dt_{S_{0}}$
+can now contain sentences of the form $\KnowsZ(agt,\phi,S_{0})$ specifying
+what the agents initially know.
 
 
 \section{Related Formalisms}

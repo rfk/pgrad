@@ -4,136 +4,100 @@
 
 \label{ch:knowledge}
 
-This chapter develops a new theory of knowledge knowledge in the situation
-calculus that directly leverages the agent-local perspective developed
-in Chapter \ref{ch:observations}.
+This chapter develops a new theory of knowledge in the situation calculus
+that directly leverages the agent-local perspective developed in Chapter
+\ref{ch:observations}.
 
 Existing accounts of epistemic reasoning in the situation calculus
 require that whenever an action occurs, all agents \emph{know} that
 an action has occurred. This demands a level of synchronicity that
-is unreasonable in many multi-agent domains. But if the restriction
-is lifted, each agent's knowledge must account for arbitrarily-long
-sequences of \emph{hidden actions}. This requires a second-order induction
-axiom which precludes the use of regression for effective automated
-reasoning. It also means that agents cannot reason about their own
-knowledge, as they may not have enough information to formulate an
-appropriate query.
+is unreasonable in many multi-agent domains. In asynchronous domains,
+each agent's knowledge must instead account for arbitrarily-long sequences
+of \emph{hidden actions}. This requires a second-order induction axiom
+which precludes the use of regression for effective automated reasoning.
+It also make it difficult for agents to reason about their own knowledge,
+as they may not have enough information to formulate an appropriate
+query.
 
-As expected when dealing with asynchronous domains, we show that agents
-must reason about arbitrarily-long sequences of hidden actions in
-order to ensure that their knowledge is valid.
-
-TODO: revisit this
+To overcome this limitation we combine two of the contributions developed
+in preceding chapters - the explicit representation of an agent's
+local perspective from Chapter \ref{ch:observations}, and the persistence
+condition meta-operator from Chapter \ref{ch:persistence} - to formulate
+an account of knowledge in the situation calculus that can faithfully
+represent the hidden actions inherent in asynchronous domains while
+maintaining a regression rule for effective automated reasoning.
 
 We begin by developing an axiomatisation of knowledge based explicitly
-on each agent's local view. We demonstrate that this axiomatisation
-is sound and faithfully represents several important properties of
-knowledge. To formulate a regression rule for knowledge, we appeal
-to the persistence condition operator developed in Chapter \ref{ch:persistence}
-is then used to formulate a regression rule that respects this axiomatisation.
-We show that our regression rule can be used by a situated agent to
-reason about its own knowledge based solely on its local observations.
+on each agent's local view. This axiomatisation is shown to be sound,
+and to faithfully maintain important properties of the agent's epistemic
+state (such reflexivity and transitivity) through the occurrence of
+actions. Moreover, our formulation is \emph{elaboration tolerant},
+automatically maintaining these properties in the face of more complex
+information-producing actions, such as guarded sensing actions and
+speech acts, that can invalidate these properties if not axiomatised
+carefully.
+
+To formulate a regression rule for knowledge, we appeal to the persistence
+condition operator to factor out the inductive reasoning required
+for dealing with hidden actions. We propose a new regression rule
+that is sound and complete with respect to our axiomatisation of knowledge,
+and demonstrate how it can used by a situated agent to reason about
+its own knowledge in a straightforward manner.
+
+The end result is a significantly more general and robust theory of
+knowledge in the situation calculus that still permits an effective
+reasoning procedure.
+
+The chapter proceeds as follows: after introducing more details background
+material on epistemic reasoning in the situation calculus in Section
+\ref{sec:Knowledge:Background}, we develop the axioms for our new
+observation-based account of knowledge in Section \ref{sec:Knowledge:Observation}.
+Section \ref{sec:Knowledge:Properties} explores the properties of
+our formalism with reference to the standard account. Section \ref{sec:Knowledge:Regression}
+develops a regression rule for our formalism using the persistence
+condition operator, while Section \ref{sec:Knowledge:Example} gives
+a brief example of its use for reasoning about a partially-observable
+domain. Section \ref{sec:Knowledge:Approximate} links our work to
+a related formalism based on knowing fluent literals, while Section
+\ref{sec:Knowledge:Discussion} concludes with a general discussion
+and summary.
 
 
-\section{Background}
+\section{Background\label{sec:Knowledge:Background}}
 
-The standard semantics of epistemic logic are given by the Kripke
-structures of modal logic, based on the idea of \emph{possible worlds}.
-If an agent is unsure about the state of the world, then there must
-be several candidate states of the world that it considers possible.
-The agent is then said to \emph{know} a proposition if it is true
-in all worlds considered possible. In modal epistemic logics this
-is typically written as $[K_{agt}]\phi$, but we will consistently
-use the standard situation calculus notation of $\Knows(agt,\phi,s)$.
-
-While this works well for a static knowledge base, there is also the
-question of how each agent's knowledge changes over time as actions
-are performed in the world. Various formal systems have been devised
-to represent the interaction between knowledge and action, including
-those of \citep{fagin95}, \citep{parikh85dist_knowledge} and \citep{baltag98pa_ck}.
-Recent work on the foundations of epistemic dynamic logic has shown
-these different perspectives to be essentially equivalent \citep{vanBentham06tree_of_knowledge,pacuit07history_structures},
-and can be briefly summarised as follows.
-
-A system is considered to have a set of possible events which could
-occur, and the system state at any time is given by a sequence of
-events. Each agent has some subset of these events which it can observe,
-and in any state of the system thus has a local history of events
-that it has observed. From the agent's perspective, the system may
-be in any of the states that would produce its current local history.
-This equivalence relation between the states of the system defines
-the agent's possible worlds, and thus its knowledge.
-
-While we focus on epistemic reasoning in the situation calculus in
-this chapter, our approach can be seen as a direct analogue of these
-modal-logic-based approaches, and we have selected our terminology
-(e.g. {}``observation'' and {}``view'') to deliberately mirror
-terminology used in these related fields.
-
-Epistemic reasoning was first introduced to the situation calculus
-by \citet{moore80know_act}, and formalised extensively by \citet{scherl03sc_knowledge}
-whose paper is now the canonical reference for these techniques. Their
-work has been extended to include concurrent actions \citep{scherl03conc_knowledge}
-and multiple agents \citep{shapiro98specifying_ma_systems}. We further
-extend this family of techniques in this chapter.
-
-The semantics of knowledge are based on a reification of the {}``possible
-worlds'' semantics of modal logic, using situation terms rather than
-abstract worlds. A special fluent $K(agt,s',s)$ is used to indicate
-that {}``in situation $s$, the agent $agt$ considers the alternate
-situation $s'$ to be possible''. The macro $\Knows$ is then defined
-as a shorthand for the standard possible-worlds definition of knowledge,
-stating that an agent knows $\phi$ when $\phi$ is true in all situations
-considered possible: \begin{equation}
-\Knows(agt,\phi,s)\isdef\forall s':\, K(agt,s',s)\rightarrow\phi[s']\label{eqn:Knowledge:knows_def}\end{equation}
-
-
-Readers familiar with modal logic will recognise $K(agt,s',s)$ as
-the situation calculus analogue of the modal reachability relation
-$K_{agt}$, and the macro $\Knows(agt,\phi,s)$ as the equivalent
-of the modal box operator $[K_{agt}]\phi$.
-
-The foundational axioms $\Sigma$ are augmented with a special fluent
-$K_{0}(agt,s',s)$ that is used to model the initial epistemic uncertainty
-of the agents, with $\Dt_{S_{0}}$ containing sentences of the form
-$\KnowsZ(agt,\phi,S_{0})$ to specify what is initially known%
-\footnote{Technically, the standard account does not require a separate $K_{0}$
-fluent, as evidenced by equation \eqref{eq:k_s0_standard}. It is
-required when incorporating hidden actions, so we introduce it now
-to maintain consistency. %
-}:\begin{gather*}
-K_{0}(agt,s',s)\,\rightarrow Init(s)\wedge Init(s')\\
-\KnowsZ(agt,\phi,s)\isdef\forall s':\, K_{0}(agt,s',s')\rightarrow\phi[s']\end{gather*}
-
-
-The dynamics of knowledge are then specified by an additional set
-of axioms, which we will denote $\Dt_{K}$. In the standard account
-of knowledge $\Dt_{K}$ contains the following axioms:\begin{equation}
+Recall from Section \ref{sec:Background:Epistemic} that the dynamics
+of knowledge in the situation calculus are specific using an additional
+set of axioms $\Dt_{K}$, which define the behavior of a special knowledge-fluent
+$K$. In the standard account of knowledge, based on the work of \citet{scherl03sc_knowledge}
+and incorporating concurrent actions and multple agents \citep{shapiro98specifying_ma_systems,scherl03conc_knowledge},
+the axioms in $\Dt_{K}$ are the following:\begin{equation}
 Init(s)\rightarrow\left(K(agt,s',s)\,\equiv\, K_{0}(agt,s',s)\right)\label{eq:k_s0_standard}\end{equation}
- \begin{align}
-K(agt,s'',do(c,s))\equiv\exists s': & \, s''=do(c,s')\,\wedge K(agt,s',s)\wedge Poss(c,s')\nonumber \\
- & \wedge\,\forall a\in c:\,\left(actor(a)=agt\,\rightarrow\, SR(a,s)=SR(a,s')\right)\label{eq:k_ssa_standard}\end{align}
+\begin{multline}
+K(agt,s'',do(c,s))\equiv\exists s':\, s''=do(c,s')\,\wedge K(agt,s',s)\\
+\wedge Legal(c,s')\wedge\,\forall a\in c:\,\left(actor(a)=agt\,\rightarrow\, SR(a,s)=SR(a,s')\right)\label{eq:k_ssa_standard}\end{multline}
 
 
 Equation \eqref{eq:k_s0_standard} ensures that the agents begin with
-their knowledge as specified by $\Dt_{S_{0}}$. Equation \eqref{eq:k_ssa_standard}
-takes the form of a standard successor state axiom for the $K$ fluent.
-It ensures that $s''$ is considered a possible alternative to $do(c,s)$
-when $s''$ is the result of doing the same actions $c$ in a situation
-$s'$ that is considered a possible alternative to $s$. It must furthermore
-have been possible to perform those actions in $s'$, and the sensing
-results must match for each action that was carried out by the agent
-in question. Thus an agent's knowledge after the occurrence of an
-action is completely determined by the combination of its knowledge
-before the action, and the sensing results from the action.
+their knowledge as specified by the initial knowledge fluent $K_{0}$.
+Equation \eqref{eq:k_ssa_standard} takes the form of a standard successor
+state axiom for the $K$ fluent. It ensures that $s''$ is considered
+a possible alternative to $do(c,s)$ when $s''$ is the result of
+doing the same actions $c$ in a situation $s'$ that is considered
+a possible alternative to $s$. It must furthermore have been possible
+to perform those actions in $s'$, and the sensing results must match
+for each action that was carried out by the agent in question. Thus
+an agent's knowledge after the occurrence of an action is completely
+determined by the combination of its knowledge before the action,
+and the sensing results from the action.
 
 \medskip{}
 
 
 \begin{defn}
 We will denote by $\Dt_{K}^{std}$ the axioms of the standard account
-of knowledge due to \citet{scherl03sc_knowledge}, as detailed in
-equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard}) above. 
+of knowledge due to \citep{scherl03sc_knowledge,scherl03conc_knowledge},
+as detailed in equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard})
+above. 
 \end{defn}
 While powerful, this knowledge-representation formalism has an important
 limitation: it is fundamentally \emph{synchronous.} Each agent is
@@ -144,6 +108,14 @@ of actions would be infeasible. A major contribution of this chapter
 is a more flexible formalism for knowledge that can be applied to
 a much wider range of domains.
 
+
+\subsection{Accessability Properties}
+
+TODO: this section
+
+
+\subsection{Reasoning about Knowledge}
+
 A key contribution of \citet{scherl03sc_knowledge} was showing how
 to apply the regression operator to formulae containing the $\mathbf{Knows}$
 macro, allowing it to be treated syntactically as if it were a primitive
@@ -153,13 +125,13 @@ we have changed the notation somewhat to foreshadow the techniques
 we will develop in Section \ref{sec:Obs-Knowledge}, their definition
 operates as follows. First, define the \emph{results} of a concurrent
 action to be the set of $action\#result$ pairs for all primitive
-actions perform by the agent in question:\[
+actions performed by the agent in question:\[
 \mathbf{res}(agt,c,s)\isdef\{a\#SR(a,s)\,\,|\,\, a\in c\,\wedge\, actor(a)=agt\}\]
 
 
 This definition is then used to formulate a regression rule as follows:\begin{multline}
-\Reg(\Knows(agt,\phi,do(c,s))\isdef\\
-\exists y:\, y=\mathbf{res}(agt,c,s)\,\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi[do(c,s)]),s)\label{eq:reg_k_std}\end{multline}
+\Reg(\Knows(agt,\phi,do(c,s))\isdef\,\,\,\,\,\,\,\,\,\,\exists y:\, y=\mathbf{res}(agt,c,s)\,\\
+\wedge\Knows(agt,\left[Poss(c)\wedge\mathbf{res}(agt,c)=y\right]\rightarrow\Reg(\phi[do(c,s)]),s)\label{eq:reg_k_std}\end{multline}
 
 
 This works by collecting the sensing results from each action performed
@@ -178,89 +150,81 @@ and handle the query using first-order logic, in practice the reasoning
 procedure would leave $\Knows$ intact and use a specialised prover
 based on modal logic.
 
-It is possible to formulate an alternate successor state axiom for
-knowledge that does not assume all actions are public, such as that
-of \citet{Lesperance99sitcalc_approach}. Such formulations invariably
-require universal quantification over situation terms, to account
-for arbitrarily-long sequences of hidden actions. This is incompatible
-with regression rules like the above, and these formulations offer
-no reasoning procedure other than general second-order theorem proving.
-By using our new persistence condition meta-operator to reason about
-universal quantification over situation terms, our work is the first
-to provide an account of knowledge with hidden actions while maintaining
-regression in the style presented above as an effective reasoning
-tool.
 
-TODO: how K is modified, elaboration tolerance, etc
+\subsection{Extending Knowledge Theories}
 
-With each of these modifications, it is necessary to establish that
-the axioms of knowledge still entail several important properties
-established in \citep{scherl03sc_knowledge}, such as the preservation
-of knowledge transitivity and the availability of a regression rule.
-It is straightforward to introduce modifications to $K$ that no longer
-entail these properties \citep{Petrick06thesis,Lesperance99sitcalc_approach}.
+As we briefly discussed in Section \ref{sec:Observations:Background},
+different kinds of information-generating actions are typically modelled
+by directly modifying the successor state axiom for $K$. Unfortunately,
+this does not in general preserve the results of \citep{scherl03sc_knowledge};
+there is no guarantee that the modified axioms will preserve accessability
+properties of $K$, or will permit a regression rule for knowledge.
+
+For example, \citet{Petrick06thesis} extends the approach of \citep{scherl03sc_knowledge}
+to include \emph{guarded} sensing actions. These actions cause the
+agent to learn that some formula $\phi$ holds, but only if an additional
+guard formula $\psi$ also holds in the world. They are axiomatised
+like so:\begin{multline*}
+K(agt,s'',do(a,s))\equiv\exists s':\, s''=do(a,s)\wedge K(agt,s',s)\wedge\dots\\
+a=sense_{i}\,\rightarrow\,\left[\psi_{i}(s)\,\rightarrow\,\phi_{i}(s)\equiv\phi_{i}(s')\right]\end{multline*}
 
 
-\section{Intuitions}
+It is straightforward to demonstrate that this successor state axiom
+is no longer guaranteed to preserve the accessibility properties of
+Section TODO in general, although it is possible to syntactically
+restrict $\psi$ and $\phi$ to regain this important property \citet{Petrick06thesis}.
 
-Existing accounts of knowledge in the situation calculus directly
-express the dynamics of knowledge update in terms of the actions that
-have occurred in the world, as seen in Section \ref{sub:Knowledge-and-Sensing}.
-This works well when agents can be assumed to have full knowledge
-of the actions that have been performed, but quickly becomes cumbersome
-when trying to allow for partial observability and hidden actions.
+As another example, consider the alternate successor state axiom for
+$K$ proposed by \citet{Lesperance99sitcalc_approach}, in one of
+the few existing works in the situation calculus that does not assume
+synchroncity:
 
-The direct coupling between knowledge and action also has undesirable
-implications for situated agents reasoning about their own knowledge.
-As a consequence of axiomatising knowledge directly in terms of actions,
-and using regression to handle knowledge queries, one can only reason
-about knowledge if one has a rooted situation term. The required query
-is:\[
-\Dt_{S_{0}}\cup\Dt_{bg}\,\models\,\Reg^{*}(\Knows(agt,\phi,do([c_{1},\dots,c_{n}],S_{0}))\]
+TODO: put it here
 
+In order to account for hidden actions, this axiom must universally
+quantify over situation terms. This new formulation is therefore incompatible
+with the standard regression rule for knowledge, and \citep{Lesperance99sitcalc_approach}
+offers no reasoning procedure other than general second-order theorem
+proving.
 
-In asynchronous domains, where agents are not necessarily aware how
-many actions have been performed, the agents cannot use this formulation
-to reason about their own knowledge. Since knowledge is directly coupled
-to actions, and hence to situation terms, they cannot construct the
-appropriate query. They can instead use the rather convoluted query:\[
-\Dt\,\models\,\forall s:\, View(agt,s)=v\,\rightarrow\,\Knows(agt,\phi,s)\]
-
-
-However, this requires second-order inductive reasoning. Indeed, this
-query cannot even be approached using the techniques of Chapter \ref{ch:persistence}
-since it is not in the appropriate form.
-
-To maintain the elegant solution to the frame problem for knowledge
-developed by \citet{scherl03sc_knowledge}, the regression rule of
-knowledge must be modified to account for arbitrarily long sequences
-of hidden actions. We present a new regression rule for knowledge
-that uses the persistence condition meta-operator to augment standard
-regression and perform the necessary inductive reasoning.
-
-Further demonstrating the power of our approach, we show how the new
-regression rules can be applied using an agent's individual view,
-rather than requiring a full situation term. Agents can thus use our
-techniques to reason about their own knowledge using only their local
-information, making the formalism suitable both for reasoning \emph{about},
-and reasoning \emph{in}, rich multi-agent domains.
-
-TODO: rethink this section...
+The standard approach to formalising the local information available
+to each agent, by directly modifying the successor state axiom for
+knowledge, is not elaboration tolerant -- it is easy to destroy important
+properties of the formalism. As we shall demonstrate in this chapter,
+by basing our approach on an explicit, separately-axiomatied account
+of the local perspective of each agent, our formulation robustly maintains
+these properties in the face of theory elaboration.
 
 
-\section{Knowledge and Observation\label{sub:Knowledge-and-Observation}}
+\subsection{Literal Knowledge Fluents}
 
-It is a basic tenet of epistemic reasoning that an agent's knowledge
-at any particular time must depend solely on its local history: the
-knowledge that it started out with combined with the observations
-it has made since then \citep{halpern90knowledge_distrib}. Given
-an explicit account of the observations made by each agent, the required
-semantics of the $K$ relation are clear: $K(agt,s',s)$ must hold
-whenever $s'$ is legal, both $s$ and $s'$ would result in the same
-view for the agent, and $s$ and $s'$ are rooted at $K$-related
+\begin{itemize}
+\item Restrict formulae allowed inside $\Knows$ to atomic literals, in
+style of \citet{demolombe00tractable_sc_belief}. 
+\item Leverage encoding develope by \citet{petrick02knowledge_equivalence} 
+\end{itemize}
+
+\section{Knowledge and Observation\label{sec:Knowledge:Observation}}
+
+In this section we develop the axioms for our new formulation of knowledge,
+which is based on the explicit account of each agent's local perspective
+that we developed in Chapter \ref{ch:observations}. We begin from
+one of the basic tenets of epistemic reasoning, as described by \citep{halpern90knowledge_distrib}
+-- that an agent's knowledge at any particular time must depend solely
+on its local history: the knowledge that it started out with combined
+with the observations it has made since then .
+
+Given an explicit account of the observations made by each agent,
+the required semantics of the $K$ relation are clear: $K(agt,s',s)$
+must hold whenever $s'$ is legal, both $s$ and $s'$ would result
+in the same view for the agent, and $s$ and $s'$ are rooted at $K_{0}$-related
 initial situations:\begin{equation}
-K(agt,s',s)\equiv K(root(s'),root(s))\wedge Legal(s')\wedge View(agt,s')=View(agt,s)\label{eq:k-desired}\end{equation}
+K(agt,s',s)\equiv Legal(s')\wedge View(agt,s')=View(agt,s)\wedge K_{0}(root(s'),root(s))\label{eq:k-desired}\end{equation}
 
+
+In essence, this is a direct encoding into the situation calculus
+of the definitions of knowledge from the classic epistemic reasoning
+literature \citep{parikh85dist_knowledge,halpern90knowledge_distrib,fagin95}.
 
 While a wonderfully succinct definition of how knowledge should behave,
 this formulation cannot be used directly in a basic action theory.
@@ -269,18 +233,19 @@ axiom, so we must formulate a successor state axiom for the $K$ fluent
 which enforces the above equivalence.
 
 For notational convenience, let us first introduce an action description
-predicate $\PbU$ (for {}``possible but unobservable'') indicating
-that the actions $c$ are possible in $s$, but no observations will
-be made by $agt$ if they are performed:\begin{equation}
-\PbU(agt,c,s)\,\equiv\, Poss(c,s)\wedge Obs(agt,c,s)=\{\}\label{eqn:PbU_defn}\end{equation}
+predicate $\PbU$ (for {}``legal but unobservable'') indicating
+that the actions $c$ are legally performed in $s$, but no observations
+will be made by $agt$ if they occur:\begin{equation}
+\PbU(agt,c,s)\,\equiv\, Legal(c,s)\wedge Obs(agt,c,s)=\{\}\label{eqn:PbU_defn}\end{equation}
 
 
-By stating that $s\leq_{\PbU(agt)}s'$ we assert that $agt$ would
+By stating that $s\leq_{\PbU(agt)}s'$, we assert that $agt$ would
 make no observations were the world to move from situation $s$ to
-$s'$. This means that its view in both situations would be identical,
-so if it considers $s$ possible then it must also consider $s'$
-possible. Following this intuition, we propose the following successor
-state axiom to capture the desired dynamics of the knowledge fluent:\begin{align}
+$s'$. This means that the agent's view in both situations would be
+identical, so if it considers $s$ possible then it must also consider
+$s'$ possible. Following this intuition, we propose the following
+successor state axiom to capture the desired dynamics of the knowledge
+fluent:\begin{align}
 K(agt,s'',do(c,s))\equiv & \left[\, Obs(agt,c,s)=\{\}\rightarrow K(agt,s'',s)\,\right]\nonumber \\
 \wedge & \left[\, Obs(agt,c,s)\neq\{\}\rightarrow\exists c',s':\, Obs(agt,c',s')=Obs(agt,c,s)\right.\nonumber \\
  & \left.\,\,\,\,\,\,\,\,\wedge\, Poss(c',s')\wedge K(agt,s',s)\wedge do(c',s')\leq_{\PbU(agt)}s''\,\right]\label{eqn:new_k_ssa}\end{align}
@@ -307,7 +272,7 @@ Init(s)\rightarrow\left[K(agt,s'',s)\equiv\exists s'\,.\, K_{0}(agt,s',s)\wedge 
 
 \begin{defn}
 We will denote by $\Dt_{K}^{obs}$ the axioms for our new observation-based
-semantics for knowledge, as detailed in equations (\ref{eq:view_defn},\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0})
+semantics for knowledge, as detailed in equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0})
 above. 
 \end{defn}
 These axioms suffice to ensure that knowledge behaves as we require:
@@ -317,70 +282,160 @@ root situations were initially related.
 
 \begin{thm}
 \label{thm:k_obs_equiv} For any agent $agt$ and situations $s$
-and $s''$:\[
-\Dt\cup\Dt_{K}^{obs}\models K(agt,s'',s)\equiv K(root(s''),root(s))\wedge Legal(s'')\wedge View(agt,s'')=View(agt,s)\]
+and $s''$:\begin{multline*}
+\Dt\cup\Dt_{K}^{obs}\models K(agt,s'',s)\equiv\\
+Legal(s'')\wedge View(agt,s'')=View(agt,s)\wedge K_{0}(root(s''),root(s))\end{multline*}
 
 \end{thm}
 \begin{proofsketch}
 For the \emph{if} direction we establish each of the three conjuncts
-individually. The $root$ case is trivial since equation (\ref{eqn:new_k_s0})
-always expresses $K(s'',do(c,s))$ in terms of $K(s',s)$. The $Legal$
-case relies on the fact that $\PbU$ implies $Poss$, while the $View$
-case relies on the fact that $s\leq_{\PbU}s'\rightarrow View(s)=View(s')$.
+individually. The $root$ case is trivial since equation (\ref{eqn:new_k_ssa})
+always expresses $K(s'',do(c,s))$ in terms of $K(s',s)$, while equation
+(\ref{eqn:new_k_s0}) related $K$ for initial situations back to
+$K_{0}$. The $Legal$ case relies on the fact that $\PbU$ implies
+$Legal$, while the $View$ case relies on the fact that $s\leq_{\PbU}s'\rightarrow View(s)=View(s')$.
 For the \emph{only-if} direction we show how to construct an $s'$
 satisfying the $\exists s'$ parts of equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}). 
 \end{proofsketch}
 Using this new formulation, an agent's knowledge is completely decoupled
 from the global notion of actions, instead depending only on the local
-information that it has observed. It remains to specify precisely
-what the \noun{Observations} sort contains, and how the $Obs()$ function
-behaves. Any of the axiomatisations demonstrated in Chapter TODO can
-be used, and out account of knowledge will be applied unmodified.
+information that it has observed. Of course, this must be coupled
+with a specific axiomatiation of how the $Obs$ function behaves.
+Any of the axiomatisations demonstrated in Chapter \ref{ch:observations}
+can be used, and our account of knowledge can be used unmodified.
+
+As a demonstration of the correctness of their axioms, \citet{scherl03sc_knowledge}
+prove five properties of their formalism: that knowledge-producing
+actions have only knowledge-producing effects; that unknown fluents
+remain unknown by default; that knowledge incorporates the results
+of sensing actions; that known fluents remain known by default; and
+that agents have knowledge of the effects of their actions.
+
+However, the intuition behind these properties depends heavily on
+the assumption of a single agent and the separation of actions into
+two classes: knowledge-producting actions that only return sensing
+information, and ordinary actions that only affect the state of the
+world. In asynchronous multi-agent domains, these restrictions cannot
+be meaningfully applied.
+
+For example, it is entirely possible that a knowledge-producing action
+and an ordinary action are performed concurrently by two different
+agents, so the results of a sensing action might be immediatey made
+invalid. Moreover, suppose that an agent performs an action to make
+a formula $\phi$ true, but there is a series of hidden actions that
+could subsequently make $\phi$ false. The agent cannot meaningfully
+claim to know $\phi$, since it could become false updating the local
+view of that agent.
+
+We claim that, given an appropriate axiomatisation of how actions
+are related to observations, the validity of Theorem \ref{thm:k_obs_equiv}
+is sufficient justification for the correctness of our knowledge axioms.
 
 
-\section{Properties of Knowledge}
+\section{Properties of Knowledge\label{sec:Knowledge:Properties}}
 
-TODO: reflexivity etc.
+With the basic axioms in place, let us study some properties of our
+formalism in greater detail. We begin by comparing it to the standard
+account of knowledge due to \citet{scherl03sc_knowledge}. Its basic
+assumption that {}``all agents are aware of all actions'' is captured
+in our observation-based formulation using equations (\ref{eq:Observations:ObsStd1},\ref{eq:Observations:ObsStd2})
+from Chapter \ref{ch:observations}, which we repeat here for convenience:\begin{gather*}
+a\in Obs(agt,c,s)\,\equiv\, a\in c\\
+a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\end{gather*}
 
-highlyt elaboration tolerance
 
-Let us begin by considering again the standard account of knowledge
-due to \citep{scherl03sc_knowledge}. Its basic assumption that {}``all
-agents are aware of all actions'' is captured in our observation-based
-formulation using equations TODO from Chapter TODO, which we repeat
-here for convenience:
-
-TODO: repeat them
-
-Using these definitions, our new account of knowledge will behave
-identically to the standard account:
+That is, an agent observes all actions that occur, and additionall
+observed the sensing results of all actions that it performs. If these
+definitions are used, our new account of knowledge will behave identically
+to the standard account:
 
 \begin{thm}
-Suppose $\Dt_{ad}$ contains equations (\ref{eq:ax_obs_std1},\ref{eq:ax_obs_std2})
+Suppose $\Dt_{ad}$ contains equations (\ref{eq:Observations:ObsStd1},\ref{eq:Observations:ObsStd2})
 as definitions of the $Obs()$ function, then for any situation terms
-$s$ and $s'$:\[
-\Dt\cup\Dt_{K}^{std}\models K(agt,s',s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\cup\Dt_{K}^{obs}\models K(agt,s',s)\]
+$\sigma$ and $\sigma'$:\[
+\Dt\cup\Dt_{K}^{std}\models K(agt,\sigma',\sigma)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt\cup\Dt_{K}^{obs}\models K(agt,\sigma',\sigma)\]
 
 \end{thm}
 \begin{proof}
-Equations (\ref{eq:ax_obs_std1},\ref{eq:ax_obs_std2}) mean $Obs(agt,c,s)$
-cannot be empty for $c\neq\{\}$, so $s=s'$ iff $s\leq_{\PbU(agt)}s'$.
-Equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}) then amount to
-simple transformations of equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard})
+Equations (\ref{eq:Observations:ObsStd1},\ref{eq:Observations:ObsStd2})
+mean $Obs(agt,c,s)$ cannot be empty for $c\neq\{\}$, so $s=s'$
+iff $s\leq_{\PbU(agt)}s'$. Substituting the equivalences from (\ref{eq:Observations:ObsStd1},\ref{eq:Observations:ObsStd2})
+into equations (\ref{eqn:new_k_ssa},\ref{eqn:new_k_s0}), these then
+amount to simple re-arrangements of equations (\ref{eq:k_s0_standard},\ref{eq:k_ssa_standard})
 respectively, meaning that $K$ behaves the same under both theories. 
 \end{proof}
-TODO: private axtions
+Having established that our account subsumes the standard {}``public
+actions'' account of knowledge, we can also show that it maintains
+many of its desirable properties in the general case. One of the fundamental
+results in \citep{scherl03sc_knowledge} is that if the initial knowledge
+relation $K_{0}$ is reflexive, symmetric, transitive or Euclidean,
+then the $K$ relation has these properties for any situation. In
+our formalism, these properties follow immediately from Theorem \ref{thm:k_obs_equiv}
+and the reflexive, symmetric, transitive and Euclidean nature of the
+equality operator.
 
-TODO: communicative actions
+\begin{thm}
+If the $K_{0}$ relation is restricted to be reflexive, transitive,
+symmetric or Euclidean, then the $K$ relation at every legal situation
+will satisfy the same properties.
+\end{thm}
+\begin{proof}
+Each follows directly from Theorem \ref{thm:k_obs_equiv} and the
+properties of equality. We will take the transitive case as an example,
+the other cases are similar.
 
-TODO: encrypted speech acts
+Suppose that $K_{0}$ is transitive, and we have legal situations
+$s_{1}$, $s_{2}$, $s_{3}$ such that $K(agt,s_{2},s_{1})$ and $K(agt,s_{3},s_{2})$.
+Then by Theorem \ref{thm:k_obs_equiv} we have the following:\begin{gather*}
+K_{0}(root(s_{2}),root(s_{1}))\\
+K_{0}(root(s_{3}),root(s_{2}))\\
+View(agt,s_{1})=View(agt,s_{2})\\
+View(agt,s_{2})=View(agt,s_{3})\end{gather*}
+From the transitivity of $K_{0}$ we can conclude that $K_{0}(root(s_{3}),root(s_{1}))$.
+From the transitivity of equality we can conclude that $View(agt,s_{1})=View(agt,s_{3})$.
+Since $s_{3}$ is restricted to be legal, we have enough to satisfy
+the RHS of the equivalence in Theorem \ref{thm:k_obs_equiv}, and
+can conlude that $K(agt,s_{3},s_{1})$ and $K$ is therefore transitive. 
+\end{proof}
+That these properties hold regardless of the axiomatisation of $Obs$
+is a compelling argument in favour of our approach. As noted by \citet{Petrick06thesis},
+certain kinds of sensing action can easily invalidate these properties
+if not axiomatised carefully. It is therefore worth considering such
+cases in more detail.
 
-In Section \ref{sub:An-Illustrative-Example} we show how to use this
-formalism to model a domain in which agents can only observe actions
-performed in the same room as them.
+The problematic sensing actions in \citep{Petrick06thesis} are \emph{guarded
+}sensing actions, which update $K(agt,s',s)$ according to the following
+axiom: \begin{multline*}
+K(agt,s'',do(a,s))\equiv\exists s':\, s''=do(a,s)\wedge K(agt,s',s)\wedge\dots\\
+a=sense_{i}\,\rightarrow\,\left[\psi_{i}(s)\,\rightarrow\,\phi_{i}(s)\equiv\phi_{i}(s')\right]\end{multline*}
 
 
-\section{Regression}
+The difficultly here is that although the agent will learn $\phi$
+if the guard $\psi$ is true, it will not necessarily \emph{know whether}
+it has learned this. If the action fails to produce the desired sensing
+result, the agent's knowledge is not updated to reflect that the guard
+was false. This means symmetry of the $K$ relation may not be preserved. 
+
+To ensure that symmetry is preserved through action, it is necessary
+to axiomatise such sensing actions in such a way that the the guard
+formula itself also becomes known. While this can be achived by syntactically
+restricting the formulae, as in \citep{Petrick06thesis}, our approach
+of explicitly representing the observations made by each agent avoids
+the problem automatically -- if the sensing information is not included
+in the agent's observations, it can conclude that the guard condition
+must have been false.
+
+Our formalism is thus a proper generalisation of the standard account
+of knowledge in the situation calculus. It is also an \emph{elaboration
+tolerant }generalisation, automatically maintaining important properties
+of the axiomatisation as more complex models of sensing and observability
+are introduced. To demonstrate the power gained by such generalisation,
+Section \ref{sec:Knowledge:Example} shows how to use our formalism
+to model a domain in which agents can only observe actions performed
+in the same room as them.
+
+
+\section{Regression\label{sec:Knowledge:Regression}}
 
 The final aspect of our new account of knowledge is to extend the
 techniques for effective reasoning in the situation calculus to handle
@@ -397,15 +452,15 @@ our formalism:\begin{align}
 \Reg(\Knows(agt,\phi,do(c,s))\isdef\,\, & \exists o:\, Obs(agt,c,s)=o\nonumber \\
  & \wedge\,\left[o=\{\}\,\rightarrow\,\Knows(agt,\phi,s)\right]\nonumber \\
  & \wedge\,\left[o\neq\{\}\,\rightarrow\,\Knows(agt,\forall c':\, Obs(agt,c')=o\right.\nonumber \\
- & \,\,\,\,\,\,\,\,\,\,\,\wedge Poss(c')\rightarrow\left.\Reg(\Pst(\phi,\PbU(agt)),c'),s)\right]\label{eqn:R_do_c_s}\end{align}
+ & \,\,\,\,\,\,\,\,\,\,\,\wedge Legal(c')\rightarrow\left.\Reg(\Pst(\phi,\PbU(agt)),c'),s)\right]\label{eqn:R_do_c_s}\end{align}
 
 
 Note the similarity to the standard regression rule for knowledge
 in equation \eqref{eq:reg_k_std}. New in our version are: the replacement
-of the $\mathbf{res}$ macro with a flexible definition of what the
-agent has observed; explicit handling of the case when the agent makes
-no observations; and use of the persistence condition to account for
-arbitrarily-long sequences of hidden actions.
+of the $\mathbf{res}$ macro with an explicit, flexibly definition
+of what the agent has observed; explicit handling of the case when
+the agent makes no observations; and use of the persistence condition
+to account for arbitrarily-long sequences of hidden actions.
 
 As required for a regression rule, equation \eqref{eqn:R_do_c_s}
 reduces a knowledge query at $do(c,s)$ to a knowledge query at $s$.
@@ -429,79 +484,135 @@ situation calculus.
 \begin{thm}
 \label{thm:Reg_Knows}Given a basic action theory $\Dt$ and a uniform
 formula $\phi$:\[
-\Dt\cup\Dt_{K}^{obs}\,\models\,\phi[do(c,s)]\equiv\Reg(\phi,c)[s]\]
+\Dt\cup\Dt_{K}^{obs}\,\models\,\Knows(agt,\phi,s)\equiv\Reg(\Knows(agt,\phi,s))\]
 
 \end{thm}
 \begin{proofsketch}
-We need only consider the case of $\phi=\Knows(agt,\phi,s)$. In the
-$do(c,s)$ case, we proceed by expanding the definition for $\Knows$
-using our new successor state axiom for $K$, collecting sub-formulae
-that match the form of the $\Knows$ macro, and using regression and
-the persistence condition to render the resulting knowledge expressions
-uniform in $s$. In the base case, we apply the persistence condition
-to an expansion of $\Knows$ at the initial situation to produce the
+In the $do(c,s)$ case, we proceed by expanding the definition for
+$\Knows$ using our new successor state axiom for $K$, collecting
+sub-formulae that match the form of the $\Knows$ macro, and using
+regression and the persistence condition to render the resulting knowledge
+expressions uniform in $s$. In the base case, we apply the persistence
+condition to an expansion of $\Knows$ at $S_{0}$ to produce the
 desired result. 
 \end{proofsketch}
 While this reasoning method is suitable for modelling and simulation
 purposes, it would be unreasonable for a situated agent to ask {}``do
 I know $\phi$ in the current situation?'' using the situation calculus
-query $\Dt\models\mathbf{Knows}(agt,\phi,s)$, as it cannot be expected
-to have the full current situation $s$. However, it will have its
-current view $v$. We define knowledge with respect to a view as follows:\[
+query $\Dt\models\mathbf{Knows}(agt,\phi,\sigma)$, as it cannot be
+expected to have the full current situation $\sigma$. It will however
+have its current view $v$ and can constructa query like the following:\[
+\Dt\cup\Dt_{K}\models\forall s:\, View(agt,s)=v\wedge root(s)=S_{0}\rightarrow\mathbf{Knows}(agt,\phi,s)\]
+
+
+Such a query universally quantifies over situations and so cannot
+be handled using regression. It is also not in a form amenable to
+the persistence condition operator, so the agent has no means of effectively
+answering this query.
+
+We should expect from Theorem \ref{thm:k_obs_equiv} that this quantification
+over situations is unnecessary -- after all, all situations with the
+same view for that agent should result in the same knowledge. Let
+us explicitly define knowledge with respect to a view as follows:\[
 \mathbf{Knows}(agt,\phi,v)\,\isdef\,\forall s:\, View(agt,s)=v\wedge root(s)=S_{0}\rightarrow\mathbf{Knows}(agt,\phi,s)\]
 
 
-It is a straightforward consequence of Theorem \ref{thm:k_obs_equiv}
-that this form of knowledge is equivalent to knowledge based on a
-situation term having that view and rooted at $S_{0}$. Modifying
-the regression rules in equations (\ref{eqn:R_do_c_s},\ref{eqn:R_s0})
-to handle formulae of this form is actually simpler than for regression
-over situations, as there are no empty observations in a view. The
-result is:\begin{align*}
+We can then modify the regression rules in equations (\ref{eqn:R_do_c_s},\ref{eqn:R_s0})
+to work directly on formulae of this form. The resulting rules are
+actually simpler than for regression over situations, as there are
+no empty observations in a view. The result is:\begin{align*}
 \Reg(\mathbf{Knows}(agt,\phi,o\cdot v))\isdef\,\, & \mathbf{Knows}(agt,\forall c:\, Obs(agt,c)=o\\
- & \,\,\,\,\,\,\,\,\wedge Poss(c)\rightarrow\Reg(\Pst(\phi,\PbU(agt)),c),v)\\
+ & \,\,\,\,\,\,\,\,\wedge Legal(c)\rightarrow\Reg(\Pst(\phi,\PbU(agt)),c),v)\\
 \Reg(\mathbf{Knows}(agt,\phi,\epsilon))\isdef\,\, & \KnowsZ(agt,\Pst(\phi,\PbU(agt)),S_{0})\end{align*}
-
-
 Using regression in this way, an agent can reduce the query $\Knows(agt,\phi,v)$
 to an equivalent query about its knowledge in the initial situation.
-Agents can thus reason about their own knowledge using only their
-local information. Our work makes it possible to include a situation
-calculus model in the implementation of a real-world multi-agent system,
-even when agents have only partial awareness of the actions being
-performed.
+
+\begin{thm}
+\label{thm:Reg_KnowsO}Given a basic action theory $\Dt$ and a uniform
+formula $\phi$:\[
+\Dt\cup\Dt_{K}^{obs}\,\models\,\Knows(agt,\phi,v)\equiv\Reg(\Knows(agt,\phi,v))\]
+
+\end{thm}
+\begin{proof}
+TODO
+\end{proof}
+Agents can thus reason effectively about their own knowledge using
+only their local information. Our work makes it possible to include
+a situation calculus model in the implementation of a real-world multi-agent
+system, even when agents have only partial awareness of the actions
+being performed.
 
 It is worth re-iterating that our regression rules are no longer straightforward
 syntactic transformations - rather, they involve a fixpoint calculation
 to generate $\Pst(\phi,\PbU(agt))$. Can this really be considered
-an effective reasoning technique? Our previous work on the persistence
-condition meta-operator \citep{kelly07sc_persistence} discusses the
-advantages of this approach in detail. The primary advantage is that
-this form of reasoning can be performed at all, as the alternative
-is general second-order theorem proving.
+an effective reasoning technique? The previous work on the persistence
+condition meta-operator discused the advantages of this approach in
+detail. The primary advantage is that this form of reasoning can be
+performed at all, as the alternative is general second-order theorem
+proving.
 
 Of course, the ultimate proof is in the implementation. We have implemented
 a preliminary version of our technique and used it to verify the examples
-found in the following section. The code is available from the author's
-website%
-\footnote{Currently at http://www.csse.unimelb.edu.au/\textasciitilde{}rfk/pknows/%
-}.
+found in the following section. TODO: clean up implementation, put
+on website.
+
+We close this section with a formal statement of a point which is
+hopefully obvious: the persistence condition is not required when
+reasoning in syncrhonous domains. It is straightforward to show that
+$\Pst(\phi,\PbU(agt))$ in syncrhonous domains is always equivalent
+to $\phi$. And the regression rule reduces to being a purely syntactical
+manipulation. We thus do not introduce unnecessary complications for
+domains in which effective reasoning procedures already exist, but
+extend the reach of our formalism in richer domains where some inductive
+reasonig is required.
+
+\begin{thm}
+Let $\Dt_{sync}$ be a synchronous basic action theory, then for any
+uniform formula $\phi$:\[
+\Dt_{sync}\models\forall s,agt:\,\phi[s]\,\equiv\,\Pst(\phi,\PbU(agt))[s]\]
+
+\end{thm}
+\begin{proof}
+By definition, we have:\[
+\Dt_{sync}\,\models\,\forall agt,c,s:\, Legal(c,s)\,\rightarrow Obs(agt,c,s)\neq\{\}\]
+
+\end{proof}
+Recall from equation (\ref{eqn:PbU_defn}) that:\[
+\PbU(agt,c,s)\,\equiv\, Legal(c,s)\wedge Obs(agt,c,s)=\{\}\]
 
 
-\section{An Illustrative Example\label{sub:An-Illustrative-Example}}
+So clearly:\[
+\Dt_{sync}\,\models\,\forall agt,c,s:\,\PbU(agt,c,s)\equiv\bot\]
 
-Consider again the example domain of the party invitation. The fluents
-of interest are the location of the party (the function $loc$) and
-whether each agent is in the room (the predicate $InRoom$). The action
-$read$ reads the invitation and returns the location of the party,
-while the non-sensing actions $enter$ and $leave$ cause the agents
-to move in/out of the room. The $read$ action is only observed by
-agents who are in the room. This domain can be summarised by the following
-axioms:\begin{gather*}
+
+The definition of $\Pst^{1}(\phi,\PbU(agt))$ will then produce:\[
+\Pst^{1}(\phi,\PbU(agt))\,\equiv\,\phi\wedge\forall c:\,\bot\rightarrow\Reg(\phi,c)\,\equiv\,\phi\]
+
+
+The calculation of $\Pst$ thus terminate immediately at the first
+iteration, giving $\Pst(\phi,\PbU(agt))$ equal to $\Pst^{1}(\phi,\PbU(agt))$,
+which is equiavalent to $\phi$ as desired.
+
+
+\section{An Illustrative Example\label{sec:Knowledge:Example}}
+
+We now give a brief demonstration of our formalism in action, using
+it to model the {}``party invitation'' domain outlined in Chapter
+\ref{ch:intro}. We adopt an explicit axiomatisation of partially
+obervability based on the $CanObs$/$CanSense$ predicates introduced
+in TODO.
+
+The fluents of interest in this domain are the location of the party
+(the function $loc$) and whether each agent is in the room (the predicate
+$InRoom$). The action $read$ reads the invitation and returns the
+location of the party, while the non-sensing actions $enter$ and
+$leave$ cause the agents to move in/out of the room. The $read$
+action is only observed by agents who are in the room. This domain
+can be summarised by the following axioms:\begin{gather*}
 loc(S_{0})=C\\
 loc(do(c,s))=l\equiv loc(s)=l\end{gather*}
  \begin{gather*}
-InRoom(Ann,S_{0})\equiv InRoom(Bob,S_{0})\equiv true\\
+InRoom(Alice,S_{0})\equiv InRoom(Bob,S_{0})\equiv true\\
 InRoom(agt,do(c,s))\equiv enter(agt)\in c\,\vee\, InRoom(agt,s)\wedge leave(agt)\notin c\\
 Poss(enter(agt),s)\equiv\neg InRoom(agt,s)\\
 Poss(leave(agt),s)\equiv InRoom(agt,s)\end{gather*}
@@ -528,21 +639,21 @@ of how they can be answered using our new regression rules. Each has
 been verified by the preliminary implementation of our reasoning engine.
 
 \begin{example}
-Initially, Ann doesn't know where the party is:\[
-\Dt\cup\Dt_{K}^{obs}\models\neg\exists l:\,\mathbf{Knows}(Ann,loc=l,S_{0})\]
+Initially, Alice doesn't know where the party is:\[
+\Dt\cup\Dt_{K}^{obs}\models\neg\exists l:\,\mathbf{Knows}(Alice,loc=l,S_{0})\]
 
 \end{example}
-It is given that $\neg\exists l:\,\KnowsZ(Ann,loc=l,S_{0})$, and
-the only way for Ann to learn such information is by performing a
+It is given that $\neg\exists l:\,\KnowsZ(Alice,loc=l,S_{0})$, and
+the only way for her to learn such information is by performing a
 $read$ action. Since she would always observe such an action, she
-cannot have learnt the party's location as a result of hidden actions
+cannot have learnt the party's location as a result of hidden actions,
 and the example is entailed. Formally:\begin{align*}
-\Reg(\neg\exists l:\,\mathbf{Knows}(Ann,loc=l,S_{0}))\,\Rightarrow\,\,\,\, & \neg\exists l:\,\KnowsZ(Ann,\Pst(loc=l,PbU(Ann)),S_{0})\\
-\Pst(loc=l,PbU(Ann))\,\Rightarrow\,\,\,\, & loc=l\end{align*}
+\Reg(\neg\exists l:\,\mathbf{Knows}(Alice,loc=l,S_{0}))\,\Rightarrow\,\,\,\, & \neg\exists l:\,\KnowsZ(Alice,\Pst(loc=l,PbU(Alice)),S_{0})\\
+\Pst(loc=l,PbU(Alice))\,\Rightarrow\,\,\,\, & loc=l\end{align*}
 
 
 So the query reduces to:\[
-\neg\exists l:\,\KnowsZ(Ann,loc=l,S_{0})\]
+\neg\exists l:\,\KnowsZ(Alice,loc=l,S_{0})\]
 
 
 Which is entailed by the domain.\\
@@ -578,23 +689,23 @@ This tautology is clearly entailed by the domain.\\
 
 
 \begin{example}
-Initially, Bob knows that Ann doesn't know where the party is:\[
-\Dt\cup\Dt_{K}^{obs}\models\mathbf{Knows}(Bob,\neg\exists l:\,\Knows(Ann,loc=l),S_{0})\]
+Initially, Bob knows that Alice doesn't know where the party is:\[
+\Dt\cup\Dt_{K}^{obs}\models\mathbf{Knows}(Bob,\neg\exists l:\,\Knows(Alice,loc=l),S_{0})\]
 
 \end{example}
-Ann could learn the location of the party by performing the $read$
+Alice could learn the location of the party by performing the $read$
 action, but since Bob is in the room he would observe this action
-taking place. Since he has not observed it, he can conclude that Ann
+taking place. Since he has not observed it, he can conclude that Alice
 does not know the location of the party. Formally:\begin{multline*}
-\Reg(\mathbf{Knows}(Bob,\neg\exists l:\,\Knows(Ann,loc=l),S_{0}))\,\Rightarrow\\
-\KnowsZ(Bob,\Pst(\neg\exists l:\,\Knows(Ann,loc=l),PbU(Bob)),S_{0})\end{multline*}
+\Reg(\mathbf{Knows}(Bob,\neg\exists l:\,\Knows(Alice,loc=l),S_{0}))\,\Rightarrow\\
+\KnowsZ(Bob,\Pst(\neg\exists l:\,\Knows(Alice,loc=l),PbU(Bob)),S_{0})\end{multline*}
  \begin{multline*}
-\Pst(\neg\exists l:\,\Knows(Ann,loc=l),PbU(Bob))\,\Rightarrow\\
-\neg\exists l:\,\Knows(Ann,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Ann)\right)\end{multline*}
+\Pst(\neg\exists l:\,\Knows(Alice,loc=l),PbU(Bob))\,\Rightarrow\\
+\neg\exists l:\,\Knows(Alice,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Alice)\right)\end{multline*}
 
 
 So the query reduces to:\[
-\KnowsZ(Bob,\neg\exists l:\,\Knows(Ann,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Ann)\right),S_{0})\]
+\KnowsZ(Bob,\neg\exists l:\,\Knows(Alice,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Alice)\right),S_{0})\]
 
 
 Which is entailed by the domain.\\
@@ -602,12 +713,12 @@ Which is entailed by the domain.\\
 
 
 \begin{example}
-After leaving, Bob won't know that Ann doesn't know where the party
-is:\[
-\Dt\cup\Dt_{K}^{obs}\models\mathbf{\neg Knows}(Bob,\neg\exists l:\,\Knows(Ann,loc=l),do(\{leave(Bob)\},S_{0}))\]
+After leaving the room, Bob won't know that Alice doesn't know the
+location of the party:\[
+\Dt\cup\Dt_{K}^{obs}\models\mathbf{\neg Knows}(Bob,\neg\exists l:\,\Knows(Alice,loc=l),do(\{leave(Bob)\},S_{0}))\]
 
 \end{example}
-Once Bob leaves the room, he would be unable to observe Ann reading
+Once Bob leaves the room, he would be unable to observe Alice reading
 the invitation. He must therefore consider it possible that she has
 read it, and may know the location of the party. Formally, we can
 use $Obs(Bob,\{leave(Bob)\})=\{leave(Bob)\}$ to regress the outer
@@ -617,32 +728,32 @@ expression as follows:\begin{multline*}
 
 
 For the inner expression, we have from the previous example:\begin{multline*}
-\Pst(\neg\exists l:\,\Knows(Ann,loc=l),PbU(Bob))\,\Rightarrow\\
-\neg\exists l:\,\Knows(Ann,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Ann)\right)\end{multline*}
+\Pst(\neg\exists l:\,\Knows(Alice,loc=l),PbU(Bob))\,\Rightarrow\\
+\neg\exists l:\,\Knows(Alice,loc=l)\wedge\left(InRoom(Bob)\,\vee\,\neg InRoom(Alice)\right)\end{multline*}
 
 
-This expression is key: for Bob to know $\neg\exists l:\Knows(Ann,loc=l)$,
+This expression is key: for Bob to know $\neg\exists l:\Knows(Alice,loc=l)$,
 he must also know either that he is in the room (and will thus observe
-the $read(Ann)$ action if it occurs) or that Ann is not in the room
-(so the $read(Ann)$ action will not be possible). Otherwise, Ann
-could learn the location of the party without him making any further
+the $read(Alice)$ action if it occurs) or that Ann is not in the
+room (so the $read(Ann)$ action will not be possible). Otherwise,
+Ann could learn the location of the party without him making any further
 observations.
 
 When we regress over the action $\{leave(Bob)\}$ then $InRoom(Bob)$
 is made false:\begin{multline*}
-\Reg(\Pst(\neg\exists l:\,\Knows(Ann,loc=l),PbU(Bob)),\{leave(Bob)\})\,\Rightarrow\\
-\neg\exists l:\,\Knows(Ann,loc=l)\wedge\left(false\,\vee\,\neg InRoom(Ann)\right)\end{multline*}
+\Reg(\Pst(\neg\exists l:\,\Knows(Alice,loc=l),PbU(Bob)),\{leave(Bob)\})\,\Rightarrow\\
+\neg\exists l:\,\Knows(Ann,loc=l)\wedge\left(false\,\vee\,\neg InRoom(Alice)\right)\end{multline*}
 
 
 And the entire expression can be simplified to:\[
-\neg\Knows(Bob,InRoom(Bob)\rightarrow\neg\exists l:\,\Knows(Ann,loc=l)\wedge\neg InRoom(Ann),S_{0})\]
+\neg\Knows(Bob,InRoom(Bob)\rightarrow\neg\exists l:\,\Knows(Alice,loc=l)\wedge\neg InRoom(Alice),S_{0})\]
 
 
 Since Ann is known to be in the room, this expression will be entailed
 by the domain.
 
 
-\section{TODO: Approximate Epistemic Reasoning}
+\section{TODO: Approximate Epistemic Reasoning\label{sec:Knowledge:Approximate}}
 
 \begin{itemize}
 \item Restrict formulae allowed inside $\Knows$ to atomic literals, in
@@ -650,7 +761,7 @@ style of \citet{demolombe00tractable_sc_belief}.
 \item Leverage encoding develope by \citet{petrick02knowledge_equivalence} 
 \end{itemize}
 
-\section{Discussion}
+\section{Discussion\label{sec:Knowledge:Discussion}}
 
 In this section, we have first developed a principled axiomatisation
 of the observability of actions, using the notion of observations
@@ -693,6 +804,17 @@ it has that property at every situation. In our formulation these
 are all simple corollaries of Theorem \ref{thm:k_obs_equiv}, based
 on the reflexive, symmetric and transitive nature of the equality
 symbol.
+
+TODO: belief.When reasoning about knowledge, it is generally assumed
+that the \emph{actual} state of the world is among those considered
+possible, so that an agent's knowledge is always true:\[
+\Knows(agt,\phi,s)\,\rightarrow\,\phi[s]\]
+
+
+If this is not the case, one is performing \emph{doxastic} or belief-based
+reasoning.
+
+TODO: refs here.
 
 We have demonstrated that our formalism is expressive enough to capture
 the standard account of knowledge based on public actions, as well
