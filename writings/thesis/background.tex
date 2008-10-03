@@ -25,7 +25,7 @@ standard formalism for representing complex tasks in the situation
 calculus. Reasoning about the knowledge of an agent, or \emph{epistemic
 reasoning}, is covered in Section \ref{sec:Background:Epistemic}.
 Related formalisms for reasoning about action and change are briefly
-discussed in section \ref{sec:Background:Related-Formalisms}. Finally,
+discussed in Section \ref{sec:Background:Related-Formalisms}. Finally,
 Section \ref{sec:Background:Mozart/Oz} introduces the Mozart programming
 system, which will be used to implement our multi-agent Golog variant.
 Basic familiarity with formal logic is assumed throughout; readers
@@ -77,7 +77,7 @@ term as their final argument. Predicates and functions that do not
 take a situation term are called \emph{rigid}. We use the term \emph{primitive
 fluent} to describe fluents that are directly affected by actions,
 rather than being defined in terms of other fluents. No functions
-other than $S_{0}$ and $do$ produce values of sort \noun{Situation.}
+other than $S_{0}$ and $do$ produce values of sort \noun{Situation}.
 
 For concreteness, let us present some formulae from an example domain
 that will be used throughout the thesis. In the {}``cooking agents''
@@ -282,7 +282,7 @@ notion of an action description predicate allows us to treat all of
 them in a uniform manner. We will use the meta-variable $\alpha$
 to represent an arbitrary action description predicate.
 
-In preparation for the coming material on natural actions in section
+In preparation for the coming material on natural actions in Section
 \ref{sub:Background:Natural-Actions}, let us introduce an action
 description predicate $Legal$ that identifies actions that can be
 legally executed in the real world. In the basic situation calculus,
@@ -342,8 +342,9 @@ s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s')\end{gather*}
 The \emph{legal situations} are those in which every action was legal
 to perform in the preceding situation. These are of fundamental importance,
 as they are the only situations that could be reached in the real
-world:\begin{eqnarray*}
-Legal(s) & \equiv & S_{0}\leq_{Legal}s\end{eqnarray*}
+world:\[
+Legal(s) \isdef S_{0}\leq_{Legal}s
+\]
 
 
 
@@ -497,7 +498,7 @@ write $\Reg$ for the regression operator. When dealing with situation-suppressed
 uniform formulae, we will use a two-argument operator $\Reg(\phi,a)$
 to indicate the regression of $\phi$ over the action $a$. It should
 be read as a shorthand for $\Reg(\phi[do(a,s)])^{-1}$ using the situation-suppression
-operator from section \ref{sec:Background:SC:Notation}.
+operator from Section \ref{sec:Background:SC:Notation}.
 
 Let us briefly state some important properties of the regression operator.
 First, and most importantly, it preserves equivalence of formulae:
@@ -1014,7 +1015,7 @@ incorporate sets of concurrent actions in an attempt to integrate
 these two forms of concurrency. However, their semantics may call
 for actions to be performed that are not possible and can also produce
 unintuitive program behaviour in some cases. A key aspect of our work
-in chapter \ref{ch:mindigolog} is a robust integration of these two
+in Chapter \ref{ch:mindigolog} is a robust integration of these two
 notions of concurrency.\\
 
 
@@ -1301,7 +1302,7 @@ by transforming successor state axioms into state update axioms that
 explicitly add and remove fluents from the state \citep{thielscher99fluentcalc_from_sitcalc}.
 Notably, it is relatively straightforward to interpret Golog programs
 on top of the fluent calculus \citep{thielscher05golog_in_flux}.
-As discussed in section \ref{sec:Background:Progression}, it would
+As discussed in Section \ref{sec:Background:Progression}, it would
 be interesting to translate our regression-based ideas into a progression-based
 formalism such as this, but we do not consider it in this thesis.
 
@@ -1324,7 +1325,7 @@ These formalisms are typically propositional rather than first-order,
 and focus more on reasoning about knowledge and communication than
 on modelling a changing dynamic world. However, there are still strong
 similarities with the situation calculus \citep{vanbentham07ml_sitcalc}.
-In chapter \ref{ch:cknowledge} we will adapt some techniques from
+In Chapter \ref{ch:cknowledge} we will adapt some techniques from
 these formalisms to model common knowledge in the situation calculus.
 
 There have been several attempts to combine the various action formalisms
@@ -1351,14 +1352,14 @@ the Oz programming language \citep{vanRoyHaridi04ctm} with strong
 support for logic programming and distributed computing. While a full
 explanation of its features is well outside the scope of this thesis,
 we provide a short introduction to the subset of its features we will
-be using -- in particular, doing prolog-style logic programming in
-Oz. Familiarity with logic programming in the style of prolog is assumed.
+be using -- in particular, doing Prolog-style logic programming in
+Oz. Familiarity with logic programming in the style of Prolog is assumed.
 
-Terms, variables and unification in Mozart work similarly to prolog,
+Terms, variables and unification in Oz work similarly to Prolog,
 although arguments in compound terms are separated by whitespace rather
 than a comma. Predicates are implemented as ordinary procedures, so
 all clauses for a predicate must be contained in a single procedure.
-Figure \ref{fig:Background:Naive-List-Reverse} shows a Mozart implementation
+Figure \ref{fig:Background:Naive-List-Reverse} shows an Oz implementation
 of a classic Prolog example predicate, naive list reverse. Some things
 to note about this example include:
 
@@ -1379,17 +1380,17 @@ of a variable
 \end{figure}
 
 
-Procedures in Mozart are deterministic by default, and there is no
+Procedures in Oz are deterministic by default, and there is no
 default search strategy for exploring different alternatives. Instead,
-Mozart provides independent facilities for creating choicepoints and
+Oz provides independent facilities for creating choicepoints and
 for exploring procedures that contain choicepoints. The result is
 a much more flexible, although syntactically more cumbersome, approach
 to logic programming \citep{lpinoz99}.
 
-The creation of choice points is explicit in Mozart, and performed
+The creation of choice points is explicit in Oz, and performed
 using the $\mathbf{choice}$ keyword. To demonstrate, consider another
 classic Prolog example: the nondeterministic list member predicate
-demonstrated in figure \ref{fig:Background:Nondet-Member}. In the
+demonstrated in Figure \ref{fig:Background:Nondet-Member}. In the
 case of the empty list, $Member$ simply fails. For a non-empty list,
 $Member$ explicitly creates a \emph{choice point} with two options
 - either bind $E$ to the head of the list, or bind $E$ to a member
@@ -1414,7 +1415,7 @@ computation is achieved. They operate by executing the procedure in
 a separate \emph{computation space} through which the state of the
 underlying computation can be managed \citep{schulte00constraint_services}.
 
-As a demonstration, figure \ref{fig:Background:All-Pairs} uses the
+As a demonstration, Figure \ref{fig:Background:All-Pairs} uses the
 $Member$ procedure to define a procedure $Pairs$, which nondeterministically
 selects a pair of elements from a pair of lists. The procedure $AllPairs$
 then uses the builtin $Search.base.all$ object to find all solutions
@@ -1423,7 +1424,7 @@ two lists. By encapsulating the calls to nondeterministic procedures
 inside a search object, $AllPairs$ will not expose any choicepoints
 to code that calls it.
 
-Also of note in figure \ref{fig:Background:All-Pairs} is the use
+Also of note in Figure \ref{fig:Background:All-Pairs} is the use
 of a \emph{closure} over the procedure $Pair$ to create the one-argument
 procedure $FindP$. Search objects work with a one-argument procedure,
 which is expected to bind its argument to a result. The dollar symbol
@@ -1456,9 +1457,9 @@ procedure. Mozart comes with a built-in $ParallelSearch$ object,
 which is described in detail in \citep{schulte00oz_parallel} and
 which is our main motivation for the use of Oz in this thesis.
 
-To demonstrate the power of the approach, consider figure \ref{fig:Background:Parallel-All-Pairs},
+To demonstrate the power of the approach, consider Figure \ref{fig:Background:Parallel-All-Pairs},
 which describes a parallel-search version of the $AllPairs$ procedure.
-In this instance we define $FindP$ as a \emph{functor}, a Mozart
+In this instance we define $FindP$ as a \emph{functor}, an Oz
 abstraction for code that is portable between machines. This functor
 imports the module $MyList$ containing the procedures we defined
 earlier, and exports a one-argument procedure $Script$ which will
@@ -1476,7 +1477,7 @@ enumerate all solutions for $FindP$.
 \end{figure}
 
 
-In chapter \ref{ch:mindigolog} we will use this parallel search object
+In Chapter \ref{ch:mindigolog} we will use this parallel search object
 to automatically share the workload of planning a Golog execution
 amongst a team of cooperating agents.
 
