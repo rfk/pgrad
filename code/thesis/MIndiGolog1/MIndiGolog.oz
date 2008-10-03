@@ -19,7 +19,6 @@ export
 
     Trans
     Final
-    Step
     TransStar
     Do
     ParallelDo
@@ -43,7 +42,7 @@ define
                             end
       []   pick(V D1) then D2 in
                            {LP.subInTerm V _ D1 D2}
-                           {Step D2 S Dp Sp}
+                           {Trans D2 S Dp Sp}
       []   star(D1) then D2 in
                          {Trans D S D2 Sp}
                          Dp=seq(D2 star(D1))

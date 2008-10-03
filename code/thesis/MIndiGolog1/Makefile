@@ -6,8 +6,11 @@ TIME_CMD = /usr/bin/time -f "%e" -a -o
 
 all: main.exe $(FUNCTORS)
 
-run-%: main.exe
+run-%-p: main.exe
 	./main.exe --agent=$* --psearch
+
+run-%-s: main.exe
+	./main.exe --agent=$* --nopsearch
 
 time-test: main.exe
 	rm -f TIME.*

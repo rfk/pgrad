@@ -20,11 +20,10 @@ define
   {Property.put 'errors.width' 1000}
   {Property.put 'errors.depth' 1000}
 
-  % Read the agent name from command-line arguments, and
-  % initialise Control module accordingly
+  % Read the command-line arguments, and initialise Control module accordingly
   %
   MyArgs = {Application.getArgs record(agent(single type:atom)
-                                       psearch(single type:bool default:false))}
+                                   psearch(single type:bool default:false))}
   Control.teamLeader = jon
   Control.teamMember = MyArgs.agent
   Control.doParallelSearch = MyArgs.psearch
@@ -42,7 +41,7 @@ define
   %
   proc {NextStep D S Dp Sp}
     [Dp#Sp] = {Search.base.one proc {$ R} DpR SpR in
-                {MIndiGolog.step D S DpR SpR}
+                {MIndiGolog.trans D S DpR SpR}
                 R = DpR#SpR
               end}
   end
@@ -56,9 +55,13 @@ define
     else Dp Sp C T in
         try 
           {NextStep D S Dp Sp}
-          Sp = res(C T S)
-          T = {Time.min T}
-          {Control.execute C T}
+          if Sp == S then
+            skip
+          else
+            Sp = res(C T S)
+            T = {Time.min T}
+            {Control.execute C T}
+          end
           {Run Dp Sp}
         catch _ then
           {Control.log failed}
@@ -69,7 +72,7 @@ define
   {Control.log start}
   {Run pcall(main) s0}
 
-  % Count to 1000, then exit...
+  % Count to 10000, so other agents have a chance to finish, then exit...
   proc {CountDown X}
     if X == 0 then skip
     else {CountDown (X-1)} end
