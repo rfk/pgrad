@@ -183,7 +183,7 @@ publish:
 
 # find things left to do
 todo:
-	grep -i todo *.*
+	grep --color -i todo *.*
 
 # find latex/bibtex warnings
 warnings: thesis.dvi
