@@ -196,6 +196,6 @@ warnings: thesis.dvi
 
 ##  Specific dependenices
 
-thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES)
+thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES) ../../library/references.bib
 
 
