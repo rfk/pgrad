@@ -30,10 +30,8 @@ By having views as explicit terms in the logic, we are then in a position
 to ensure that agents only reason and act based on their local information.
 Having factored out the precise details of each agent's local view,
 we can develop reasoning techniques and tools that can be applied
-in a variety of different domains. The techniques developed in subsequent
-chapters can operate directly on observations and views, rather than
-depending on any particular details of how each action is perceived
-by each agent.
+in a variety of different domains, rather than depending on any particular
+details of how actions are perceived by each agent.
 
 To demonstrate the appeal of this decoupling, we show how a variety
 of domain dynamics can be modelled using our approach. The techniques
@@ -52,8 +50,8 @@ discusses how some common domain dynamics can be modelled using observations
 and views, while Section \ref{sec:Observations:Axiomatising-extended}
 demonstrates the power and flexibility of the approach by axiomatising
 more complex domains that have not previously been approached in the
-situation calculus. We conclude with some general discussion in Section
-\ref{sec:Observations:Discussion}.
+situation calculus. Section \ref{sec:Observations:Discussion} concludes
+with general discussion.
 
 
 \section{Background\label{sec:Observations:Background}}
@@ -211,7 +209,7 @@ of all the observations made by an agent as the world has evolved.
 [{Views}] An agent's view in a given situation $\mathrm{s}$
 is the corresponding sequence of observations made by the agent as
 a result of each action in $\mathrm{s}$, excluding those actions
-for which no observations were made. \label{defn:Observations:View}
+for which no observations were made. \label{defn:Observations:View} 
 \end{defnL}
 We introduce another sort \noun{View} consisting of sequences of sets
 of observations, with $\epsilon$ being the empty sequence and the
@@ -235,22 +233,6 @@ situation is an omniscient perspective on the world, the view a local
 perspective. This distinction will be fundamental to the new techniques
 we develop throughout this thesis.
 
-The key point that distinguishes our approach is that the agent's
-view excludes cases where $Obs(agt,c,s)$ is empty. Thus, the agent
-may not have enough information to determine how many actions have
-been performed in the world. As discussed in Chapter \ref{ch:intro},
-this property is fundamental to modelling truly asynchronous domains.
-Mirroring the terminology of \citep{vanBentham06tree_of_knowledge},
-we can explicitly define what it means for a domain to be \emph{synchronous}
-in the situation calculus.
-
-\begin{defnL}
-[{Synchronous~Action~Theory:}] A basic action theory $\Dt$
-is synchronous if every agent observes something whenever an action
-occurs:\[
-\Dt\,\models\,\forall agt,c,s:\, Legal(c,s)\,\rightarrow Obs(agt,c,s)\neq\{\}\]
-
-\end{defnL}
 Just as the empty set of actions is assumed to never be legal, so
 we should assume that it generates no observations -- clearly the
 agents cannot observe anything if no action has taken place. Formally,
@@ -264,9 +246,26 @@ perceive observations that are not caused by some action:\[
 \Dt\,\models\,\forall agt,s:\, Obs(agt,\{\},s)=\{\}\]
 
 \end{defnL}
-Before proceeding with some example axiomatisations of the $Obs$
-function, let us briefly foreshadow how observations and views will
-be used in the coming chapters.
+The key point that distinguishes our approach is that the agent's
+view excludes cases where $Obs(agt,c,s)$ is empty. Thus, the agent
+may not have enough information to determine how many actions have
+been performed in the world. As discussed in Chapter \ref{ch:intro},
+this property is fundamental to modelling truly asynchronous domains.
+Mirroring the terminology of \citep{vanBentham06tree_of_knowledge},
+we can explicitly define what it means for a domain to be \emph{synchronous}
+in the situation calculus.
+
+\begin{defnL}
+[{Synchronous~Action~Theory:}] A basic action theory $\Dt$
+is synchronous if every agent observes something whenever an action
+occurs:\[
+\Dt\,\models\,\forall agt,c,s:\, Legal(c,s)\,\rightarrow\, Obs(agt,c,s)\neq\{\}\]
+
+\end{defnL}
+As we shall see in Chapter \ref{ch:knowledge}, such domains make
+reasoning about knowledge significantly easier. Before proceeding
+with some example definitions of $Obs$, let us briefly foreshadow
+how observations and views will be used in the coming chapters.
 
 In Chapter \ref{ch:jointexec}, we will define a partially-ordered
 branching action structure to be generated as the output of the MIndiGolog
@@ -368,8 +367,8 @@ a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\wedge\P
 
 
 For example, an action $sense_{\phi,\psi}$ that senses the truth
-of some formula $\phi$, but only when the guard condition $\psi$
-is satisified, would require the following to be entailed by the definition:\begin{gather*}
+of some formula $\phi$ when the guard condition $\psi$
+is true would require the following to be entailed by the definition:\begin{gather*}
 sense_{\phi,\psi}\#T\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\, actor(sense_{\phi})=agt\wedge\phi(s)\wedge\psi(s)\\
 sense_{\phi,\psi}\#F\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\, actor(sense_{\phi})=agt\wedge\neg\phi(s)\wedge\psi(s)\\
 sense_{\phi,\psi}\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\, actor(sense_{\phi})=agt\wedge\neg\psi(s)\end{gather*}
@@ -548,15 +547,15 @@ As the examples in Sections \ref{sec:Observations:Axiomatising-simple}
 and \ref{sec:Observations:Axiomatising-extended} have demonstrated,
 our formalism is able to capture a very wide variety of domain dynamics.
 
-Some of our observation axioms in Sections \ref{sec:Observations:Axiomatising-simple}
+Some of our axioms in Sections \ref{sec:Observations:Axiomatising-simple}
 and \ref{sec:Observations:Axiomatising-extended} may seem rather
 ad-hoc, but we propose that they are no more or less ad-hoc than the
 many adjustments made to the axioms defining the knowledge fluent
 $K$ to accommodate different kinds of information-producing action
 {[}TODO: refs]. The difference is now that these adjustments can be
 made separately from the rest of the theory, rather than in the fundamental
-axiom for reasoning about knowledge. Our formalism is thus significantly
-more elaboration tolerant, a point we will return to formally in Chapter
+axiom for reasoning about knowledge. This makes our formalism significantly
+more elaboration tolerant, a point we will return to in Chapter
 \ref{ch:knowledge}.
 
 From the perspective of the rest of the thesis, the key contribution
@@ -596,7 +595,7 @@ observations, agents in our formalism can conclue that certain actions
 have not occurred. By contrast, the use of $occurs$ and $holds$
 in \citep{pinto98sc_observations} specifies only what \emph{must}
 have happened, not what \emph{cannot} have happened. This distinction
-will play an important role in constructing effective reasoning techniques
+will play an important role for effective reasoning
 for our formalism.
 
 We conclude this chapter by linking our formalism back to the reasoning
