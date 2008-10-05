@@ -58,7 +58,7 @@ that the induction axiom can be {}``compiles away'' when verifying
 a state constraint, by means of the following equivalence:\begin{gather*}
 \Dt\,\models\,\phi[S_{0}]\rightarrow\left(\forall s:\, S_{0}\leq s\rightarrow\phi[s]\right)\\
 \mathit{iff}\\
-\Dt_{una}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}[Poss(a,s)]\,\rightarrow\,\Reg_{\Dt}[\phi[do(a,s)]]\end{gather*}
+\Dt_{una}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(Poss(a,s))\,\rightarrow\,\Reg_{\Dt}[\phi[do(a,s)]]\end{gather*}
  Here the background theory contains only the unique names axioms
 for action and is written $\Dt_{una}$/ Verification of a state constraint
 can thus be reduced to reasoning about a universally quantified uniform
@@ -229,7 +229,7 @@ a situation:
 [{Persistence~to~Depth}] A uniform formula $\phi$ persists
 to depth 1 under $\alpha$ in situation $s$ when the formula $\Pst_{\Dt}^{1}(\phi,\alpha)[s]$
 holds, as defined by:\label{def:persists-depth-n}\[
-\Pst_{\Dt}^{1}(\phi,\alpha)\,\isdef\,\phi^{-1}\,\wedge\,\forall a:\,\Reg_\Dt(\alpha(a,s))^{-1}\rightarrow\Reg_{\Dt}(\phi[do(a,s)])^{-1}\]
+\Pst_{\Dt}^{1}(\phi,\alpha)\,\isdef\,\phi^{-1}\,\wedge\,\forall a:\,\Reg_\Dt(\alpha[a,s])^{-1}\rightarrow\Reg_{\Dt}(\phi[do(a,s)])^{-1}\]
  More generally, for any $n\geq0$, a uniform formula $\phi$ persists
 to depth $n$ under $\alpha$ in situation $s$ when the formula $\Pst_{\Dt}^{n}(\phi,\alpha)[s]$
 holds, as defined by:\begin{gather*}
@@ -242,7 +242,7 @@ the requirement {}``$\phi$ holds in $s$ and in all its direct successors'',
 using the standard regression operator $\Reg_{\Dt}$ and the situation-suppression
 operator $\phi^{-1}$ to produce a situation-suppressed uniform formula.
 Since $\alpha$ is an action description predicate and $\phi$ is
-a uniform formula, the expressions $\Reg_\Dt(\alpha(a,s))^{-1}$
+a uniform formula, the expressions $\Reg_\Dt(\alpha[a,s])^{-1}$
 and $\Reg(\phi[do(a,s)])^{-1}$ are always defined and produce uniform
 formulae. Successive applications of $\Pst_{\Dt}^{1}$
 assert persistence to greater depths.
@@ -261,7 +261,7 @@ other than $S_{0}$:
 \begin{prop}
 For any action description predicate $\alpha$, the foundational axioms
 of the situation calculus entail the following induction principle:\label{prop:a-order-induction}\begin{multline*}
-\forall W,s:\,\, W(s)\wedge\left[\forall a,s':\,\alpha(a,s')\wedge s\leq_{\alpha}s'\wedge W(s')\rightarrow W(do(a,s'))\right]\\
+\forall W,s:\,\, W(s)\wedge\left[\forall a,s':\,\alpha[a,s']\wedge s\leq_{\alpha}s'\wedge W(s')\rightarrow W(do(a,s'))\right]\\
 \rightarrow\forall s':\, s\leq_{\alpha}s'\rightarrow W(s')\end{multline*}
 
 \end{prop}
@@ -273,7 +273,7 @@ For any basic action theory $\Dt$, uniform formula $\phi$
 and action description predicate $\alpha$:\label{prop:a-order-reduction}\begin{gather*}
 \Dt-\Dt_{S_{0}}\models\forall s:\,\phi[s]\rightarrow\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\\
 \mathit{iff}\\
-\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(\alpha(a,s))\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
+\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
 
 \end{prop}
 \begin{proof}
@@ -308,11 +308,11 @@ For the base case, assume that $\phi$ persists but $\Pst_{\Dt}^{1}(\phi,\alpha)$
 does not, then we must have some $s'$ with $s\leq_{\alpha}s'$ and
 $\neg\Pst_{\Dt}^{1}[\phi,\alpha][s']$. By the definition of $\Pst_{\Dt}^{1}$,
 this means that:\[
-\neg\left(\phi[s']\,\wedge\,\forall a:\,\alpha(a,s')\rightarrow\phi[do(a,s')]\right)\]
+\neg\left(\phi[s']\,\wedge\,\forall a:\,\alpha[a,s']\rightarrow\phi[do(a,s')]\right)\]
 
 
 Since $\phi$ persists it must hold at $s'$, so there must be some
-$a$ such that $\alpha(a,s')$ and $\neg\phi[do(a,s')]$. But $s\leq_{\alpha}do(a,s')$
+$a$ such that $\alpha[a,s']$ and $\neg\phi[do(a,s')]$. But $s\leq_{\alpha}do(a,s')$
 and so $\phi[do(a,s')]$ must hold by our assumption that $\phi$
 persists, and we have a contradiction.
 
@@ -354,8 +354,8 @@ For the \emph{if} direction, we begin by expanding equation \eqref{eqn:pn_persis
 using the definition of $\Pst_{\Dt}^{1}$ to get the
 equivalent form:\begin{gather*}
 \Dt_{bg}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\Pst_{\Dt}^{1}(\Pst_{\Dt}^{n}(\phi,\alpha),\alpha)[s]\\
-\Dt_{bg}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\left(\Pst_{\Dt}^{n}(\phi,\alpha)[s]\wedge\forall a:\,\Reg_{\Dt}(\alpha(a,s))\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\right)\\
-\Dt_{bg}\models\forall s,a:\,\Pst_{\Dt}^{n}(\phi,\alpha)\wedge\forall a:\,\Reg_{\Dt}(\alpha(a,s))\rightarrow\Reg_{\Dt}(\phi[do(a,s)])[s]\end{gather*}
+\Dt_{bg}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\left(\Pst_{\Dt}^{n}(\phi,\alpha)[s]\wedge\forall a:\,\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\right)\\
+\Dt_{bg}\models\forall s,a:\,\Pst_{\Dt}^{n}(\phi,\alpha)\wedge\forall a:\,\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])[s]\end{gather*}
  By Proposition \ref{prop:a-order-reduction}, equation \eqref{eqn:pn_persists}
 thus lets us conclude that $\Pst_{\Dt}^{n}(\phi,\alpha)$
 persists under $\alpha$. By Lemma \ref{lem:p-equiv-p(pn)} this is
@@ -371,7 +371,7 @@ of $\phi$, which implies the persistence of $\Pst_{\Dt}^{n}(\phi,\alpha)$,
 which yields equation (\ref{eqn:pn_persists}) by Proposition \ref{prop:a-order-reduction}. 
 \end{proof}
 Since $\Dt_{bg}\models\Pst_{\Dt}^{n+1}(\phi,\alpha)\rightarrow\Pst_{\Dt}^{n}(\phi,\alpha)$
-by definition, equation (\ref{eqn:pn_persists}) identifies $\Pst_{\Dt}^{n}[\phi,\alpha]$
+by definition, equation (\ref{eqn:pn_persists}) identifies $\Pst_{\Dt}^{n}(\phi,\alpha)$
 as a fixpoint of the $\Pst_{\Dt}^{1}$ operator, as
 our initial intuition suggested. In fact, we can use the constructive
 proof of Tarski's fixpoint theorem \citep{cousot79constructive_tarski}
@@ -599,7 +599,7 @@ technique.\\
 \textbf{Need for Cooperation:} Given an agent $agt$, goal $G$ and
 situation $\sigma$, establish that no sequence of actions performed
 by that agent can achieve the goal:\[
-\Dt\models\Pst_\Dt[\neg G,actor=agt][\sigma]\]
+\Dt\models\Pst_\Dt(\neg G,actor=agt)[\sigma]\]
 
 
 \textbf{Knowledge with Hidden Actions:} In the next chapter we will
@@ -648,7 +648,7 @@ of properties of ConGolog programs of \citep{ternovska97congolog_fixpoint,classe
 Indeed, a property persistence query is equivalent to a safety query
 stating that the property $\phi$ never becomes false during execution
 of the following program:\[
-\delta_{P\alpha}\isdef\left(\pi(a,\,\alpha(a)?\,;\, a)\right)^{*}\]
+\delta_{P\alpha}\isdef\left(\pi(a,\,\alpha[a]?\,;\, a)\right)^{*}\]
 
 
 Formally:\begin{gather*}
