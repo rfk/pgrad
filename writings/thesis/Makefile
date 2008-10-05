@@ -154,7 +154,7 @@ view-%: %.ch.pdf
 
 # easy editing of chapters in lyx
 edit-%: %.ch.tex
-	# Fail is already editing
+	# Fail if already editing
 	if [ -f $*.ed.lyx ] ; then false ; fi
 	# Generate lyx file from the latex
 	rm -rf $*.ed.lyx $*.ed.tex
