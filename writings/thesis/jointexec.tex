@@ -4,58 +4,46 @@
 
 \label{ch:jointexec}
 
-TODO: ref branching in \char`\"{}semantics of deliberation in IndiGolog\char`\"{},
-and CATs in {[}find this ref]
+This chapter constructs a new data structure for representing the
+actions to be performed by a team of agents during the cooperative
+execution of a shared task. Dubbed \emph{joint executions}, they are
+partially-ordered branching sequences of actions that allow independent
+actions to be performed independently, while using each agent's local
+view to ensure that synchronisation is always possible when required.
 
-Third, planning in the situation calculus involves building situation
-terms representing the sequence of actions to be performed. Situations
-inherently impose a total ordering on actions, and cannot represent
-the independent execution of actions by different agents. Executing
-a plan built using situation terms therefore requires constant synchronisation
-among the agents. Even if such synchronicity is achievable, it is
-usually not desirable.
+The fundamental unit of reasoning in the situation calculus, and the
+output of the ConGolog execution planning process, is the \emph{situation}:
+a complete, ordered history of all actions that are to be performed.
+This is suboptimal for representing plans in an asyncrhonous multi-agent
+setting in three distinct ways:
 
-However, some representational limits of the situation calculus make
-it unsatisfactory, by itself, for rich multi-agent domains. The fundamental
-unit of reasoning, and the output of the ConGolog execution planning
-process, is the \emph{situation}: a complete, ordered history of all
-actions that have occurred in the world. Working with a total ordering
-over actions is far from ideal in a multi-agent setting as it requires
-constant synchronization between the agents. This severely limits
-the potential for concurrency in the system. Moreover, such synchronization
-may not even be possible if agents are unaware of the actions performed
-by others. Multi-agent applications of the situation calculus thus
-invariably assume that all actions performed are public, available
-to all agents for the purposes of reasoning and synchronization. This
-is clearly unrealistic in many domains.
+\begin{itemize}
+\item it does not permit branching depending on information obtained at
+run-time 
+\item it enforces a strict execution order on actions that are potentially
+independent, requiring inter-agent syncrhonisation when it is not
+actually necessary 
+\item it demands a strict execution order on actions that may be hidden
+from some agents, demanding inter-agent synchronisation that is not
+actually possible 
+\end{itemize}
+As we have demonstrated in Chapter \ref{ch:mindigolog}, restricting
+the domain to be synchronous and completely known lets the agents
+make effective use of raw situation terms for planning. But moving
+to asynchronous domains with incomplete knowledge requires a more
+powerful structure for representing the actions to be performed.
 
-This chapter shows how these apparent limitations of the situation
-calculus can in fact be overcome, by developing a formalism for explicitly
-working with only a partial ordering on actions. We take inspiration
-from a model of concurrent computation known as \emph{prime event}
-\emph{structures} \citep{npw79event_structures}, which are partially-ordered
-branching sequences of events.
-
-We define a \emph{joint execution} as a particular kind of prime event
-structure that is rich enough to capture the concurrent execution
-of independent actions, including actions with sensing results, but
-restricted enough that it can be unambiguously reduced back to situation
-terms for the purposes of reasoning. To demonstrate the utility of
-the approach, we show how a team of agents can cooperate to plan and
-perform an execution of a shared ConGolog program in an asynchronous,
-partially observable domain.
-
-Rather than assuming that all actions are public, we leverage recent
-work by \citep{kelly07sc_know_obs} to axiomatize the conditions under
-which an agent will be aware of the occurrence of an action. Joint
-executions are restricted such that whenever action $a_{1}$ must
-be performed before action $a_{2}$, the agent performing $a_{2}$
-is able to observe the occurrence of $a_{1}$. Synchronization thus
-occurs by observing the actions of other agents. If this is not possible,
-yet synchronization is needed to ensure correctness, then construction
-of the joint execution will fail. In general, whether an action is
-enabled at any stage of execution can be determined using only the
-information available to the agent who is to perform it.
+To build such a structure, we take inspiration from a model of concurrent
+computation known as \emph{prime event} \emph{structures} \citep{npw79event_structures},
+which are partially-ordered branching sequences of events. A \emph{joint
+execution} is defined as a particular kind of prime event structure
+that is rich enough to capture the concurrent execution of independent
+actions, including actions with sensing results, but restricted enough
+that it can be unambiguously reduced back to ordinary situation terms
+for the purposes of reasoning. Using our explicit account of the local
+\emph{view} of each agent from Chapter \ref{ch:observations}, we
+identify several restrictions on a joint execution that make it a
+feasible to execute in the real world.
 
 Joint executions thus allow us to capture the actions that a team
 of agents are to perform in service of some shared task, without requiring
@@ -63,38 +51,183 @@ constant synchronization between the agents, and without assuming
 that agents know all the actions that have been performed, while utilizing
 existing reasoning methods based on full situation terms. This is
 a significant increase in expressiveness over existing approaches
-to modeling multi-agent teams in the situation calculus.
+to modeling multi-agent teams in the situation calculus. To demonstrate
+the utility of the approach, we extend our MIndiGolog interpreter
+from Chapter \ref{ch:mindigolog} to show how a team of agents can
+cooperate to plan and perform the execution of a shared ConGolog program
+in an asynchronous, partially observable domain.
 
-\citet{Shanahan97ec_planning} - event calculus planning, aduction
-generates partial orders
+The chapter proceeds as follows: TODO.
 
 
+\section{Background\label{sec:JointExec:Background}}
+
+The above discussion highlights three desirable properties of a plan
+representation formalism intended for use in rich multi-agent domains:
+it must be \emph{branching}, \emph{partially-ordered}, and \emph{feasible}.
+While each of these aspects have been studied in isolation in this
+situation calculus, our work is the first to combine them into a single
+formalism suitable for a multi-agent setting.
 
 
-\section{Background}
+\subsection{Branching}
+
+Several single-agent formalisms based on the situation calculus have
+introduced some form of branching into the structures returned by
+the planner, including the conditional action trees of \citep{lakemeyer99golog_cats}
+and the branching plans of \citep{giacomo04sem_delib_indigolog}.
+These structures typically branch based on the truth or falsity of
+various test conditions included in the program, rather than directly
+on the sensing results returned by an action. For example, the definition
+of conditional action trees in \citep{lakemeyer99golog_cats} includes
+the following branching case:\[
+c=[\phi,c_{1},c_{2}]\]
+
+
+This instructs the agent to execute the sub-tree $c_{1}$ if $\phi$
+is true and the sub-tree $c_{2}$ if $\phi$ is false. While this
+works well in a single-agent setting, it is not clear how to extend
+it to a multi-agent setting, where some members of the team may not
+know whether or not $\phi$ holds. Intsead, we will construct plans
+that branch directly on the results returned by sensing actions, in
+the style of the {}``robot programs'' of \citep{levesque96what_is_planning}.
+
+
+\subsection{Partial Order}
+
+There has been little work on partial-order planning in the situation
+calculus, most likely because the use of situations heavily biases
+the reasoning machinery towards totally-ordered sequences of actions.
+One exception is \citep{plaisted97sc_aspect}, which extends the situation
+calculus with explicit {}``aspects'' and allows partial-ordering
+between actions that affect different aspects of the world state.
+
+Partial-order planning is the mainstay of the closely-related formalism
+of the \emph{event calculus}. Here action occurrences are specified
+by asserting that they happen at a particular time, and the constraints
+on relative occurrence times of actions determine a partial ordering.
+\citet{Shanahan97ec_planning} has shown that abductive theorem proving
+in the event calculate generates partially-ordered plans, and the
+mechanics of the theorem prover naturally mirror various concepts
+from the literature on explicit partial-order planning, such as threats,
+links and conflicts \citep{peot92conditional_nonlinear}.
+
+The close similarities between the situation and event calculi are
+well understood, as are the advantages of the event calculus when
+it comes to working with partially-ordered action sequences \citep{belleghem97sitcalc_evtcalc}.
+Indeed, it is possible to implement a Golog interpreter on top of
+the event calculus that naturally generates partially-ordered plans
+\citep{pereira04ec_golog}. Perhaps we should adopt such a formalism
+that is naturally partially-ordered, rather than trying to construct
+partial orders on top of the naturally sequential situation calculus?
+
+While a partial-order representation is important, as we don't want
+the agents to have to synchronise their actions unnecessarily, it
+is not the complete picture. We also need the converse: that when
+an explicit ordering between actions is necessary, the required synchronisation
+is possible. It is not clear how techniques such as \citep{pereira04ec_golog}
+would extend to the multi-agent case.
+
+As we shall see, the formalisms we develop in this thesis enable these
+dual requirements - that some actions don't need to be ordered, while
+other actions cannot be ordered - to be captured in the situation
+calculus in quite an elegant way.
+
+
+\subsection{Feasibility}
+
+To allow an agent to execute a plan that depends on information collected
+at run-time, it is not sufficient to simply introduce branching into
+the plan representation formalism. One must also ensure that, at execution
+time, the agent will always \emph{know} which branch of the plan to
+take. For example, suppose this simple branching plan will provably
+achieve a goal:\[
+\mathbf{if}\,\phi\,\mathbf{then}\, action_{1}\,\mathbf{else}\, action_{2}\]
+
+
+The agent can only execute this program if it know whether or not
+$\phi$ holds -- otherwise, although one of the branches is guaranteed
+to achieve the goal, the agent does not know which one to take. This
+requirement that an agent {}``knows how'' to execute a plan is formalised
+by various notions of \emph{epistemic feasibility} including those
+of \citep{levesque98what_robots_can_do,levesque00knowing_how,Lesperance01epi_feas_casl,giacomo04sem_delib_indigolog,baier06programs_that_sense}.
+
+One approach to ensuring feasibility, embodied by \citep{levesque00knowing_how,giacomo04sem_delib_indigolog,baier06programs_that_sense},
+is to allow a plan to be potentially any program formulated in a control
+language such as Golog. They then semantically characterise those
+programs that are epistemically feasible, using direct assertions
+about the knowledge of each agent at each stage of execution. While
+this allows for potentially very succinct plans, it is not clear how
+to systematically generate an epistmically feasible plan characterised
+in this very general way.
+
+Another approach, advocated by \citep{levesque96what_is_planning,levesque98what_robots_can_do}
+and used in the implementation section of \citep{giacomo04sem_delib_indigolog},
+is to restrict the structure of plans so that they are obviously epistemically
+feasible. For example, the {}``robot programs'' of \citep{levesque98what_robots_can_do}
+are restricted to simple operators such as:\begin{gather*}
+action\\
+seq(\delta_{1},\delta_{2})\\
+branch(action,\delta_{1},\delta_{2})\\
+loop(branch(action,\delta,exit))\end{gather*}
+
+
+These programs do not contain test conditions, but rather branch directly
+on the (binary) sensing results returned from each action. There is
+therefore no potential for confusion when executing such programs,
+as they are essentially equivalent to a kind of finite automata that
+can be executed reactively. Nevertheless, \citet{levesque98what_robots_can_do}
+show that these programs are universal, in the sense that any achievable
+goal can be achieved by suitable a robot program. We are not aware
+of any work extending this approach to represent programs to be exeuted
+cooperatively by a team of agents.
+
+This notion of epistemic feasibility can be characterised as \emph{knowing
+what} -- at each stage of execution, each agent must know what its
+next action is. In synchronous domains with public actions, as typically
+studied in the situation calculus, this is all that is necessary to
+ensure the executability of a plan.
+
+In asynchronous domains it is not enough for an agent to know \emph{what}
+its next action is. It must also know \emph{when} that action should
+be performed. For example, suppose that the following simple plan
+provable achieves a goal:\[
+action_{1}(agt_{1})\,;\, action_{2}(agt_{2})\]
+
+
+In a synchrononous domain this plan can be executed directly. But
+suppose the domain is asynchronous, and $agt_{2}$ is unable to observe
+the occurrence of $action_{1}$. Since $agt_{2}$ has no way of knowing
+whether or not $action_{1}$ has been performed, it will not know
+when to perform $action_{2}$ and the plan cannot be executed.
+
+In this chapter we adopt an approach similar to \citep{levesque98what_robots_can_do},
+and define a structure for representing plans that forces all plans
+to be epistemically feasible. We use the explicit account of each
+agent's local view developed in the previous chapter to ensure that
+each agent will know when to perform its action.
 
 
 \subsection{Event Structures}
 
 To tackle cooperative execution in a multi-agent setting, we have
-adopted a model of concurrent computation known as \emph{event structures,}
-introduced in \citep{npw79event_structures}. The particular variant
-we are interested in are \emph{prime event structures}, canonically
-defined as a four-tuple:\[
+adopted a model of concurrent computation known as \emph{event structures}
+\citep{npw79event_structures}. The particular variant we are interested
+in are \emph{prime event structures}, canonically defined as a four-tuple:\[
 (\mathcal{V},\prec,\#,\gamma)\]
- where: $\mathcal{V}$ is a set of events; $\gamma$ is a function
-assigning a label to each event; $\prec$ is the \emph{enabling} relation,
-a strict partial order on events; and $\#$ is the \emph{conflict}
-relation, a binary symmetric relation that is inherited through enablers:\[
+ Here $\mathcal{V}$ is a set of events; $\gamma$ is a function assigning
+a label to each event; $\prec$ is the \emph{enabling} relation, a
+strict partial order on events; and $\#$ is the \emph{conflict} relation,
+a binary symmetric relation that is inherited through enablers:\[
 \forall i,j,k\in V:i\#j\wedge i\prec k\rightarrow k\#j\]
 
 
 A \emph{configuration} is a sequence of events consistent with $\prec$
 in which no pair of events conflict. Each configuration thus represents
-a potential partial run of execution of the system.
-
-For convenience, we will define our prime event structures using a
-slightly different form:\[
+a potential partial run of execution of the system. These structures
+can thus be seen as partially-ordered branching sequences of events.
+For convenience, we define our prime event structures in a slightly
+different form:\[
 (\mathcal{V},ens,alts,\gamma)\]
 
 
@@ -111,53 +244,10 @@ smallest relation satisfying:\[
 graph of the events that could occur during execution of the system.
 As shown in \citep{pratt91modeling_conc_with_geom}, it is straightforward
 to convert these structures into a kind of finite automaton for efficient
-execution.
+execution, much like the robot programs of \citep{levesque98what_robots_can_do}.
 
 
-\section{Joint Executions}
-
-\label{sec:Joint-Execs}
-
-
-\subsection{Independent Actions}
-
-As discussed in Section \ref{sec:Background}, posing queries in the
-situation calculus requires a full situation term, which means a total
-order on all actions that have occurred. The first step towards providing
-only a \emph{partial} order on the actions to be performed is, therefore,
-to capture the conditions under which actions can be performed out
-of order without invalidating the results of the reasoning process.
-
-Define \emph{independent} actions, identified by $indep(a_{1},a_{2})$,
-as those that can be performed in either order without affecting what
-holds in the resulting situation. Formally, they must satisfy the
-following restrictions (where $\mathcal{P}$ and $\mathcal{F}$ are
-meta-variables ranging over predicate and functional fluents respectively):
-
-\begin{itemize}
-\item $Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2},s))$ 
-\item $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$ 
-\item $\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$\\
- for all predicate fluents $\mathcal{P}(s)$ 
-\item $\mathcal{F}(do(a_{1},do(a_{2},s)))=r\equiv\mathcal{F}(do(a_{2},do(a_{1},s)))=r$\\
- for all functional fluents $\mathcal{F}(s)$ 
-\end{itemize}
-Whether actions are independent can be deduced from the description
-of the action theory, or (as currently in our implementation) indicated
-explicitly by the programmer.
-
-We will say that two situations are \emph{equivalent} if they are
-identical up to transposition of pairs of adjacent independent actions.
-A straightforward case analysis on the definition of the regression
-operator shows that for equivalent situations $s_{1}$ and $s_{2}$,
-$\Dt\models\phi(s_{1})$ iff $\Dt\models\phi(s_{2})$.
-
-This notion of equivalence can be extended by macro expansion to histories
-in the obvious manner, with the analogous result that $\Dt\cup\mathbf{sensed}[\sigma_{1}]\models\phi(\mathbf{end}[\sigma_{1}])$
-iff $\Dt\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{2}])$.
-
-
-\subsection{Joint Executions}
+\section{Joint Executions\label{sec:JointExec:JEs}}
 
 We define a \emph{joint execution} as a special kind of prime event
 structure with the following components:\[
@@ -234,9 +324,45 @@ something in the branch. A branch thus identifies a unique outcome
 for each action event that is ordered below $max(b)$.
 
 
-\subsection{Restrictions on Joint Executions}
+\section{Independent Actions\label{sec:JointExec:IndepActs}}
 
-\label{sub:Restrictions}
+As discussed in Section \ref{sec:Background}, posing queries in the
+situation calculus requires a full situation term, which means a total
+order on all actions that have occurred. The first step towards providing
+only a \emph{partial} order on the actions to be performed is, therefore,
+to capture the conditions under which actions can be performed out
+of order without invalidating the results of the reasoning process.
+
+Define \emph{independent} actions, identified by $indep(a_{1},a_{2})$,
+as those that can be performed in either order without affecting what
+holds in the resulting situation. Formally, they must satisfy the
+following restrictions (where $\mathcal{P}$ and $\mathcal{F}$ are
+meta-variables ranging over predicate and functional fluents respectively):
+
+\begin{itemize}
+\item $Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2},s))$ 
+\item $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$ 
+\item $\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$\\
+ for all predicate fluents $\mathcal{P}(s)$ 
+\item $\mathcal{F}(do(a_{1},do(a_{2},s)))=r\equiv\mathcal{F}(do(a_{2},do(a_{1},s)))=r$\\
+ for all functional fluents $\mathcal{F}(s)$ 
+\end{itemize}
+Whether actions are independent can be deduced from the description
+of the action theory, or (as currently in our implementation) indicated
+explicitly by the programmer.
+
+We will say that two situations are \emph{equivalent} if they are
+identical up to transposition of pairs of adjacent independent actions.
+A straightforward case analysis on the definition of the regression
+operator shows that for equivalent situations $s_{1}$ and $s_{2}$,
+$\Dt\models\phi(s_{1})$ iff $\Dt\models\phi(s_{2})$.
+
+This notion of equivalence can be extended by macro expansion to histories
+in the obvious manner, with the analogous result that $\Dt\cup\mathbf{sensed}[\sigma_{1}]\models\phi(\mathbf{end}[\sigma_{1}])$
+iff $\Dt\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{2}])$.
+
+
+\section{Legal Joint Executions\label{sec:JointExec:Legal}}
 
 We now impose several restrictions on the structure of a joint execution,
 to ensure they are suitable for representing the actions to be performed
@@ -338,7 +464,7 @@ is enabled, it will know enough to determine the specific \emph{action}
 that it must perform.
 
 
-\subsection{Planning with Joint Executions}
+\section{Planning with Joint Executions\label{sec:JointExec:Planning}}
 
 Our implementation of an execution planning system uses joint executions
 as an abstract data type that can be built up one event at a time,
@@ -364,7 +490,7 @@ observability are thus hidden from the planning algorithm itself,
 automatically managed by the construction of a joint execution.
 
 
-\subsection{Summary}
+\section{Summary\label{sec:JointExec:Summary}}
 
 In this section we have defined a \emph{joint execution} as a prime
 event structure with some additional restrictions. We contend that
@@ -397,17 +523,13 @@ aspects of our implementation and give an example of the output it
 produces.
 
 
-\section{Implementation}
+\section{Implementation\label{sec:JointExec:Implementation}}
 
-\label{sec:Implementation}
-
-Our implementation%
-\footnote{available at {[}identifying information omitted]%
-} of a ConGolog execution planner utilizes the Mozart programming system,
-which implements the Oz language \citep{vanroy99mozart} rather than
-the traditional use of Prolog. As we shall see, Mozart's strong support
-for distributed logic programming allows the team of agents to share
-the planning workload with almost no additional code.
+Our implementation of a ConGolog execution planner utilizes the Mozart
+programming system, which implements the Oz language \citep{vanroy99mozart}
+rather than the traditional use of Prolog. As we shall see, Mozart's
+strong support for distributed logic programming allows the team of
+agents to share the planning workload with almost no additional code.
 
 To make things more concrete, Figure \ref{fig:plan-output} shows
 the output of our system when run on the $MakeSalad$ example of Figure
@@ -587,9 +709,7 @@ is required to reach a solution. For more difficult problems, significant
 gains can be expected.
 
 
-\section{Related and Future Work}
-
-\label{sec:Related-Work}
+\section{Discussion\label{sec:JointExec:Discussion}}
 
 The idea of having a shared ConGolog program that is executed by a
 team of agents is used with considerable success in \citep{Ferrein2005readylog},
@@ -641,5 +761,7 @@ deal explicitly with goals, but with steps generated by an underlying
 transition semantics. Our approach can be considered roughly equivalent
 to \emph{deordering} of a totally-ordered plan as described in \citep{backstrom99reordering},
 except performed during plan construction rather than as a post-processing
-step. \bibliographystyle{plainnat} \bibliographystyle{plainnat}
+step.
+
+loops: \citep{levesque96what_is_planning,levesque05planning_with_loops}
 
