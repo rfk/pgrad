@@ -12,10 +12,10 @@ actions to be performed independently, while using each agent's local
 view to ensure that synchronisation is always possible when required.
 
 The fundamental unit of reasoning in the situation calculus, and the
-output of the standard ConGolog execution planning process, is the
-\emph{situation}: a complete, ordered sequence of all actions that
-are to be performed. This is suboptimal for representing plans in
-an asyncrhonous multi-agent setting in three distinct ways:
+output of the standard Golog execution planning process, is the \emph{situation}:
+a complete, ordered sequence of all actions that are to be performed.
+This is suboptimal for representing plans in an asyncrhonous multi-agent
+setting in three ways:
 
 \begin{itemize}
 \item it does not permit branching depending on information obtained at
@@ -38,19 +38,19 @@ computation known as \emph{prime event} \emph{structures}, which are
 partially-ordered branching sequences of events. A \emph{joint execution}
 is defined as a particular kind of prime event structure that is rich
 enough to capture the concurrent execution of independent actions,
-and branch on the sensing results of actions, but restricted enough
-that it can be unambiguously reduced back to ordinary situation terms
-for the purposes of reasoning. Using our explicit account of the local
-\emph{view} of each agent from Chapter \ref{ch:observations}, we
-identify several restrictions on a joint execution that ensure it
-is feasible to execute in the real world.
+and can branch on the sensing results of actions. It is also restricted
+enough that it can be unambiguously reduced back to ordinary situation
+terms for the purposes of reasoning. Using our explicit account of
+the local \emph{view} of each agent from Chapter \ref{ch:observations},
+we identify several restrictions on a joint execution that ensure
+it is feasible to execute in the real world.
 
 Joint executions thus allow us to capture the actions that a team
 of agents are to perform in service of some shared task, without requiring
 constant synchronization between the agents, and without assuming
 that agents know all the actions that have been performed, while utilizing
-existing reasoning methods based on full situation terms. This is
-a significant increase in expressiveness over existing approaches
+existing reasoning methods based on ordinary situation terms. This
+is a significant increase in expressiveness over existing approaches
 to modeling multi-agent teams in the situation calculus. To demonstrate
 the utility of the approach, we extend our MIndiGolog interpreter
 from Chapter \ref{ch:mindigolog} to show how a team of agents can
@@ -62,10 +62,10 @@ The chapter proceeds as follows: TODO.
 
 \section{Background\label{sec:JointExec:Background}}
 
-The above discussion highlights three desirable properties of a plan
+The above discussion highlighted three desirable properties of a plan
 representation formalism intended for use in rich multi-agent domains:
 it must be \emph{branching}, \emph{partially-ordered}, and \emph{feasible}.
-While each of these aspects have been studied in isolation in this
+While each of these aspects have been studied in isolation in the
 situation calculus, our work is the first to combine them into a single
 formalism suitable for a multi-agent setting.
 
@@ -75,10 +75,10 @@ formalism suitable for a multi-agent setting.
 Several single-agent formalisms based on the situation calculus have
 introduced some form of branching into the structures returned by
 the planner, including the conditional action trees of of sGolog \citep{lakemeyer99golog_cats}
-and the branching InidGolog plans of \citep{giacomo04sem_delib_indigolog}.
-These structures typically branch based on the truth or falsity of
-various test conditions included in the program, rather than directly
-on the sensing results returned by an action. For example, the definition
+and the branching IndiGolog plans of \citep{giacomo04sem_delib_indigolog}.
+These structures typically branch based on the truth or falsehood
+of test conditions included in the program, rather than directly on
+the sensing results returned by an action. For example, the definition
 of conditional action trees in \citep{lakemeyer99golog_cats} includes
 the following branching case:\[
 c=[\phi,c_{1},c_{2}]\]
@@ -86,53 +86,57 @@ c=[\phi,c_{1},c_{2}]\]
 
 This instructs the agent to execute the sub-tree $c_{1}$ if $\phi$
 is true and the sub-tree $c_{2}$ if $\phi$ is false. While this
-works well in a single-agent setting, it is not clear how to extend
-it to a multi-agent setting, where some members of the team may not
-know whether or not $\phi$ holds. Intsead, we will construct plans
-that branch directly on the results returned by sensing actions, in
-the style of the {}``robot programs'' of \citep{levesque96what_is_planning}.
+works well for a single agent, it is not clear how to extend it to
+cooperative execution in a multi-agent setting, where some members
+of the team may not know whether or not $\phi$ holds. Instead, we
+will construct plans that branch directly on the results returned
+by sensing actions, in the style of the {}``robot programs'' of
+\citep{levesque96what_is_planning}.
 
 
-\subsection{Partial Order}
+\subsection{Partial Orders}
 
 There has been little work on partial-order planning in the situation
 calculus, most likely because the use of situations heavily biases
 the reasoning machinery towards totally-ordered sequences of actions.
-While \citet{son00htn_golog} add partial-order operators to the Golog
-language, the actual plans produced by their system are still raw
-situation terms. One exception is \citep{plaisted97sc_aspect}, which
-extends the situation calculus with explicit {}``aspects'' and allows
-partial-ordering between actions that affect different aspects of
-the world state.
+While \citet{son00htn_golog} allow the programmer to represent partial-orders
+by adding operators to the Golog language, the actual plans produced
+by their system are still raw situation terms. One exception is \citep{plaisted97sc_aspect},
+which extends the situation calculus with explicit {}``aspects''
+and allows partial ordering between actions that affect different
+aspects of the world state. By contrast, we seek to leverage the existing
+meta-theory of the standard situation calculus.
 
-Partial-order planning is the mainstay of the closely-related formalism
-of the event calculus. Here action occurrences are specified by asserting
-that they happen at a particular time, and the constraints on relative
-occurrence times of actions determine a partial ordering. \citet{Shanahan97ec_planning}
-has shown that abductive theorem proving in the event calculate generates
-partially-ordered plans, and the mechanics of the theorem prover naturally
-mirror various concepts from the literature on explicit partial-order
-planning, such as threats, links and conflicts \citep{peot92conditional_nonlinear}.
+Partial-order planning is the mainstay of the closely-related event
+calculus formalism. Here each action is specified to happen at a specific
+time, and the constraints on relative occurrence times of actions
+determine a partial ordering. \citet{Shanahan97ec_planning} has shown
+that abductive theorem proving in the event calculate generates partially-ordered
+plans, and the mechanics of the theorem prover naturally mirror various
+concepts from partial-order planning literature, such as threats and
+links \citep{peot92conditional_nonlinear}.
 
 The close similarities between the situation and event calculi are
 well understood, as are the advantages of the event calculus when
 it comes to working with partially-ordered action sequences \citep{belleghem97sitcalc_evtcalc}.
 Indeed, it is possible to implement a Golog interpreter on top of
 the event calculus that naturally generates partially-ordered plans
-\citep{pereira04ec_golog}. Perhaps we should adopt such a formalism
-that is naturally partially-ordered, rather than trying to construct
-partial orders on top of the naturally sequential situation calculus?
+\citep{pereira04ec_golog}. Perhaps we should simply adopt a formalism
+such like the event calculus that is naturally partially-ordered,
+rather than trying to construct partial orders on top of the naturally
+sequential situation calculus?
 
-While a partial-order representation is important, as we don't want
-the agents to have to synchronise their actions unnecessarily, it
-is not the complete picture. We also need the converse: that when
-an explicit ordering between actions is necessary, the required synchronisation
-is possible. It is not clear how techniques such as \citep{pereira04ec_golog}
-would extend to the asynchronous multi-agent case.
+While having a partial-order representation is important, it is not
+the complete picture. We don't want the agents to have to synchronise
+their actions unnecessarily, but we also need to ensure the converse:
+that when an explicit ordering between actions is necessary, the required
+synchronisation is actually possible. It is not clear how techniques
+such as \citep{pereira04ec_golog} would extend to the asynchronous
+multi-agent case.
 
 As we shall see, the formalisms we develop in this thesis enable these
 dual requirements - that some actions don't need to be ordered, while
-other actions cannot be ordered - to be captured in the situation
+other actions must not be ordered - to be captured in the situation
 calculus in quite an elegant way.
 
 
@@ -144,32 +148,33 @@ the plan representation formalism. One must also ensure that, at execution
 time, the agent will always \emph{know} which branch of the plan to
 take. For example, suppose this simple branching plan will provably
 achieve a goal:\[
-\mathbf{if}\,\phi\,\mathbf{then}\, action_{1}\,\mathbf{else}\, action_{2}\]
+\mathbf{if}\,\phi\,\mathbf{then}\, action_{1}\,\mathbf{else\,}\, action_{2}\]
 
 
 The agent can only execute this program if it knows whether or not
-$\phi$ holds -- otherwise, although one of the branches is guaranteed
-to achieve the goal, the agent does not know which one to take. Typically,
-feasibility is ensured by including sensing actions to ensure that
+$\phi$ holds; otherwise, although one of the branches is guaranteed
+to achieve the goal, the agent does not know which one to take. Feasibility
+is typically guaranteed by including sensing actions to ensure that
 the test conditions are known:\[
-sense_{\phi}\,;\,\mathbf{if}\,\phi\,\mathbf{then}\, action_{1}\,\mathbf{else}\, action_{2}\]
+sense_{\phi}\,;\,\mathbf{if}\,\phi\,\mathbf{then}\, action_{1}\,\mathbf{else\,}\, action_{2}\]
 
 
-This informal requirement that an agent {}``knows how'' to execute
-a plan is formalised by various notions of \emph{epistemic feasibility},
+This requirement that an agent {}``knows how'' to execute a plan
+is formalised by various notions of \emph{epistemic feasibility},
 including those of \citep{levesque98what_robots_can_do,levesque00knowing_how,Lesperance01epi_feas_casl,giacomo04sem_delib_indigolog,baier06programs_that_sense}.
 
 One approach to ensuring feasibility, embodied by \citep{levesque00knowing_how,giacomo04sem_delib_indigolog,baier06programs_that_sense},
-is to allow a plan to be a program formulated in a control language
-such as Golog. One then semantically characterise those programs that
-are epistemically feasible, using direct assertions about the knowledge
-of each agent at each stage of execution. While this allows for potentially
-very rich, very succinct succinct plans, it is not clear how to systematically
-generate an epistmically feasible plan from such a general characterisation.
+is to represent plans by arbitrary programs formulated in a control
+language such as Golog. One then semantically characterise the class
+of epistemically feasible programs, using direct assertions about
+the knowledge of each agent at each stage of execution. While this
+allows for potentially very rich, very succinct plans, it is not clear
+how to systematically generate an epistmically feasible plan from
+such a general characterisation.
 
 Another approach, advocated by \citep{levesque96what_is_planning,levesque98what_robots_can_do}
 and used in the implementation section of \citep{giacomo04sem_delib_indigolog},
-is to restrict the structure of plans so that they are obviously epistemically
+is to restrict the structure of plans so that they must be epistemically
 feasible. For example, the {}``robot programs'' of \citep{levesque98what_robots_can_do}
 are restricted to simple operators such as:\begin{gather*}
 action\\
@@ -189,14 +194,13 @@ of any work extending this approach to represent programs to be exeuted
 cooperatively by a team of agents.
 
 This notion of epistemic feasibility in a multi-agent setting can
-be characterised as \emph{knowing what}; at each stage of execution,
+be characterised as \emph{knowing what}. At each stage of execution,
 each agent must know what its next action is. In synchronous domains
 with public actions, as typically studied in the situation calculus,
-this is all that is necessary to ensure the feasibility of executing
-a plan.
+this is sufficient to ensure the feasibility of executing a plan.
 
 In asynchronous domains it is not enough for an agent to know \emph{what}
-its next action is. It must also know \emph{when} that action should
+its next action is; it must also know \emph{when} that action should
 be performed. For example, suppose that the following simple plan
 provably achieves a goal:\[
 action_{1}(agt_{1})\,;\, action_{2}(agt_{2})\]
@@ -212,7 +216,7 @@ In this chapter we adopt an approach similar to \citep{levesque98what_robots_can
 and define a restricted structure for representing plans that forces
 all plans to be epistemically feasible. We use the explicit account
 of each agent's local view developed in the previous chapter to ensure
-that each agent will know when to perform its action.
+that each agent will know when to perform its actions.
 
 
 \subsection{Event Structures}
@@ -220,47 +224,66 @@ that each agent will know when to perform its action.
 To tackle cooperative execution in a multi-agent setting, we have
 adopted a model of concurrent computation known as \emph{event structures}
 \citep{npw79event_structures}. The particular variant we are interested
-in are \emph{prime event structures}, canonically defined as a four-tuple:\[
-(\mathcal{V},\prec,\#,\gamma)\]
- Here $\mathcal{V}$ is a set of events; $\gamma$ is a function assigning
-a label to each event; $\prec$ is the \emph{enabling} relation, a
-strict partial order on events; and $\#$ is the \emph{conflict} relation,
-a binary symmetric relation that is inherited through enablers:\[
-\forall i,j,k\in V:i\#j\wedge i\prec k\rightarrow k\#j\]
+in are \emph{prime event structures}, canonically defined as a four-tuple
+as follows.
+
+\begin{defnL}
+[{Prime~Event~Structure}] A prime event structure is a four-tuple
+$(\mathcal{V},\gamma,\prec,\oplus)$ where: $\mathcal{V}$ is a set
+of events; $\gamma$ is a function assigning a\textbf{ }label to each
+event; $\prec$ is the precedence relation, a strict partial order
+on events; $\oplus$ is the conflict relation, a binary symmetric
+relation indicating events that are mutually exclusive. 
+\end{defnL}
+The labels assigned by $\gamma$ represent the actions that may occur
+in the world, and each event represents a potential occurrence of
+an action. Which events can occur at each stage of execution is determined
+by $\prec$ and $\#$. A \emph{configuration} is a sequence of events
+consistent with $\prec$ in which no pair of events conflict. Each
+configuration represents a potential partial run of execution of the
+system.
+
+As it can be cumbersome to specify $\prec$ and $\#$ in their entirety,
+we will frequently give only the direct \emph{enablers} and \emph{alternatives}
+for each event, denoted by $ens(i)$ and $alts(i)$ respectively.
+Construction of $(\prec,\#)$ from $(ens,alts)$ is a straightforward
+transitive closure. Formally, the enablers and alternatives of an
+event are the largest sets satisfying:\begin{gather*}
+j\in ens(i)\equiv j\prec i\,\wedge\,\forall k\in ens(i):\,\neg(j\prec k)\\
+j\in alts(i)\equiv j\#i\,\wedge\,\forall k\in ens(i):\,\neg(j\#k)\end{gather*}
 
 
-A \emph{configuration} is a sequence of events consistent with $\prec$
-in which no pair of events conflict. Each configuration thus represents
-a potential partial run of execution of the system. For convenience,
-we define our prime event structures in a slightly different form:\[
-(\mathcal{V},ens,alts,\gamma)\]
-
-
-Here $ens(i)$ assigns to each event $i\in\mathcal{V}$ a finite set
-of other events that are its direct \emph{enablers}, meaning that
-event $i$ can only occur after all the events in $ens(i)$ have occurred.
-Similarly $alts(i)$ assigns to each event a set of direct \emph{alternatives},
-meaning that only one of the events in $\{i\}\cup alts(i)$ can occur
-during execution of the system. The enabling relation $i\prec j$
-is then the transitive closure of $i\in ens(j)$, and $\#$ is the
-smallest relation satisfying:\[
-\forall i,j\in V:[\exists i',j'\in V:i'\preceq i\wedge j'\preceq j\wedge i\in alts(j)]\rightarrow i\#j\]
- Considered in this way, event structures form a directed acyclic
-graph of the events that could occur during execution of the system.
-As shown in \citep{pratt91modeling_conc_with_geom}, these structures
+Considered in this way, event structures form a directed acyclic graph
+of the events that could occur during execution of the system. As
+shown in \citep{pratt91modeling_conc_with_geom}, these structures
 are equivalent to a variety of formalisms for representing concurrent
-execution (including schedules and petri nets) and it is straightforward
+execution (such as schedules and petri nets) and it is straightforward
 to convert them into a kind of finite automaton for efficient execution,
 much like the robot programs of \citep{levesque98what_robots_can_do}.
 
 
 \section{Joint Executions\label{sec:JointExec:JEs}}
 
+This section defines the precise structure of a joint execution, first
+using a high-level intuitive description, and then formally as a set
+of axioms to be included in the theory of action $\Dt$. Since we
+intend for agents to synthesise joint executions as the output of
+a planning process, they must exist as concrete terms in the logic.
+
+
+\subsection{Intuitions}
+
 We define a \emph{joint execution} as a special kind of prime event
-structure with the following components:\[
-(\mathcal{A},\mathcal{O},ens,alts,\gamma,<)\]
+structure as follows:
 
-
+\begin{defnL}
+[{Joint~Execution}] A joint execution is a tuple $(\mathcal{A},\mathcal{O},ens,alts,\gamma,<)$
+where:\emph{ }action events $\mathcal{A}$ represent actions to be
+performed; outcome\emph{ }events $\mathcal{O}$ represent possible
+outcomes of actions; $(\mathcal{A}\cup\mathcal{O},ens,alts,\gamma)$
+forms a prime event structure with precedence relation $\prec$; $<$
+is a total order on events that is consistent with $\prec$.
+\end{defnL}
 It contains two disjoint sets of events: \emph{action} events $\mathcal{A}$
 representing the actions to be performed, and \emph{outcome} events
 $\mathcal{O}$ representing the possible outcomes of each action.
@@ -272,9 +295,17 @@ it is a possible outcome, $alts(i)$ is the set of all other outcome
 events $j$ such that $ens(j)=ens(i)$, and $\gamma(i)$ is an outcome
 as produced by the $Out(a,s)$ function for the action $\gamma(ens(i))$.
 
+Each action event thus represent a single action to be performed,
+which enables several alternate outcome events corresponding to the
+potential results returned by that action. Each of these outcome events
+can then enable further actions, and so forth.
+
 A simple example of a joint execution is shown in Figure \ref{fig:example-je}.
 Here action $act1$ has two possible outcomes, which enable different
-actions $act2$ and $act3$.
+actions $act2$ and $act3$. Recall that a \emph{configuration} is
+a partial run of execution of the prime event structure. Clearly any
+configuration ending in an outcome event corresponds to a unique history,
+as it is a set of alternating actions and their outcomes.
 
 %
 \begin{figure}
@@ -291,47 +322,200 @@ nodes are outcome events. }
 \end{figure}
 
 
+We will call a set of unordered, non-conflicting outcome events an
+\emph{outcome set} and denote it $os$. A \emph{branch} is a special
+case of an outcome set where every event is either in the branch,
+conflicts with something in the branch, or precedes something in the
+branch: \[
+\forall i\in\mathcal{O}:\,\, i\in b\,\equiv\,\neg(\exists j\in b:\,\, i\oplus j\,\vee\, i\prec j)\]
+
+
+A branch thus represents one potential \emph{terminating }run of execution.
+TODO: demonstrate branches in the example JE.
+
+The \emph{histories} of an outcome set, $hists(os)$, is the set of
+all configurations that contain all elements of $os$, and end in
+an event from $os$. By these definitions, the union of $hists(b)$
+for all branches gives the set of all histories that could be produced
+by performing the joint execution. 
+
 A joint execution has one additional component over a standard prime
 event structure: a \emph{total} order on events $<$ that is consistent
 with the partial order $\prec$ induced by the enabling relation.
 We will use this to perform reasoning by assuming that events occur
-in the fixed order given by $<$, and placing restrictions on the
-joint execution to ensure this assumption is acceptable. In practice,
+in the fixed order given by $<$, allowing them to be unambiguosly
+translated into a \emph{canonical history}. When we come to use joint
+executions for planning, we will restrict them so that every configuration
+of the execution is equivalent to this canonical history. In practice,
 $<$ would be determined by the order of insertion of events into
 the structure.
 
-An \emph{outcome set} is a minimal set of non-conflicting outcome
-events; that is, a set of events $e\subset\mathcal{O}$ satisfying:\begin{gather*}
-\forall o_{1},o_{2}\in e\,:\,\neg(o_{1}\#o_{2})\\
-\forall o_{1},o_{2}\in e\,:\, o_{1}\not\prec o_{2}\,\wedge o_{2}\not\prec o_{1}\end{gather*}
+
+\subsection{Formalities}
+
+We introduce new sorts \noun{Event }and \noun{JointExec} to $\Lsit$,
+and will collect the axioms defining joint executions in a separate
+axiom set $\Dt_{je}$. Events are opaque identifiers with which a
+joint execution associates a label, a set of enablers, and a set of
+alternatives. For simplicity we will identify events with the integers,
+although our definitions require only the successor function and ordering
+relation. Labels are either \noun{Action} or \noun{Outcome} terms.
 
 
-Recall that a \emph{configuration} is a partial run of execution of
-the prime event structure. Clearly any configuration ending in an
-outcome event corresponds to a unique history, as it is a set of alternating
-actions and their outcomes. We call the \emph{histories} of an outcome
-set, denoted $hists(e)$, the set of all configurations that contain
-all elements of $e$, and end in an event from $e$. The unique history
-of an outcome set that is consistent with $<$ will be denoted $hist(e)$.
+\subsubsection{Structural Axioms}
 
-We say that an outcome set $e_{1}$ \emph{covers} a set \emph{$e_{2}$,}
-denoted by $e_{1}\sqsubseteq e_{2}$, if every event in $e_{1}$ is
-either also in $e_{2}$, or precedes something in $e_{2}$. Every
-history in $hists(e_{2})$ will have a prefix in $hists(e_{1})$.
-This defines a partial ordering on outcome sets:\[
-e_{1}\sqsubseteq e_{2}\,\equiv\,\forall o_{1}\in e_{1}:\,\,\exists o_{2}\in e_{2}:\,\, o_{1}\preceq o_{2}\]
+A joint execution consists of:
 
+\begin{itemize}
+\item a set of \emph{events}, which are integer ids
+\item a mapping from each event to a \emph{label}, which is either an action
+or an outcome
+\item a mapping from each event to its \emph{enablers}, which is a set of
+lower-numbered events
+\item a mapping from each event to its \emph{alternatives}, which is a set
+of events
+\end{itemize}
+As a base case, we have the empty joint execution as follows:
 
-Let $max(e)$ denote the maximal element of an outcome set with respect
-to the total order $<$. A \emph{branch}, denoted $b$, is a special
-case of an outcome set that meets the following additional requirement:\[
-\forall i<max(b):\,\, i\in b\,\oplus\,(\exists i'\in b:\,\, i\#i'\,\vee\, i\prec i')\]
+\[
+JExec_{0}\,\isdef\, jexec(\{\},\{\},\{\},\{\})\]
 
 
-That is, every event less than the maximal element of $b$ is either
-in the branch, conflicts with something in the branch, or precedes
-something in the branch. A branch thus identifies a unique outcome
-for each action event that is ordered below $max(b)$.
+The following four functions access the mappings contained in a joint
+execution:\begin{gather*}
+events(je)=es\,\equiv\exists ls,ns,as:\, je=jexec(es,ls,ns,as)\\
+lblmap(je)=ls\,\equiv\exists es,ns,as:\, je=jexec(es,ls,ns,as)\\
+ensmap(je)=ns\,\equiv\exists es,ls,as:\, je=jexec(es,ls,ns,as)\\
+altsmap(je)=as\,\equiv\exists es,ls,ns:\, je=jexec(es,ls,ns,as)\end{gather*}
+
+
+We also define the following shortcut accessors to get the value from
+each mapping for a particular event $i$:\begin{gather*}
+lbl(je,i,l)\equiv i\#l\in lblmap(je)\\
+ens(je,i,ns)\equiv i\#ns\in ensmap(je)\\
+alts(je,i,as)\equiv i\#as\in altsmap(je)\end{gather*}
+
+
+For notational convenience we will often write these as functions,
+but this should be understood as an abbreviation since not every joint
+execution will contain every event. For example:\[
+ens(je,i)=ns\,\isdef\,\exists ns':\, ens(je,i,ns')\wedge ns'=ns\]
+Like standard situation terms, joint executions are built up by progressively
+inserting new events into an existing joint execution. First, we have
+a function to get the id of the next event:\[
+NextEvent(je)=max(\{0\}\cup events(je))+1\]
+
+
+To add to a joint execution, we must specify the predecessor joint
+execution, the label for the new event, and its set of enablers. The
+set of alternatives for the new event is determined automatically
+based on the required structure of the joint execution -- action events
+have no alternatives, while outcome events must have as their alternatives
+every other outcome event enabled by the same action.
+
+The following predicate specifies the conditions under which such
+an insertion forms a valid joint execution, according to the intuitions
+discussed above:\begin{gather*}
+Insert(je,lb,ns,,je')\equiv\exists i:\, NextEvent(je)=i\\
+\wedge\, events(je')=events(je)\cup\{i\}\\
+\wedge\, lblmap(je')=lblmap(je)\cup\{i\#lb\}\\
+\wedge\, ensmap(je')=ensmap(je)\cup\{i\#ns\}\\
+\wedge\left(InsertOut(je,i,lb,ns,je')\vee InsertAct(je,i,lb,ns,je')\right)\end{gather*}
+
+
+Note that this is not a function, since an invalid set of enablers
+could cause it to be false. Outcome events must be enabled by a single
+action event, and the alternatives must be updated for all other outcome
+events associated with that action:\begin{gather*}
+InsertOut(je,i,lb,ns,je')\equiv\,\,\,\,\,\, IsOutcome(lb)\\
+\wedge\exists j,a:\, ns=\{j\}\wedge lbl(je,j,a)\wedge IsAction(a)\\
+\wedge\left(\exists allAlts:\,\forall k:\, k\in allAlts\equiv ens(je',k,\{j\})\right)\\
+\wedge\forall k:\,\left[k\not\in events(je')\,\rightarrow\,\neg\exists as:\, alts(je',k,as)\right]\\
+\wedge\left[ens(je',k,\{j\})\rightarrow alts(je',k,allAlts)\right]\\
+\wedge\left[\neg ens(je',k,\{j\})\rightarrow\exists as:\, alts(je,k,as)\wedge alts(je',k,as)\right]\end{gather*}
+
+
+Action events must be enabled by a set of outcome events and cannot
+have any alternatives:\begin{gather*}
+InsertAct(je,i,lb,ns,je')\equiv\,\,\,\,\,\, IsAction(lb)\\
+\wedge\forall j\in ns:\,\exists lb':\, lbl(je,j,lb')\wedge IsOutcome(lb')\\
+\wedge altsmap(je')=altsmap(je)\cup\{i\#\{\}\}\end{gather*}
+
+
+Finally, we need a second-order induction axiom stating that the only
+joint executions are those that can be constructed in this way. This
+is entirely analogous to the axiom for situation terms:\begin{multline*}
+\forall P:\,\left[P(JExec_{0})\wedge\forall je,je',lb,ns:\, P(je)\wedge Insert(je,lb,ns,je')\rightarrow P(je')\right]\\
+\rightarrow\forall je:\, P(je)\end{multline*}
+
+
+These definitions enforece the basic structure of a joint execution,
+but do not constrain it to be something that could be executed in
+the world -- for example, outcomes can be enabled by actions that
+will never actually produce that outcome. Like situation terms, we
+focus first on getting the appropriate structure, and then specify
+additional conditions that joint executions must satisify in order
+to be legal in the real world.
+
+Note that we have placed an important restriction on the ordering
+of events -- if $i<j$ according to the total ordering over the integers,
+then it is not possible for $i$ to be enabled by $j$. This does
+not result in a lack of expressiveness, since if we want $i$ to be
+enabled by $j$, then $j$ must not be enabled by $i$ and we can
+simply give $j$ the lower event number.
+
+Now, let us define the \emph{preceeds }and \emph{conflicts }relations
+in terms of enablers and alternatives. We will write these as binary
+infix operators $\prec_{je}$ and $\oplus_{je}$. The precedence relation
+is defined as a transitive closure over enablers:\begin{multline*}
+\forall P,i,j:\left[\left(i\in ens(je,j)\,\rightarrow P(i,j)\right)\,\wedge\,\left(\forall k:\, P(i,k)\wedge k\in ens(je,j)\,\rightarrow\, P(i,j)\right)\right]\\
+\rightarrow\left(P(i,j)\rightarrow i\prec_{je}j\right)\end{multline*}
+
+
+The conflict relation is defined so that $i\oplus j$ if they have
+altnerative predecessors:\begin{multline*}
+\forall P,i,j:\,\left[\left(i\in alts(je,j)\,\rightarrow P(i,j)\right)\right.\\
+\left.\wedge\,\left(\forall i',j':\, P(i',j')\wedge i'\preceq_{je}i\wedge j'\preceq_{je}j\,\rightarrow\, P(i,j)\right)\right]\\
+\rightarrow\left(P(i,j)\rightarrow i\oplus_{je}j\right)\end{multline*}
+
+
+These axioms suffice to give an account of joint executions as prime
+event structures as defined in \citep{npw79event_structures}.
+
+
+\subsubsection{Additional Notions}
+
+We also require some additional definitions and notation that is not
+typically found in the literature on prime event structures, in order
+to related joint executions back to the existing concepts of the situation
+calculus.
+
+An \emph{outcome set} is a set of unordered non-conflicting outcome
+events; that is, a set of events satisfying:\begin{multline*}
+OutSet(je,os)\,\equiv\,\forall i,j\in os:\, IsOutcome(lbl(je,i)\\
+\wedge IsOutcome(lbl(je,j)\\
+\wedge\,\neg(i\oplus_{je}j)\,\wedge\, i\not\prec_{je}j\,\wedge\, j\not\prec_{je}\, j\end{multline*}
+
+
+An outcome set identifies a family of potential partial runs of the
+execution. We can generate these histories by recursively selecting
+an event that does not conflict with anything in $os$ and is enabled
+given what we have performed so far:
+
+TODO
+
+An outcome set $os$\emph{ covers} a set \emph{$os'$,} denoted by
+$os\sqsubseteq_{je}os'$, if every event in $os$ is either also in
+$os'$, or precedes something in $os'$. Every history in $hists(os')$
+will have a prefix in $hists(os)$. This defines a partial ordering
+on outcome sets:\[
+os\sqsubseteq_{je}os'\,\equiv\,\forall i\in os:\,\,\exists i'\in os':\,\, i\preceq_{je}i'\]
+
+
+A \emph{branch}, denoted $b$, is a special case of an outcome set
+that meets the following additional requirement:\[
+Branch(je,b)\,\equiv\,\forall i\in events(je):\, i\in b\,\equiv\,\neg(\exists i'\in b:\,\, i\oplus i'\,\vee\, i\prec i')\]
+
 
 
 \section{Independent Actions\label{sec:JointExec:IndepActs}}
@@ -343,135 +527,157 @@ only a \emph{partial} order on the actions to be performed is, therefore,
 to capture the conditions under which actions can be performed out
 of order without invalidating the results of the reasoning process.
 
-Define \emph{independent} actions, identified by $indep(a_{1},a_{2})$,
-as those that can be performed in either order without affecting what
-holds in the resulting situation. Formally, they must satisfy the
-following restrictions (where $\mathcal{P}$ and $\mathcal{F}$ are
-meta-variables ranging over predicate and functional fluents respectively):
+Define \emph{independent} actions, identified by $indep(a_{1},a_{2},s)$,
+as those that can be performed in either order, or even concurrently,
+without affecting what holds in the resulting situation. Formally,
+they must satisfy the following restrictions (where $\mathcal{P}$
+and $\mathcal{F}$ are meta-variables ranging over predicate and functional
+fluents respectively):
 
 \begin{itemize}
-\item $Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2},s))$ 
-\item $Poss(a_{2},s)\equiv Poss(a_{2},do(a_{1}s))$ 
-\item $\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$\\
- for all predicate fluents $\mathcal{P}(s)$ 
-\item $\mathcal{F}(do(a_{1},do(a_{2},s)))=r\equiv\mathcal{F}(do(a_{2},do(a_{1},s)))=r$\\
- for all functional fluents $\mathcal{F}(s)$ 
+\item $\mathcal{D}\,\models\, Poss(a_{1},s)\equiv Poss(a_{1},do(a_{2},s))$
+and vice-versa 
+\item $\mathcal{D}\,\models\, Out(a_{1},s)=Out(a_{1},do(a_{2},s))$ and
+vice-versa
+\item $\mathcal{D}\,\models\,\mathcal{P}(do(a_{1},do(a_{2},s)))\equiv\mathcal{P}(do(a_{2},do(a_{1},s)))$\\
+ for all predicate fluents $\mathcal{P}(s)$
+\item $\mathcal{D}\,\models\,\mathcal{F}(do(a_{1},do(a_{2},s)))=\mathcal{F}(do(a_{2},do(a_{1},s)))$\\
+ for all functional fluents $\mathcal{F}(s)$
 \end{itemize}
 Whether actions are independent can be deduced from the description
 of the action theory, or (as currently in our implementation) indicated
 explicitly by the programmer.
 
-We will say that two situations are \emph{equivalent} if they are
-identical up to transposition of pairs of adjacent independent actions.
+We assume that the planning system has some way of identifying independent
+actions. Two histories $\sigma_{1}$ and $\sigma_{2}$ are called
+\emph{equivalent} if they are identical up to the ordering of independent
+actions: they contain the same set of $(a,Out(a,s))$ pairs, and whenever
+two such pairs occur in a different order in $\sigma_{1}$ than in
+$\sigma_{2}$ the actions are independent. Two histories $\sigma_{1}$
+and $\sigma_{2}$ are \emph{compatible for $a$ }if they are equivalent
+after removing all actions that are independent of $a$. We then have
+the following properties of histories:
+
+\begin{thm}
+\label{thm:equiv-holds}For equivalent histories $\sigma_{1}$ and
+$\sigma_{2}$:\[
+\mathcal{D}\,\models\,\mathbf{holds}[\phi,\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[\phi,\sigma_{2}]\]
+
+\end{thm}
+\begin{proof}
 A straightforward case analysis on the definition of the regression
-operator shows that for equivalent situations $s_{1}$ and $s_{2}$,
-$\Dt\models\phi(s_{1})$ iff $\Dt\models\phi(s_{2})$.
+operator.
+\end{proof}
+\begin{thm}
+\label{thm:equiv-legal}For equivalent histories $\sigma_{1}$ and
+$\sigma_{2}$:\[
+\mathcal{D}\,\models\,\mathbf{legal}[\sigma_{1}]\,\,\equiv\,\,\mathbf{legal}[\sigma_{2}]\]
 
-This notion of equivalence can be extended by macro expansion to histories
-in the obvious manner, with the analogous result that $\Dt\cup\mathbf{sensed}[\sigma_{1}]\models\phi(\mathbf{end}[\sigma_{1}])$
-iff $\Dt\cup\mathbf{sensed}[\sigma_{2}]\models\phi(\mathbf{end}[\sigma_{2}])$.
+\end{thm}
+\begin{proof}
+Using theorem \ref{thm:equiv-holds}, and invariance of $Poss$ and
+$Out$ when transposing independent actions.
+\end{proof}
+\begin{thm}
+\label{thm:equiv-compat}For histories $\sigma_{1}$ and $\sigma_{2}$
+compatible for $a$:\begin{gather*}
+\mathcal{D}\,\models\,\mathbf{holds}[Poss(a),\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[Poss(a),\sigma_{2}]\\
+\mathcal{D}\,\models\,\mathbf{holds}[Out(a)=r,\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[Out(a)=r,\sigma_{2}]\end{gather*}
 
+\end{thm}
+\begin{proof}
+Using Theorem \ref{thm:equiv-holds}, and the fact that the removed
+actions do not affect the preconditions or outcome of $a$.
+\end{proof}
 
 \section{Legal Joint Executions\label{sec:JointExec:Legal}}
 
 We now impose several restrictions on the structure of a joint execution,
 to ensure they are suitable for representing the actions to be performed
-by a team of agents.\\
+by a team of agents. 
+
+\textbf{(R1) Independent events have independent actions}\\
+If the execution allows two action events to occur in either order,
+then the corresponding actions must be independent. Formally, for
+each $i_{1},i_{2}\in\mathcal{A}$:\[
+i_{1}\prec i_{2}\,\vee\, i_{2}\prec i_{1}\,\vee\, i_{1}\#i_{2}\,\vee\, indep(\gamma(i_{1}),\gamma(i_{2}))\]
 
 
-\textbf{(R1) Independent events have independent actions:}\\
- Joint executions are restricted such that the following holds for
-all action events $a_{1},a_{2}\in\mathcal{A}$:\[
-a_{1}<a_{2}\,\rightarrow\, a_{1}\prec a_{2}\,\vee\, a_{1}\#a_{2}\,\vee\, indep(\gamma(a_{1}),\gamma(a_{2}))\]
+This restriction is key to the power of joint executions. It implies
+that for every branch $b$, all histories in $hists(b)$ are equivalent.
+By Theorem \ref{thm:equiv-holds} we can use the canonical history
+for planning purposes, and be assured that the same fluents will hold
+regardless of the specific order in which actions are executed. More
+generally, it ensures that all histories in $hists(ens(i))$ are compatible
+for $\gamma(i)$. By Theorem \ref{thm:equiv-compat} we can safely
+use $hist(ens(i))$ to reason about the preconditions and outcomes
+of $\gamma(i)$ using standard techniques.
+
+\textbf{(R2) Every canonical branch history is legal}\\
+For every branch $b$: \[
+\mathcal{D}\,\models\,\mathbf{legal}[hist(b)]\]
 
 
-In words: if event $a_{2}$ is after $a_{1}$ in the total order,
-but the execution allows them to be performed in either order, then
-the corresponding actions must be independent.
+By Theorem \ref{thm:equiv-legal} this ensures that every possible
+run of execution of the system will produce a legal history.
 
-With this restriction, the histories given by $hists(b)$ will differ
-from each other only by transposition of independent actions, making
-them equivalent to the unique history $hist(b)$. It is thus possible
-to determine whether a formula holds after the execution of a given
-branch, using the query:\[
-\Dt\cup\mathbf{sensed}[hist(b)]\models\phi(\mathbf{end}[hist(b)])\]
-
-
-This is a key point and is worth re-iterating: regardless of the precise
-order in which events are executed, any history that contains all
-events on a branch $b$, and that ends in an event from $b$, is equivalent
-to the unique history of $b$ generated by the total order. This allows
-us to plan using execution branches rather than histories or situation
-terms.\\
-
-
-\textbf{(R2) Actions are enabled by a unique branch:}\\
- We restrict the enabling set for each action event to be a branch,
-rather than an arbitrary set of outcome events. In practice this means
-that when inserting a new action into the joint execution, one must
-specify the branch to which it belongs. This restriction allows us
-to determine what holds immediately before an event $a\in\mathcal{A}$
-becomes enabled, using $hist(ens(a))$. Given that the action $\gamma(a)$
-is possible after $ens(a)$, then when $a$ becomes enabled it will
-remain possible until it is performed. Moreover, any events that occur
-after it is enabled but before it is performed will not interfere
-with its effects, as these actions must be independent of $\gamma(a)$.
-\\
-
-
-\textbf{(R3) All possible outcomes are considered:}\\
- Clearly planning requires that all possible outcomes of an action
-be considered. For each action event $a\in\mathcal{A}$, and each
-possible outcome $r$ of that action, if:\begin{multline*}
-D\cup\mathbf{sensed}[hist(ens(a))]\not\,\models\,\\
-Out(\gamma(a),\mathbf{end}[hist(ens(a))])\neq r\end{multline*}
+\textbf{(R3) All possible outcomes are considered}\\
+Planning clearly requires that all possible outcomes of an action
+be considered. For each action event $i\in\mathcal{A}$, and each
+possible outcome $r$ of that action, if:\[
+\mathcal{D}\,\not\models\,\mathbf{holds}[Out(\gamma(i))\neq r,hist(ens(i))]\]
 
 
 then there must be a corresponding outcome event:\[
-\exists o\in E:\,\, ens(o)=\{a\}\,\wedge\,\gamma(o)=r\]
+\exists j\in E:\,\, ens(j)=\{i\}\,\wedge\,\gamma(j)=r\]
 
+
+We can safely use the canonical history $hist(ens(i))$ to perform
+this reasoning, thanks to R1.
 
 \textbf{(R4) Actions are enabled by observable events:}\\
- If an action is to be enabled by an outcome event $o$ produced by
-another agent, it is clearly necessary that the agent performing the
-action be able to observe the occurrence of $o$. Otherwise, it has
-no way of synchronizing its actions with those of its teammate. Let
-$actor(a)$ be the agent responsible for performing an action event
-$a$, then we require that:\[
-\forall o\in ens(a):\,\,\gamma(o)[actor(a)]\neq nil\]
+If an action event $i$ is enabled by an outcome event $j$ produced
+by another agent, the agent performing $i$ must be able to observe
+the occurrence of $j$. Otherwise, it has no way of synchronizing
+its actions with those of its teammate. Let $actor(i)$ be the agent
+responsible for performing an action event $i$, then we require that:\[
+\forall j\in ens(i):\,\,\gamma(j)[actor(i)]\neq\{\}\]
 
+
+If this restriction cannot be met, then the agents have no way of
+synchronizing their actions. Construction of the joint execution must
+therefore fail.
 
 \textbf{(R5) Overlapping views enable identical actions:}\\
- To ensure that the joint execution can actually be carried out by
-the agents, there must be no confusion about whether a particular
-action is enabled. Lifting the function $view$ to operate on sets
-of histories in the obvious way, then:\[
-view(actor(a),\, hists(ens(a)))\]
- gives the set of all local histories after which $actor(a)$ is required
-to perform the action $\gamma(a)$. However, since the agent has only
-a local viewpoint, it may be the case that some other outcome set
-can produce an identical local history.
-
-Say that two branches overlap, denoted $overlaps(b,b')$, if they
-could produce an identical local history from the perspective of a
-given agent:\[
-view(agt,hists(b))\,\cap\, view(agt,hists(b'))\,\neq\varnothing\]
+There must be no confusion about whether a particular action is enabled
+at any point during execution. Lifting the function $view$ to operate
+on sets of histories, then:\[
+view(actor(i),\, hists(ens(i)))\]
+ gives the set of all local histories after which $actor(i)$ is required
+to perform the action $\gamma(i)$. Since the agent has only a local
+viewpoint, it is possible that some other outcome set can produce
+an identical view. Say that two outcome sets overlap, denoted $ovlaps(agt,e_{1},e_{2})$,
+if they could produce an identical local history for a given agent:\[
+view(agt,hists(e_{1}))\,\cap\, view(agt,hists(e_{2}))\,\neq\varnothing\]
 
 
-Then the \emph{minimal overlapping set} for $b$, from the perspective
-of $agt$, is the set of all $b'$ satisfying:\[
-overlaps(agt,b,b')\wedge\neg\exists b''\left[overlaps(agt,b,b'')\wedge b''\sqsubset b'\right]\]
+Then the \emph{minimal overlapping set} for $e_{1}$, from the perspective
+of $agt$, is the set of all $e_{2}$ satisfying:\begin{multline*}
+e_{2}\in minovlp(agt,e_{1})\,\equiv\\
+ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedge e_{3}\sqsubset e_{2}\right]\end{multline*}
 
 
-This set captures all branches that the agent could potentially confuse
-for $b$. To ensure there is no confusion about whether an action
-is enabled, for each $a\in\mathcal{A}$, every $b$ in the minimal
-overlapping set of $ens(a)$ for $actor(a)$ must enable an event
-$a'$ with identical action $\gamma(a')=\gamma(a)$. This ensures
-that the agent's local information is always enough to know when it
-should perform an action. While it may not know precisely which \emph{event}
-is enabled, it will know enough to determine the specific \emph{action}
-that it must perform.
+This captures all outcome sets that the agent could potentially confuse
+for $e_{1}$. To ensure there is no confusion about whether an action
+is enabled, for each $i\in\mathcal{A}$, every $e$ in the minimal
+overlapping set of $ens(i)$ for $actor(i)$ must enable an event
+$i'$ with identical action $\gamma(i')=\gamma(a)$. Formally:\begin{multline*}
+\forall e\in minovlp(actor(i),ens(i)):\,\\
+\exists i':\,\gamma(i')=\gamma(i)\,\wedge\, ens(i')=e\end{multline*}
+ This ensures that the agent's local information is enough to know
+when it should perform an action. While it may not know precisely
+which \emph{event} is enabled, it will know enough to determine the
+specific \emph{action} that it must perform.%
 
 
 \section{Planning with Joint Executions\label{sec:JointExec:Planning}}
@@ -506,12 +712,11 @@ In this section we have defined a \emph{joint execution} as a prime
 event structure with some additional restrictions. We contend that
 such structures are highly suitable for planning the actions to be
 performed by a team in service of some shared task, such as executing
-a shared ConGolog program.
+a shared Golog program.
 
 On one hand, joint executions are restricted enough to be practical
-for such use. Like the situation terms or conditional action trees
-used in previous approaches, prime event structures are purely reactive
-(equivalent to a kind of finite automaton) and can be executed without
+for such use. Prime event structures are purely reactive (equivalent
+to a kind of finite automaton) and can be executed by the agents without
 further deliberation. They are restricted to ensure that whenever
 an agent is required to perform an action, it is able to determine
 this using only its local information. Each branch of execution can
@@ -535,28 +740,25 @@ produces.
 
 \section{Implementation\label{sec:JointExec:Implementation}}
 
-Our implementation of a ConGolog execution planner utilizes the Mozart
-programming system, which implements the Oz language \citep{vanroy99mozart}
-rather than the traditional use of Prolog. As we shall see, Mozart's
-strong support for distributed logic programming allows the team of
-agents to share the planning workload with almost no additional code.
+We have extended the implementation of a MIndiGolog execution planner
+from Chapter \ref{ch:mindigolog} to utilise joint executions.
 
 To make things more concrete, Figure \ref{fig:plan-output} shows
 the output of our system when run on the $MakeSalad$ example of Figure
 \ref{fig:makesalad-program}. Since all actions in this program have
 a single outcome, the outcome events have been suppressed for brevity.
 
-In this domain there are three agents, but only two knives are available.
-The agents must therefore synchronize their use of these resources.
-Actions are taken to be independent if they deal with different objects.
-As seen in Figure \ref{fig:plan-output}, the use of a partial order
-structure facilitates parallelism between the agents, with each processing
-a different ingredient and only synchronizing on the availability
-of the required resources. There is no need for processing actions,
-such as $mix$ and $chop$, to be publicly observable. This execution
-is maximally concurrent given the constraints of the domain, and is
-clearly a significant improvement over totally ordered sequences of
-actions as produced by existing systems.
+In this domain there are three agents, but only two chopping boards
+are available. The agents must therefore synchronize their use of
+these resources. Actions are taken to be independent if they deal
+with different objects. As seen in Figure \ref{fig:plan-output},
+the use of a partial order structure facilitates parallelism between
+the agents, with each processing a different ingredient and only synchronizing
+on the availability of the required resources. There is no need for
+processing actions, such as $mix$ and $chop$, to be publicly observable.
+This execution is maximally concurrent given the constraints of the
+domain, and is clearly a significant improvement over totally ordered
+sequences of actions as produced by existing systems.
 
 In the following subsections, we briefly highlight some key aspects
 of our implementation.
@@ -721,27 +923,6 @@ gains can be expected.
 
 \section{Discussion\label{sec:JointExec:Discussion}}
 
-The idea of having a shared ConGolog program that is executed by a
-team of agents is used with considerable success in \citep{Ferrein2005readylog},
-where the variant Readylog is used to coordinate and control a RoboCup
-soccer team. Their domain satisfies the assumption that all actions
-are public, so they can afford to produce totally ordered plans. The
-techniques developed in this chapter would generalize such an approach
-to a wider variety of domains (although \citep{Ferrein2005readylog}
-includes some decision theoretic aspects that are not present in our
-work).
-
-There has also been significant work using the situation calculus
-in settings where each agent has its own control program \citep{shapiro02casl}.
-The behavior of the overall system is specified as the concurrent
-combination of each agent's program, $\delta_{1}||\delta_{2}||\dots$,
-and ConGolog is used to verify that the system satisfies certain constraints
-(e.g. safety or liveness properties). Again, this cannot handle partial
-observability of actions since all reasoning is based on a full situation
-term. We believe the joint execution formalism could be helpful in
-such settings, by permitting synchronization only when actions are
-observable by the agents.
-
 An alternate approach to the problem of partial observability is the
 language TeamGolog developed in \citep{farinelli07team_golog}, where
 agents explicitly synchronize through communication and a shared state.
@@ -752,13 +933,6 @@ of the agents' control program, but the disadvantage that joint execution
 construction may fail if too many actions are unobservable. It would
 be interesting to combine these approaches by automatically incorporating
 explicit communication when implicit synchronization is not possible.
-
-Several authors have introduced operators for expressing partial orderings
-between actions into the ConGolog language itself, for example \citep{son00htn_golog}.
-While this is unquestionably useful for specifying behavior, the \emph{output}
-from such systems is still a totally ordered sequence of actions and
-thus maintains the limitations of existing systems when actually performing
-the execution in a multi-agent setting.
 
 There is, of course, an extensive body of work on partial-order planning
 in the context of goal-based planning. Unsurprisingly, the joint execution
@@ -772,6 +946,8 @@ transition semantics. Our approach can be considered roughly equivalent
 to \emph{deordering} of a totally-ordered plan as described in \citep{backstrom99reordering},
 except performed during plan construction rather than as a post-processing
 step.
+
+
 
 loops: \citep{levesque96what_is_planning,levesque05planning_with_loops}
 
