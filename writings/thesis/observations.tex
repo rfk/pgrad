@@ -5,16 +5,16 @@
 \label{ch:observations}
 
 This chapter develops an explicit formalisiation of the local perspective
-of each agent, representing it as a concrete term in the logic, so
-that we can approach reasoning and planning in asynchronous domains
+of each agent, representing it using concrete terms in the logic,
+so that we can approach reasoning and planning in asynchronous domains
 in a systematic way.
 
 Existing work on multi-agent domains in the situation calculus has
 left this agent-local perspective largely implicit; for example, it
-is customary to introduce different kinds of sensing or communicating
-actions by directly modify the axioms that define the dynamics of
-knowledge. We choose instead to reify the local perspective of each
-agent by explicitly talking about what it has observed.
+is customary to introduce different kinds of sensing or communication
+actions by directly modifying the axioms that define the dynamics
+of knowledge. We choose instead to reify the local perspective of
+each agent by explicitly talking about what it has observed.
 
 The basic idea is as follows: each occurrence of an action results
 in an agent making a set of \emph{observations}. Every situation then
@@ -66,10 +66,10 @@ simply the current situation term.
 If the agent has incomplete knowledge about the state of the world,
 it may need to perform \emph{sensing actions} to obtain additional
 information. To represent such actions, a new sort \noun{Result }is
-added to $\Lsit$, along with an action description
-function $SR(a,s)=r$ that specifies the result returned by each action.
-The agent's local perspective on the world is then given by a \emph{history},
-a sequence of $a\#r$ pairs giving each action performed and its corresponding
+added to $\Lsit$, along with an action description function $SR(a,s)=r$
+that specifies the result returned by each action. The agent's local
+perspective on the world is then given by a \emph{history}, a sequence
+of $a\#r$ pairs giving each action performed and its corresponding
 sensing result.
 
 When sensing actions are used in IndiGolog \citep{giacomo99indigolog},
@@ -125,10 +125,13 @@ of each agent.
 
 The effect of sensing results on an agent's knowledge is axiomatised
 in \citep{scherl03sc_knowledge} by directly specifying it in the
-successor state axiom for the knowledge fluent $K$. As a variety
-of richer domains have been modelled using this formalism, their particular
-accounts of the local information available to each agent have been
-specified by progressively modifying this successor state axiom.
+successor state axiom for the knowledge fluent $K$. Agents discard
+situations that do not agree with the obtained sensing result:\[
+K(agt,do(a,s'),do(a,s))\,\equiv\, K(agt,s',s)\wedge SR(a,s')=SR(a,s)\]
+ As a variety of richer domains have been modelled on top of this
+formalism, their particular accounts of the local information available
+to each agent have been specified by progressively modifying this
+successor state axiom.
 
 For example, when multiple agents are introduced, the successor state
 axiom for $K$ is modified to ensure that an agent knows the results
@@ -190,17 +193,17 @@ we assume that agents perceive observations instantaneously, i.e.
 in the same instant as the actions that cause them.
 
 To make this idea concrete, let us introduce an additional sort \noun{Observation}
-to the language $\Lsit$, for the moment without any
-particular commitment towards what this sort will contain. We then
-add an action description function of the following form to $\Dt_{ad}$:\[
+to the language $\Lsit$, for the moment without any particular commitment
+towards what this sort will contain. We then add an action description
+function of the following form to $\Dt_{ad}$:\[
 Obs(agt,c,s)=o\]
  This function returns a set of observations, and should be read as
 {}``when actions $c$ are performed in situation $s$, agent $agt$
-will perceive $o$''. Using a set of observations allows an agent
-to perceive any number of observations in response to an action occurrence
--- perhaps several observations, perhaps none. When $Obs(agt,c,s)$
-is the empty set, the agent makes no observations and the actions
-$c$ are completely hidden.
+will perceive observations $o$''. Using a set of observations allows
+an agent to perceive any number of observations in response to an
+action occurrence -- perhaps several observations, perhaps none. When
+$Obs(agt,c,s)$ is the empty set, the agent makes no observations
+and the actions $c$ are completely hidden.
 
 The concept of a \emph{view} follows naturally - it is the sequence
 of all the observations made by an agent as the world has evolved.
@@ -241,7 +244,7 @@ containing $Obs$:
 
 \begin{defnL}
 [{Observation~Causality~Requirement}] A basic action theory
-$\Dt$ secifying the $Obs$ function must ensure that agents do not
+$\Dt$ specifying the $Obs$ function must ensure that agents do not
 perceive observations that are not caused by some action:\[
 \Dt\,\models\,\forall agt,s:\, Obs(agt,\{\},s)=\{\}\]
 
@@ -295,7 +298,7 @@ in a wide variety of domains.
 
 We now show how observations and views can be used to model a variety
 of common domain dynamics from the situation calculus literature.
-We argue that these axiomatisations intuitively capture the {}``right''
+We argue that these axiomatisations intuitively capture the {}``correct''
 information in each case, but defer a formal comparison between our
 approach and existing axiomatisations until we have developed our
 theory of knowledge in Chapter \ref{ch:knowledge}.
@@ -408,6 +411,9 @@ message contents to the receiving agent:\begin{gather*}
 inform(s,r)\in Obs(agt,c,s)\,\equiv\,\exists m:\, inform(s,r,m)\in c\\
 inform(s,r,m)\in Obs(agt,c,s)\,\equiv\, inform(s,r,m)\in c\wedge\left(agt=r\vee agt=s\right)\end{gather*}
 
+
+Here all agents will observe that the communication occurred, but
+only the sender and recipient will know the contents of the message.
 
 Non-instantaneous communication can be modelled using a message queue
 for each agent with separate $send$ and $recieve$ actions \citep{Lesperance99sitcalc_approach}.
@@ -542,10 +548,10 @@ In this chapter we have constructed an explicit representation of
 the local perspective of each agent, in terms of \emph{observations}
 and \emph{views}. This terminology has been deliberately chosen to
 mirror that used in other formalisms where representing this local
-perspective is the norm, such as the classic treatise of \citet{halpern90knowledge_distrib}.
+perspective is the norm, such as \citep{parikh85dist_knowledge,halpern90knowledge_distrib}.
 As the examples in Sections \ref{sec:Observations:Axiomatising-simple}
 and \ref{sec:Observations:Axiomatising-extended} have demonstrated,
-our formalism is able to capture a very wide variety of domain dynamics.
+this approach is able to capture a very wide variety of domain dynamics.
 
 Some of our axioms in Sections \ref{sec:Observations:Axiomatising-simple}
 and \ref{sec:Observations:Axiomatising-extended} may seem rather
@@ -583,10 +589,10 @@ facts. Showing that $\phi$ must hold is done by proving:\[
 \Dt\,\models\,\forall s:\, proper(s)\,\rightarrow\,\phi[s]\]
 
 
-Since this query quantifies over situations, it requires instead the
-second-order induction axiom over situations and cannot be handled
-using the regression operator. Indeed, there is no discussion of effective
-reasoning in this framework.
+Since this query quantifies over situations, it requires the second-order
+induction axiom over situations and cannot be handled using the regression
+operator. Indeed, there is no discussion of effective reasoning in
+this framework.
 
 The crucial difference between our work and \citep{pinto98sc_observations}
 is that we provide an explicit axiomatisation not just of \emph{observations}
