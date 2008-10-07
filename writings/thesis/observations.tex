@@ -14,7 +14,8 @@ left this agent-local perspective largely implicit; for example, it
 is customary to introduce different kinds of sensing or communication
 actions by directly modifying the axioms that define the dynamics
 of knowledge. We choose instead to reify the local perspective of
-each agent by explicitly talking about what it has observed.
+each agent by explicitly talking about what it has observed, independant
+of how this information will be used by the rest of the action theory.
 
 The basic idea is as follows: each occurrence of an action results
 in an agent making a set of \emph{observations}. Every situation then
@@ -105,7 +106,7 @@ This approach works well for a single agent, but we are aware of no
 works extending this meta-level handling of histories to the multi-agent
 case.
 
-While the history-based approach of \citep{giacomo99indigolog} allows
+While the meta-level approach of \citep{giacomo99indigolog} allows
 an agent to reason based on its local perspective, it is cumbersome
 for reasoning \emph{about} that local perspective. To determine whether
 an agent \emph{knows} that a formula holds in a given situation, we
@@ -156,18 +157,23 @@ each action affects the agent's local perspective. As we will show
 in Chapter \ref{ch:knowledge}, this can produce a much more general
 and robust formalism for knowledge.
 
+The observation-based approach will also allow us to work direcly
+with the local information available to each agent without needing
+to make statements about knowledge. For example, when planning the
+cooperative execution of a task, we can formulate a reactive plan
+in which each agent can act based directly on its local observations.
+
 
 \section{Definitions\label{sec:Observations:Definitions}}
 
-In this section we formally define an explicitly representation of
-the local information available to each agent, and do so in a manner
-that is independent of how that information will eventually be used.
-Our approach can be seen as a generalisation of the history-based
-approach of \citep{giacomo99indigolog}, explicitly representing the
-information available to each agent. However, we encode this information
-as terms in the logic rather than in the meta-level reasoning machinery.
-This allows us to use this explicit local perspective in more general
-ways, such as to perform explicit epistemic reasoning.
+In this section we formally define an explicit representation of the
+local information available to each agent, and do so in a manner that
+is independent of how that information will eventually be used. Our
+approach can be seen as a generalisation of the history-based approach
+of \citep{giacomo99indigolog}, explicitly representing the information
+available to each agent. However, we encode this information as terms
+in the logic rather than in the meta-level reasoning machinery. This
+allows us to use this explicit local perspective in more general ways.
 
 We begin by defining the notion of an \emph{observation}, which is
 fundamental to the entire approach\emph{.} At the simplest level,
@@ -202,8 +208,8 @@ Obs(agt,c,s)=o\]
 will perceive observations $o$''. Using a set of observations allows
 an agent to perceive any number of observations in response to an
 action occurrence -- perhaps several observations, perhaps none. When
-$Obs(agt,c,s)$ is the empty set, the agent makes no observations
-and the actions $c$ are completely hidden.
+$Obs(agt,c,s)$ is empty, the agent makes no observations and the
+actions $c$ are completely hidden.
 
 The concept of a \emph{view} follows naturally - it is the sequence
 of all the observations made by an agent as the world has evolved.
@@ -236,11 +242,43 @@ situation is an omniscient perspective on the world, the view a local
 perspective. This distinction will be fundamental to the new techniques
 we develop throughout this thesis.
 
-Just as the empty set of actions is assumed to never be legal, so
-we should assume that it generates no observations -- clearly the
-agents cannot observe anything if no action has taken place. Formally,
-we impose the following consistency requirement on basic actions theories
-containing $Obs$:
+To provide a global account of the results returned by each action,
+we can define a \emph{history} in a similar way to IndiGolog, but
+represented explicitly as a term in the language. First, we define
+the \emph{outcome }of an action as a mapping from agents to the observations
+they made. To represent this mapping we use a set of \noun{Agent\#Observation}
+pairs:
+
+\begin{defnL}
+[{Outcomes}] The outcome of an action $c$ is the set of $agt\#Obs(agt,c)$
+pairs for that action:\[
+Outcome(c,s)=y\,\equiv\,\forall agt,o:\, agt\#o\in y\,\equiv\, Obs(agt,c,s)=o\]
+
+\end{defnL}
+Then we can build the global history of a situation as a sequence
+of outcomes: 
+
+\begin{defnL}
+[{Histories}] The history of a situation $s$ is the sequence of
+outcomes corresponding to each action in $s$:\begin{gather*}
+Init(s)\,\rightarrow\, History(s)=\epsilon\\
+History(do(c,s))=h\,\equiv\, h=Outcome(c,s)\cdot History(s)\end{gather*}
+
+\end{defnL}
+Histories will be useful for planning the cooperative execution of
+a shared task, when we must explicitly reason about both the global
+state of the system and the local perspective of each agent. To this
+end, we introduce some suggestive notation for accessing the individual
+elements of an outcome:\[
+Outcome(c,s)[agt]=o\,\equiv\, agt\#o\in Outcome(c,s)\]
+
+
+To ensure that these definitions operate in an intuitively correct
+way, we also need a simple consistency constraint. Just as the empty
+set of actions is assumed to never be legal, so we should assume that
+it generates no observations -- clearly the agents cannot observe
+anything if no action has taken place. Formally, we impose the following
+consistency requirement on basic actions theories containing $Obs$:
 
 \begin{defnL}
 [{Observation~Causality~Requirement}] A basic action theory
