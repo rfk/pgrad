@@ -36,15 +36,13 @@ def unlyx(inF,outF):
     # All done!
 
 # Matches things like {{[}{LABEL}]}
-sqb_re = re.compile(r"\{\{\[\}\{([^\}]+)\}\]\}")
-# Matches the final [{LABEL}] form
-sqb_re2 = re.compile(r"\[\{([^\}]+)\}\]")
+sqb_re = re.compile(r"\{\{\[\}((\\[^\{]+)?\{[^\}]+\})\]\}")
 def unescape_sqb(ln):
     """Unescape square brackets that have been mangled by LyX"""
-    ln2 = sqb_re.sub(r"{\1}",ln)
+    ln2 = sqb_re.sub(r"\1",ln)
     while ln2 != ln:
         ln = ln2
-        ln2 = sqb_re.sub(r"{\1}",ln)
+        ln2 = sqb_re.sub(r"\1",ln)
     return ln
 
 input_re = re.compile(r"\\input\{([^\}]+)\}")
