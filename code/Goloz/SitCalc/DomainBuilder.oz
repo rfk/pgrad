@@ -6,7 +6,6 @@
 %  supports a 'typed' object domain.
 %  
 %
-%
 
 functor
 

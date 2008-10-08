@@ -185,15 +185,24 @@ knowledge.
 
 \section{Contributions}
 
-Our contributions hinge on extending the situation calculus to explicitly
-represent the local \emph{observations} made by each agent when an
-action is performed. We introduce a function $Obs(agt,a,s)$ that
-returns the set of observations made by agent $agt$ when action $a$
-is performed in situation $s$. From this, we associate with each
-situation $s$ an agent-local view, denoted $View(agt,s)$, which
-is the sequence of observations made by the agent in that situation.
-Crucially, the agent's view excludes cases where $Obs(agt,a,s)$ is
-empty, indicating actions that were completely hidden.
+As a launching point for our investigations we develop a new multi-agent
+variant of Golog, with which a team of agents can plan the cooperative
+execution of a shared task. The language, dubbed \emph{MIndiGolog},
+is implemented on the Mozart programming platform, using its powerful
+distributed logic programming capabilities to share the planning workload
+between all members of the team. But this initial implementation is
+limited to synchronous, full-observable domains due to the underlying
+reasoning machinery of the situation calculus.
+
+To extend the approach to asynchronous domains, we construct an explicit
+representation of the local \emph{observations} made by each agent
+when an action is performed. We introduce a function $Obs(agt,a,s)$
+returning the set of observations made by an agent when action $a$
+is performed in situation $s$. Each situation then corresponds to
+an agent-local view, denoted $View(agt,s)$, which is the sequence
+of observations made by the agent in situation $s$. Crucially, the
+agent's view excludes cases where $Obs(agt,a,s)$ is empty, indicating
+actions that were completely hidden.
 
 With a principled axiomatisation of the local perspective of each
 agent in hand, we construct new formalisms and techniques for effective
@@ -201,20 +210,15 @@ use of the situation calculus in asynchronous multi-agent domains.
 Specifically, we provide:
 
 \begin{itemize}
-\item A new multi-agent variant of Golog, with semantics suitable for cooperative
-execution by a team of agents, and a planning procedure that builds
-a partially-ordered sequence of actions rather than a raw situation
-term. The planning process ensures synchronisation is always possible
-based on agent's local views. 
-\item An implementation of this Golog variant using the Mozart programming
-platform, taking advantage of its support for distributed logic programming
-to automatically share the planning workload amongst all members of
-the team. 
+\item A partially-ordered representation of the actions to be performed
+by a team of agents, that ensures synchronisation is always possible
+based on each agent's local view. Our MIndiGolog interpreter is extended
+to generate these structures instead of raw situation terms. 
 \item A new procedure for effective inductive reasoning about a restricted
 form of query, using a meta-level fixpoint calculation on top of the
 standard regression operator. This allows the second-order aspects
 of our axiomatisation to be {}``factored out'' of the reasoning
-process so that proper regression rules can be formulated. 
+process when formulating regression rules. 
 \item A new formalism for individual-level knowledge based explicitly on
 the agent's local view, with accompanying regression rules that use
 our new technique for inductive reasoning to handle arbitrarily-long
@@ -223,26 +227,27 @@ sequences of hidden actions.
 as common knowledge, using an epistemic interpretation of dynamic
 logic to capture a proper regression rule for common knowledge. 
 \end{itemize}
-While our contributions significantly extend the capabilities of the
-situation calculus, they also stay firmly within the bounds of existing
-situation calculus theory and practice. The new concepts are axiomatised
-in a way that is compatible with standard basic action theories, as
-well as with common extensions such as concurrent actions and continous
-time. Our implementation of a Golog execution planner, although written
-using a different programming language and supporting much richer
-domains, is structurally very simlar to existing Golog systems.
+These contributions significantly extend the capabilities of the situation
+calculus when reasoning about asynchronous domains, but they are also
+firmly grounded in existing situation calculus theory and practice.
+The new concepts are axiomatised in a way that is compatible with
+standard basic action theories, as well as with common extensions
+such as concurrent actions and continuous time. Our MIndiGolog execution
+planner, although written using a different programming language and
+supporting much richer domains, is structurally similar to existing
+Golog systems.
 
 We are therefore confident that our results can be integrated smoothly
 with existing theories and systems based on the situation calculus,
 providing a solid foundation for extending their reach into both reasoning
-about, and planning in, asynchronous multi-agent domains. \newpage{}
+about, and planning in, asynchronous multi-agent domains. 
 
 
 \section{Scope}
 
 Before proceeding with the main body of the thesis, it is worth pausing
 to clarify the precise scope of our investigation and hopefully avoid
-any confusion over details of our terminology and contributions.
+any confusion over the details of our terminology and contributions.
 
 
 \subsection{Asynchronicity}
@@ -355,8 +360,8 @@ as the world evolves. We show that this formalism generalises existing
 approaches in which this perspective is modelled implicitly. 
 \item Chapter \ref{ch:jointexec} develops \emph{joint executions}, a restricted
 kind of event structure where synchronisation is based on observations,
-and show how to use them as a data structure in planning the execution
-of a shared MIndiGolog program. 
+and shows how to use them in planning the asynchronous execution of
+a shared MIndiGolog program. 
 \item Chapter \ref{ch:persistence} develops a new technique for effective
 inductive reasoning, capable of handling a limited form of query that
 universally quantifies over situation terms. Dubbed the \emph{Persistence
@@ -372,9 +377,10 @@ the syntax of dynamic logic to formulate a more expressive epistemic
 language than existing situation calculus theories. We formulate a
 regression rule for these complex epistemic modalities and formally
 relate them to our account of individual knowledge. 
-\item Chapter \ref{ch:conclusion} concludes with a summary of our achievements and our plans for ongoing work based on these results.
-\item Appendix \ref{ch:implementation} discusses our various implementations in
-more detail. 
+\item Chapter \ref{ch:conclusion} concludes with a summary of our achievements
+and our plans for ongoing work based on these results. 
+\item Appendix \ref{ch:implementation} discusses our software implementations
+in more detail. 
 \item Appendix \ref{ch:proofs} provides the detailed proofs for those theorems
 where only a proof sketch is provided in the main thesis body. 
 \end{itemize}

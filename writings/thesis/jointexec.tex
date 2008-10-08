@@ -604,11 +604,15 @@ ability to carry out the plan.
 \subsection{Planning with Joint Executions}
 
 Finally, we are in a position to plan the cooperative execution of
-a shared MIndiGolog program using these structures. Consider first
-\emph{offline} planning in the style ConGolog and the original Golog.
-The agents need to find a feasible, legal joint execution such that
-for every branch, if that branch is legal, then it will form a legal
-execution of the program:\begin{multline*}
+a shared MIndiGolog program using these structures.
+
+
+\subsubsection{Offline Planning}
+
+Consider first \emph{offline} planning in the style ConGolog and the
+original Golog. The agents need to find a feasible, legal joint execution
+such that for every branch, if that branch is legal, then it will
+form a legal execution of the program:\begin{multline*}
 \Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists je:\, Legal(je)\wedge Feasible(je)\wedge\\
 \forall b:\, Branch(je,b)\wedge Legal(je,b)\,\rightarrow\,\left[\forall s:\, Sit(je,b,s)\rightarrow\Do(\delta,S_{0},s)\right]\end{multline*}
 
@@ -618,6 +622,41 @@ soundness we require that for every branch of the joint execution,
 \emph{if} that branch is legal then it will be a legal execution of
 the program. For completeness, we assert that there must be some legal
 branch.
+
+
+\subsubsection{Online Execution}
+
+Capturing online execution is not so straightforward, as it is difficult
+to single-step an execution in a partially-observable setting. Consider,
+for example, a program whose next step is a sensing action to be performed
+by some agent. After executing this step, the performing agent will
+know the result of the action, but it cannot necessarily use this
+in planning the next step. While the sensing result allow that particular
+agent to discard some leaves from the joint execution, it must consider
+that other team members may still think those leaves are open. These
+team members in turn have their own view of the joint execution...TODO...yadda
+yadda common knowledge.
+
+One of the intuitions behind introducing online execution in IndiGolog
+was to avoid branching plans, by executing just enough of the program
+to gather the necessary sensing results. Following this intuition
+in the multi-agent case, the agents should plan just far enough ahead
+to ensure thay every team member knows what branch has been taken.\[
+Distinguishable(je)\,\isdef\,\forall lf,agt,v:\, View(agt,je,lf)=v\,\rightarrow\neg\exists lf':\, Leaf(je,lf)\wedge View(agt,je,lf)=v\]
+
+
+In other words, every agent's local view at each leaf is sufficient
+to distinguish it from every other leaf.
+
+\begin{multline*}
+\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists je:\, Legal(je)\wedge Feasible(je)\wedge Distinguishable(je)\\
+\forall lf:\, Leaf(je,lf)\wedge Legal(je,lf)\,\rightarrow\,\left[\forall s:\, Sit(je,lf,s)\rightarrow Trans^{*}(\delta,S_{0},s)\right]\end{multline*}
+
+
+
+\subsubsection{Search}
+
+
 
 
 \subsection{Summary\label{sec:JointExec:Summary}}
@@ -704,4 +743,12 @@ except performed during plan construction rather than as a post-processing
 step.
 
 loops: \citep{levesque96what_is_planning,levesque05planning_with_loops}
+
+can't represent actions that {*}need{*} to be performed concurrently
+- but should be a trivial addition.
+
+don't use explicit mental attitiudes, mutual beliefs etc. JE's more
+akin to recpies in SharedPlans. Assume agents all have the common
+goal of executing the given shared program. But it could be used as
+part of larger system.
 

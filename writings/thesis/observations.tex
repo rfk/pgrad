@@ -4,7 +4,7 @@
 
 \label{ch:observations}
 
-This chapter develops an explicit formalisiation of the local perspective
+This chapter develops an explicit formalisation of the local perspective
 of each agent, representing it using concrete terms in the logic,
 so that we can approach reasoning and planning in asynchronous domains
 in a systematic way.
@@ -14,7 +14,7 @@ left this agent-local perspective largely implicit; for example, it
 is customary to introduce different kinds of sensing or communication
 actions by directly modifying the axioms that define the dynamics
 of knowledge. We choose instead to reify the local perspective of
-each agent by explicitly talking about what it has observed, independant
+each agent by explicitly talking about what it has observed, independent
 of how this information will be used by the rest of the action theory.
 
 The basic idea is as follows: each occurrence of an action results
@@ -51,8 +51,10 @@ discusses how some common domain dynamics can be modelled using observations
 and views, while Section \ref{sec:Observations:Axiomatising-extended}
 demonstrates the power and flexibility of the approach by axiomatising
 more complex domains that have not previously been approached in the
-situation calculus. Section \ref{sec:Observations:Discussion} concludes
-with general discussion.
+situation calculus. Section \ref{sec:Observations:Reasoning} discusses
+how agents can reason about the world using their observations, and
+Section \ref{sec:Observations:Discussion} concludes with some general
+discussion.
 
 
 \section{Background\label{sec:Observations:Background}}
@@ -104,7 +106,8 @@ The agent asks whether the query holds given its current history $h$:\[
 
 This approach works well for a single agent, but we are aware of no
 works extending this meta-level handling of histories to the multi-agent
-case.
+case.\\
+
 
 While the meta-level approach of \citep{giacomo99indigolog} allows
 an agent to reason based on its local perspective, it is cumbersome
@@ -157,11 +160,43 @@ each action affects the agent's local perspective. As we will show
 in Chapter \ref{ch:knowledge}, this can produce a much more general
 and robust formalism for knowledge.
 
-The observation-based approach will also allow us to work direcly
+The observation-based approach will also allow us to work directly
 with the local information available to each agent without needing
-to make statements about knowledge. For example, when planning the
-cooperative execution of a task, we can formulate a reactive plan
-in which each agent can act based directly on its local observations.
+to make explicit statements about knowledge. For example, when planning
+the cooperative execution of a task, we can formulate a reactive plan
+in which each agent can act based directly on its local observations
+without having to introspective reason about what it knows.\\
+
+
+A related approach to ours is the work by \citet{pinto98sc_observations}
+on axiomatising narratives in the situation calculus. Here the term
+{}``observation'' is used in a more general sense to mean some partial
+information about the state of the world, such as an action occurring
+or a fluent holding at a particular time. These are asserted using
+predicates such as $occurs(a,t)$ and $holds(F,t)$. Although the
+focus of \citep{pinto98sc_observations} is on reasoning from a single
+omniscient perspective, it could easily be extended to reason about
+the local perspective of multiple agents.
+
+To pose queries in this framework, a predicate $proper(s)$ is defined
+to identify situations that respect the asserted $occurs$ and $holds$
+facts. Showing that $\phi$ must hold is done by proving:\[
+\Dt\,\models\,\forall s:\, proper(s)\,\rightarrow\,\phi[s]\]
+
+
+Since this query quantifies over situations, it requires the second-order
+induction axiom over situations and cannot be handled using the regression
+operator. Indeed, there is no discussion of effective reasoning in
+this framework.
+
+The crucial difference between our work and \citep{pinto98sc_observations}
+is that we provide an explicit axiomatisation not just of \emph{observations}
+but of \emph{observability.} By virtue of not having made particular
+observations, agents in our formalism can conclude that certain actions
+have not occurred. By contrast, the use of $occurs$ and $holds$
+in \citep{pinto98sc_observations} specifies only what \emph{must}
+have happened, not what \emph{cannot} have happened. This distinction
+will play an important role for effective reasoning for our formalism.
 
 
 \section{Definitions\label{sec:Observations:Definitions}}
@@ -187,16 +222,18 @@ When an agent receives such a notification, we say that it {}``observed'',
 {}``made'' or {}``perceived'' that observation. 
 \end{defnL}
 Since {}``observation'' is quite a loaded term, it is worth re-iterating
-this point: observations are instantaneous \emph{events} generated
+this point: our observations are instantaneous \emph{events} generated
 internally by each agent in response to actions occurring in the world.
 We make no commitment as to how these events are generated, preferring
 a clean delineation between the task of observing change and the dynamics
 of knowledge update based on those observations.
 
-The state of the world may only change in response to some action,
-so observations can only be made as a result of some action. For simplicity
+Since the state of the world may only change in response to some action,
+observations can only be made as a result of some action. For simplicity
 we assume that agents perceive observations instantaneously, i.e.
-in the same instant as the actions that cause them.
+in the same instant as the actions that cause them, but see Section
+\ref{sec:Observations:Delayed} for a suggestion on how delayed observations
+can be modelled.
 
 To make this idea concrete, let us introduce an additional sort \noun{Observation}
 to the language $\Lsit$, for the moment without any particular commitment
@@ -245,22 +282,22 @@ we develop throughout this thesis.
 To provide a global account of the results returned by each action,
 we can define a \emph{history} in a similar way to IndiGolog, but
 represented explicitly as a term in the language. First, we define
-the \emph{outcome }of an action as a mapping from agents to the observations
+the \emph{outcome} of an action as a mapping from agents to the observations
 they made. To represent this mapping we use a set of \noun{Agent\#Observation}
 pairs:
 
 \begin{defnL}
-[{Outcomes}] The outcome of an action $c$ is the set of $agt\#Obs(agt,c)$
-pairs for that action:\[
+[{Outcomes}] The outcome of an action $c$ is the set of
+$agt\#Obs(agt,c)$ pairs generated by that action:\[
 Outcome(c,s)=y\,\equiv\,\forall agt,o:\, agt\#o\in y\,\equiv\, Obs(agt,c,s)=o\]
 
 \end{defnL}
 Then we can build the global history of a situation as a sequence
-of outcomes: 
+of outcomes:
 
 \begin{defnL}
-[{Histories}] The history of a situation $s$ is the sequence of
-outcomes corresponding to each action in $s$:\begin{gather*}
+[{Histories}] The history of a situation $s$ is the sequence
+of outcomes corresponding to each action in $s$:\begin{gather*}
 Init(s)\,\rightarrow\, History(s)=\epsilon\\
 History(do(c,s))=h\,\equiv\, h=Outcome(c,s)\cdot History(s)\end{gather*}
 
@@ -303,10 +340,11 @@ occurs:\[
 \Dt\,\models\,\forall agt,c,s:\, Legal(c,s)\,\rightarrow\, Obs(agt,c,s)\neq\{\}\]
 
 \end{defnL}
-As we shall see in Chapter \ref{ch:knowledge}, such domains make
-reasoning about knowledge significantly easier. Before proceeding
-with some example definitions of $Obs$, let us briefly foreshadow
-how observations and views will be used in the coming chapters.
+As we shall see, such domains make reasoning from the local perspective
+of an agent significantly easier, as they do not need to consider
+arbitrarily-long sequences of hidden actions. Before proceeding with
+some example definitions of $Obs$, let us briefly foreshadow how
+observations and views will be used in the coming chapters.
 
 In Chapter \ref{ch:jointexec}, we will define a partially-ordered
 branching action structure to be generated as the output of the MIndiGolog
@@ -320,16 +358,17 @@ Moreover, if the joint execution requires an agent to execute some
 action $a_{2}$ after another action $a_{1}$, we will require that
 $Obs(agt,a_{1},s)$ is not empty, so that it will have some local
 observation to trigger the performance of $a_{2}$. These restrictions
-ensure that the joint execution can actually be performed by the agents.
+ensure that the joint execution can actually be carried out by the
+agents.
 
-In Chapter \ref{ch:knowledge}, we formalise the notion that an agent's
-knowledge should be based only on its local information. So if the
-agent believes that the world might be in situation $s$, then it
-must also consider possible any other situation $s'$ such that $View(agt,s)=View(agt,s')$.
-By decoupling the axiomatisation of knowledge from the specific details
-of how each action affects the agent's local information, we develop
-a very general formalism that can be applied without modification
-in a wide variety of domains.
+In Chapter \ref{ch:knowledge}, we formalise the intuition that an
+agent's knowledge should be based only on its local information. So
+if the agent believes that the world might be in situation $s$, then
+it must also consider possible any other situation $s'$ such that
+$View(agt,s)=View(agt,s')$. By decoupling the axiomatisation of knowledge
+from the specific details of how each action affects the agent's local
+information, we develop a very general formalism that can be applied
+without modification in a wide variety of domains.
 
 
 \section{Axiomatising Observations\label{sec:Observations:Axiomatising-simple}}
@@ -359,21 +398,21 @@ pairs, and including the following in the definition for $Obs$:\begin{equation}
 a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\label{eq:Observations:ObsStd2}\end{equation}
 
 
-Note that since $Obs$ is an action description function, we must
-specify it using a single axiom as described in Section \ref{sec:Background:SC:Axioms}.
+Note that since $Obs$ is an action description function, technically
+we must specify it using a single axiom as described in Section \ref{sec:Background:SC:Axioms}.
 For the sake of clarity we specify these two cases independently,
 and assume that the final axiom defining $Obs$ takes the completion
-of these individual cases in the standard way.
+of the individual cases in the standard way.
 
 It should be clear that these definitions capture the intuition behind
 this most common model of action observability. When we develop our
 new axiomatisation of knowledge in Chapter \ref{ch:knowledge}, we
 will demonstrate that these definitions provide an equivalent account
-to the standard knowledge axioms defined in \citep{scherl03sc_knowledge}.
+to the standard knowledge axioms of \citet{scherl03sc_knowledge}.
 
 This approach clearly leads to synchronous domains, since it entails
 the following:\[
-Legal(c,s)\rightarrow Obs(agt,c,s)\neq\{\}\]
+Obs(agt,c,s)=\{\}\,\,\equiv\,\, c=\{\}\]
 
 
 
@@ -402,17 +441,17 @@ While the standard approach to sensing actions has the result $SR(a,s)$
 returned unconditionally, it is also possible to model actions that
 return sensing information only when some additional conditions hold
 in the environment, for example as used by \citet{Petrick06thesis}.
-These can be modelled in our framework by adding these conditions
-to the definition of $Obs$:\[
+These can be modelled in our framework by adding the guard conditions
+$\Psi$ to the definition of $Obs$:\[
 a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\wedge\Psi(a,s)\]
 
 
 For example, an action $sense_{\phi,\psi}$ that senses the truth
 of some formula $\phi$ when the guard condition $\psi$ is true would
 require the following to be entailed by the definition:\begin{gather*}
-sense_{\phi,\psi}\#T\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\, actor(sense_{\phi})=agt\wedge\phi(s)\wedge\psi(s)\\
-sense_{\phi,\psi}\#F\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\, actor(sense_{\phi})=agt\wedge\neg\phi(s)\wedge\psi(s)\\
-sense_{\phi,\psi}\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\, actor(sense_{\phi})=agt\wedge\neg\psi(s)\end{gather*}
+sense_{\phi,\psi}\#T\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\,\phi(s)\wedge\psi(s)\\
+sense_{\phi,\psi}\#F\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\,\neg\phi(s)\wedge\psi(s)\\
+sense_{\phi,\psi}\in Obs(agt,c,s)\,\equiv\, sense_{\phi,\psi}\in c\,\wedge\,\neg\psi(s)\end{gather*}
 
 
 As noted in \citep{Petrick06thesis}, guarded sensing actions can
@@ -433,19 +472,24 @@ their communicative effects.
 Instantaneous communication is modelled using actions such as $inform$,
 where $inform(agt_{s},agt_{r},\phi)$ means the sender $agt_{s}$
 informs the receiver $agt_{r}$ of the truth of some formula $\phi$.
-If we assert that only truthful speech acts are allowed, this requires
-no further axiomatisation:\[
+If we assert that only truthful speech acts are allowed, and all actions
+are publicly observable, then this requires no further axiomatisation:\[
 Poss(inform(agt_{s},agt_{r},\phi),s)\,\equiv\,\phi[s]\]
 
 
-However, if actions are implicitly assumed to be public, this simple
-approach can lead to third-party agents being aware of what was communicated.
-In \citep{shapiro01casl_feat_inter} encrypted speech acts are introduced,
-to ensure that only the intended recipient of a message is able to
+The $inform$ action will be included in each agent's observations
+whenever it occurs, from which the agent can conclude that it was
+possible and thus that the contained formula holds in the world.
+
+However, this simple approach can lead to third-party agents being
+aware of what was communicated, which is often not desirable. In \citep{shapiro01casl_feat_inter}
+encrypted speech acts are introduced to overcome this limitation,
+ensuring that only the intended recipient of a message is able to
 access its contents by performing a special \emph{decrypt} action.
 While it would be straightforward to copy this approach in our formalism,
-it is unnecessary; we can directly limit the accessibility of the
-message contents to the receiving agent:\begin{gather*}
+the problem it was introduced to solve no longer exists; we can directly
+limit the accessibility of the message contents to the receiving agent
+without introducing another action:\begin{gather*}
 inform(s,r)\in Obs(agt,c,s)\,\equiv\,\exists m:\, inform(s,r,m)\in c\\
 inform(s,r,m)\in Obs(agt,c,s)\,\equiv\, inform(s,r,m)\in c\wedge\left(agt=r\vee agt=s\right)\end{gather*}
 
@@ -454,10 +498,10 @@ Here all agents will observe that the communication occurred, but
 only the sender and recipient will know the contents of the message.
 
 Non-instantaneous communication can be modelled using a message queue
-for each agent with separate $send$ and $recieve$ actions \citep{Lesperance99sitcalc_approach}.
-The $send$ action adds a message to the queue, while the $recieve$
-action returns the contents of a pending message as its sensing result.
-Since this approach used the standard sensing-result machinery, it
+for each agent with separate $send$ and $check$ actions \citep{Lesperance99sitcalc_approach}.
+The $send$ action adds a message to the queue, while the $check$
+action returns the details of pending messages as its sensing result.
+Since this approach uses the standard sensing-result machinery, it
 requires no special axiomatisation in our framework.
 
 
@@ -546,10 +590,12 @@ lightCameOn\in Obs(agt,c,s)\equiv\neg lightIsOn(s)\wedge\exists agt':\, turnLigh
 When the light is switched on, each agent's observation set will contain
 the term $lightCameOn$, and they will be able to deduce that this
 change has occurred without necessarily knowing the specific action
-responsible for the change.
+responsible for the change. This is similar to the {}``fluent change''
+actions of \citet{degiacomo98execution_monitoring} but significantly
+more flexible.
 
 
-\subsection{Delayed Communication}
+\subsection{Delayed Communication\label{sec:Observations:Delayed}}
 
 Delayed communication can be modelled using separate $send$ and $recv$
 actions. However, unlike the use of explicit communication channels
@@ -580,66 +626,7 @@ knowledge about the $delay$ function, this can easily model domains
 in which the message delay is unpredictable or even unbounded.
 
 
-\section{Discussion\label{sec:Observations:Discussion}}
-
-In this chapter we have constructed an explicit representation of
-the local perspective of each agent, in terms of \emph{observations}
-and \emph{views}. This terminology has been deliberately chosen to
-mirror that used in other formalisms where representing this local
-perspective is the norm, such as \citep{parikh85dist_knowledge,halpern90knowledge_distrib}.
-As the examples in Sections \ref{sec:Observations:Axiomatising-simple}
-and \ref{sec:Observations:Axiomatising-extended} have demonstrated,
-this approach is able to capture a very wide variety of domain dynamics.
-
-Some of our axioms in Sections \ref{sec:Observations:Axiomatising-simple}
-and \ref{sec:Observations:Axiomatising-extended} may seem rather
-ad-hoc, but we propose that they are no more or less ad-hoc than the
-many adjustments made to the axioms defining the knowledge fluent
-$K$ to accommodate different kinds of information-producing action
-\citep{shapiro98specifying_ma_systems,Lesperance99sitcalc_approach,shapiro01casl_feat_inter,Petrick06thesis,shapiro07sc_goal_change}.
-The difference is now that these adjustments can be made separately
-from the rest of the theory, rather than in the fundamental axiom
-for reasoning about knowledge. This makes our formalism significantly
-more elaboration tolerant, a point we will return to in Chapter \ref{ch:knowledge}.
-
-From the perspective of the rest of the thesis, the key contribution
-of this chapter is in providing a uniform representation. This allows
-the specific observability dynamics of a domain to be specified independently
-from the rest of the theory. By {}``factoring out'' the details
-in this way, we are now in a position to construct formalisms and
-reasoning techniques that do not depend on any assumptions about the
-domain dynamics. In particular, we can explicitly represent asynchronous
-domains.
-
-A related approach to ours is the work by \citet{pinto98sc_observations}
-on axiomatising narratives in the situation calculus. Here the term
-{}``observation'' is used in a more general sense to mean some partial
-information about the state of the world, such as an action ocurring
-or a fluent holding at a particular time. These are asserted using
-predicates such as $occurs(a,t)$ and $holds(F,t)$. Although the
-focus of \citep{pinto98sc_observations} is on reasoning from a single
-omniscient perspective, it could easily be extended to reason about
-the local perspective of multiple agents.
-
-To pose queries in this framework, a predicate $proper(s)$ is defined
-to identify situations that respect the asserted $occurs$ and $holds$
-facts. Showing that $\phi$ must hold is done by proving:\[
-\Dt\,\models\,\forall s:\, proper(s)\,\rightarrow\,\phi[s]\]
-
-
-Since this query quantifies over situations, it requires the second-order
-induction axiom over situations and cannot be handled using the regression
-operator. Indeed, there is no discussion of effective reasoning in
-this framework.
-
-The crucial difference between our work and \citep{pinto98sc_observations}
-is that we provide an explicit axiomatisation not just of \emph{observations}
-but of \emph{observability.} By virtue of not having made particular
-observations, agents in our formalism can conclue that certain actions
-have not occurred. By contrast, the use of $occurs$ and $holds$
-in \citep{pinto98sc_observations} specifies only what \emph{must}
-have happened, not what \emph{cannot} have happened. This distinction
-will play an important role for effective reasoning for our formalism.
+\section{Reasoning From Observations\label{sec:Observations:Reasoning}}
 
 We conclude this chapter by linking our formalism back to the reasoning
 techniques based on single-agent histories that are used to handle
@@ -652,21 +639,39 @@ given the agent's current history $h$:\[
 This depends crucially on the assumption that the domain is synchronous
 and publicly observable, so that the macro $\mathbf{end}$ can construct
 the precise situation term corresponding to the history $h$. Since
-in our framework there may be many situations sharing the same view,
-the equivalent query using the agent's view $v$ would be:\[
+this is a query about a specific situation term, it can be answered
+using standard regression techniques.
+
+We can pose a similar query using the definition of a global history
+in our framework, but we must account for the fact that many situations
+could potentially have that history:\[
+\Dt\,\models\,\forall s:\, History(s)=h\,\rightarrow\,\phi[s]\]
+
+
+While this query universally quantifies over situation terms, we know
+from the definition of $History$ precisely how many actions have
+been performed, so we can pose the query in a form suitable for regression:\[
+\Dt\,\models\,\forall c_{1},\dots,c_{n}:\, History(do([c_{1},\dots,c_{n}],S_{0}))=h\,\rightarrow\phi[do([c_{1},\dots,c_{n}],S_{0})]\]
+
+
+Agents can use this query to reason hypothetically about the state
+of the world after some sequence of actions, for example for the purposes
+of planning. They could not, however, answer queries about the current
+state of the world in this manner, since they can only be expected
+to have their current local view $v$. They would need to pose a query
+like the following:\[
 \Dt\,\models\,\forall s:\, View(agt,s)=v\,\rightarrow\,\phi[s]\]
 
 
-This is a much more difficult query in general, since it is not in
-a form that can be handled by the regression operator. Indeed, since
-it universally quantifies over situation terms, answering this query
-requires the use of the second-order induction axiom over situations.
+This is a much more difficult query in general. Since we do not know
+how many actions have occurred based on the view $v$, we cannot re-write
+this into a form suitable regression. The situation calculus currently
+offers no tools for effective reasoning about such queries.
 
 However, suppose the domain is synchronous, so that the agent knows
-how many actions have occurred. In this case it can construct a query
-that does not quantify over situation terms. Let $n$ be the number
-of items in the agent's current view $v$, then it can query the current
-state of the world like so:\[
+how many actions have occurred. It can construct a query like the
+following to reason about the current state of the world using standard
+regression techniques:\[
 \Dt\,\models\,\forall c_{1},\dots,c_{n}:\, View(agt,do([c_{1},\dots,c_{n}],S_{0}))=v\,\rightarrow\phi[do([c_{1},\dots,c_{n}],S_{0})]\]
 
 
@@ -676,4 +681,38 @@ of the situation calculus can be used by an agent to reason from its
 own local perspective in much the same way as the single-agent case.
 In asynchronous domains, the induction axiom is required and no effective
 reasoning procedures currently exist.
+
+
+\section{Discussion\label{sec:Observations:Discussion}}
+
+In this chapter we have constructed an explicit representation of
+the local perspective of each agent, in terms of \emph{observations}
+and \emph{views}. This terminology has been deliberately chosen to
+mirror that used in other formalisms where representing this local
+perspective is the norm, such as \citep{parikh85dist_knowledge,halpern90knowledge_distrib}.
+As the examples in Sections \ref{sec:Observations:Axiomatising-simple}
+and \ref{sec:Observations:Axiomatising-extended} have demonstrated,
+this approach is able to capture a very wide variety of domain dynamics
+in a flexible way.
+
+Some of our axioms in Sections \ref{sec:Observations:Axiomatising-simple}
+and \ref{sec:Observations:Axiomatising-extended} may seem rather
+ad-hoc, but we claim they are no more or less ad-hoc than the many
+adjustments made to the axioms defining the knowledge fluent $K$
+to accommodate different kinds of information-producing action \citep{shapiro98specifying_ma_systems,Lesperance99sitcalc_approach,shapiro01casl_feat_inter,Petrick06thesis,shapiro07sc_goal_change}.
+The difference is that these adjustments can now be made separately
+from the rest of the theory, rather than in the fundamental axiom
+for reasoning about knowledge. This makes our formalism significantly
+more elaboration tolerant, a point we will return to in Chapter \ref{ch:knowledge}.
+It also means we can reason about observations without requiring explicit
+epistemic reasoning, an ability we will utilise in Chapter \ref{ch:jointexec}.
+
+From the perspective of the rest of the thesis, the key contribution
+of this chapter is in providing a uniform representation. This allows
+the specific observability dynamics of a domain to be specified independently
+from the rest of the theory. By {}``factoring out'' the details
+in this way, we are now in a position to construct formalisms and
+reasoning techniques that do not depend on any assumptions about the
+domain dynamics. In particular, we can explicitly represent and reason
+about asynchronous domains.
 

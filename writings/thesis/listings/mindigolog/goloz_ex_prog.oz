@@ -1,1 +1,1 @@
-pick(agt seq(acquire(agt bowl) acquire(agt knife)))
+pick(agt seq(acquire(agt bowl1) acquire(agt lettuce1)))
