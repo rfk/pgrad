@@ -16,7 +16,6 @@ import
   LP at '../Utils/LP.ozf'
 
   Search
-  System
   Combinator
   RecordC
 

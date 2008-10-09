@@ -14,8 +14,6 @@ functor
 
 import
 
-  SitCalc
-
 export
 
   Init

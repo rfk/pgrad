@@ -85,7 +85,7 @@ define
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = J2 %{FixActionInvariants J2 AId}
+    JOut = {FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -498,9 +498,9 @@ define
   %  List all the events which are currently active - that is, they
   %  have no preceeders left to fire.
   %
-  proc {ActiveEvents J Evts}
-    Evts = {IntMap.allMatching J fun {$ I} {Preceeders J I} == nil end}
-  end
+  %proc {ActiveEvents J Evts}
+  %  Evts = {IntMap.allMatching J fun {$ I} {Preceeders J I} == nil end}
+  %end
 
   %
   %  List all events that could be active from the perspective of the
@@ -785,8 +785,8 @@ define
   %%
 
   proc {Test}
-    J1 J2 J3 J4 J5 J6 J7 J8
-    E1 E2 E3 E4 E5
+    J1 J2 J3 J4 J5 J6
+    E1 E2 E3
   in
     {InsertWithEnablers {Init} nil s(action: acquire(thomas lettuce(1))) nil J1 _}
     {InsertWithEnablers J1 nil s(action: check_for(richard tomato)) nil J2 _}

@@ -18,7 +18,6 @@ import
   Module
   Search
   System
-  Browser
 
 export
 
@@ -45,7 +44,7 @@ define
   %  We delegate determination of WFF to the Domain module.
   %
   FOF = _
-  {Module.link ['/storage/uni/pgrad/code/Goloz/FOF/FOF.ozf'] [FOF]}
+  {Module.link ['/storage/uni/pgrad/code/thesis/MIndiGolog2/FOF/FOF.ozf'] [FOF]}
   FOF.lang = lang(
     wfp: proc {$ P}
             {DB.query.wfp P}
@@ -63,7 +62,7 @@ define
   %
   DB = _
   Domain = _
-  {Module.link ['/storage/uni/pgrad/code/Goloz/SitCalc/DomainBuilder.ozf' '/storage/uni/pgrad/code/Goloz/Domain.ozf'] [DB Domain]}
+  {Module.link ['/storage/uni/pgrad/code/thesis/MIndiGolog2/SitCalc/DomainBuilder.ozf' '/storage/uni/pgrad/code/thesis/MIndiGolog2/Domain.ozf'] [DB Domain]}
   % Ensure that Domain module is loaded
   {Wait Domain}
 

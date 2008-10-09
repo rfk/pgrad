@@ -10,10 +10,6 @@
 
 functor
 
-import
-
-  System
-
 export
 
   Init

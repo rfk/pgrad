@@ -16,9 +16,9 @@ define
 
   D = DomainBuilder.def
 
-  {D.agent thomas}
-  {D.agent richard}
-  {D.agent harriet}
+  {D.agent jim}
+  {D.agent joe}
+  {D.agent jon}
 
   {D.object knife 2}
   {D.object bowl 3}

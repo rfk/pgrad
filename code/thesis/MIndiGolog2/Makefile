@@ -22,11 +22,11 @@ FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
 %.tex: %.dot
 	dot2tex --preproc $< | dot2tex --figonly > $@
 
-goloz: Goloz.oz $(FUNCTORS)
-	ozc -p -x $< -o goloz 
+all: main.exe
+main.exe: main.ozf $(FUNCTORS)
 
-plan.dot: goloz
-	./goloz
+plan.dot: main.exe
+	./main.exe
 
 test: RunTests.exe $(FUNCTORS)
 	./RunTests.exe
@@ -35,8 +35,11 @@ plan: plan.png
 	gthumb plan.png &
 
 clean:
-	rm -rf *.ozf *.exe FOF/*.ozf Utils/*.ozf SitCalc/*.ozf goloz #*.dot *.png
+	rm -rf *.ozf FOF/*.ozf Utils/*.ozf SitCalc/*.ozf
 
-todos:
+clobber: clean
+	rm -rf *.exe *.dot *.png
+
+todo:
 	grep 'TODO' *.* FOF/*.* Utils/*.* SitCalc/*.*
 

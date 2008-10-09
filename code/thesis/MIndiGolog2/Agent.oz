@@ -15,6 +15,6 @@ export
 
 define
 
-  Name = thomas
+  Name = jim
 
 end

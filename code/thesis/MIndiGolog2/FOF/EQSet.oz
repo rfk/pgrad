@@ -17,7 +17,6 @@ import
 
   Space
   Combinator
-  System
 
 export
 
@@ -99,7 +98,7 @@ define
     E = {Init}
     E1 E2 E3 E4 E5 E6 E7
     V1 V2
-    X1 X2 X3
+    X1 X3
   in
     E1 = {AddT E [b#b]}
     {Consistent E1 true}
@@ -113,7 +112,7 @@ define
     {Consistent E4 false}
     E5 = {AddF {AddT E [X3#q(X1)]} [X3#q(X1)]}
     {Consistent E5 false}
-    E6 = {AddT E5 [X1#X2]}
+    E6 = {AddT E5 [X1#_]}
     {Consistent E6 false}
     E7 = {AddF {AddT E [X1#7]} [X1#7]}
     {Consistent E7 false}
