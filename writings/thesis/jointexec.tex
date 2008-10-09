@@ -40,13 +40,13 @@ computation known as \emph{prime event} \emph{structures}, which are
 partially-ordered branching sequences of events. A \emph{joint execution}
 is defined as a particular kind of prime event structure that is rich
 enough to capture the concurrent execution of independent actions,
-and can branch on the sensing results of actions, while being built
-up one action at a time in much the same way as ordinary situation
-terms. Under some simple restrictions on the theory of action, joint
-executions can be reasoned about using standard regression techniques.
-Finally, we use our explicit account of an agent's local view to identify
-joint executions that can feasibly be executed based on the local
-infomation available to each agent at runtime.
+and can branch on the sensing results of actions. Joint executions
+can be built up one action at a time in much the same way as ordinary
+situation terms and, under some simple restrictions on the theory
+of action, can be reasoned about using standard regression techniques.
+We use our explicit account of an agent's local view to identify joint
+executions that can feasibly be executed based on the local infomation
+available to each agent at runtime.
 
 Joint executions thus allow us to represent the actions that a team
 of agents are to perform in service of some shared task, without requiring
@@ -57,8 +57,8 @@ increase in power over existing approaches to planning for multi-agent
 teams in the situation calculus. To demonstrate the utility of the
 approach, we extend our MIndiGolog interpreter from Chapter \ref{ch:mindigolog}
 to show how a team of agents can cooperate to plan and perform the
-execution of a shared program in an asynchronous, partially observable
-domain.
+joint execution of a shared program in an asynchronous, partially
+observable domain.
 
 The chapter proceeds as follows: TODO.
 
@@ -266,9 +266,9 @@ a purely reactive fashion.
 
 \section{Joint Executions\label{sec:JointExec:JEs}}
 
-This section defines \emph{joint execution}s as a restrcted kind of
-prime event structure that captures asynchronous execution of actions
-in the situation calculus. We begin with a high-level intuitive description
+This section defines \emph{joint execution}s as a restricted kind
+of prime event structure that captures the execution of actions in
+the situation calculus. We begin with a high-level intuitive description
 to motivate these structures, and then formally define them using
 a set of axioms to be included in the theory of action $\Dt$. Since
 we intend for agents to synthesise joint executions as the output
@@ -310,57 +310,68 @@ which enables several alternative outcome events corresponding to
 the potential results returned by that action; since an action can
 only produce one outcome, the enabled outcome events are all mutually
 conflicting. Each of these outcome events can then enable further
-action events, and so forth. A simple example of a joint execution
-is shown in Figure \ref{fig:example-je}.
+action events, and so forth.
 
-TODO: redo this diagram, and describe it.
+A simple example of a joint execution is shown in Figure \ref{fig:example-je}.
+Here eppliptical nodes are action events and box nodes are the resulting
+outcome events. The action $checkFor$ senses the presence of a type
+of ingredient, returning either $T$ or $F$, and thus producing two
+conflicting outcome events. So in this case, the agent $Jim$ senses
+for availability of eggs, and if he finds there are some then he acquires
+one. Otherwise, he acquire a tomato. Meanwhile agent $Joe$ acquires
+a lettuce, indepenendently of the actions $Jim$ is taking.
 
 %
 \begin{figure}[t]
  \framebox{%
 \begin{minipage}[t][1\totalheight]{1\columnwidth}%
-\textsf{\textbf{\tiny \input{listings/jointexec/je_example.tex}}}{\tiny {} }%
+\textsf{\textbf{\tiny \includegraphics[scale=0.35]{listings/jointexec/example_je}}}{\tiny{} }%
 \end{minipage}}
 
-\caption{ A simple joint execution. Elliptical nodes are action events, box
-nodes are outcome events. }
+\caption{A simple joint execution.}
 
 
 \label{fig:example-je} 
 \end{figure}
 
 
-Recall that a \emph{configuration} is a partial run of execution of
-a prime event structure. Clearly any configuration ending in an outcome
-event corresponds to a unique situation term and also a unique history
-term, as it is a sequence of alternating actions and their outcomes.
+These structures are clearly much richer than ordinary situation terms,
+as they permit branching and partial-ordering between actions. Still,
+they correspond to sets of ordinary situation term in a straightforward
+way. Recall that a \emph{configuration} is a partial run of execution
+of a prime event structure. Clearly any configuration ending in an
+outcome event corresponds to a unique situation term and also a unique
+history term, as it is a sequence of alternating actions and their
+outcomes.
 
 We will call a set of unordered, non-conflicting outcome events a
 \emph{branch}. A branch identifies a set of partial runs of the joint
-execution. A \emph{leaf} is a special case of a branch, where every
-event is either in the leaf, conflicts with something in the leaf,
-or precedes something in the leaf: \[
-\forall i\in\mathcal{O}:\,\, i\in lf\,\equiv\,\neg(\exists j\in lf:\,\, i\oplus j\,\vee\, i\prec j)\]
+execution. In Figure \ref{fig:example-je}, the sets $\{O3\}$, $\{O1,O3\}$
+and $\{O5,O3\}$ are examples of branches. A \emph{leaf} is a special
+case of a branch, where every event is either in the leaf, conflicts
+with something in the leaf, or precedes something in the leaf; it
+thus represents potential \emph{terminating} runs of the joint execution
+execution. In Figure \ref{fig:example-je} there are two leaves, $\{O3,O4\}$
+and $\{O3,O5\}$, generated by the two alterate outcomes of the $checkFor$
+action.
 
-
-A leaf thus represents potential \emph{terminating} runs of the joint
-execution execution. TODO: examples on the diagram.
-
-The \emph{histories} of a branch is the set of all configurations
-that contain all elements of the branch, and end in an event from
-the branch. By these definitions, the union of histories of all leaves
-gives the set of all histories that could be produced by performing
-the joint execution.
+A \emph{history} of a branch is a history term (as defined in Chapter
+\ref{ch:observations}) that can be generated by performing actions
+from the joint execution until all events in the branch have occurred.
+By these definitions, the set of histories of all leaves gives every
+possible history that could be produced by performing the joint execution
+through to a terminating configuration.
 
 A joint execution has one additional component over a standard prime
 event structure: a \emph{total} order on events $<$ that is consistent
 with the partial order $\prec$ induced by the enabling relation.
 We call this the \emph{canonical ordering}, and it allows any branch
-to be unambiguosly translated into a \emph{canonical history}. When
-we come to use joint executions for planning, we will use the canonical
-history to avoid having to reason about all the (potentially exponentially-many)
-histories of each leaf. The canonical ordering is determined by the
-order of insertion of events into the structure.
+to be unambiguosly translated into a single \emph{canonical history}.
+When we come to use joint executions for planning, we will use the
+canonical history to avoid having to reason about all the (potentially
+exponentially-many) histories of each leaf. The canonical ordering
+is essentially arbitrary; in practice it is determined by the order
+of insertion of events into the structure.
 
 
 \subsection{Formalities}
@@ -379,40 +390,45 @@ A joint execution consists of:
 \item a set of \emph{events}, which are integer ids 
 \item a mapping from each event to a \emph{label}, which is either an action
 or an outcome 
-\item a mapping from each event to its \emph{enablers}, which is a set of
-lower-numbered events 
-\item a mapping from each event to its \emph{alternatives}, which is a set
-of events 
+\item a mapping from each event to its \emph{enablers}, a set of lower-numbered
+events 
+\item a mapping from each event to its \emph{alternatives}, a set of events 
 \end{itemize}
+We will use the function $jexec$ as a constructor for joint execution
+terms, specifying each of the four features above as an argument.
+As in the definition of an outcome in the previous chapter, we will
+use sets of $key\#value$ pairs to represent a mapping.
+
 As a base case, we have the empty joint execution as follows:
 
 \[
-JExec_{0}\,\isdef\, jexec(\{\},\{\},\{\},\{\})\]
+Ex_{0}\,\isdef\, jexec(\{\},\{\},\{\},\{\})\]
 
 
 The following four functions access the mappings contained in a joint
 execution:\begin{gather*}
-events(je)=es\,\equiv\exists ls,ns,as:\, je=jexec(es,ls,ns,as)\\
-lblmap(je)=ls\,\equiv\exists es,ns,as:\, je=jexec(es,ls,ns,as)\\
-ensmap(je)=ns\,\equiv\exists es,ls,as:\, je=jexec(es,ls,ns,as)\\
-altsmap(je)=as\,\equiv\exists es,ls,ns:\, je=jexec(es,ls,ns,as)\end{gather*}
+events(ex)=es\,\equiv\exists ls,ns,as:\, ex=jexec(es,ls,ns,as)\\
+lblmap(ex)=ls\,\equiv\exists es,ns,as:\, ex=jexec(es,ls,ns,as)\\
+ensmap(ex)=ns\,\equiv\exists es,ls,as:\, ex=jexec(es,ls,ns,as)\\
+altsmap(ex)=as\,\equiv\exists es,ls,ns:\, ex=jexec(es,ls,ns,as)\end{gather*}
 
 
 We also define the following shortcut accessors to get the value from
 each mapping for a particular event $i$:\begin{gather*}
-lbl(je,i,l)\equiv i\#l\in lblmap(je)\\
-ens(je,i,ns)\equiv i\#ns\in ensmap(je)\\
-alts(je,i,as)\equiv i\#as\in altsmap(je)\end{gather*}
+lbl(ex,i,l)\equiv i\#l\in lblmap(ex)\\
+ens(ex,i,ns)\equiv i\#ns\in ensmap(ex)\\
+alts(ex,i,as)\equiv i\#as\in altsmap(ex)\end{gather*}
 
 
 For notational convenience we will often write these as functions,
-but this should be understood as an abbreviation since not every joint
-execution will contain every event. For example:\[
-ens(je,i)=ns\,\isdef\,\exists ns':\, ens(je,i,ns')\wedge ns'=ns\]
- Like standard situation terms, joint executions are built up by progressively
+e.g. $ens(ex,i)=ns$ rather than $ens(ex,i,ns)$, but this should
+be understood as an abbreviation since not every joint execution will
+contain every event.
+
+Like standard situation terms, joint executions are built up by progressively
 inserting new events into an existing joint execution. First, we have
 a function to get the id of the next event:\[
-NextEvent(je)=max(\{0\}\cup events(je))+1\]
+NextEvent(ex)=max(\{0\}\cup events(ex))+1\]
 
 
 To add to a joint execution, we must specify the predecessor joint
@@ -425,46 +441,47 @@ every other outcome event enabled by the same action.
 The following predicate specifies the conditions under which such
 an insertion forms a valid joint execution, according to the intuitions
 discussed above:\begin{gather*}
-Insert(je,lb,ns,,je')\equiv\exists i:\, NextEvent(je)=i\\
-\wedge\, events(je')=events(je)\cup\{i\}\\
-\wedge\, lblmap(je')=lblmap(je)\cup\{i\#lb\}\\
-\wedge\, ensmap(je')=ensmap(je)\cup\{i\#ns\}\\
-\wedge\left(InsertOut(je,i,lb,ns,je')\vee InsertAct(je,i,lb,ns,je')\right)\end{gather*}
+Insert(ex,lb,ns,ex')\equiv\exists i:\, NextEvent(ex)=i\\
+\wedge\, events(ex')=events(ex)\cup\{i\}\\
+\wedge\, lblmap(ex')=lblmap(ex)\cup\{i\#lb\}\\
+\wedge\, ensmap(ex')=ensmap(ex)\cup\{i\#ns\}\\
+\wedge\left(InsertOut(ex,i,lb,ns,ex')\vee InsertAct(ex,i,lb,ns,ex')\right)\end{gather*}
 
 
-Note that this is not a function, since an invalid set of enablers
-could cause it to be false. Outcome events must be enabled by a single
-action event, and the alternatives must be updated for all other outcome
-events associated with that action:\begin{gather*}
-InsertOut(je,i,lb,ns,je')\equiv\,\,\,\,\,\, IsOutcome(lb)\\
-\wedge\exists j,a:\, ns=\{j\}\wedge lbl(je,j,a)\wedge IsAction(a)\\
-\wedge\left(\exists allAlts:\,\forall k:\, k\in allAlts\equiv ens(je',k,\{j\})\right)\\
-\wedge\forall k:\,\left[k\not\in events(je')\,\rightarrow\,\neg\exists as:\, alts(je',k,as)\right]\\
-\wedge\left[ens(je',k,\{j\})\rightarrow alts(je',k,allAlts)\right]\\
-\wedge\left[\neg ens(je',k,\{j\})\rightarrow\exists as:\, alts(je,k,as)\wedge alts(je',k,as)\right]\end{gather*}
+Note that $Insert$ is not a function, since an invalid set of enablers
+could cause it to be false. For outcome events, the enablers must
+be a single action event, and we update the alternatives for all other
+outcome events associated with that action:\begin{gather*}
+InsertOut(ex,i,lb,ns,ex')\equiv\,\,\,\,\,\,\exists j,newAlts:\,\, IsOutcome(lb)\\
+\wedge\, ns=\{j\}\wedge IsAction(lbl(ex,j))\\
+\wedge\left(\forall k:\, k\in newAlts\equiv ens(ex',k,\{j\})\right)\\
+\wedge\forall k:\,\left[k\not\in events(ex')\,\rightarrow\,\neg\exists as:\, alts(ex',k,as)\right]\\
+\wedge\left[ens(ex',k)=\{j\}\,\rightarrow\, alts(ex',k,newAlts)\right]\\
+\wedge\left[ens(ex',k)\neq\{j\}\,\rightarrow\, alts(ex',k)=alts(ex,k)\right]\end{gather*}
 
 
-Action events must be enabled by a set of outcome events and cannot
-have any alternatives:\begin{gather*}
-InsertAct(je,i,lb,ns,je')\equiv\,\,\,\,\,\, IsAction(lb)\\
-\wedge\forall j\in ns:\,\exists lb':\, lbl(je,j,lb')\wedge IsOutcome(lb')\\
-\wedge altsmap(je')=altsmap(je)\cup\{i\#\{\}\}\end{gather*}
+For action events, the enablers must be a set of existing outcome
+events and the set of alternatives must be empty:\begin{gather*}
+InsertAct(ex,i,lb,ns,ex')\equiv\,\,\,\,\,\, IsAction(lb)\\
+\wedge\forall j\in ns:\, IsOutcome(lbl(ex,j))\\
+\wedge altsmap(ex')=altsmap(ex)\cup\{i\#\{\}\}\end{gather*}
 
 
 Finally, we need a second-order induction axiom stating that the only
 joint executions are those that can be constructed in this way. This
 is entirely analogous to the axiom for situation terms:\begin{multline*}
-\forall P:\,\left[P(JExec_{0})\wedge\forall je,je',lb,ns:\, P(je)\wedge Insert(je,lb,ns,je')\rightarrow P(je')\right]\\
-\rightarrow\forall je:\, P(je)\end{multline*}
+\forall P:\,\left[P(Ex_{0})\wedge\forall ex,ex',lb,ns:\, P(ex)\wedge Insert(ex,lb,ns,ex')\rightarrow P(ex')\right]\\
+\rightarrow\forall ex:\, P(ex)\end{multline*}
 
 
-These definitions enforece the basic structure of a joint execution,
-but do not constrain it to be something that could be executed in
-the world -- for example, outcomes can be enabled by actions that
-will never actually produce that outcome. Like situation terms, we
-focus first on getting the appropriate structure, and then specify
-additional conditions that joint executions must satisify in order
-to be legal in the real world.
+These definitions enforece the basic structure of a joint execution
+according to the intuitions discussed in the previous section, but
+do not constrain it to be something that could be executed in the
+world -- for example, outcomes can be enabled by actions that will
+never actually produce that outcome. Like situation terms, we focus
+first on getting the appropriate structure, and then specify additional
+conditions that joint executions must satisify in order to be legal
+in the real world.
 
 Note that we have placed an important restriction on the ordering
 of events -- if $i<j$ according to the total ordering over the integers,
@@ -475,51 +492,50 @@ simply give $j$ the lower event number.
 
 Now, let us define the \emph{preceeds} and \emph{conflicts} relations
 in terms of enablers and alternatives. We will write these as binary
-infix operators $\prec_{je}$ and $\oplus_{je}$. The precedence relation
+infix operators $\prec_{ex}$ and $\oplus_{ex}$. The precedence relation
 is defined as a transitive closure over enablers:\begin{multline*}
-\forall P,i,j:\left[\left(i\in ens(je,j)\,\rightarrow P(i,j)\right)\,\wedge\,\left(\forall k:\, P(i,k)\wedge k\in ens(je,j)\,\rightarrow\, P(i,j)\right)\right]\\
-\rightarrow\left(P(i,j)\rightarrow i\prec_{je}j\right)\end{multline*}
+\forall P,ex,i,j:\left[\left(i\in ens(ex,j)\,\rightarrow P(i,j)\right)\,\wedge\,\left(\forall k:\, P(i,k)\wedge k\in ens(ex,j)\,\rightarrow\, P(i,j)\right)\right]\\
+\rightarrow\left(P(i,j)\rightarrow i\prec_{ex}j\right)\end{multline*}
 
 
-The conflict relation is defined so that $i\oplus j$ if they have
-altnerative predecessors:\begin{multline*}
-\forall P,i,j:\,\left[\left(i\in alts(je,j)\,\rightarrow P(i,j)\right)\right.\\
-\left.\wedge\,\left(\forall i',j':\, P(i',j')\wedge i'\preceq_{je}i\wedge j'\preceq_{je}j\,\rightarrow\, P(i,j)\right)\right]\\
-\rightarrow\left(P(i,j)\rightarrow i\oplus_{je}j\right)\end{multline*}
+The conflict relation is defined so that $i\oplus_{ex}j$ if they
+have altnerative predecessors:\begin{multline*}
+\forall P,ex,i,j:\,\left[\left(i\in alts(ex,j)\,\rightarrow P(i,j)\right)\right.\\
+\left.\wedge\,\left(\forall i',j':\, P(i',j')\wedge i'\preceq_{ex}i\wedge j'\preceq_{ex}j\,\rightarrow\, P(i,j)\right)\right]\\
+\rightarrow\left(P(i,j)\rightarrow i\oplus_{ex}j\right)\end{multline*}
 
 
 These axioms suffice to give an account of joint executions as prime
 event structures as defined in \citep{npw79event_structures}. We
-also require some additional definitions and notation that is not
-typically found in the literature on prime event structures, in order
-to related joint executions back to the existing concepts of the situation
-calculus.
+now introduce the additional definitions required to relate joint
+executions back to the existing concepts of the situation calculus.
 
 A branch is a set of unordered non-conflicting outcome events; that
 is, a set of events satisfying:\begin{multline*}
-Branch(je,b)\,\equiv\,\forall i,j\in b:\, IsOutcome(lbl(je,i)\\
-\wedge IsOutcome(lbl(je,j)\\
-\wedge\,\neg(i\oplus_{je}j)\,\wedge\, i\not\prec_{je}j\,\wedge\, j\not\prec_{je}\, j\end{multline*}
+Branch(ex,b)\,\equiv\,\forall i,j\in b:\, IsOutcome(lbl(ex,i))\wedge IsOutcome(lbl(ex,j))\\
+\wedge\,\neg(i\oplus_{ex}j)\,\wedge\, i\not\prec_{ex}j\,\wedge\, j\not\prec_{ex}\, j\end{multline*}
 
 
 A branch identifies a family of potential partial runs of the execution.
 We can generate these histories by recursively selecting events that
 do not conflict with anything in $b$ and are enabled given what we
-have performed so far:
-
-TODO
-
-A branch $b$ \emph{covers} another branch \emph{$b'$,} denoted by
-$b\sqsubseteq_{je}b'$, if every event in $b$ is either also in $b'$,
-or precedes something in $b'$. Every history of $b'$ will have corresponding
-a prefix in the histories of $b$. This defines a partial ordering
-on branches:\[
-b\sqsubseteq_{je}b'\,\equiv\,\forall i\in b:\,\,\exists b'\in b':\,\, i\preceq_{je}i'\]
+have performed so far: TODO: how to generate histories?\[
+History(ex,b,h)\equiv HistoryRec(ex,b,\{\},h)\]
+\begin{gather*}
+History(ex,\{\},es,h)\equiv h=\epsilon\\
+History(ex,b,es,h)\equiv\end{gather*}
 
 
-A \emph{leaf}, denoted $lf$, is a special case of a branch set that
-meets the following additional requirement:\[
-Leaf(je,lf)\,\equiv\,\forall i\in events(je):\, i\in lf\,\equiv\,\neg(\exists i'\in lf:\,\, i\oplus i'\,\vee\, i\prec i')\]
+A \emph{leaf} is a special case of a branch:\begin{multline*}
+Leaf(ex,lf)\,\equiv\, Branch(ex,lf)\\
+\wedge\forall i\in events(ex):\, i\in lf\,\equiv\,\neg(\exists i'\in lf:\,\, i\oplus_{ex}i'\,\vee\, i\prec_{ex}i')\end{multline*}
+
+
+Finally, we need to be able to reason about each agent's local perspective
+on a joint execution. We say an event $i$ is enabled by a view is
+there is a history of its enablers that corresponds to that view:
+\[
+EnabledByView(ex,agt,v,i)\equiv History(ex,ens(ex,i),h)\wedge View(agt,h)=v\]
 
 
 
@@ -540,43 +556,20 @@ we require that:\[
 
 
 The second restriction corresponds to the idea of \emph{knowing what}
-action to perform. For a given event $i$, define the enabling views
-of $i$ are all views in in which the agent responsible for $i$ could
-be required to execute it:\[
-EnablingView(je,i,v)\equiv\exists agt,h:\, actor(je,i)=agt\wedge Hist(je,ens(je,i),h)\wedge View(agt,h)=v\]
-
-
-This definition gives all the possible views of $agt$ in which event
-$i$ is enabled, and so the agent is required to perform action $lbl(je,i)$.
-Since the agent has only a local viewpoint, it is possible that some
-other outcome set can produce an identical view. Say that two outcome
-sets overlap, denoted $Overlaps(je,agt,os,os')$, if they could produce
-an identical local history for a given agent:\[
-\exists v:\, EnablingView(je,view(agt,hists(e_{1}))\,\cap\, view(agt,hists(e_{2}))\,\neq\varnothing\]
-
-
-TODO: formulate this properly
-
-Then the \emph{minimal overlapping set} for $e_{1}$, from the perspective
-of $agt$, is the set of all $e_{2}$ satisfying:\begin{multline*}
-e_{2}\in minovlp(agt,e_{1})\,\equiv\\
-ovlaps(agt,e_{1},e_{2})\wedge\neg\exists e_{3}\left[ovlaps(agt,e_{1},e_{3})\wedge e_{3}\sqsubset e_{2}\right]\end{multline*}
-
-
-This captures all outcome sets that the agent could potentially confuse
-for $e_{1}$. To ensure there is no confusion about whether an action
-is enabled, for each $i\in\mathcal{A}$, every $e$ in the minimal
-overlapping set of $ens(i)$ for $actor(i)$ must enable an event
-$i'$ with identical action $\gamma(i')=\gamma(a)$. Formally:\begin{multline*}
-\forall e\in minovlp(actor(i),ens(i)):\,\\
-\exists i':\,\gamma(i')=\gamma(i)\,\wedge\, ens(i')=e\end{multline*}
+action to perform. For any given view $v$, there may be multiple
+events enabled by that view, and the agent has no means of knowing
+which event is actually enabled. To ensure it always knows what to
+do, we required that all such events call for the same action to be
+performed:\[
+\forall v,i,j:\, EnabledByView(ex,agt,v,i)\wedge EnabledByView(ex,agt,v,j)\,\rightarrow\, lbl(ex,i)=lbl(ex,j)\]
  This ensures that the agent's local information is enough to know
 when it should perform an action. While it may not know precisely
 which \emph{event} is enabled, it will know enough to determine the
 specific \emph{action} that it must perform.
 
-Finally, we say a joint execution is feasible if it meets both these
-conditions:\[
+TODO: examples of JE's that do not meet these requirements.
+
+We say a joint execution is feasible if it meets both these conditions:\[
 Feasible(je)\,\isdef\, KnowsWhat(je)\wedge KnowsWhen(je)\]
 
 
@@ -660,6 +653,9 @@ to distinguish it from every other leaf.
 
 \subsubsection{Search}
 
+Search should be modified to ensure that a valid joint execution can
+be found for the contained program, rather than just a valid situation.
+
 
 \subsection{Summary\label{sec:JointExec:Summary}}
 
@@ -693,7 +689,7 @@ aspects of our implementation and give an example of the output it
 produces.
 
 
-\section{Implementation\label{sec:JointExec:Implementation}}
+\section{Reasonable Joint Executions}
 
 While these structures so far allow provide a powerful formal account
 of execution planning in multi-agent domains, they are not suitable
@@ -703,10 +699,15 @@ brach in the execution. Since it is a partially-ordered structure
 there is a potentially exponential number of histories for every branch.
 
 
-\subsection{Canonical Joint Executions}
-
-
 \subsection{Independent Actions\label{sec:JointExec:IndepActs}}
+
+
+\subsection{Reasonability}
+
+
+\section{Implementation\label{sec:JointExec:Implementation}}
+
+
 
 
 \subsection{Program Steps}

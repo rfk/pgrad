@@ -37,6 +37,7 @@ CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf ./upload-thesis/
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex observations.tex jointexec.tex persistence.tex knowledge.tex cknowledge.tex conclusion.tex 
 APPENDICES = implementation.tex proofs.tex
 AUXFILES = preamble.tex mathmacros.tex bibcmds.tex
+LISTINGS = listings/jointexec/example_je.pdf
 
 ## Additional variables
 
@@ -117,6 +118,17 @@ rawchapters.tex: $(CHAPTERS)
 %.pdf: %.dvi
 	$(PDFLTX) $*.tex
 
+# Graphics converters
+
+%.png: %.dia
+	dia -e $@ $<
+
+%.eps: %.dia
+	dia -e $@ $<
+
+%.pdf: %.eps
+	epstopdf $<
+
 ##  Cleanup Commands
 
 clean:
@@ -196,6 +208,6 @@ warnings: thesis.dvi
 
 ##  Specific dependenices
 
-thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES) ../../library/references.bib
+thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES) ../../library/references.bib $(LISTINGS)
 
 
