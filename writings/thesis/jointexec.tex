@@ -40,15 +40,18 @@ computation known as \emph{prime event} \emph{structures}, which are
 partially-ordered branching sequences of events. A \emph{joint execution}
 is defined as a particular kind of prime event structure that is rich
 enough to capture the concurrent execution of independent actions,
-and can branch on the sensing results of actions. Joint executions
-can be built up one action at a time in much the same way as ordinary
-situation terms and, under some simple restrictions on the theory
-of action, can be reasoned about using standard regression techniques.
-We use our explicit account of an agent's local view to identify joint
-executions that can feasibly be executed based on the local infomation
-available to each agent at runtime.
+and can branch on the sensing results of actions. We use our explicit
+account of an agent's local view to identify joint executions that
+can feasibly be executed based on the local infomation available to
+each agent at runtime.
 
-Joint executions thus allow us to represent the actions that a team
+Joint executions are also formalised in a way that can be directly
+translated into an implementation. They can be built up one action
+at a time in much the same way as ordinary situation terms. If the
+theory of action meets some simple restrictions, joint executions
+can be reasoned about using standard regression techniques.
+
+These structures thus allow us to represent the actions that a team
 of agents are to perform in service of some shared task, without requiring
 constant synchronization between the agents, and without assuming
 that agents know all the actions that have been performed, while utilizing
@@ -250,11 +253,7 @@ As it can be cumbersome to specify $\prec$ and $\oplus$ in their
 entirety, we will instead specify only the direct \emph{enablers}
 and \emph{alternatives} for each event, denoted by $ens(i)$ and $alts(i)$
 respectively. Construction of $(\prec,\oplus)$ from $(ens,alts)$
-is a straightforward transitive closure. Formally, the enablers and
-alternatives of an event are the largest sets satisfying:\begin{gather*}
-j\in ens(i)\equiv j\prec i\,\wedge\,\forall k\in ens(i):\,\neg(j\prec k)\\
-j\in alts(i)\equiv j\#i\,\wedge\,\forall k\in ens(i):\,\neg(j\oplus k)\end{gather*}
-
+is a straightforward transitive closure.
 
 Considered in this way, event structures form a directed acyclic graph
 of the events that could occur during execution of the system. As
@@ -316,16 +315,16 @@ A simple example of a joint execution is shown in Figure \ref{fig:example-je}.
 Here eppliptical nodes are action events and box nodes are the resulting
 outcome events. The action $checkFor$ senses the presence of a type
 of ingredient, returning either $T$ or $F$, and thus producing two
-conflicting outcome events. So in this case, the agent $Jim$ senses
-for availability of eggs, and if he finds there are some then he acquires
-one. Otherwise, he acquire a tomato. Meanwhile agent $Joe$ acquires
-a lettuce, indepenendently of the actions $Jim$ is taking.
+conflicting outcome events. In this example the agent $Jim$ senses
+for the availability of eggs, and if this returns true then he acquires
+one. Otherwise, he acquires a tomato. Meanwhile agent $Joe$ acquires
+a lettuce, indepenendently of the actions $Jim$ is performing.
 
 %
 \begin{figure}[t]
  \framebox{%
 \begin{minipage}[t][1\totalheight]{1\columnwidth}%
-\textsf{\textbf{\tiny \includegraphics[scale=0.35]{listings/jointexec/example_je}}}{\tiny{} }%
+\textsf{\textbf{\tiny \includegraphics[scale=0.35]{listings/jointexec/example_je}}}{\tiny {} }%
 \end{minipage}}
 
 \caption{A simple joint execution.}
@@ -335,9 +334,15 @@ a lettuce, indepenendently of the actions $Jim$ is taking.
 \end{figure}
 
 
+Since we are explicitly considering concurrent actions, there are
+many different possible ways to perform the actions from this structure.
+The independent actions $checkFor(Jim,Egg)$ and $acquire(Joe,Lettuce1)$
+could be performed in either order, or even concurrently. When constructing
+a joint executions, the planner must consider all such possibilites.
+
 These structures are clearly much richer than ordinary situation terms,
 as they permit branching and partial-ordering between actions. Still,
-they correspond to sets of ordinary situation term in a straightforward
+they correspond to sets of ordinary situation terms in a straightforward
 way. Recall that a \emph{configuration} is a partial run of execution
 of a prime event structure. Clearly any configuration ending in an
 outcome event corresponds to a unique situation term and also a unique
@@ -374,7 +379,7 @@ is essentially arbitrary; in practice it is determined by the order
 of insertion of events into the structure.
 
 
-\subsection{Formalities}
+\subsection{Structural Axioms}
 
 We introduce new sorts \noun{Event }and \noun{JointExec} to $\Lsit$,
 and will collect the axioms defining joint executions in a separate
@@ -423,17 +428,32 @@ alts(ex,i,as)\equiv i\#as\in altsmap(ex)\end{gather*}
 For notational convenience we will often write these as functions,
 e.g. $ens(ex,i)=ns$ rather than $ens(ex,i,ns)$, but this should
 be understood as an abbreviation since not every joint execution will
-contain every event.
+contain every event. We must also define the \emph{preceeds} and \emph{conflicts}
+relations in terms of enablers and alternatives. We will write these
+as binary infix operators $\prec_{ex}$ and $\oplus_{ex}$. The precedence
+relation is defined as a transitive closure over enablers:\begin{multline*}
+\forall P,ex,i,j:\left[\left(i\in ens(ex,j)\,\rightarrow P(i,j)\right)\wedge\left(\forall k:P(i,k)\wedge k\in ens(ex,j)\rightarrow P(i,j)\right)\right]\\
+\rightarrow\left(P(i,j)\rightarrow i\prec_{ex}j\right)\end{multline*}
 
-Like standard situation terms, joint executions are built up by progressively
-inserting new events into an existing joint execution. First, we have
-a function to get the id of the next event:\[
+
+The conflict relation is defined so that $i\oplus_{ex}j$ if they
+have altnerative predecessors:\begin{multline*}
+\forall P,ex,i,j:\,\left[\left(i\in alts(ex,j)\,\rightarrow P(i,j)\right)\right.\\
+\left.\wedge\,\left(\forall i',j':\, P(i',j')\wedge i'\preceq_{ex}i\wedge j'\preceq_{ex}j\,\rightarrow\, P(i,j)\right)\right]\\
+\rightarrow\left(P(i,j)\rightarrow i\oplus_{ex}j\right)\end{multline*}
+
+
+There are two principle operations that can generate new joint execution
+structures: \emph{inserting} a new event into a joint execution, and
+\emph{performing} an event from the joint execution. We define the
+predicates $Insert$ and $Perform$ to axiomatise these. First, we
+have a function to get the id of the next event:\[
 NextEvent(ex)=max(\{0\}\cup events(ex))+1\]
 
 
-To add to a joint execution, we must specify the predecessor joint
-execution, the label for the new event, and its set of enablers. The
-set of alternatives for the new event is determined automatically
+When inserting into a joint execution, we must specify the predecessor
+joint execution, the label for the new event, and its set of enablers.
+The set of alternatives for the new event is determined automatically
 based on the required structure of the joint execution -- action events
 have no alternatives, while outcome events must have as their alternatives
 every other outcome event enabled by the same action.
@@ -467,10 +487,34 @@ InsertAct(ex,i,lb,ns,ex')\equiv\,\,\,\,\,\, IsAction(lb)\\
 \wedge altsmap(ex')=altsmap(ex)\cup\{i\#\{\}\}\end{gather*}
 
 
+Since we explicitly consider concurrent actions, the $Perform$ predicate
+selects a \emph{set} of action events from the joint execution that
+have no enablers, and a single corresponding outcome event for each
+selected action. Events in the joint execution that conflict with
+the performed events are removed, and the performed events are removed
+from the enablers lists of all events remaining in the execution:\begin{gather*}
+Perform(ex,es_{a},es_{o},ex')\equiv\,\,\,\,\, es_{a}\neq\{\}\wedge es_{o}\neq\{\}\\
+\wedge\,\forall i:\,\left(i\in es_{a}\,\rightarrow\, IsAction(lbl(ex,i))\wedge ens(ex,i)=\{\}\right)\\
+\wedge\,\forall i:\,\left(i\in es_{o}\,\rightarrow\exists j:\, ens(ex,i)=\{j\}\wedge j\in es_{a}\right)\\
+\wedge\,\forall i:\,\left(i\in es_{a}\,\rightarrow\,\exists j:\, j\in es_{o}\wedge ens(ex,j)=\{i\}\right)\\
+\forall i,j:\,\left(i\in es_{o}\wedge j\in es_{o}\,\rightarrow\,\neg(i\oplus_{ex}j)\right)\\
+\forall i:\,\left(i\in events(ex')\,\equiv\, i\not\in es_{a}\wedge i\not\in es_{o}\wedge\neg\exists j:\,(j\in es_{o}\wedge i\oplus_{je}j)\wedge\right)\\
+\forall i,lb:\,\left(i\#lb\in lblmap(ex')\equiv\, lbl(ex,i)=lb\wedge i\in events(ex')\right)\\
+\forall i,as:\,\left(i\#as\in altsmap(ex')\equiv alts(ex,i)=as\wedge i\in events(ex')\right)\\
+\forall i,ns:\,\left(i\#ns\in ensmap(ex')\equiv(ens(ex,i)-es_{o})=ns\wedge i\in events(ex')\right)\end{gather*}
+
+
+This predicate is clearly quite non-deterministic, permitting any
+set of enabled events to be performed. The different choices made
+by this predicate correspond to different orders of events when performing
+the joint execution.
+
 Finally, we need a second-order induction axiom stating that the only
-joint executions are those that can be constructed in this way. This
-is entirely analogous to the axiom for situation terms:\begin{multline*}
-\forall P:\,\left[P(Ex_{0})\wedge\forall ex,ex',lb,ns:\, P(ex)\wedge Insert(ex,lb,ns,ex')\rightarrow P(ex')\right]\\
+joint executions are those that can be constructed using $Insert$
+and $Perform$. This is entirely analogous to the axiom for situation
+terms:\begin{multline*}
+\forall P:\, P(Ex_{0})\wedge\left(\forall ex,ex',lb,ns:\, P(ex)\wedge Insert(ex,lb,ns,ex')\rightarrow P(ex')\right)\\
+\wedge\left(\forall ex,ex',es_{a},es_{o}:\, P(ex)\wedge Perform(ex,es_{a},es_{o},ex')\rightarrow P(ex')\right)\\
 \rightarrow\forall ex:\, P(ex)\end{multline*}
 
 
@@ -484,59 +528,84 @@ conditions that joint executions must satisify in order to be legal
 in the real world.
 
 Note that we have placed an important restriction on the ordering
-of events -- if $i<j$ according to the total ordering over the integers,
-then it is not possible for $i$ to be enabled by $j$. This does
-not result in a lack of expressiveness, since if we want $i$ to be
-enabled by $j$, then $j$ must not be enabled by $i$ and we can
-simply give $j$ the lower event number.
-
-Now, let us define the \emph{preceeds} and \emph{conflicts} relations
-in terms of enablers and alternatives. We will write these as binary
-infix operators $\prec_{ex}$ and $\oplus_{ex}$. The precedence relation
-is defined as a transitive closure over enablers:\begin{multline*}
-\forall P,ex,i,j:\left[\left(i\in ens(ex,j)\,\rightarrow P(i,j)\right)\,\wedge\,\left(\forall k:\, P(i,k)\wedge k\in ens(ex,j)\,\rightarrow\, P(i,j)\right)\right]\\
-\rightarrow\left(P(i,j)\rightarrow i\prec_{ex}j\right)\end{multline*}
+of events here -- if $i<j$ according to the total ordering over the
+integers, then it is not possible for $i$ to be enabled by $j$.
+This does not result in a lack of expressiveness, since if we want
+$i$ to be enabled by $j$, then $j$ must not be enabled by $i$
+and we can simply give $j$ the lower event number.
 
 
-The conflict relation is defined so that $i\oplus_{ex}j$ if they
-have altnerative predecessors:\begin{multline*}
-\forall P,ex,i,j:\,\left[\left(i\in alts(ex,j)\,\rightarrow P(i,j)\right)\right.\\
-\left.\wedge\,\left(\forall i',j':\, P(i',j')\wedge i'\preceq_{ex}i\wedge j'\preceq_{ex}j\,\rightarrow\, P(i,j)\right)\right]\\
-\rightarrow\left(P(i,j)\rightarrow i\oplus_{ex}j\right)\end{multline*}
-
+\subsection{Relation to Situation Terms}
 
 These axioms suffice to give an account of joint executions as prime
 event structures as defined in \citep{npw79event_structures}. We
 now introduce the additional definitions required to relate joint
 executions back to the existing concepts of the situation calculus.
 
-A branch is a set of unordered non-conflicting outcome events; that
-is, a set of events satisfying:\begin{multline*}
+A \emph{branch} is a set of unordered non-conflicting outcome events;
+that is, a set of events satisfying:\begin{multline*}
 Branch(ex,b)\,\equiv\,\forall i,j\in b:\, IsOutcome(lbl(ex,i))\wedge IsOutcome(lbl(ex,j))\\
 \wedge\,\neg(i\oplus_{ex}j)\,\wedge\, i\not\prec_{ex}j\,\wedge\, j\not\prec_{ex}\, j\end{multline*}
 
 
-A branch identifies a family of potential partial runs of the execution.
-We can generate these histories by recursively selecting events that
-do not conflict with anything in $b$ and are enabled given what we
-have performed so far: TODO: how to generate histories?\[
-History(ex,b,h)\equiv HistoryRec(ex,b,\{\},h)\]
-\begin{gather*}
-History(ex,\{\},es,h)\equiv h=\epsilon\\
-History(ex,b,es,h)\equiv\end{gather*}
+A branch identifies a family of potential partial runs of the execution,
+which are given by its histories. To construct a branch history we
+recursively perform events that do not conflict with the branch, until
+all events in the branch have been performed. This predicate translates
+from action and outcome events into the corresponding action and outcome
+terms that make up a proper history. \begin{gather*}
+History(ex,b,h)\equiv\,\,\,\, b=\{\}\wedge h=\epsilon\\
+\vee\,\left(\exists ex',h',b',es_{a},es_{o},c,y:\, Perform(ex,es_{a},es_{o},ex')\right.\\
+\wedge\,\forall i,j:\,\left(i\in b\wedge j\in(es_{a}\cup es_{o})\,\rightarrow\,\neg(i\oplus_{ex}j)\right)\\
+\wedge\,\forall a:\,\left(a\in c\,\equiv\,\exists i:\, i\in es_{a}\wedge lbl(ex,i)=a\right)\\
+\wedge\,\forall agt,o:\,\left(o\in y[agt]\,\equiv\,\exists i:\, i\in es_{o}\wedge o\in lbl(ex,i)[agt]\right)\\
+\forall i:\,\left(i\in b'\,\equiv\, i\in b\wedge i\in events(ex')\right)\\
+\left.\wedge\, History(ex',b',h')\,\wedge\, h=h'\cdot(c\#y)\right]\end{gather*}
 
 
-A \emph{leaf} is a special case of a branch:\begin{multline*}
+Note that each action term $c$ added to the history is constructed
+as the union of the individiual actions attached to each event in
+$es_{a}$, and the corresponding outcome $y$ is the agent-wise union
+of the outcomes attached to each event in $es_{o}$. Such pairs $c\#y$
+are repeatedly selected until every event in the branch has been performed.
+
+Clearly, if there are many events that can happen independently, there
+are many potential histories for a given branch. Since this is combinatorical,
+there may be exponentially-many histories in general. In Section TODO
+we will discuss a way to handle all these histories, by ensuring that
+they're all equivalent.
+
+A \emph{leaf} is defined as a special case of a branch:\begin{multline*}
 Leaf(ex,lf)\,\equiv\, Branch(ex,lf)\\
 \wedge\forall i\in events(ex):\, i\in lf\,\equiv\,\neg(\exists i'\in lf:\,\, i\oplus_{ex}i'\,\vee\, i\prec_{ex}i')\end{multline*}
 
 
-Finally, we need to be able to reason about each agent's local perspective
-on a joint execution. We say an event $i$ is enabled by a view is
-there is a history of its enablers that corresponds to that view:
-\[
-EnabledByView(ex,agt,v,i)\equiv History(ex,ens(ex,i),h)\wedge View(agt,h)=v\]
+It is also useful to generate the actual situation terms that can
+be produced by following a branch, which can easily be defined in
+terms of the histories:\[
+Sit(ex,b,s)\,\equiv\,\exists h:\, History(ex,b,h)\wedge Sit(h,s)\]
 
+
+
+\subsection{The Agent-Local Perspective}
+
+Since we intend for joint executions to be performed reactively by
+a team of agents in an asyncrhonous environment, we must also formalism
+the relationship between a joint execution and each agent's local
+view. View, we define the $View$ function over a history in the obvious
+way:\begin{gather*}
+View(agt,\epsilon)=\epsilon\,\equiv\,\top\\
+View(agt,(c\#y)\cdot h)=v\,\equiv\, y[agt]=\{\}\,\wedge\, v=View(agt,h)\\
+\vee y[agt]\neq\{\}\,\wedge\, v=y[agt]\cdot View(agt,h)\end{gather*}
+
+
+We will say that an action event $i$ is enabled by a view if there
+is a history of its enablers that corresponds to that view: \[
+EnabledByView(ex,i,agt,v)\equiv\exists h:\, History(ex,ens(ex,i),h)\wedge View(agt,h)=v\]
+
+
+This is the only way agents will be able to determine whether a particular
+event is enabled.
 
 
 \subsection{Feasible Joint Executions}
@@ -549,19 +618,23 @@ The first restriction corresponds to the idea of \emph{knowing when}
 to perform an action. If an action event $i$ is enabled by an outcome
 event $j$ produced by another agent, the agent performing $i$ must
 be able to observe the occurrence of $j$. Otherwise, it has no way
-of synchronizing its actions with those of its teammate. Let $actor(i)$
+of synchronizing its actions with those of its teammate. Let $actor(ex,i)$
 be the agent responsible for performing an action event $i$, then
-we require that:\[
-\forall i,j\in events(je):\, IsAction(lbl(je,i))\,\wedge j\in ens(je,i)\rightarrow\, lbl(je,j)[actor(je,i)]\neq\{\}\]
+we require that:\begin{multline*}
+KnowsWhen(ex)\,\isdef\,\\
+\forall i,j\in events(ex):\, IsAction(lbl(ex,i))\,\wedge j\in ens(ex,i)\\
+\rightarrow\, lbl(ex,i)[actor(ex,i)]\neq\{\}\end{multline*}
 
 
 The second restriction corresponds to the idea of \emph{knowing what}
 action to perform. For any given view $v$, there may be multiple
 events enabled by that view, and the agent has no means of knowing
-which event is actually enabled. To ensure it always knows what to
-do, we required that all such events call for the same action to be
-performed:\[
-\forall v,i,j:\, EnabledByView(ex,agt,v,i)\wedge EnabledByView(ex,agt,v,j)\,\rightarrow\, lbl(ex,i)=lbl(ex,j)\]
+precisely which event is actually enabled. To ensure it always knows
+what to do, we require that all such events call for the same action
+to be performed:\begin{multline*}
+KnowsWhat(ex)\,\isdef\,\\
+\forall agt,v,i,j:\,\, EnabledByView(ex,i,agt,v)\wedge EnabledByView(ex,j,agt,v)\\
+\rightarrow lbl(ex,u)=lbl(ex,j)\end{multline*}
  This ensures that the agent's local information is enough to know
 when it should perform an action. While it may not know precisely
 which \emph{event} is enabled, it will know enough to determine the
@@ -570,84 +643,197 @@ specific \emph{action} that it must perform.
 TODO: examples of JE's that do not meet these requirements.
 
 We say a joint execution is feasible if it meets both these conditions:\[
-Feasible(je)\,\isdef\, KnowsWhat(je)\wedge KnowsWhen(je)\]
+Feasible(ex)\,\isdef\, KnowsWhat(ex)\wedge KnowsWhen(ex)\]
 
 
 
 \subsection{Legal Joint Executions}
 
-We call a branch of a joint execution \emph{legal} if every history
-of that branch corresponds to a legal situation:\[
-Legal(je,b)\,\isdef\,\forall h\in Hists(je,b):\,\exists s:\, Legal(s)\wedge History(s)=h\]
+So far, we have not restricted any aspects of joint executions to
+be legal in the real world. For example, an action event can enable
+outcome events that would never be produced under the given theory
+of action. It may also call for actions to be performed that are not
+legal, or allow actions to be performed concurrently that are in conflict.
+
+To this end, we identify \emph{legal} joint executions as ones that
+are constrained enough to be performed in the real word. We will say
+that a particular leaf of a joint execution is legal if every history
+of that leaf corresponds to a legal situation:\[
+Legal(ex,lf)\,\isdef\,\forall h:\, History(ex,lf,h)\,\rightarrow\,\exists s:\, Legal(s)\wedge History(s)=h\]
 
 
-In general, the agents will not have enough information to determine
-whethe a particular branch is legal, since this would imply that they
-already know what sensing results will occur.
+This ensures that the leaf is constrained enough to prevent precondition
+interaction between independent action events, that its outcome events
+are correct for their corresponding actions, etc. However, the agents
+will generally not have enough information to determine whether a
+particular leaf is legal, since this would imply that they already
+know what sensing results will occur. We call an entire joint execution
+legal if it contains a legal leaf:\[
+Legal(ex)\,\isdef\,\exists lf:\, Leaf(ex,lf)\wedge Legal(ex,lf)\]
 
-We will call a joint execution \emph{legal} if it contains a legal
-branch:\[
-Legal(je)\,\isdef\,\exists b:\, Branch(je,b)\wedge Legal(b)\]
 
+This definition does not require that we establish \emph{which} leaf
+is legal, only that we are able to prove that \emph{some} leaf must
+be legal. Since the leaves of a joint execution represent all its
+possible terminating configurations, this requirement means that it
+is possible for a legal joint execution to be performed to completion.
 
-This definition does not require that we establish \emph{which} branch
-is legal, only that we are able to prove that \emph{some} branch must
-be legal. It is also permissive, in that is permits redundant branches
-that can never be legal. Since these branches will not actually be
-taken at execution time, this permissiveness will not affect the agent's
-ability to carry out the plan.
+The definition presented here is permissive, in that there may be
+branches that are provably never be legal. Since the outcomes on these
+branches cannot occur in reality, the agents will never follow them
+at execution time. This permissiveness will therefore not affect the
+agent's ability to carry out the plan.
 
 
 \subsection{Planning with Joint Executions}
 
-Finally, we are in a position to plan the cooperative execution of
-a shared MIndiGolog program using these structures.
+With the above definitions in place we are in a position to plan the
+cooperative execution of a shared Golog program using these structures.
 
 
 \subsubsection{Offline Planning}
 
-Consider first \emph{offline} planning in the style ConGolog and the
-original Golog. The agents need to find a feasible, legal joint execution
-such that for every branch, if that branch is legal, then it will
-form a legal execution of the program:\begin{multline*}
-\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists je:\, Legal(je)\wedge Feasible(je)\wedge\\
-\forall b:\, Branch(je,b)\wedge Legal(je,b)\,\rightarrow\,\left[\forall s:\, Sit(je,b,s)\rightarrow\Do(\delta,S_{0},s)\right]\end{multline*}
+Consider first \emph{offline} planning in the style of the original
+Golog and ConGolog. The agents need to find a feasible, legal joint
+execution such that for every branch, if that branch is legal, then
+it will form a legal execution of the program:\begin{multline*}
+\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists ex:\, Legal(ex)\wedge Feasible(ex)\wedge\\
+\forall lf:\, Leaf(ex,lf)\wedge Legal(ex,lf)\,\rightarrow\,\left[\forall s:\, Sit(ex,lf,s)\rightarrow\Do(\delta,S_{0},s)\right]\end{multline*}
 
 
-This captures a pair of soundness and completeness requirements. For
-soundness we require that for every branch of the joint execution,
-\emph{if} that branch is legal then it will be a legal execution of
-the program. For completeness, we assert that there must be some legal
-branch.
+This query requires the agents to capture dual soundness and completeness
+requirements. For soundness, it requires that for every leaf of the
+joint execution, \emph{if} that leaf is legal then it will be a legal
+execution of the program $\delta$. For completeness, it requires
+that there must in fact be \emph{some} leaf that is legal, so the
+joint execution can actually be performed in the world.
+
+Algorithm \ref{alg:je_offline_exec} presents a simple algorithm that
+can be used by each agent to individually plan the execution of a
+shared program $\delta$ and then perform it in the world.
+
+%
+\begin{algorithm}[t]
+ 
+
+\caption{Offline Execution Algorithm using Joint Executions}
+
+
+\label{alg:je_offline_exec} \begin{algorithmic}
+
+\STATE
+
+\STATE $v\,\Leftarrow\,\epsilon$
+
+\STATE Find a joint execution $je$ such that:\begin{multline*}
+\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists ex:\, Legal(ex)\wedge Feasible(ex)\wedge\\
+\forall lf:\, Leaf(ex,lf)\wedge Legal(ex,lf)\,\rightarrow\,\left[\forall s:\, Sit(ex,lf,s)\rightarrow\Do(\delta,S_{0},s)\right]\end{multline*}
+
+
+\WHILE{$je$ contains action events to be performed by me}
+
+\STATE Find an event $i$ such that $EnabledByView(je,i,agt,v)$
+holds
+
+\IF {there is such an event}
+
+\STATE Perform action $lbl(je,i)$
+
+\ENDIF
+
+\STATE Wait for a new observation $o$
+
+\STATE $v\,\Leftarrow\, o\cdot v$
+
+\ENDWHILE
+
+\end{algorithmic} 
+\end{algorithm}
+
 
 
 \subsubsection{Online Execution}
 
-Capturing online execution is not so straightforward, as it is difficult
-to single-step an execution in a partially-observable setting. Consider,
-for example, a program whose next step is a sensing action to be performed
-by some agent. After executing this step, the performing agent will
-know the result of the action, but it cannot necessarily use this
-in planning the next step. While the sensing result allow that particular
-agent to discard some leaves from the joint execution, it must consider
-that other team members may still think those leaves are open. These
-team members in turn have their own view of the joint execution...TODO...yadda
-yadda common knowledge.
+Capturing \emph{online} execution in an syncrhonous domain is less
+straightforward, as it is difficult to single-step an execution in
+a partially-observable setting. Consider, for example, a program whose
+next step is a sensing action to be performed by some agent. Before
+the action is performed, the joint execution will contain one branch
+for each possible sensing outcome. Once the action is performed, that
+particular agent will know which leaf corresponds to the actual world,
+and can avoid trying to plan a next step for any of the other leaves.
 
-One of the intuitions behind introducing online execution in IndiGolog
-was to avoid branching plans, by executing just enough of the program
-to gather the necessary sensing results. Following this intuition
-in the multi-agent case, the agents should plan just far enough ahead
-to ensure thay every team member knows what branch has been taken.\[
-Distinguishable(je)\,\isdef\,\forall lf,agt,v:\, View(agt,je,lf)=v\,\rightarrow\neg\exists lf':\, Leaf(je,lf)\wedge View(agt,je,lf)=v\]
+However, its team-mates will \emph{not }know the outcome of the sensing
+action, so from their perspective any of the potential leaves might
+be the real state of the world. They are therefore forced to plan
+a next step in each one of those leaves. But they must also account
+for what they think that the team-mate things..etc etc TODO find a
+way to explain this!
 
+The difficulty here is due to the well-known correspondance between
+coordination and common knowledge - the agents must develop a plan
+extending every leaf of the joint execution unless it is common knowledge
+that that leaf is not legal. Reasoning about common knowledge is very
+difficult and we want to avoid it if we can.
 
-In other words, every agent's local view at each leaf is sufficient
-to distinguish it from every other leaf.
+The trick, then is to plan just far enough ahead so that all agents
+can determine, based on their local observations, precisely which
+leaf is legal. One of the intuitions behind introducing online execution
+in IndiGolog was to avoid branching plans, by executing just enough
+of the program to gather the necessary sensing results. Following
+this intuition in the multi-agent case, the agents should plan just
+far enough ahead to ensure thay every team member knows what branch
+has been taken.
+
+We define a joint execution to be \emph{separable} if every leaf can
+be distinguished from every other leaf by every agent in the group:\begin{multline*}
+Separable(ex)\,\isdef\,\forall agt,lf,lf',h,h':\, Leaf(ex,lf)\wedge Leaf(ex,lf')\\
+\wedge History(ex,lf,h)\wedge History(ex,lf',h')\,\rightarrow\, View(agt,h)\neq View(agt,h')\end{multline*}
+ 
+
+In other words, every agent's local view at each leaf is always sufficient
+to distinguish it from every other leaf. The agent's can then perform
+an online execution by planning just far enough ahead to find a separable
+joint execution:
 
 \begin{multline*}
-\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists je:\, Legal(je)\wedge Feasible(je)\wedge Distinguishable(je)\\
-\forall lf:\, Leaf(je,lf)\wedge Legal(je,lf)\,\rightarrow\,\left[\forall s:\, Sit(je,lf,s)\rightarrow Trans^{*}(\delta,S_{0},s)\right]\end{multline*}
+\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists ex:\, Legal(ex)\wedge Feasible(ex)\wedge Separable(ex)\\
+\wedge\,\forall lf:\, Leaf(ex,lf)\wedge Legal(ex,lf)\,\rightarrow\,\left[\forall s:\, Sit(ex,lf,s)\rightarrow\exists\delta':\, Trans^{*}(\delta,S_{0},\delta',s)\right]\end{multline*}
+
+
+%
+\begin{algorithm}[t]
+ 
+
+\caption{Online Execution Algorithm using Joint Executions}
+
+
+\label{alg:indigolog_exec} \begin{algorithmic}
+
+\STATE $v\,\Leftarrow\,\epsilon$
+
+\STATE $ex\,\Leftarrow\, Ex_{0}$
+
+\STATE $lf\,\Leftarrow\,\{\}$
+
+\WHILE{$\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\,\not\models\,\forall s:\, Sit(ex,lf,s)\,\rightarrow\, Final(\delta,s)$} 
+
+\STATE Find a new joint execution such that:\begin{multline*}
+\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists ex':\, Legal(ex')\wedge Feasible(ex')\\
+\wedge Separable(ex')\wedge Extends(ex,lf,ex')\\
+\wedge\,\forall lf':\, Leaf(ex',lf')\wedge Legal(ex',lf')\,\rightarrow\,\left[\forall s:\, Sit(ex',lf',s)\rightarrow Trans^{*}(\delta,S_{0},s)\right]\end{multline*}
+
+
+\STATE Execute the action $a$
+
+\STATE $\sigma\ \Leftarrow\ do(a,\sigma)$
+
+\STATE $\delta\ \Leftarrow\ \delta'$
+
+\ENDWHILE
+
+\end{algorithmic} 
+\end{algorithm}
 
 
 
@@ -706,8 +892,6 @@ there is a potentially exponential number of histories for every branch.
 
 
 \section{Implementation\label{sec:JointExec:Implementation}}
-
-
 
 
 \subsection{Program Steps}
