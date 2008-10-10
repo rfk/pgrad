@@ -45,6 +45,7 @@ define
     []     Type=tomato {LP.member Obj [tomato1 tomato2]}
     []     Type=lettuce {LP.member Obj [lettuce1 lettuce2]}
     []     Type=carrot {LP.member Obj [carrot1 carrot2 carrot3]}
+    []     Type=cheese {LP.member Obj [cheese1 cheese2]}
     end
   end
 
@@ -55,7 +56,7 @@ define
   proc {IsSuperType Type SType}
     choice SType=container {LP.member Type [bowl board oven]}
     []     SType=ingredient
-           {LP.member Type [flour egg sugar tomato lettuce carrot]}
+           {LP.member Type [flour egg sugar tomato lettuce carrot cheese]}
     end
   end
 
