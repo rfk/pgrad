@@ -17,10 +17,12 @@ all: main.exe
 
 main.exe: main.ozf $(FUNCTORS)
 
-plan.dot: main.exe
+plans: main.exe
 	./main.exe
-
-plans: plan.png plan_jim.png plan_joe.png plan_jon.png
+	make plan.png
+	make plan_jim.png
+	make plan_joe.png
+	make plan_jon.png
 	gthumb plan*.png &
 
 clean:
