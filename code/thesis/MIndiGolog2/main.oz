@@ -2,8 +2,10 @@ functor
 
 import
 
-  JointExec at 'SitCalc/JointExec.ozf'
-  Planner at 'SitCalc/Planner.ozf'
+  JointExec
+  Planner
+  Sitcalc
+  Domain
 
   Search
   Property
@@ -19,14 +21,15 @@ define
   {Property.put 'errors.depth' 1000}
 
   Plan = {Search.base.one proc {$ JE}
-             {Planner.plan pcall(tester) JE}
+           {Planner.plan pcall(makeSalad(bowl1)) JE}
          end}
   if Plan \= nil then
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
-    %{JointExec.writeDotFileAgt Plan.1 joe
-    %   {New Open.file init(name: 'plan_joe.dot' flags:[write create truncate])}}
   end
+  {System.show done}
+
+
   {Application.exit 0}
 
 end

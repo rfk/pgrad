@@ -16,7 +16,7 @@ import
   MIndiGolog
   JointExec
   Domain
-  LP at '../Utils/LP.ozf'
+  LP
 
   System
   Search
@@ -60,7 +60,7 @@ define
        OutBs = for collect:C N2 in OutNs do
                      {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                   end
-       {System.showInfo "...ok, transition made!"}
+       {System.show J2}
        {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
     else {System.showInfo "all done!"} JOut = JIn end
   end
@@ -96,7 +96,6 @@ define
   in
     proc {SearchProc Q} Dp Rp S in
       {MIndiGolog.trans1 D R Dp Rp S}
-      {System.show S}
       Q = Dp#Rp#S
     end
     Searcher = {New Search.object script(SearchProc)}

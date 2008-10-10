@@ -6,10 +6,12 @@ functor
 
 import
 
-  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
-  Domain at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Domain.ozf'
+  LP
+  Step
+  Domain
 
   Search
+  System
 
 export
 
@@ -24,7 +26,6 @@ define
   %  Get the agent performing a given action
   %
   proc {Actor Actn Agt}
-    {LP.neg proc {$} {Domain.isNatural Actn} end}
     Agt = Actn.1
   end
 
@@ -76,18 +77,24 @@ define
                                  {HoldsR F3 {LP.copyTerm SR} {LP.copyTerm H}}
                                end}
                       else {LP.neg proc {$}
-                               {Holds {LP.copyTerm F1} {LP.copyTerm SR} {LP.copyTerm H}}
+                               {HoldsR {LP.copyTerm F1} {LP.copyTerm SR} {LP.copyTerm H}}
                            end}
                       end
     % Then call into either SSA or Init
-    else case S of s0 then
+    else case H of now then
                 {Domain.init F SR}
          [] ex(Step H2) then SR2 in 
                 {Domain.addSensingResults SR Step.out SR2}
-                {Domain.ssa F Step.act SR2 H2}
+                {Domain.ssa F [Step.action] SR2 H2}
          end
     end
   end
 
-end
+  proc {Outcomes S Outs}
+    Outs = {Search.base.all proc {$ OutStep} O in
+      {Domain.outcome S.action O}
+      OutStep = {Step.setout S O}
+    end}
+  end
 
+end

@@ -6,9 +6,11 @@ functor
 
 import
 
-  Sitcalc at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Sitcalc.ozf'
-  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
-  Time at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Time.ozf'
+  Sitcalc
+  LP
+
+  Search
+  System
 
 export
 
@@ -18,6 +20,7 @@ export
   Poss
   Conflicts
   Outcome
+  AddSensingResults
   Indep
   ssa: SSA
   Init
@@ -84,7 +87,7 @@ define
 
   proc {Poss A H}
     choice A=nil fail
-    []  Agt Obj in A=acquire(Agt Obj)
+    []  Obj in A=acquire(_ Obj)
                    {Sitcalc.holds neg(ex(agt hasObject(agt Obj))) H}
                    {Sitcalc.holds neg(used(Obj)) H}
     []  Agt Obj in A=release(Agt Obj)
@@ -100,12 +103,57 @@ define
     []  Agt Cont in A=chop(Agt Cont)
                     {Sitcalc.holds hasObject(Agt Cont) H}
                     % TODO: more here - on a board, holding a knife, etc
-    []  Agt Type in A=checkFor(Agt Type)
-                    skip
+    []  A=checkFor(_ _)
     end
   end
 
-  proc {Conflicts C S}
+  proc {Outcome A O}
+    case A of checkFor(Agt _) then Res Feats in
+            choice Res=t [] Res=f end
+            Feats = {Search.base.all proc {$ R} Agt2 in
+                         {IsAgent Agt2}
+                         if Agt2 == Agt then R = Agt2#[A#Res]
+                         else R = Agt2#nil end
+                     end}
+            O = {Record.adjoinList out Feats}
+    []  acquire(_ _) then Feats in
+            Feats = {Search.base.all proc {$ R} Agt2 in
+                       {IsAgent Agt2}
+                       R = Agt2#[A]
+                    end}
+            O = {Record.adjoinList out Feats}
+    []  release(_ _) then Feats in
+            Feats = {Search.base.all proc {$ R} Agt2 in
+                       {IsAgent Agt2}
+                       R = Agt2#[A]
+                    end}
+            O = {Record.adjoinList out Feats}
+    else Feats in
+            Feats = {Search.base.all proc {$ R} Agt2 in
+                         {IsAgent Agt2}
+                         if Agt2 == {Sitcalc.actor A} then R = Agt2#[A]
+                         else R = Agt2#nil end
+                     end}
+            O = {Record.adjoinList out Feats}
+    end
+  end
+
+
+  proc {AddSensingResults SRIn Out SROut}
+    NewRes
+  in
+    NewRes = for return:R default:nil Agt in {Record.arity Out} do
+               case Out.Agt of [Res] then
+                 case Res of checkFor(_ Type)#Whether then
+                   {R [Type#Whether]}
+                 else skip end
+               else skip end
+             end
+    SROut = {List.append SRIn NewRes}
+  end
+
+
+  proc {Conflicts C H}
     A1 A2
   in
     {LP.member A1 C}
@@ -124,9 +172,9 @@ define
   proc {Indep A1 A2 B}
     if A1.1 == A2.1 then B=false
     else
-      B = for return:R default:true Agr1 in {Record.toList A1} do
+      B = for return:R default:true Arg1 in {Record.toList A1} do
             for Arg2 in {Record.toList A2} do
-              if Arg2 == Arg2 then {R false} end
+              if Arg1 == Arg2 then {R false} end
             end
           end
     end
@@ -196,7 +244,8 @@ define
 
   proc {Init F SR}
     case F of used(Obj) then
-      
+      {IsPrimObjT Obj egg}
+      {LP.member egg#f SR}
     else
       {StaticFact F}
     end

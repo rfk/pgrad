@@ -19,7 +19,7 @@ export
   Init
   Addtest
   Addthred
-  Setobs
+  Setout
   Independent
 
 define
@@ -61,8 +61,8 @@ define
       B = false
     end
 
-    proc {Setobs SIn Agt Obs SOut}
-      SOut = {Record.adjoinAt SIn out {Record.adjoinAt SIn.out Agt Obs}}
+    proc {Setout SIn Out SOut}
+      SOut = {Record.adjoinAt SIn out Out}
     end
 
 end

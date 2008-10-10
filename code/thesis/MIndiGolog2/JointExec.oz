@@ -79,13 +79,13 @@ define
   end
 
   proc {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
-    Outs = {Sitcalc.outcomes {BranchToHist JIn Ns} S}
+    Outs = {Sitcalc.outcomes S}
     AId|OIds = {IntMap.nextAvailLabels JIn S|Outs}
     J1 J2
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = {FixActionInvariants J2 AId}
+    JOut = J2 %{FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -97,7 +97,7 @@ define
   proc {InsertOutcomes AId JIn Outs Ids JOut}
     case Outs of O|Os then J2 Is in
       Ids = _|Is
-      J2 = {IntMap.append JIn out(obs: O.obs act: AId)}
+      J2 = {IntMap.append JIn out(out: O.out act: AId)}
       {InsertOutcomes AId J2 Os Is JOut}
     else JOut = JIn end
   end
@@ -148,21 +148,8 @@ define
     Data = {IntMap.get J N}
   in
     if {Record.label Data} \= out then B = false
-    elseif Data.obs.{Sitcalc.actor Act} == nil then B = false
+    elseif Data.out.{Sitcalc.actor Act} == nil then B = false
     else B = true end
-  end
-
-  %
-  %  Convert a branch into the unique run of execution determined
-  %  by order of insertion.  The run is generated lazily.
-  %
-  fun lazy {BranchToHist J Ns}
-    if Ns == nil then
-      now
-    else H T in
-      {BranchPop J Ns H T}
-      ex({OutToStep J H} {BranchToHist J T})
-    end
   end
 
   %
@@ -256,7 +243,7 @@ define
   
   %
   %  Construct a step object representing the outcome event O.
-  %  This will contain only the 'action' and 'obs' features, since that's
+  %  This will contain only the 'action' and 'out' features, since that's
   %  all a joint execution knows about.  This is also the only information
   %  needed to reason about what holds after a run.
   %
@@ -264,7 +251,7 @@ define
     OData = {IntMap.get J O}
     AData = {IntMap.get J OData.act}
   in
-    S = step(action:AData.action obs:OData.obs)
+    S = step(action:AData.action out:OData.out)
   end
 
   %
@@ -365,11 +352,11 @@ define
   in
     Data.action = S.action
     Data.enablers = {FindEnablingEvents J S.action Ns Preceeds}
-    Outs = {Sitcalc.outcomes {BranchToHist J Ns} S}
+    Outs = {Sitcalc.outcomes S}
     {List.length Outs} = {List.length Data.outcomes}
     for O1 in Outs O2 in Data.outcomes do
       OData = {IntMap.get J O2} in
-      OData.obs = O1.obs
+      OData.out = O1.out
     end
     Outcomes = for collect:C I in Data.outcomes do
                  {C {BranchPush J I Ns}}
@@ -397,14 +384,14 @@ define
 
   %
   %  Extract the observation data from last event in Ns into the record
-  %  S.  The result is a record identical to S except that 'obs' is
+  %  S.  The result is a record identical to S except that 'out' is
   %  the observations in the outcome event, and 'seqn' is the event
   %  number.
   %
   proc {Getobs J Ns SIn SOut}
     Data = {IntMap.get J Ns.1}
   in
-    SOut = {Record.adjoinList SIn [obs#Data.obs seqn#Ns.1]}
+    SOut = {Record.adjoinList SIn [out#Data.out seqn#Ns.1]}
   end
 
 
@@ -444,7 +431,7 @@ define
             case Data of act(...) then
               {Sitcalc.actor Data.action} == Agt
             else
-              Data.obs.Agt \= nil
+              Data.out.Agt \= nil
             end
           end}
   end
@@ -511,7 +498,7 @@ define
       Data = {IntMap.get J I} in 
       {PreceedersAgt J Agt I} == nil andthen
       if {Record.label Data} == out then
-        Data.obs.Agt \= nil
+        Data.out.Agt \= nil
       else
         Data.action == finish orelse {Sitcalc.actor Data.action} == Agt
       end
@@ -538,7 +525,7 @@ define
                J2 = {PerformEvent J E}
                Ns2 = {List.subtract Ns E} in
                if {IntMap.hasLabels J2 Ns2} then
-                 {C obs(Data.obs.Agt)#J2#Ns2}
+                 {C out(Data.out.Agt)#J2#Ns2}
                end
              end
            end
@@ -576,7 +563,7 @@ define
                           {C {BranchPush JOrig E2 Bsf}#J2}
                         end
                       end
-        []  obs(Obs) then
+        []  out(Obs) then
              NewSoFar = for collect:C (Bsf#Jsf) in SoFar do
                         for E2#J2 in {PerformObs Jsf Agt Obs} do
                           {C {BranchPush JOrig E2 Bsf}#J2}
@@ -618,7 +605,7 @@ define
     Es = {IntMap.allMatching JIn fun {$ I}
            D = {IntMap.get JIn I} in
            {Record.label D} == out andthen
-           D.obs.Agt == Obs andthen
+           D.out.Agt == Obs andthen
            {PreceedersAgt JIn Agt I} == nil
          end}
   in
@@ -732,16 +719,16 @@ define
   proc {OutcomeLabel OData Lbl}
     Lbls
   in
-    Lbls = for collect:C Agt in {Record.arity OData.obs} do
-             if OData.obs.Agt \= nil then
-               {C Agt#": "#{Value.toVirtualString OData.obs.Agt ~1 ~1}#"\\n"}
+    Lbls = for collect:C Agt in {Record.arity OData.out} do
+             if OData.out.Agt \= nil then
+               {C Agt#": "#{Value.toVirtualString OData.out.Agt ~1 ~1}#"\\n"}
              end
            end
     Lbl = {List.toTuple '#' Lbls}
   end
 
   proc {OutcomeLabelAgt Agt OData Lbl}
-    Lbl = {Value.toVirtualString OData.obs.Agt ~1 ~1}
+    Lbl = {Value.toVirtualString OData.out.Agt ~1 ~1}
   end
 
 
@@ -764,7 +751,7 @@ define
                end
            end
          else
-           if Data.obs.Agt \= nil then
+           if Data.out.Agt \= nil then
                {File write(vs: "n"#N#" [shape=box,label=\""#{OutcomeLabelAgt Agt Data}#"\"];\n")}
                case {PreceedersAgt J Agt N} of P|_ then
                  PData = {IntMap.get J P} in

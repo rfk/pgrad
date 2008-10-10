@@ -1,59 +1,73 @@
-functor 
+%
+%  Procedures.oz:  definitions of procedures for the domain
+%
+
+functor
+
+import
 
 export
 
- ProcDef
+  Procdef
 
 define
 
-  proc {ProcDef Name Body}
-    case Name of main then
-         Body = seq( check_for(joe egg)
-                     ifte( exists(e and(obj_is_type(t egg) neg(used(e))))
-                           pcall(makeEggSalad(bowl1))
-                           pcall(makeVegSalad(bowl1))))
-    [] makeVegSalad(Cont) then
-         Body = seq(conc(conc(pcall(chopTypeInto(lettuce Cont))
-                           pcall(chopTypeInto(tomato Cont)))
-                           pcall(chopTypeInto(carrot Cont)))
-                    pick(agt seq(seq(
-                         pcall(ensureHas(agt Cont))
-                         mix(agt Cont))
-                         release(agt Cont))))
-    [] makeEggSalad(Cont) then
-         Body = seq(conc(conc(pcall(chopTypeInto(lettuce Cont))
-                           pcall(chopTypeInto(egg Cont)))
-                           pcall(chopTypeInto(cheese Cont)))
-                    pick(agt seq(seq(
-                         pcall(ensureHas(agt Cont))
-                         mix(agt Cont))
-                         release(agt Cont))))
-    [] chopTypeInto(Type Cont) then
-         Body = pick(agt pick(obj seq( test(obj_is_type(obj Type))
-                                       pcall(chopInto(agt obj Cont))
-                                  )))
-    [] chopInto(Agt Obj Cont) then
-         Body = seq(pcall(ensureHas(Agt Obj))
-                    pick(myBoard seq( test(and(obj_is_type(myBoard board)))
-                               seq( pcall(ensureHas(Agt myBoard))
-                               seq( chop(Agt Obj)
-                               seq( pcall(ensureHas(Agt Cont))
-                               seq( place_in(Agt Obj Cont)
-                               seq( release(Agt myKnife)
-                                   either(nil release(Agt Cont))
-                               )))))
-                   )))
+  fun {Procdef Nm}
+    case Nm of main then
+          pcall(makeSalad(bowl1))
     [] ensureHas(Agt Obj) then
-         Body = ifte(has_object(Agt Obj) nil acquire(Agt Obj))
-    [] tester then
-         Body = seq(check_for_eggs(joe)
-                    ifte( used(egg(1))
-                          acquire(joe tomato(1))
-                          acquire(joe carrot(1))
-                        )
-                   )
+           ifte(hasObject(Agt Obj) nil acquire(Agt Obj))
+    [] doPlaceIn(Agt Obj Dest) then
+           seq(pcall(ensureHas(Agt Obj))
+           seq(pcall(ensureHas(Agt Dest))
+           seq(placeIn(Agt Obj Dest)
+               release(Agt Dest))))
+    [] doTransfer(Agt Source Dest) then
+           seq(pcall(ensureHas(Agt Source))
+           seq(pcall(ensureHas(Agt Dest))
+           seq(transfer(Agt Source Dest)
+               release(Agt Dest))))
+    [] placeTypeIn(Agt Type Dest) then
+           pick(obj seq(test(objIsType(obj Type))
+                        pcall(doPlaceIn(Agt obj Dest))))
+    [] chopInto(Agt Obj Dest) then
+           seq(pcall(ensureHas(Agt Obj))
+               pick(brd seq(test(conj(objIsType(brd board)
+                                      neg(ex(c contents(brd c)))))
+                        seq(pcall(ensureHas(Agt brd))
+                        seq(placeIn(Agt Obj brd)
+                        seq(chop(Agt brd)
+                        seq(pcall(ensureHas(Agt Dest))
+                        seq(transfer(Agt brd Dest)
+                        seq(release(Agt Dest)
+                            release(Agt brd)
+                        )))))))
+               )
+           )
+    [] chopTypeInto(Agt Type Dest) then
+           pick(obj seq(test(objIsType(obj Type))
+                        pcall(chopInto(Agt obj Dest))))
+    [] makeSalad(Dest) then
+          seq(conc(pick(a seq(test(isAgent(a))
+                              pcall(chopTypeInto(a lettuce Dest))))
+              conc(pick(a seq(test(isAgent(a))
+                              pcall(chopTypeInto(a tomato Dest))))
+                   pick(a seq(test(isAgent(a))
+                              pcall(chopTypeInto(a carrot Dest))))
+              ))
+              pick(a seq(test(isAgent(a))
+                     seq(pcall(ensureHas(a Dest))
+                     seq(mix(a Dest)
+                         release(a Dest)
+                     )))
+              )
+          )
+    [] acquireType(Agt Type) then
+          pick(obj seq(test(objIsType(obj Type))
+                           acquire(Agt obj)
+          ))
+    else fail
     end
   end
 
 end
-

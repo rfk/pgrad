@@ -11,13 +11,12 @@ functor
 
 import
 
-  LP at '../Utils/LP.ozf'
-  Procedures at '../Program.ozf'
+  LP
+  Procedures
   Sitcalc
   Step
 
   Search
-  System
 
 export
 
@@ -176,7 +175,7 @@ define
     {Trans D H Dr Sr}
     if Sr.action == nil then
       if H \= now andthen H.1.action == nil then
-        {ThreadsOrdered R.1.thred Sr.thred}
+        {ThreadsOrdered H.1.thred Sr.thred}
       end
       {Trans1 Dr ex(Sr H) Dp Hp S}
     else

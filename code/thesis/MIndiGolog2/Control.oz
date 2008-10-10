@@ -6,8 +6,8 @@ functor
 
 import
 
-  LP at '/storage/uni/pgrad/code/thesis/MIndiGolog1/LP.ozf'
-  Domain at '/storage/uni/pgrad/code/thesis/MIndiGolog1/Domain.ozf'
+  LP
+  Domain
 
   System
   Connection
@@ -26,8 +26,6 @@ export
   % List of all agents who are not team leader
   Subordinates
 
-  DoParallelSearch
-
   Init
   SendMessage
   WaitForMessage
@@ -40,7 +38,6 @@ define
   % We depend on the main script to bind these values
   TeamLeader = _
   TeamMember = _
-  DoParallelSearch = _
 
   % Open-ended stream to which messages will be writetn, and mutable
   % pointer to the (free) tail of the stream.
