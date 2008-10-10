@@ -15,21 +15,6 @@ Import concepts:
   * a 'run' is a sequence of steps that have been performed, most recent
     step first.  It is thus simlar to a situation but also includes the
     observations made by each agent.
-  * a 'joint plan' is a prime event structure over steps that specifies
+  * a 'joint execution' is a prime event structure over steps that specifies
     the actions to be performed, depending on the observations made.
-
-Record labels used to build program terms:
-
-   nil
-   test
-   seq
-   choose
-   pick
-   star
-   ifte
-   wloop
-   conc
-   pconc
-   cstar
-   pcall
 
