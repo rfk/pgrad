@@ -27,7 +27,11 @@ define
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
     {JointExec.writeDotFileAgt Plan.1 jim
-       {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
+       {New Open.file init(name: 'plan_jim.dot' flags:[write create truncate])}}
+    {JointExec.writeDotFileAgt Plan.1 joe
+       {New Open.file init(name: 'plan_joe.dot' flags:[write create truncate])}}
+    {JointExec.writeDotFileAgt Plan.1 jon
+       {New Open.file init(name: 'plan_jon.dot' flags:[write create truncate])}}
   end
   {System.show Plan}
 
