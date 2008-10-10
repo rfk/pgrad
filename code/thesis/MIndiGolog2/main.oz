@@ -27,7 +27,7 @@ define
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
   end
-  {System.show done}
+  {System.show Plan}
 
 
   {Application.exit 0}

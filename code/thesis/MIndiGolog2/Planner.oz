@@ -16,6 +16,7 @@ import
   MIndiGolog
   JointExec
   Domain
+  Sitcalc
   LP
 
   System
@@ -24,7 +25,6 @@ import
 export
 
   Plan
-  Test
 
 define
 
@@ -52,7 +52,7 @@ define
     {System.print {List.length BClosed}} {System.showInfo " closed"}
     case BRest of (D#R#N)|Bs then Dp Rp S J2 OutNs OutBs in
        {System.showInfo "trying to trans1"}
-       {FindTrans1 D R Dp Rp S}
+       {FindTrans1 D R Bs Dp Rp S}
        {System.printInfo "...found: "}
        {System.show S.action}
        OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
@@ -91,7 +91,7 @@ define
   %  of 'most promising' to 'least promising', according to how
   %  much concurrency is present.
   %
-  proc {FindTrans1 D R Dp Rp S}
+  proc {FindTrans1 D R Bs Dp Rp S}
     Searcher SearchProc
   in
     proc {SearchProc Q} Dp Rp S in
@@ -113,7 +113,7 @@ define
   in
     if N1 > N2 then B=true
     elseif N1 < N2 then B=false
-    else B=({RunLength Rp1} =< {RunLength Rp2}) end
+    else B=({RunLength Rp1} < {RunLength Rp2}) end
   end
 
   proc {NumConc R S N}
@@ -189,21 +189,6 @@ define
                  S2 = {JointExec.getobs J OutN S} in
                  {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#OutN}}
                end
-    end
-  end
-
-
-  proc {Test}
-    Plans = [acquire(thomas lettuce(1))
-             seq(acquire(thomas lettuce(1)) acquire(richard lettuce(1)))
-             seq(check_for(thomas lettuce) acquire(richard lettuce(1)))
-             seq(check_for(thomas lettuce) acquire(thomas lettuce(1)))
-            ]
-    Sols = [true false false true]
-  in
-    for P in Plans S in Sols do Sol in
-      Sol = {Search.base.one proc {$ Q} {Plan P Q} end}
-      if S \= (Sol \= nil) then raise plan(P Sol\=nil) end end
     end
   end
 
