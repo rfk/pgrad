@@ -37,19 +37,22 @@ powerful structure for representing the actions to be performed.
 
 To build such a structure, we take inspiration from a model of concurrent
 computation known as \emph{prime event} \emph{structures}, which are
-partially-ordered branching sequences of events. A \emph{joint execution}
-is defined as a particular kind of prime event structure that is rich
-enough to capture the concurrent execution of independent actions,
-and can branch on the sensing results of actions. We use our explicit
-account of an agent's local view to identify joint executions that
-can feasibly be executed based on the local infomation available to
-each agent at runtime.
+partially-ordered branching sequences of events \citep{npw79event_structures}.
+A \emph{joint execution} is defined as a particular kind of prime
+event structure that is rich enough to capture the concurrent execution
+of independent actions, and can branch on the sensing results of actions.
+We use our explicit account of an agent's local view to identify joint
+executions that can feasibly be executed based on the local infomation
+available to each agent at runtime.
 
-Joint executions are also formalised in a way that can be directly
-translated into an implementation. They can be built up one action
-at a time in much the same way as ordinary situation terms. If the
-theory of action meets some simple restrictions, joint executions
-can be reasoned about using standard regression techniques.
+Joint executions are also formalised in a way that is easily translated
+into an implementation. They can be built up one action at a time
+in much the same way as ordinary situation terms. If the theory of
+action meets some simple restrictions, joint executions can also be
+reasoned about using standard regression techniques. We demonstrate
+an implementation that performs offline execution planning for an
+asyncrhonous, partially observable domain, and discuss the challenges
+faced when moving to an online execution model.
 
 These structures thus allow us to represent the actions that a team
 of agents are to perform in service of some shared task, without requiring
@@ -57,18 +60,14 @@ constant synchronization between the agents, and without assuming
 that agents know all the actions that have been performed, while utilizing
 existing reasoning methods and planning machinery. This is a significant
 increase in power over existing approaches to planning for multi-agent
-teams in the situation calculus. To demonstrate the utility of the
-approach, we extend our MIndiGolog interpreter from Chapter \ref{ch:mindigolog}
-to show how a team of agents can cooperate to plan and perform the
-joint execution of a shared program in an asynchronous, partially
-observable domain.
+teams in the situation calculus.
 
 The chapter proceeds as follows: TODO.
 
 
 \section{Background\label{sec:JointExec:Background}}
 
-The above discussion highlighted three desirable properties of a plan
+The above discussion highlights three desirable properties of a plan
 representation formalism intended for use in asyncrhonous multi-agent
 domains: it must be \emph{partially-ordered}, \emph{branching}, and
 \emph{feasible}. While each of these aspects have been studied in
@@ -690,8 +689,7 @@ agent's ability to carry out the plan.
 With the above definitions in place we are in a position to plan the
 cooperative execution of a shared Golog program using these structures.
 
-
-\subsubsection{Offline Planning}
+TODO: mention that it's offline planning only
 
 Consider first \emph{offline} planning in the style of the original
 Golog and ConGolog. The agents need to find a feasible, legal joint
@@ -752,98 +750,294 @@ holds
 
 
 
-\subsubsection{Online Execution}
+\section{Reasonable Joint Executions}
 
-Capturing \emph{online} execution in an syncrhonous domain is less
-straightforward, as it is difficult to single-step an execution in
-a partially-observable setting. Consider, for example, a program whose
-next step is a sensing action to be performed by some agent. Before
-the action is performed, the joint execution will contain one branch
-for each possible sensing outcome. Once the action is performed, that
-particular agent will know which leaf corresponds to the actual world,
-and can avoid trying to plan a next step for any of the other leaves.
+While joint executions can clearly provide a powerful formal account
+of execution planning for asynchronous multi-agent domains, in their
+curent form they are not suitable for an effective implementation.
+The difficulty arises from the definition of $History(ex,i,h)$, which
+due to the partial ordering on events can generate an exponentially-large
+number of possible histories. To verify that a joint execution is
+legal, the planner needs to examine each of these histories individually.
 
-However, its team-mates will \emph{not }know the outcome of the sensing
-action, so from their perspective any of the potential leaves might
-be the real state of the world. They are therefore forced to plan
-a next step in each one of those leaves. But they must also account
-for what they think that the team-mate things..etc etc TODO find a
-way to explain this!
+To overcome this difficulty and produce an effective implementation,
+we identify a restricted class of joint executions in which all possible
+histories of a branch and provably equivalent. Such excutions can
+be reasoning about using the canonical ordering over events, rather
+than having to enumerate each possible distinct history.
 
-The difficulty here is due to the well-known correspondance between
-coordination and common knowledge - the agents must develop a plan
-extending every leaf of the joint execution unless it is common knowledge
-that that leaf is not legal. Reasoning about common knowledge is very
-difficult and we want to avoid it if we can.
 
-The trick, then is to plan just far enough ahead so that all agents
-can determine, based on their local observations, precisely which
-leaf is legal. One of the intuitions behind introducing online execution
-in IndiGolog was to avoid branching plans, by executing just enough
-of the program to gather the necessary sensing results. Following
-this intuition in the multi-agent case, the agents should plan just
-far enough ahead to ensure thay every team member knows what branch
-has been taken.
+\subsection{Independent Actions\label{sec:JointExec:IndepActs}}
 
-We define a joint execution to be \emph{separable} if every leaf can
-be distinguished from every other leaf by every agent in the group:\begin{multline*}
-Separable(ex)\,\isdef\,\forall agt,lf,lf',h,h':\, Leaf(ex,lf)\wedge Leaf(ex,lf')\\
-\wedge History(ex,lf,h)\wedge History(ex,lf',h')\,\rightarrow\, View(agt,h)\neq View(agt,h')\end{multline*}
- 
+To construct families of situation terms that are all equivalent,
+we need a way to identify \emph{independent actions.} Intuitively,
+we want independent actions to be able to be performed in either order,
+or even concurrently, without affecting what holds in the resulting
+situation or the outcomes or each action. This section formally identifies
+sufficient conditions to ensure that actions are independent.
 
-In other words, every agent's local view at each leaf is always sufficient
-to distinguish it from every other leaf. The agent's can then perform
-an online execution by planning just far enough ahead to find a separable
-joint execution:
+For simplicity, we identify actions that are independent regardless
+of the situation they are performed in. Let us assume that the theory
+of action $\Dt$ is equipped with a rigid predicate $indep(a,a')$
+identifying actions that are independent. Then we restrict the theory
+of action to satisfy the following conditions:
 
-\begin{multline*}
-\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists ex:\, Legal(ex)\wedge Feasible(ex)\wedge Separable(ex)\\
-\wedge\,\forall lf:\, Leaf(ex,lf)\wedge Legal(ex,lf)\,\rightarrow\,\left[\forall s:\, Sit(ex,lf,s)\rightarrow\exists\delta':\, Trans^{*}(\delta,S_{0},\delta',s)\right]\end{multline*}
+\begin{defnL}
+[{Independent~Actions}] A theory of action $\Dt$ correctly
+specifies independent actions when it contains a rigid predicate $indep(a,a')$
+and entails the following, where $\mathcal{P}$ and $\mathcal{F}$
+are meta-variables ranging over all predicate fluents and functional
+fluents respectively: (TODO: agent-wise union)\begin{gather*}
+\Dt\,\models\, indep(a,a')\equiv indep(a',a)\\
+\Dt\,\models\, Poss(\{a\},s)\equiv Poss(\{a\},do(\{a'\},s))\\
+\Dt\,\models\, a\in c\,\rightarrow\, Poss(c\cup\{a'\},s)\equiv Poss(c,s)\wedge Poss(\{a'\},s)\\
+\Dt\,\models\, Out(\{a\},s)=Out(\{a\},do(\{a'\},s))\\
+\Dt\,\models\, a\in c\,\rightarrow Out(c\cup\{a'\},s)=Out(c,s)\cup Out(\{a'\},s)\\
+\Dt\,\models\,\mathcal{P}(do(\{a\},do(\{a'\},s)))\equiv\mathcal{P}(do(\{a'\},do(\{a\},s)))\equiv\mathcal{P}(do(\{a,a'\},s))\\
+\Dt\,\models\,\mathcal{F}(do(\{a\},do(\{a'\},s))=\mathcal{F}(do(\{a'\},do(\{a\},s)))=\mathcal{F}(do(\{a,a'\},s))\end{gather*}
+
+\end{defnL}
+We assume that the planning system has some way of identifying independent
+actions. Two histories $\sigma_{1}$ and $\sigma_{2}$ are called
+\emph{equivalent} if they are identical up to the ordering of independent
+actions: they contain the same set of $(a,Out(a,s))$ pairs, and whenever
+two such pairs occur in a different order in $\sigma_{1}$ than in
+$\sigma_{2}$ the actions are independent. Two histories $\sigma_{1}$
+and $\sigma_{2}$ are \emph{compatible for $a$} if they are equivalent
+after removing all actions that are independent of $a$. We then have
+the following properties of histories:
+
+\begin{thm}
+\label{thm:equiv-holds}For equivalent histories $\sigma_{1}$ and
+$\sigma_{2}$:\[
+\mathcal{D}\,\models\,\mathbf{holds}[\phi,\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[\phi,\sigma_{2}]\]
+
+\end{thm}
+\begin{proof}
+A straightforward case analysis on the definition of the regression
+operator. 
+\end{proof}
+\begin{thm}
+\label{thm:equiv-legal}For equivalent histories $\sigma_{1}$ and
+$\sigma_{2}$:\[
+\mathcal{D}\,\models\,\mathbf{legal}[\sigma_{1}]\,\,\equiv\,\,\mathbf{legal}[\sigma_{2}]\]
+
+\end{thm}
+\begin{proof}
+Using theorem \ref{thm:equiv-holds}, and invariance of $Poss$ and
+$Out$ when transposing independent actions. 
+\end{proof}
+\begin{thm}
+\label{thm:equiv-compat}For histories $\sigma_{1}$ and $\sigma_{2}$
+compatible for $a$:\begin{gather*}
+\mathcal{D}\,\models\,\mathbf{holds}[Poss(a),\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[Poss(a),\sigma_{2}]\\
+\mathcal{D}\,\models\,\mathbf{holds}[Out(a)=r,\sigma_{1}]\,\,\equiv\,\,\mathbf{holds}[Out(a)=r,\sigma_{2}]\end{gather*}
+
+\end{thm}
+\begin{proof}
+Using theorem \ref{thm:equiv-holds}, and the fact that the removed
+actions do not affect the preconditions or outcome of $a$. 
+\end{proof}
+
+\subsection{Reasonability}
+
+We now define a \emph{reasonabl}e joint execution as one in which
+every pair of action events is either ordered, in conflict, or independent:
+
+\begin{defnL}
+[{Reasonable~Joint~Execution}] A joint execution is reasonable
+if it satisfies the following restriction:\begin{multline*}
+\Dt\,\models\,\forall i,j\in events(ex):\, IsAction(lbl(ex,i))\wedge IsAction(lbl(ex,j))\\
+\rightarrow\, i\prec_{ex}j\,\vee\, j\prec_{ex}i\,\vee\, i\oplus_{ex}j\,\vee\, indep(lbl(ex,i),lbl(ex,j))\end{multline*}
+
+\end{defnL}
+We call such executions reasonable because a planner can reason about
+then effectively, by using only the canonical history of each leaf.
+
+TODO: theorem to establish this
+
+
+\section{Implementation\label{sec:JointExec:Implementation}}
+
+Our implementation%
+\footnote{available at {[}identifying information omitted]%
+} of a ConGolog execution planner utilizes the Mozart programming system,
+which implements the Oz language \citep{vanroy99mozart} rather than
+the traditional use of Prolog. As we shall see, Mozart's strong support
+for distributed logic programming allows the team of agents to share
+the planning workload with almost no additional code.
+
+To make things more concrete, figure \ref{fig:plan-output} shows
+the output of our system when run on the $MakeSalad$ example of figure
+\ref{fig:makesalad-program}. Since all actions in this program have
+a single outcome, the outcome events have been suppressed for brevity.
+
+In this domain there are three agents, but only two knives are available.
+The agents must therefore synchronize their use of these resources.
+Actions are taken to be independent if they deal with different objects.
+As seen in figure \ref{fig:plan-output}, the use of a partial order
+structure facilitates parallelism between the agents, with each processing
+a different ingredient and only synchronizing on the availability
+of the required resources. There is no need for processing actions,
+such as $mix$ and $chop$, to be publicly observable. This execution
+is maximally concurrent given the constraints of the domain, and is
+clearly a significant improvement over totally ordered sequences of
+actions as produced by existing systems.
+
+In the following subsections, we briefly highlight some key aspects
+of our implementation.
+
+
+\subsection{Program Steps}
+
+While the ability to determine whether actions are independent is
+necessary in constructing partially-ordered executions of a ConGolog
+program, it is not sufficient. Actions might have an order imposed
+on them directly by the program (for example by the sequence construct
+$a_{1};a_{2}$). The program may require that some additional conditions
+are true immediately prior to executing an action (for example to
+satisfy a test construct $\phi?$), which could be falsified by an
+otherwise independent action.
+
+To ensure that the dependencies between actions reflect the needs
+of the program being executed, we augment our implementation of the
+$Trans$ predicate to keep additional information about what transitions
+were made. A \emph{step} object has the following attributes:
+
+\begin{itemize}
+\item action: the action performed in that step, or $nil$ if it is an internal
+program transition 
+\item test: an additional fluent formula that must hold immediately before
+performing the step 
+\item thread: a sequence of 'l' and 'r' characters indicating the concurrent
+thread in which the step is performed 
+\item outcome: the outcome of performing the action. 
+\end{itemize}
+%
+\begin{figure}
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+%\textsf{\textbf{\tiny \include{listings/plan}}}%
+%
+\end{minipage}}
+
+\caption{ Joint execution for $MakeSalad(bowl(1))$, showing significant concurrency
+between agents }
+
+
+\label{fig:plan-output} 
+\end{figure}
+
+
+We call a sequence of such steps a \emph{run}, which can be converted
+to a history by taking just the action and outcome attributes. The
+procedure implementing $Trans$ takes a program and a run as input,
+returning a new program and new step of execution. As an example consider
+the code in figure \ref{fig:trans-code}, implementing the test operator
+and the concurrency operator from equation \ref{eqn:trans_conc_orig}.
+
+%
+\begin{figure}
+\programinput{listings/jointexec/ConGolog.oz}
+
+\caption{Partial code for $Trans$ predicate}
+
+
+\label{fig:trans-code} 
+\end{figure}
+
+
+Note that whenever the procedure descends through the left side of
+a concurrency operator it pushes an 'l' onto the step's {}``thread''
+attribute, and each descent through the right side pushes an 'r'.
+Two steps can be said to come from different threads as long as neither
+{}``thread'' attribute is a prefix of the other.
+
+We say that two steps are \emph{ordered} if any of the following holds:
+their action terms are not independent; ones thread is a prefix of
+the other; ones action falsifies the test condition associated with
+the other. When building a joint execution, ordered steps are forced
+to be executed in the order they were generated by the planner, while
+unordered steps may be performed independently.
+
+
+\subsection{Planning Procedure}
+
+The code for planning a joint execution from a given ConGolog program
+is shown in figure \ref{fig:planning-code}. The main procedure is
+$MakePlan$, a recursive procedure that operates on a list of branches-in-progress
+of the form $(D,R,B)$. Here $B$ is a branch in the joint execution
+under construction, $D$ is the program remaining to be executed on
+that branch, and $R$ is the run of program steps performed on that
+branch so far.
+
+%
+\begin{figure}
+\programinput{listings/jointexec/Planner.oz}
+
+\caption{ Code for main planning loop }
+
+
+\label{fig:planning-code} 
+\end{figure}
 
 
 %
-\begin{algorithm}[t]
- 
+\begin{figure}
+\programinput{listings/jointexec/psearch.oz}
 
-\caption{Online Execution Algorithm using Joint Executions}
-
-
-\label{alg:indigolog_exec} \begin{algorithmic}
-
-\STATE $v\,\Leftarrow\,\epsilon$
-
-\STATE $ex\,\Leftarrow\, Ex_{0}$
-
-\STATE $lf\,\Leftarrow\,\{\}$
-
-\WHILE{$\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\,\not\models\,\forall s:\, Sit(ex,lf,s)\,\rightarrow\, Final(\delta,s)$} 
-
-\STATE Find a new joint execution such that:\begin{multline*}
-\Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists ex':\, Legal(ex')\wedge Feasible(ex')\\
-\wedge Separable(ex')\wedge Extends(ex,lf,ex')\\
-\wedge\,\forall lf':\, Leaf(ex',lf')\wedge Legal(ex',lf')\,\rightarrow\,\left[\forall s:\, Sit(ex',lf',s)\rightarrow Trans^{*}(\delta,S_{0},s)\right]\end{multline*}
+\caption{ Code to run planning procedure in parallel }
 
 
-\STATE Execute the action $a$
-
-\STATE $\sigma\ \Leftarrow\ do(a,\sigma)$
-
-\STATE $\delta\ \Leftarrow\ \delta'$
-
-\ENDWHILE
-
-\end{algorithmic} 
-\end{algorithm}
+\label{fig:parallel-search} 
+\end{figure}
 
 
+Each iteration of the planning loop proceeds as follows. The procedure
+$FindOpenBranch$ updates each branch to account for events that were
+added since it was last processed (some may have been added automatically
+to satisfy restriction (R5)), then searches the list to find a branch
+for which $Final(D,R)$ does not hold. If all branches are final,
+planning can terminate. Otherwise, the procedure $FindTrans1$ is
+called to find a new step of execution for that branch. The action
+is inserted into the joint execution, which returns a list of new
+branches, one for each possible outcome of the action. Each of these
+outcomes is added to the list of branches, and the loop is started
+again.
 
-\subsubsection{Search}
+Of particular interest is the procedure $FindTrans1$, which uses
+the encapsulated search functionality of Mozart to yield possible
+next steps according to an estimate of their potential for concurrency.
+The procedure $LP.yieldOrdered$ yields the solutions of the given
+search context, sorted using the procedure $CompareSteps$. This procedure
+(not shown) gives preference to steps that can be performed concurrently
+with as many existing actions as possible.
 
-Search should be modified to ensure that a valid joint execution can
-be found for the contained program, rather than just a valid situation.
+
+\subsection{Distributing the Planning Workload}
+
+A primary motivation in using Mozart/Oz for our implementation is
+its strong support for distributed logic programming. Utilizing Mozart's
+parallel search functionality \citep{Schulte00constraint_services},
+the planning workload can be transparently distributed between the
+agents in the team.
+
+Figure \ref{fig:parallel-search} shows the necessary code, which
+should be executed by one of the agents. The planning procedure is
+encapsulated in a \emph{functor}, a portable code object. A parallel
+search object is then created, which uses an ssh connection to spawn
+remote computations on each of the three agents (identified by their
+DNS names). The object is asked to provide a single solution, which
+is then written to a file in the graphviz 'dot' format for display
+(resulting in figure \ref{fig:plan-output}).
+
+For the simple example shown in this paper, parallel plan search does
+not demonstrate a significant time saving since almost no backtracking
+is required to reach a solution. For more difficult problems, significant
+gains can be expected.
 
 
-\subsection{Summary\label{sec:JointExec:Summary}}
+\section{Discussion\label{sec:JointExec:Discussion}}
 
 In this section we have defined a \emph{joint execution} as a prime
 event structure with some additional restrictions. We contend that
@@ -873,37 +1067,6 @@ an interpreter for multi-agent ConGolog programs that produces joint
 executions as its output. In the next section, we highlight the key
 aspects of our implementation and give an example of the output it
 produces.
-
-
-\section{Reasonable Joint Executions}
-
-While these structures so far allow provide a powerful formal account
-of execution planning in multi-agent domains, they are not suitable
-for an effective implementation. In order to verify that a joint execution
-is legal, it is necessary to examine every possible history of every
-brach in the execution. Since it is a partially-ordered structure
-there is a potentially exponential number of histories for every branch.
-
-
-\subsection{Independent Actions\label{sec:JointExec:IndepActs}}
-
-
-\subsection{Reasonability}
-
-
-\section{Implementation\label{sec:JointExec:Implementation}}
-
-
-\subsection{Program Steps}
-
-
-\subsection{Planning Loop}
-
-
-\subsection{Distributing the Planning Workload}
-
-
-\section{Discussion\label{sec:JointExec:Discussion}}
 
 An alternate approach to the problem of partial observability is the
 language TeamGolog developed in \citep{farinelli07team_golog}, where
@@ -938,4 +1101,58 @@ don't use explicit mental attitiudes, mutual beliefs etc. JE's more
 akin to recpies in SharedPlans. Assume agents all have the common
 goal of executing the given shared program. But it could be used as
 part of larger system.
+
+
+\subsubsection{Online Execution}
+
+In this section we have defined a \emph{joint execution} as a prime
+event structure with some additional restrictions. We contend that
+such structures are highly suitable for planning the actions to be
+performed by a team in service of some shared task, such as executing
+a shared Golog program.
+
+On one hand, joint executions are restricted enough to be practical
+for such use. Prime event structures are purely reactive (equivalent
+to a kind of finite automaton) and can be executed by the agents without
+further deliberation. They are restricted to ensure that whenever
+an agent is required to perform an action, it is able to determine
+this using only its local information. Each branch of execution can
+be easily converted into a situation term for the purposes of reasoning,
+and can be extended one action at a time.
+
+Joint executions are also significantly more flexible than previous
+approaches. They allow independent actions to be performed without
+synchronization, in any order. The agents need never know precisely
+what actions have been executed, only those that enable them to perform
+their next action. Synchronization is automatically achieved when
+required by explicitly reasoning about what actions each agent can
+observe, rather than requiring that all actions be public.
+
+To demonstrate the utility of these structures, we have implemented
+an interpreter for multi-agent ConGolog programs that produces joint
+executions as its output. In the next section, we highlight the key
+aspects of our implementation and give an example of the output it
+produces.
+
+Capturing \emph{online} execution in an syncrhonous domain is less
+straightforward, as it is difficult to single-step an execution in
+a partially-observable setting. Consider, for example, a program whose
+next step is a sensing action to be performed by some agent. Before
+the action is performed, the joint execution will contain one branch
+for each possible sensing outcome. Once the action is performed, that
+particular agent will know which leaf corresponds to the actual world,
+and can avoid trying to plan a next step for any of the other leaves.
+
+However, its team-mates will \emph{not} know the outcome of the sensing
+action, so from their perspective any of the potential leaves might
+be the real state of the world. They are therefore forced to plan
+a next step in each one of those leaves. But they must also account
+for what they think that the team-mate things..etc etc TODO find a
+way to explain this!
+
+The difficulty here is due to the well-known correspondance between
+coordination and common knowledge - the agents must develop a plan
+extending every leaf of the joint execution unless it is common knowledge
+that that leaf is not legal. Reasoning about common knowledge is very
+difficult and we want to avoid it if we can.
 

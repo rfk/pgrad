@@ -19,6 +19,7 @@ in
         R = {LP.serialize (Dl#Sl#Spl)}
       end
   end
+  % this constructs a record like: Machines = init(jim:1#ssh joe:1#ssh)
   Machines = {Record.make init Control.agents}
   for Agt in {Record.arity Machines} do
     Machines.Agt = 1#ssh
