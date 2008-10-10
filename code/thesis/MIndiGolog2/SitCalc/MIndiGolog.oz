@@ -17,6 +17,7 @@ import
   Step
 
   Search
+  System
 
 export
 
@@ -63,11 +64,14 @@ define
             Dp = seq(D2 star(D1))
           end
     []  ifte(Cond D1 D2) then Sp2 in
+          {System.show holds(Cond R)}
           choice
               {SitCalc.holds R Cond}
+              {System.show holds}
               {Trans D1 R Dp Sp2}
               {Step.addtest Sp2 Cond Sp}
           []  {SitCalc.holds R neg(Cond)}
+              {System.show notholds}
               {Trans D2 R Dp Sp2}
               {Step.addtest Sp2 neg(Cond) Sp}
           end

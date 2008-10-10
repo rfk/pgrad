@@ -9,6 +9,7 @@ import
   Property
   Open
   Application
+  System
 
 define
 
@@ -18,13 +19,13 @@ define
   {Property.put 'errors.depth' 1000}
 
   Plan = {Search.base.one proc {$ JE}
-             {Planner.plan pcall(makeSalad(bowl(1))) JE}
+             {Planner.plan pcall(tester) JE}
          end}
   if Plan \= nil then
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
-    {JointExec.writeDotFileAgt Plan.1 jim
-       {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
+    %{JointExec.writeDotFileAgt Plan.1 joe
+    %   {New Open.file init(name: 'plan_joe.dot' flags:[write create truncate])}}
   end
   {Application.exit 0}
 

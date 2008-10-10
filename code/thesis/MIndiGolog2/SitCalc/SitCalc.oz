@@ -88,7 +88,7 @@ define
 
   proc {IndependentActs A1 A2 B}
     if {Actor A1} == {Actor A2} then B = false
-    elseif {Record.label A1} == check_for then
+    elseif {Record.label A1} == check_for_eggs then
         if {Record.label A2} \= acquire then B = true
         else B = (A1.2 \= {Record.label A2.2}) end
     else B = for return:R default:true Arg1 in {Record.toList A1} do
@@ -111,9 +111,14 @@ define
   in
     EpsP = {DB.query.causesTrue P A}
     EpsN = {DB.query.causesFalse P A}
-    U = {FOF.parseRecord 'or'(EpsP and(P neg(EpsN))) _}
+    U = 'or'(EpsP and(P neg(EpsN)))
   end
-  Regress = {FOF.transformation 'sitcalc.regress' Regress_atom}
+
+  proc {Regress F A R}
+    TF = {FOF.transformFunc fun {$ Atom} {Regress_atom Atom A} end}
+  in
+    R = {TF F}
+  end
 
   %
   %  Uniformize the given formula
@@ -122,15 +127,15 @@ define
     Defn
   in
     Defn = {DB.query.adfluent P}
-    if Defn \= nil then U = {Uniformize {FOF.parseRecord Defn _}}
+    if Defn \= nil then U = {Uniformize Defn}
     else Defn in
        Defn = {DB.query.builtin P}
-       if Defn \= nil then U = {Uniformize {FOF.parseRecord Defn _}}
-       else U = {FOF.parseRecord P _} end
+       if Defn \= nil then U = {Uniformize Defn}
+       else U = P end
     end
   end
-  Uniformize = {FOF.transformation 'sitcalc.uniformize' Uniformize_atom}
 
+  Uniformize = {FOF.transformFunc Uniformize_atom}
 
   %
   %  Create a record mapping each agent name to a fresh variable.
@@ -186,7 +191,6 @@ define
           {Acc {Step.setobs S Agt S.action}}
         else
          for Res#Cond in AOuts do
-            {System.show Cond}
             if {HoldsW R Cond} \= no then
                {Acc {Step.setobs S Agt S.action#Res}}
             end
@@ -197,53 +201,32 @@ define
     end
   end
 
-  Axioms = {Uniformize {FOF.parseRecord {List.toTuple and {DB.query.constraints}} _}}
-  Initially = {Uniformize {FOF.parseRecord {List.toTuple and {DB.query.initially}} _}}
+  Initially = {Uniformize {List.toTuple and {DB.query.initially}}}
 
   %
   %  Determine whether F is known to hold after the run of execution R.
-  %  The definition of 'known' can be any knowledge operator for
-  %  which we have an implementation, and which is equivalent across
-  %  agents (e.g: dknows, sknows, cknows)
-  %
-  %  Note that since this is based on knowledge, there's no excluded
-  %  middle - it's possible for holds(F E) and holds(neg(F) E) to both
-  %  be false.
   %
   %  Designed to be used during program search, so it's an assertion
   %  rather than a function, and will bind variables in F to ensure that
   %  it holds.
   %
-  proc {Holds R F}
-    Fml Binder Binding
-  in
-    {FOF.wff F}
-    Fml = {FOF.parseRecord F Binder}
-    Binding = {HoldsFOF R Fml}
-    {Binder Binding}
-  end
-
-  proc {HoldsFOF R FmlIn Bind}
+  proc {Holds R FmlIn}
     Fml = {Uniformize FmlIn}
   in
     case R of ex(Step R2) then
-     if {FOF.contradiction {FOF.impl Axioms Fml}} then
-       fail
-     else ObsFmls ObsFml FmlR in
-       if Step.action \= nil then
+       if Step.action \= nil then ObsFmls ObsFml FmlR in
          ObsFmls = for collect:C Agt in {Record.arity Step.obs} do
            {C {ObsImplies Agt Step.action Step.obs.Agt}}
          end
-         ObsFml = {Uniformize {FOF.parseRecord {List.toTuple and true|ObsFmls} _}}
-         FmlR = {Regress {FOF.impl ObsFml Fml} Step.action}
-         {HoldsFOF R2 FmlR Bind}
+         ObsFml = {Uniformize {List.toTuple and true|ObsFmls}}
+         FmlR = {Regress impl(ObsFml Fml) Step.action}
+         {Holds R2 {FOF.simplify FmlR}}
        else
-         {HoldsFOF R2 Fml Bind}
+         {Holds R2 Fml}
        end
      end
     else
-      Axs = {FOF.conj Axioms Initially} in
-      {FOF.prove {FOF.impl Axs Fml} Bind}
+      {FOF.tautology impl(Initially Fml)}
     end
   end
 
@@ -263,53 +246,27 @@ define
   %  Unlike {Holds}, this procedure returns one of 'yes', 'no' or
   %  'unknown' and will not bind free variables.
   %
-  proc {HoldsW R F Res}
-    Fml = {FOF.parseRecord F _}
-  in
-    {System.showInfo "\n\n\n"}
-    {FOF.wff F}
-    Res = {HoldsW_FOF R Fml}
-  end
-
-  proc {HoldsW_FOF R FIn Res}
+  proc {HoldsW R FIn Res}
     F = {Uniformize FIn}
   in
-    {System.show holdsw({FOF.toRecord FIn})}
     case R of ex(Step R2) then
-      {System.show checking_taut}
-      if {FOF.tautology {FOF.impl Axioms F}} then
-        Res = yes
-      else
-        {System.show checking_cont}
-        if {FOF.contradiction {FOF.conj Axioms F}} then
-          Res = no
-        else ObsFmls ObsFml FmlR in
-          {System.show regressing}
-          if Step.action \= nil then
-            ObsFmls = for collect:C Agt in {Record.arity Step.obs} do
-              {C {ObsImplies Agt Step.action Step.obs.Agt}}
-            end
-            ObsFml = {Uniformize {FOF.parseRecord {List.toTuple and true|ObsFmls} _}}
-            FmlR = {Regress {FOF.impl ObsFml F} Step.action}
-            {HoldsW_FOF R2 FmlR Res}
-          else
-            {HoldsW_FOF R2 F Res}
-          end
+      if Step.action \= nil then ObsFmls ObsFml FmlR in
+        ObsFmls = for collect:C Agt in {Record.arity Step.obs} do
+          {C {ObsImplies Agt Step.action Step.obs.Agt}}
         end
+        ObsFml = {Uniformize {List.toTuple and true|ObsFmls}}
+        FmlR = {Regress impl(ObsFml F) Step.action}
+        {HoldsW R2 FmlR Res}
+      else
+        {HoldsW R2 F Res}
       end
     else
-      Axs = {FOF.conj Initially Axioms} in
-      {System.show checking_taut}
-      if {FOF.tautology {FOF.impl Axs F}} then
+      if {FOF.tautology impl(Initially F)} then
         Res = yes
       else
-        {System.showInfo "\n\n\n\n\n"}
-        {System.show checking_cont}
-        if {FOF.contradiction {FOF.conj Axs F}} then
-          {System.show yep}
+        if {FOF.contradiction and(Initially F)} then
           Res = no
         else
-          {System.show unknown}
           Res = unknown
         end
       end
@@ -320,48 +277,41 @@ define
   proc {Test}
     F1 F2 F3
   in
-    {HoldsW now all(obj impl(obj_is_type(obj tomato) used(obj)))} = unknown
-    {HoldsW now exists(obj and(obj_is_type(obj tomato) used(obj)))} = unknown
-    raise good_so_far end
-
-
     {HoldsW now exists(obj obj_is_type(obj lettuce))} = yes
     {HoldsW now obj_is_type(lettuce(1) lettuce)} = yes
     {HoldsW now used(lettuce(1))} = no
     {HoldsW now used(carrot(1))} = no
-    {HoldsW now used(tomato(1))} = unknown
-    F1 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) has_object(thomas lettuce(2))) _}
-    F2 = {FOF.conj Initially {FOF.parseRecord has_object(thomas lettuce(1)) _}}
-    F3 = {FOF.parseRecord and(all(o nexists(a has_object(a o))) exists(a has_object(a lettuce(1)))) _}
-    {FOF.contradiction F1 true}
-    {FOF.contradiction F2 true}
-    {FOF.contradiction F3 true}
-    {HoldsW now has_object(thomas lettuce(1))} = no
+    {HoldsW now used(egg(1))} = unknown
+    {HoldsW now all(obj impl(obj_is_type(obj egg) used(obj)))} = unknown
+    {HoldsW now all(obj impl(obj_is_type(obj tomato) used(obj)))} = no
+    {HoldsW now exists(obj and(obj_is_type(obj tomato) used(obj)))} = no
+    {HoldsW now exists(obj obj_is_type(obj egg))} = yes
+    {HoldsW now exists(obj and(obj_is_type(obj egg) neg(used(obj))))} = unknown
+    {HoldsW now neg(used(egg(1)))} = unknown
+    {HoldsW now and(neg(used(egg(1))) and(neg(used(egg(2))) neg(used(egg(3)))))} = unknown
+    {Holds now neg(used(egg(1)))}
+    {HoldsW now has_object(joe lettuce(1))} = no
     {HoldsW now exists(a has_object(a lettuce(1)))} = no
-    {HoldsW now poss(acquire(thomas lettuce(1)))} = yes
-
-    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 29
-    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(thomas Q))} end}} = 29
-    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 29*3
-
-    {HoldsW now has_object(harriet knife(1))} = no
-    {HoldsW now poss(acquire(harriet knife(1)))} = yes
-    {HoldsW ex(step(action: acquire(harriet knife(1)) obs:nil) now) has_object(harriet knife(1))} = yes
-    {HoldsW ex(step(action: acquire(harriet knife(1)) obs:nil) now) poss(acquire(thomas knife(1)))} = no
-
-    {HoldsW now poss(chop(harriet carrot(1)))} = no
-    {HoldsW ex(step(action: acquire(harriet knife(1)) obs:nil) now) poss(chop(harriet carrot(1)))} = no
-    {HoldsW ex(step(action:acquire(harriet carrot(1)) obs:nil) ex(step(action: acquire(harriet knife(1)) obs:nil) now)) poss(chop(harriet carrot(1)))} = yes
-
+    {HoldsW now poss(acquire(joe lettuce(1)))} = yes
+    {List.length {Search.base.all proc {$ Q} {Holds now neg(used(_))} Q=unit end}} = 28
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(joe Q))} end}} = 28
+    {List.length {Search.base.all proc {$ Q} {Holds now poss(acquire(_ _))} Q=unit end}} = 28*3
+    {HoldsW now has_object(jon knife(1))} = no
+    {HoldsW now poss(acquire(jon knife(1)))} = yes
+    {HoldsW ex(step(action: acquire(jon knife(1)) obs:nil) now) has_object(jon knife(1))} = yes
+    {HoldsW ex(step(action: acquire(jon knife(1)) obs:nil) now) poss(acquire(joe knife(1)))} = no
+    {HoldsW now poss(chop(jon carrot(1)))} = no
+    {HoldsW ex(step(action: acquire(jon knife(1)) obs:nil) now) poss(chop(jon carrot(1)))} = no
+    {HoldsW ex(step(action:acquire(jon carrot(1)) obs:nil) ex(step(action: acquire(jon knife(1)) obs:nil) now)) poss(chop(jon carrot(1)))} = yes
     {HoldsW now true} = yes
     {HoldsW now false} = no
     {HoldsW now neg(true)} = no
-    {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) true} = yes
-    {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) false} = no
+    {HoldsW ex(step(action:acquire(joe lettuce(1)) obs:nil) now) true} = yes
+    {HoldsW ex(step(action:acquire(joe lettuce(1)) obs:nil) now) false} = no
 
-    {HoldsW now poss(acquire(harriet carrot(1)))} = yes
-    {HoldsW ex(step(action:acquire(thomas lettuce(1)) obs:nil) now) poss(acquire(harriet carrot(1)))} = yes
-    {HoldsW now poss(acquire(harriet tomato(1)))} = unknown
+    {HoldsW now poss(acquire(jon carrot(1)))} = yes
+    {HoldsW ex(step(action:acquire(joe lettuce(1)) obs:nil) now) poss(acquire(jon carrot(1)))} = yes
+    {HoldsW now poss(acquire(jon tomato(1)))} = unknown
     {HoldsW now used(tomato(1))} = unknown
     {HoldsW now neg(used(tomato(1)))} = unknown
     {HoldsW now used(tomato(2))} = unknown
@@ -371,9 +321,6 @@ define
     {HoldsW now all(obj used(obj))} = no
     {HoldsW now all(obj neg(used(obj)))} = unknown
     {HoldsW now all(obj impl(obj_is_type(obj tomato) neg(used(obj))))} = yes
-    {HoldsW ex(step(action:check_for(thomas tomato) obs:agtmap(thomas: check_for(thomas tomato)#no)) now) poss(acquire(harriet tomato(1)))} = unknown
-    {HoldsW ex(step(action:check_for(thomas tomato) obs:agtmap(thomas: check_for(thomas tomato)#yes)) now) poss(acquire(harriet tomato(1)))} = yes
-    
   end
 
   proc {ShowRun R}

@@ -45,6 +45,13 @@ define
                    )))
     [] ensureHas(Agt Obj) then
          Body = ifte(has_object(Agt Obj) nil acquire(Agt Obj))
+    [] tester then
+         Body = seq(check_for_eggs(joe)
+                    ifte( used(egg(1))
+                          acquire(joe tomato(1))
+                          acquire(joe carrot(1))
+                        )
+                   )
     end
   end
 
