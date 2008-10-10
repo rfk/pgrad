@@ -19,9 +19,6 @@ main.exe: main.ozf $(FUNCTORS)
 plan.dot: main.exe
 	./main.exe
 
-test: RunTests.exe $(FUNCTORS)
-	./RunTests.exe
-
 plan: plan.png
 	gthumb plan.png &
 

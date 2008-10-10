@@ -26,6 +26,8 @@ define
   if Plan \= nil then
     {JointExec.writeDotFile Plan.1
        {New Open.file init(name: 'plan.dot' flags:[write create truncate])}}
+    {JointExec.writeDotFileAgt Plan.1 jim
+       {New Open.file init(name: 'plan_t.dot' flags:[write create truncate])}}
   end
   {System.show Plan}
 

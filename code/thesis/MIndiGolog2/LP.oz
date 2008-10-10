@@ -33,8 +33,6 @@ export
   Unserialize
   CopyTerm
 
-  Test
-
 define
 
 
@@ -285,26 +283,6 @@ define
     end
   end
 
-
-  proc {Test}
-    V1 V2 Lst Acc
-  in
-    {TermEq a a true}
-    {TermEq a b false}
-    {TermEq t(V1 V2) t(V1 V2) true}
-    {TermEq t(V1 V2) t(V1 V1) false}
-    {TermEq t(V1 V2) t(b V2) false}
-    {TermEq V1 V1 true}
-    {TermEq V2 V1 false}
-    {ListAcc Lst Acc}
-    {IsFree Lst true}
-    {Acc 1}
-    Lst = 1|_
-    {Acc 2}
-    Lst = 1|2|_
-    {Acc nil}
-    Lst = [1 2]
-  end
 
   %  Make a copy of the input term, renaming free/kinded variables.
   %

@@ -50,7 +50,6 @@ export
 
   WriteDotFile
   WriteDotFileAgt
-  Test
 
 define
 
@@ -764,38 +763,6 @@ define
        end
     } = _
     {File write(vs: "}\n")}
-  end
-
-  %%%%%%%%%%
-  %%
-  %%  test procedure
-  %%
-
-  proc {Test}
-    J1 J2 J3 J4 J5 J6
-    E1 E2 E3
-  in
-    {InsertWithEnablers {Init} nil s(action: acquire(thomas lettuce(1))) nil J1 _}
-    {InsertWithEnablers J1 nil s(action: check_for(richard tomato)) nil J2 _}
-    {Preceeders J2 0} = nil
-    {Preceeders J2 1} = [0]
-    {Preceeders J2 4} = [2]
-    {Preceeds J2 2 4} = true
-    {Preceeds J2 2 3} = true
-    {Preceeds J2 1 3} = false
-    {InsertWithEnablers J2 nil s(action: acquire(richard egg(1))) [4] J3 _}
-    E1 = {LP.unDup {Preceeders J3 6}}
-    E1 = [2 4 5]
-    E2 = {LP.unDup {PreceedersAgt J3 thomas 6}}
-    E2 = nil
-    E3 = {LP.unDup {PreceedersAgt J3 richard 6}}
-    E3 = E1
-    {InsertWithEnablers J3 nil s(action: acquire(richard egg(1))) [3] J4 _}
-    {InsertWithEnablers J4 nil s(action: acquire(thomas carrot(1))) [8] J5 _}
-    {IntMap.get J5 11}.action = acquire(thomas carrot(1))
-    {InsertWithEnablers J5 nil s(action: acquire(richard carrot(2))) [1 10] J6 _}
-    {WriteDotFileAgt J6 thomas {New Open.file init(name: 'test.dot' flags:[write create truncate])}}
-    {IntMap.get J6 15}.action = acquire(richard carrot(2))
   end
 
 end

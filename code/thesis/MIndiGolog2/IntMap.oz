@@ -24,8 +24,6 @@ export
   AllMatching
   ForEach
   
-  Test
-
 define
 
   proc {Init M}
@@ -121,19 +119,6 @@ define
       else M2=MIn end
       {ForEachRec M2 I+1 Proc MOut}
     end
-  end
-
-  proc {Test}
-    M1 M2
-  in
-    M1 = {Init}
-    M1.next = 0
-    M1.entries = unit
-    M2 = {Append {Append M1 test1} test2}
-    M2.next = 2
-    {Get M2 0} = test1
-    {Get M2 1} = test2
-    {NextMatching M2 0 fun {$ _} true end} = 1
   end
 
 end
