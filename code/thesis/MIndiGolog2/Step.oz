@@ -6,7 +6,7 @@
 %      - action:  the action that was performed (or nil for empty steps)
 %      - test:    additional conditions that held before the action
 %      - thred:   the thread of execution the action was performed for
-%      - obs:     the observations made by each agent as a result of the action
+%      - out:     the observations made by each agent as a result of the action
 %      - seqn:    global order in which the step was generated (sequence num)
 %
 
@@ -32,10 +32,10 @@ define
       Test = {Value.condSelect Data test true}
       Act = {Value.condSelect Data action nil}
       Thred = {Value.condSelect Data thred nil}
-      Obs = {Value.condSelect Data obs nil}
+      Out = {Value.condSelect Data out nil}
       SeqN = {Value.condSelect Data seqn ~1}
     in
-      Step = step(test:Test action:Act thred:Thred obs:Obs seqn:SeqN)
+      Step = step(test:Test action:Act thred:Thred out:Out seqn:SeqN)
     end
 
     %
@@ -62,7 +62,7 @@ define
     end
 
     proc {Setobs SIn Agt Obs SOut}
-      SOut = {Record.adjoinAt SIn obs {Record.adjoinAt SIn.obs Agt Obs}}
+      SOut = {Record.adjoinAt SIn out {Record.adjoinAt SIn.out Agt Obs}}
     end
 
 end

@@ -15,7 +15,7 @@ import
 
   MIndiGolog
   JointExec
-  SitCalc
+  Domain
   LP at '../Utils/LP.ozf'
 
   System
@@ -61,7 +61,6 @@ define
                      {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
                   end
        {System.showInfo "...ok, transition made!"}
-       {SitCalc.showRun OutBs.1.2} {System.showInfo ""}
        {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
     else {System.showInfo "all done!"} JOut = JIn end
   end
@@ -166,7 +165,7 @@ define
   %     - S2.action doesn't falsify S1.test (TODO)
   %
   proc {MustPrec S1 S2 B}
-    if {Not {SitCalc.independentActs S1.action S2.action}} then B = true
+    if {Not {Domain.indep S1.action S2.action}} then B = true
     elseif {List.isPrefix S1.thred S2.thred} then B = true
     elseif {List.isPrefix S2.thred S1.thred} then B = true
     else B = false end

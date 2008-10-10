@@ -32,9 +32,9 @@ functor
 
 import
 
-  IntMap at '../Utils/IntMap.ozf'
-  LP at '../Utils/LP.ozf'
-  SitCalc
+  IntMap
+  LP
+  Sitcalc
  
   System
   Open
@@ -79,7 +79,7 @@ define
   end
 
   proc {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
-    Outs = {SitCalc.outcomes {BranchToRun JIn Ns} S}
+    Outs = {Sitcalc.outcomes {BranchToHist JIn Ns} S}
     AId|OIds = {IntMap.nextAvailLabels JIn S|Outs}
     J1 J2
   in
@@ -148,7 +148,7 @@ define
     Data = {IntMap.get J N}
   in
     if {Record.label Data} \= out then B = false
-    elseif Data.obs.{SitCalc.actor Act} == nil then B = false
+    elseif Data.obs.{Sitcalc.actor Act} == nil then B = false
     else B = true end
   end
 
@@ -156,12 +156,12 @@ define
   %  Convert a branch into the unique run of execution determined
   %  by order of insertion.  The run is generated lazily.
   %
-  fun lazy {BranchToRun J Ns}
+  fun lazy {BranchToHist J Ns}
     if Ns == nil then
       now
     else H T in
       {BranchPop J Ns H T}
-      ex({OutToStep J H} {BranchToRun J T})
+      ex({OutToStep J H} {BranchToHist J T})
     end
   end
 
@@ -305,7 +305,7 @@ define
   proc {FixInvariantActs JIn Acts JOut}
     case Acts of A|As then
       D = {IntMap.get JIn A} Matches in
-      Matches = {IndistinguishableSets JIn {SitCalc.actor D.action} D.enablers}
+      Matches = {IndistinguishableSets JIn {Sitcalc.actor D.action} D.enablers}
       {FixInvariantMatches JIn As D Matches JOut}
     else JIn = JOut end
   end
@@ -365,7 +365,7 @@ define
   in
     Data.action = S.action
     Data.enablers = {FindEnablingEvents J S.action Ns Preceeds}
-    Outs = {SitCalc.outcomes {BranchToRun J Ns} S}
+    Outs = {Sitcalc.outcomes {BranchToHist J Ns} S}
     {List.length Outs} = {List.length Data.outcomes}
     for O1 in Outs O2 in Data.outcomes do
       OData = {IntMap.get J O2} in
@@ -442,7 +442,7 @@ define
     PAs = {List.filter Ps fun {$ I}
             Data = {IntMap.get J I} in
             case Data of act(...) then
-              {SitCalc.actor Data.action} == Agt
+              {Sitcalc.actor Data.action} == Agt
             else
               Data.obs.Agt \= nil
             end
@@ -513,7 +513,7 @@ define
       if {Record.label Data} == out then
         Data.obs.Agt \= nil
       else
-        Data.action == finish orelse {SitCalc.actor Data.action} == Agt
+        Data.action == finish orelse {Sitcalc.actor Data.action} == Agt
       end
     end}
   end
@@ -754,7 +754,7 @@ define
        in
          case Data of act(...) then
            if Data.action == finish
-           orelse {SitCalc.actor Data.action} == Agt then
+           orelse {Sitcalc.actor Data.action} == Agt then
                {File write(vs: "n"#N#" [shape=ellipse,label=\""#{Value.toVirtualString Data.action ~1 ~1}#"\"];\n")}
                for E in Data.enablers do
                  {File write(vs: "n"#E#" -> n"#N#";\n")}

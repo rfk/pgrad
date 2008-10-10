@@ -12,8 +12,8 @@ functor
 import
 
   LP at '../Utils/LP.ozf'
-  Program at '../Program.ozf'
-  SitCalc
+  Procedures at '../Program.ozf'
+  Sitcalc
   Step
 
   Search
@@ -36,89 +36,86 @@ define
   %  run of execution is R, can make a single step of execution Sp
   %  leaving program Dp remaining to be executed.
   %
-  proc {Trans D R Dp Sp}
+  proc {Trans D H Dp Sp}
     case D of 
         nil then fail
     []  test(Cond) then
-          {SitCalc.holds R Cond}
+          {Sitcalc.holds Cond H}
           Dp = nil
           Sp = {Step.init step(test:Cond)}
     []  seq(D1 D2) then
-          choice {Final D1 R}
-              {Trans D2 R Dp Sp}
+          choice {Final D1 H}
+              {Trans D2 H Dp Sp}
           []  D1p in Dp = seq(D1p D2)
-              {Trans D1 R D1p Sp}
+              {Trans D1 H D1p Sp}
           end
-    []  either(D1 D2) then
-          choice {Trans D1 R Dp Sp}
-          []  {Trans D2 R Dp Sp}
+    []  choose(D1 D2) then
+          choice {Trans D1 H Dp Sp}
+          []  {Trans D2 H Dp Sp}
           end
     []  pick(V D1) then
           local D2 in
             {LP.subInTerm V _ D1 D2}
-            {Trans D2 R Dp Sp}
+            {Trans D2 H Dp Sp}
           end
     []  star(D1) then
           local D2 in 
-            {Trans D R D2 Sp}
+            {Trans D H D2 Sp}
             Dp = seq(D2 star(D1))
           end
     []  ifte(Cond D1 D2) then Sp2 in
-          {System.show holds(Cond R)}
           choice
-              {SitCalc.holds R Cond}
-              {System.show holds}
-              {Trans D1 R Dp Sp2}
+              {Sitcalc.holds Cond H}
+              {Trans D1 H Dp Sp2}
               {Step.addtest Sp2 Cond Sp}
-          []  {SitCalc.holds R neg(Cond)}
-              {System.show notholds}
-              {Trans D2 R Dp Sp2}
+          []  {Sitcalc.holds neg(Cond) H}
+              {Trans D2 H Dp Sp2}
               {Step.addtest Sp2 neg(Cond) Sp}
           end
     []  wloop(Cond D1) then Sp2 in
           local D2 in
-            {SitCalc.holds R Cond}
-            {Trans D1 R D2 Sp2}
+            {Sitcalc.holds Cond H}
+            {Trans D1 H D2 Sp2}
             {Step.addtest Sp2 Cond Sp}
             Dp = seq(D2 wloop(Cond D1))
           end
     []  conc(D1 D2) then
           choice D1p S1p in
-              {Trans D1 R D1p S1p}
+              {Trans D1 H D1p S1p}
               Dp = conc(D1p D2)
-              Sp = {Step.addthred S1p 1}
+              Sp = {Step.addthred S1p l}
           []  D2p S2p in
-              {Trans D2 R D2p S2p}
+              {Trans D2 H D2p S2p}
               Dp = conc(D1 D2p)
-              Sp = {Step.addthred S2p 2}
+              Sp = {Step.addthred S2p r}
           end
     []  pconc(D1 D2) then Res in
           % Use LP.ifNot to avoid re-computation on D1
           % TODO: ensure that D1 contains no free variables
           {LP.ifNot proc {$ Res1} D1p S1p in
-                      {Trans D1 R D1p S1p}
+                      {Trans D1 H D1p S1p}
                       Res1 = pconc(D1p D2)#S1p
                     end
                     proc {$ Res2} D2p S2p in
-                      {Trans D2 R D2p S2p}
+                      {Trans D2 H D2p S2p}
                       Res2 = pconc(D1 D2p)#S2p
                     end
                     Res}
           Dp#Sp = Res
     []  cstar(D1) then
           local D2 in
-            {Trans D1 R D2 Sp}
+            {Trans D1 H D2 Sp}
             Dp = conc(D2 cstar(D1))
           end
     []  pcall(D1) then
           local Body in
-            {Program.procDef D1 Body}
-            {Trans Body R Dp Sp}
+            {Procedures.procdef D1 Body}
+            {Trans Body H Dp Sp}
           end
     else local Act in 
           Act = D
           Dp = nil
-          {SitCalc.holds R poss(Act)}
+          {Sitcalc.legal [Act] H}
           Sp = {Step.init step(action:Act)}
          end
     end
@@ -129,23 +126,23 @@ define
   %  This predicate succeeds when the program D can legally terminate
   %  when the current run of execution is R.
   %
-  proc {Final D R}
+  proc {Final D H}
    case D of
        nil then skip
-   []  seq(D1 D2) then {Final D1 R} {Final D2 R}
-   []  either(D1 D2) then choice {Final D1 R} [] {Final D2 R} end
-   []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 R} end
+   []  seq(D1 D2) then {Final D1 H} {Final D2 H}
+   []  either(D1 D2) then choice {Final D1 H} [] {Final D2 H} end
+   []  pick(V D1) then local D2 in {LP.subInTerm V _ D1 D2} {Final D2 H} end
    []  star(_) then skip
    []  ifte(Cond D1 D2) then
-               choice  {SitCalc.holds R Cond} {Final D1 R}
-               []   {SitCalc.holds R neg(Cond)} {Final D2 R}
+               choice  {Sitcalc.holds Cond H} {Final D1 H}
+               []   {Sitcalc.holds neg(Cond) H} {Final D2 H}
                end
-   []  wloop(Cond D1) then choice {SitCalc.holds R neg(Cond)} 
-                           [] {Final D1 R} end
-   []  conc(D1 D2) then {Final D1 R} {Final D2 R}
-   []  pconc(D1 D2) then {Final D1 R} {Final D2 R}
+   []  wloop(Cond D1) then choice {Sitcalc.holds neg(Cond) H} 
+                           [] {Final D1 H} end
+   []  conc(D1 D2) then {Final D1 H} {Final D2 H}
+   []  pconc(D1 D2) then {Final D1 H} {Final D2 H}
    []  cstar(_) then skip
-   []  pcall(D1) then local Body in {Program.procDef D1 Body} {Final Body R} end
+   []  pcall(D1) then local Body in {Procedures.procdef D1 Body} {Final Body H} end
    else fail
    end
   end
@@ -153,8 +150,8 @@ define
   %
   %  Utility function for testing whether a program is final.
   %
-  proc {IsFinal D R B}
-    Soln = {Search.base.one proc {$ Q} {Final D R} Q=unit end}
+  proc {IsFinal D H B}
+    Soln = {Search.base.one proc {$ Q} {Final D H} Q=unit end}
   in
     B = (Soln \= nil)
   end
@@ -173,17 +170,17 @@ define
   %  the world or the ability to perform transitions in other threads,
   %  different orderings of them are redundant.
   %
-  proc {Trans1 D R Dp Rp S}
+  proc {Trans1 D H Dp Hp S}
     Dr Sr
   in
-    {Trans D R Dr Sr}
+    {Trans D H Dr Sr}
     if Sr.action == nil then
-      if R \= now andthen R.1.action == nil then
+      if H \= now andthen H.1.action == nil then
         {ThreadsOrdered R.1.thred Sr.thred}
       end
-      {Trans1 Dr ex(Sr R) Dp Rp S}
+      {Trans1 Dr ex(Sr H) Dp Hp S}
     else
-      Dp=Dr Rp=R S=Sr
+      Dp=Dr Hp=H S=Sr
     end
   end
 

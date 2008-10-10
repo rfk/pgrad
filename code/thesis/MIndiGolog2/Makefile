@@ -1,14 +1,5 @@
 
-
-FUNCTORS = Agent.ozf Domain.ozf Program.ozf \
-           Utils/ListDict.ozf Utils/LP.ozf Utils/Memo.ozf Utils/MList.ozf \
-           Utils/MSet.ozf Utils/Set.ozf Utils/OpenMap.ozf Utils/Service.ozf\
-           Utils/IntMap.ozf Utils/Debug.ozf \
-           FOF/BDD.ozf FOF/FOF.ozf FOF/TermSet.ozf FOF/QuantSet.ozf \
-           FOF/EQSet.ozf FOF/Binding.ozf FOF/VarMap.ozf \
-           SitCalc/SitCalc.ozf SitCalc/DomainBuilder.ozf SitCalc/JointExec.ozf\
-           SitCalc/MIndiGolog.ozf SitCalc/Step.ozf SitCalc/Time.ozf\
-           SitCalc/Planner.ozf
+FUNCTORS = Domain.ozf Procedures.ozf LP.ozf Control.ozf IntMap.ozf JointExec.ozf MIndiGolog.ozf Planner.ozf Sitcalc.ozf Step.ozf
 
 %.ozf: %.oz
 	ozc -p -c $< -o $@
@@ -35,11 +26,8 @@ plan: plan.png
 	gthumb plan.png &
 
 clean:
-	rm -rf *.ozf FOF/*.ozf Utils/*.ozf SitCalc/*.ozf
+	rm -rf *.ozf
 
 clobber: clean
 	rm -rf *.exe *.dot *.png
-
-todo:
-	grep 'TODO' *.* FOF/*.* Utils/*.* SitCalc/*.*
 
