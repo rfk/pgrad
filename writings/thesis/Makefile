@@ -37,7 +37,7 @@ CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf ./upload-thesis/
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex observations.tex jointexec.tex persistence.tex knowledge.tex cknowledge.tex conclusion.tex 
 APPENDICES = implementation.tex proofs.tex
 AUXFILES = preamble.tex mathmacros.tex bibcmds.tex
-LISTINGS = listings/jointexec/example_je.pdf listings/jointexec/example_pes.pdf listings/jointexec/unfeas_je.pdf listings/jointexec/unfeas_je2.pdf listings/jointexec/salad2_plan.pdf
+LISTINGS = listings/jointexec/example_je.pdf listings/jointexec/example_pes.pdf listings/jointexec/unfeas_je.pdf listings/jointexec/unfeas_je2.pdf listings/jointexec/salad2_plan.pdf listings/jointexec/salad1_plan.pdf
 
 ## Additional variables
 
