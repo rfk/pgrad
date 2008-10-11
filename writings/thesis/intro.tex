@@ -77,8 +77,8 @@ techniques for \emph{asynchronous} domains -- domains in which the
 state of the world can change without updating the local perspective
 of each agent. We begin by explicitly representing this local perspective:
 whenever an action occurs, each agent makes a corresponding set of
-\emph{observations} that are local to that agent. We allow the set
-of observations to be empty, formalising the case where asynchronicity
+\emph{observations} that are local to that agent. By allowing the
+set of observations to be empty, we formalise the case where asynchronicity
 means some actions are completely hidden from some agents.
 
 On top of this seemingly simple extension, we construct a planning
@@ -109,17 +109,19 @@ and a programming language flexible enough to specify the major steps
 in each recipe while leaving the precise details of execution for
 the agents to plan amongst themselves. Moreover, she wants to specify
 the tasks to be performed as a single shared program, and have the
-agents automatically distribute the work amongst themselves.\\
+agents automatically distribute the work amongst themselves in such
+a way that they can operate independently where possible and synchronise
+their actions only when necessary.\\
 
 
 The situation calculus offers a compelling approach for this example
 domain: each recipe can be represented as a Golog program, and the
-team of agents can cooperate to plan and perform the concurrent execution
+agents can cooperate to plan and perform the concurrent execution
 of these shared programs. However, existing Golog implementations
 generate raw situation terms as the output of their planning process.
-These are linear, fully-ordered sequences of the actions to be performed,
-and require constant synchronisation if the agents are to execute
-the plan cooperatively.
+These are fully-ordered sequences of the actions to be performed,
+requiring constant synchronisation if the agents are to execute them
+cooperatively.
 
 In synchronous domains this is not a problem, as the agents will always
 know how many steps of execution have already been performed, and
@@ -212,12 +214,11 @@ Specifically, we provide:
 \begin{itemize}
 \item A partially-ordered representation of the actions to be performed
 by a team of agents, that ensures synchronisation is always possible
-based on each agent's local view. Our MIndiGolog interpreter is extended
-to generate these structures instead of raw situation terms. 
+based on the local information available to each agent. 
 \item A new procedure for effective inductive reasoning about a restricted
 form of query, using a meta-level fixpoint calculation on top of the
 standard regression operator. This allows the second-order aspects
-of our axiomatisation to be {}``factored out'' of the reasoning
+of dealing with hidden actions to be {}``factored out'' of the reasoning
 process when formulating regression rules. 
 \item A new formalism for individual-level knowledge based explicitly on
 the agent's local view, with accompanying regression rules that use
@@ -232,15 +233,11 @@ calculus when reasoning about asynchronous domains, but they are also
 firmly grounded in existing situation calculus theory and practice.
 The new concepts are axiomatised in a way that is compatible with
 standard basic action theories, as well as with common extensions
-such as concurrent actions and continuous time. Our MIndiGolog execution
-planner, although written using a different programming language and
-supporting much richer domains, is structurally similar to existing
-Golog systems.
-
-We are therefore confident that our results can be integrated smoothly
-with existing theories and systems based on the situation calculus,
-providing a solid foundation for extending their reach into both reasoning
-about, and planning in, asynchronous multi-agent domains. 
+such as concurrent actions and continuous time. We are therefore confident
+that our results can be integrated smoothly with existing theories
+and systems based on the situation calculus, providing a solid foundation
+for extending their reach into both reasoning about, and planning
+in, asynchronous multi-agent domains.
 
 
 \section{Scope}
@@ -253,23 +250,24 @@ any confusion over the details of our terminology and contributions.
 \subsection{Asynchronicity}
 
 The term {}``asynchronous domain'' has come to mean slightly different
-things in different research fields, and is potentially quite confusing.
-Precisely what aspects of the domain are asynchronous? Is it a property
-of the environment, the agents themselves, or their communication
-mechanisms? Two common definitions of asynchronous domains are those
-having unbounded message delivery times \citep{fischer85distributed_consensus},
-and those having delayed message delivery and no global clock \citep{halpern90knowledge_distrib}.
+things in different research fields, so our use of the term needs
+to be carefully delineated. Several common definitions frame asynchronicity
+as a property specific to inter-agent communication. For example,
+\citet{fischer85distributed_consensus} describe asyncrhonous domains
+as those having unbounded message delivery times, while \citet{halpern90knowledge_distrib}
+use the term to mean domains with delayed message delivery and no
+global clock.
 
 The definition used in this thesis is more primitive than these, and
-corresponds to the account given in \citep{vanBentham06tree_of_knowledge}:
+corresponds to the account given by \citet{vanBentham06tree_of_knowledge}:
 a domain is \emph{synchronous} if at any time, all agents know precisely
 how many actions have been performed. The internal state of each agent
 is thus updated in lock-step with the global state of the world. By
 contrast, in asynchronous domains agents must allow for potentially
 arbitrarily-many hidden actions which may or may not have occurred.
 
-Where a more specific definition of asynchronicity is used, as in
-\citep{fischer85distributed_consensus,halpern90knowledge_distrib},
+Where a communication-specific definition of asynchronicity is used,
+as in \citep{fischer85distributed_consensus,halpern90knowledge_distrib},
 the potential for such hidden actions is implicitly assumed. The situation
 calculus typically assumes the exact opposite, limiting itself to
 strictly synchronous domains. We therefore argue that modelling richer
@@ -277,8 +275,8 @@ notions of asynchronous communication in the situation calculus first
 requires a robust account of the kind of foundational asynchronicity
 treated in this thesis. While we do not specifically investigate asynchronous
 communication in the style of \citep{fischer85distributed_consensus,halpern90knowledge_distrib},
-Chapter \ref{ch:observations} does briefly discuss how it can be
-modelled within our framework.
+Chapter \ref{ch:observations} shows that it has quite a natural formulation
+in our framework.
 
 
 \subsection{Common Knowledge}
@@ -295,8 +293,9 @@ The results of \citep{halpern90knowledge_distrib} apply specifically
 to obtaining common knowledge via asynchronous \emph{communication}.
 They show that what is required for common knowledge is not synchronicity,
 per se, but \emph{simultaneity} -- the co-presence of the agents at
-the occurrence of a common event. Asynchronous communication is not
-a common event, and hence it cannot generate common knowledge.
+the occurrence of a commonly-observed event. Asynchronous communication
+is not a commonly-observed event, and hence it cannot generate common
+knowledge.
 
 Our approach, in essence, offers an explicit axiomatisation of this
 notion of simultaneity. By reasoning about their observations and
@@ -327,11 +326,11 @@ which are based on modal logic and from which we draw some inspiration
 for our work in later chapters.
 
 While there have been many attempts to combine the various action
-formalisms into a unifying theory of action, there is yet to emerge
-a clear standard in this regard. In the meantime, we find the notation
-and meta-theory of the situation calculus particularly suitable for
-expressing our main ideas, and find the Golog programming language
-to be a particularly powerful and flexible approach to specifying
+formalisms into a unifying theory of action, including \citep{belleghem95combine_sitcalc_evtcalc,kowalski97reconcile_sitcalc_evtcalc,thielscher06reconcile_sc_fc,thielscher07unifying_action_calculus},
+there is yet to emerge a clear standard in this regard. In the meantime,
+we find the notation and meta-theory of the situation calculus particularly
+suitable for expressing our main ideas, and find the Golog programming
+language to be a particularly powerful and flexible approach to specifying
 agent behaviour and programming shared tasks.
 
 It is our hope that the strong underlying similarities between the
