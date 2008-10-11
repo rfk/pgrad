@@ -210,4 +210,6 @@ warnings: thesis.dvi
 
 thesis.dvi: thesis.tex $(AUXFILES) $(CHAPTERS) $(APPENDICES) ../../library/references.bib $(LISTINGS)
 
+listings: $(LISTINGS)
+
 
