@@ -802,8 +802,6 @@ our implementation that will be described in Section \ref{sec:JointExec:Implemen
 
 %
 \begin{algorithm}
- 
-
 \caption{Offline Execution Algorithm using Joint Executions}
 
 
@@ -822,7 +820,7 @@ our implementation that will be described in Section \ref{sec:JointExec:Implemen
 
 \STATE Find an action $a$ such that\[
 \Dt\cup\Dt_{mgolog}\cup\Dt_{je}\models\exists i:\, EnabledByView(ex,i,agt,v)\wedge lbl(ex,i)=a\]
- 
+
 
 \IF {there is such an action}
 
@@ -943,48 +941,111 @@ TODO: theorem to establish this
 
 \section{Implementation\label{sec:JointExec:Implementation}}
 
-Our implementation of a ConGolog execution planner utilises the Mozart
-programming system, which implements the Oz language \citep{vanroy99mozart}
-rather than the traditional use of Prolog. As we shall see, Mozart's
-strong support for distributed logic programming allows the team of
-agents to share the planning workload with almost no additional code.
+We have modified our MIndiGolog execution planner from Chapter \ref{ch:mindigolog}
+to perform offline execution planning and generate a joint execution
+rather than a raw situation term. To make things more concrete, Figure
+\ref{fig:plan-output} shows the output of our system when run on
+the $MakeSalad$ that was used in that chapter (Figure \ref{fig:MIndiGolog:MakeSalad2}).
+Since all actions in this execution have a single outcome, the outcome
+events have been suppressed for brevity.
 
-To make things more concrete, figure \ref{fig:plan-output} shows
-the output of our system when run on the $MakeSalad$ example of figure
-\ref{fig:makesalad-program}. Since all actions in this program have
-a single outcome, the outcome events have been suppressed for brevity.
+%
+\begin{figure}
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\textsf{\textbf{\tiny \includegraphics[scale=0.25]{listings/jointexec/salad1_plan}}}{\tiny {} }%
+\end{minipage}}
 
-In this domain there are three agents, but only two knives are available.
-The agents must therefore synchronise their use of these resources.
-Actions are taken to be independent if they deal with different objects.
-As seen in figure \ref{fig:plan-output}, the use of a partial order
-structure facilitates parallelism between the agents, with each processing
-a different ingredient and only synchronising on the availability
-of the required resources. There is no need for processing actions,
-such as $mix$ and $chop$, to be publicly observable. This execution
-is maximally concurrent given the constraints of the domain, and is
-clearly a significant improvement over totally ordered sequences of
-actions as produced by existing systems.
+\caption{Joint Execution for MakeSalad}
 
-In the following subsections, we briefly highlight some key aspects
-of our implementation.
+
+\label{fig:not-knows-what} 
+\end{figure}
+
+
+In the cooking agents domain, actions are independent if they deal
+with different objects. As seen in figure \ref{fig:plan-output},
+the use of a partial order structure facilitates parallelism between
+the agents, with each processing a different ingredient and only synchronising
+on the availability of the required resources. There is no need for
+processing actions, such as $mix$ and $chop$, to be publicly observable.
+This execution is maximally concurrent given the constraints of the
+domain, and is clearly a significant improvement over totally ordered
+sequences of actions as produced by existing systems.
+
+To demonstrate the ability of joint executions to handle branching,
+consider the program {}``MakeSalad2'' shown in Figure \ref{fig:MIndiGolog:MakeSalad2}.
+Here the agents are unsure whether there are any eggs available. If
+there are eggs then they should make an egg salad, otherwise they
+should make the standard vegetable salad. Note that since lettuce
+appears in both dishes, they are permitted to begin processing theat
+ingredient before checking for the eggs.
+
+%
+\begin{figure}
+\begin{centering}
+\framebox{%
+\parbox[t][1\totalheight]{0.85\columnwidth}{%
+\begin{gather*}
+\mathbf{proc}\, MakeSalad2(dest)\\
+\left[\pi(agt,ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\left.ChopEggOrVeg(dest)\right]\,;\\
+\pi(agt,\left[acquire(agt,dest)\,;\,\right.\\
+beginTask(agt,mix(dest,1))\,;\\
+endTask(agt,mix(dest,1))\,;\\
+\left.\, release(agt,dest)\right])\,\,\mathbf{end}\\
+\\\\\mathbf{proc}\, ChopEggOrVeg(dest)\\
+\pi(agt,\, checkFor(agt,Egg))\,;\\
+\mathbf{if}\,\,\exists e:\, IsType(e,Egg)\wedge\neg Used(e)\\
+\mathbf{then}\\
+\left[\pi(agt,ChopTypeInto(agt,Egg,dest))\,||\right.\\
+\left.\pi(agt,ChopTypeInto(agt,Cheese,dest))\right]\\
+\mathbf{else}\\
+\left[\pi(agt,ChopTypeInto(agt,Lettuce,dest))\,||\right.\\
+\left.\pi(agt,ChopTypeInto(agt,Tomato,dest))\right]\,;\\
+\mathbf{endif}\,\,\mathbf{end}\end{gather*}
+ %
+}} 
+\par\end{centering}
+
+\caption{A Golog program for making Egg or Veg Salad\label{fig:MIndiGolog:MakeSalad2}}
+
+\end{figure}
+
+
+The joint execution found by our implementation for $MakeSalad2$
+is shown in Figure \ref{fig:JE:MakeSalad2-Exec}. Here we see that
+$Joe$ can indeed proceed with preparing the lettuce without knowing
+whether eggs are available. $Jim$ is assigned to check for the eggs,
+and acquires either an egg or a tomato depending on the outcome of
+his sensing action. Importantly, $Jon$ has to wait until $Jim$ acquires
+his ingredient before he knows whether to process the cheese, or the
+carrot. This highlights the knowing-what restriction discussed in
+Section \ref{sec:JointExec:BG:Feasibility}.
+
+%
+\begin{figure}
+\framebox{%
+\begin{minipage}[t][1\totalheight]{1\columnwidth}%
+\textsf{\textbf{\tiny \includegraphics[scale=0.25]{listings/jointexec/salad2_plan}}}{\tiny {} }%
+\end{minipage}}
+
+\caption{Joint Execution for the $MakeSalad2$ program}
+
+
+\label{fig:JE:MakeSalad2-Exec} 
+\end{figure}
+
+
+In the following sections, we briefly highlight some key aspects of
+our implementation. More details are available in Appendix \ref{ch:code}.
 
 
 \subsection{Program Steps}
 
-While the ability to determine whether actions are independent is
-necessary in constructing partially-ordered executions of a ConGolog
-program, it is not sufficient. Actions might have an order imposed
-on them directly by the program (for example by the sequence construct
-$a_{1};a_{2}$). The program may require that some additional conditions
-are true immediately prior to executing an action (for example to
-satisfy a test construct $\phi?$), which could be falsified by an
-otherwise independent action.
-
-To ensure that the dependencies between actions reflect the needs
-of the program being executed, we augment our implementation of the
-$Trans$ predicate to keep additional information about what transitions
-were made. A \emph{step} object has the following attributes:
+The $Trans$ and $Final$ predicates of MIndiGolog are modified to
+generate \emph{steps} instead of constructing a new situation term.
+These are objects with the following attributes.
 
 \begin{itemize}
 \item action: the action performed in that step, or $nil$ if it is an internal
@@ -995,39 +1056,16 @@ performing the step
 thread in which the step is performed 
 \item outcome: the outcome of performing the action. 
 \end{itemize}
-%
-\begin{figure}
-\framebox{%
-\begin{minipage}[t][1\totalheight]{1\columnwidth}%
-%\textsf{\textbf{\tiny \include{listings/plan}}}%
-%
-\end{minipage}}
+These steps contain enough information for the planner to determine
+whether two actions can be performed independently. A sequence of
+steps corresponds to a history in the obvious way.
 
-\caption{ Joint execution for $MakeSalad(bowl(1))$, showing significant concurrency
-between agents }
-
-
-\label{fig:plan-output} 
-\end{figure}
-
-
-We call a sequence of such steps a \emph{run}, which can be converted
-to a history by taking just the action and outcome attributes. The
-procedure implementing $Trans$ takes a program and a run as input,
+The procedure implementing $Trans$ takes a program and a run as input,
 returning a new program and new step of execution. As an example consider
 the code in figure \ref{fig:trans-code}, implementing the test operator
 and the concurrency operator from equation \ref{eqn:trans_conc_orig}.
 
-%
-\begin{figure}
 \programinput{listings/jointexec/ConGolog.oz}
-
-\caption{Partial code for $Trans$ predicate}
-
-
-\label{fig:trans-code} 
-\end{figure}
-
 
 Note that whenever the procedure descends through the left side of
 a concurrency operator it pushes an 'l' onto the step's {}``thread''
@@ -1053,16 +1091,7 @@ under construction, $D$ is the program remaining to be executed on
 that branch, and $R$ is the run of program steps performed on that
 branch so far.
 
-%
-\begin{figure}
 \programinput{listings/jointexec/Planner.oz}
-
-\caption{ Code for main planning loop }
-
-
-\label{fig:planning-code} 
-\end{figure}
-
 
 Each iteration of the planning loop proceeds as follows. The procedure
 $FindOpenBranch$ updates each branch to account for events that were
@@ -1083,20 +1112,6 @@ The procedure $LP.yieldOrdered$ yields the solutions of the given
 search context, sorted using the procedure $CompareSteps$. This procedure
 (not shown) gives preference to steps that can be performed concurrently
 with as many existing actions as possible.
-
-%
-\begin{figure}
-\framebox{%
-\begin{minipage}[t][1\totalheight]{1\columnwidth}%
-\textsf{\textbf{\tiny \includegraphics[scale=0.25]{listings/jointexec/salad2_plan}}}{\tiny {} }%
-\end{minipage}}
-
-\caption{A joint execution that violates knows-what}
-
-
-\label{fig:not-knows-what} 
-\end{figure}
-
 
 
 \section{Discussion\label{sec:JointExec:Discussion}}
@@ -1192,73 +1207,4 @@ an interpreter for multi-agent ConGolog programs that produces joint
 executions as its output. In the next section, we highlight the key
 aspects of our implementation and give an example of the output it
 produces.
-
-Capturing \emph{online} execution in an synchronous domain is less
-straightforward, as it is difficult to single-step an execution in
-a partially-observable setting. Consider, for example, a program whose
-next step is a sensing action to be performed by some agent. Before
-the action is performed, the joint execution will contain one branch
-for each possible sensing outcome. Once the action is performed, that
-particular agent will know which leaf corresponds to the actual world,
-and can avoid trying to plan a next step for any of the other leaves.
-
-However, its team-mates will \emph{not} know the outcome of the sensing
-action, so from their perspective any of the potential leaves might
-be the real state of the world. They are therefore forced to plan
-a next step in each one of those leaves. But they must also account
-for what they think that the team-mate things..etc etc TODO find a
-way to explain this!
-
-The difficulty here is due to the well-known correspondence between
-coordination and common knowledge - the agents must develop a plan
-extending every leaf of the joint execution unless it is common knowledge
-that that leaf is not legal. Reasoning about common knowledge is very
-difficult and we want to avoid it if we can.
-
-
-\section{Deadwood}
-
-There are two principle operations that can be used to generate new
-joint execution structures: \emph{inserting} a new event into a joint
-execution, and \emph{performing} an event from the joint execution.
-We define the predicates $Insert$ and $Perform$ to axiomatise these.
-First, we have a function to get the id of the next event:\[
-NextEvent(ex)=max(\{0\}\cup events(ex))+1\]
-
-
-When inserting into a joint execution, we must specify the predecessor
-joint execution, the label for the new event, and its set of enablers.
-The set of alternatives for the new event is determined automatically
-based on the required structure of the joint execution -- action events
-have no alternatives, while outcome events must have as their alternatives
-every other outcome event enabled by the same action.
-
-The following predicate specifies the conditions under which such
-an insertion forms a valid joint execution, according to the intuitions
-discussed above:\begin{gather*}
-Insert(ex,lb,ns,ex')\equiv\exists i:\, NextEvent(ex)=i\\
-\wedge\, events(ex')=events(ex)\cup\{i\}\\
-\wedge\, lblmap(ex')=lblmap(ex)\cup\{i\#lb\}\\
-\wedge\, ensmap(ex')=ensmap(ex)\cup\{i\#ns\}\\
-\wedge\left(InsertOut(ex,i,lb,ns,ex')\vee InsertAct(ex,i,lb,ns,ex')\right)\end{gather*}
-
-
-Note that $Insert$ is not a function, since an invalid set of enablers
-could cause it to be false. For outcome events, the enablers must
-be a single action event, and we update the alternatives for all other
-outcome events associated with that action:\begin{gather*}
-InsertOut(ex,i,lb,ns,ex')\equiv\,\,\,\,\,\,\exists j,newAlts:\,\, IsOutcome(lb)\\
-\wedge\, ns=\{j\}\wedge IsAction(lbl(ex,j))\\
-\wedge\left(\forall k:\, k\in newAlts\equiv ens(ex',k,\{j\})\right)\\
-\wedge\forall k:\,\left[k\not\in events(ex')\,\rightarrow\,\neg\exists as:\, alts(ex',k,as)\right]\\
-\wedge\left[ens(ex',k)=\{j\}\,\rightarrow\, alts(ex',k,newAlts)\right]\\
-\wedge\left[ens(ex',k)\neq\{j\}\,\rightarrow\, alts(ex',k)=alts(ex,k)\right]\end{gather*}
-
-
-For action events, the enablers must be a set of existing outcome
-events and the set of alternatives must be empty:\begin{gather*}
-InsertAct(ex,i,lb,ns,ex')\equiv\,\,\,\,\,\, IsAction(lb)\\
-\wedge\forall j\in ns:\, IsOutcome(lbl(ex,j))\\
-\wedge altsmap(ex')=altsmap(ex)\cup\{i\#\{\}\}\end{gather*}
-
 
