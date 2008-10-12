@@ -58,41 +58,43 @@ Section \ref{sec:CKnowledge:Synchronous} develops a \emph{synchronous}
 account of complex epistemic modalities. The macro $\PKnowsZ(\pi,\phi,s)$
 expresses knowledge using an epistemic path $\pi$ under the assumption
 that there have been no hidden actions. We develop a regression rule
-by the synchronous case by encoding the effects of an action inside
+for the synchronous case by encoding the effects of an action inside
 the epistemic path as well as the enclosed formula, transforming $\PKnowsZ(\pi,\phi,do(c,s))$
 into an equivalent expression $\forall c':\,\PKnowsZ(\Trn(\pi,c,c'),\Reg(\phi,c'),s)$.
 
 Section \ref{sec:CKnowledge:Asynchronous} introduces hidden actions
-by explicitly representing them with the empty action set. We simulate
-agents reasoning about arbitrarily-long sequences of hidden actions
-by inserting arbitrarily many empty action setts between each real
-action in a situation term. A regression rule is formulated for this
-infinitary construction using the persistence condition meta-operator
-in a similar way to the previous chapter. Section \ref{sec:CKnowledge:Correctness}
-then demonstrates the correctness of this construction by showing
-that in the case of a single agent, it precisely matches the definition
-of individual knowledge presented in Chapter \ref{ch:knowledge}.
+by using the empty action set to explicitly represent {}``nothing
+happens''.. We simulate agents reasoning about arbitrarily-long sequences
+of hidden actions by inserting arbitrarily many empty action sets
+between each real action in a situation term. A regression rule is
+formulated for this infinitary construction using the persistence
+condition meta-operator in a similar way to the previous chapter.
+Section \ref{sec:CKnowledge:Correctness} then demonstrates the correctness
+of this construction by showing that in the case of a single agent,
+it precisely matches the definition of individual knowledge presented
+in Chapter \ref{ch:knowledge}.
 
 The effectiveness of our new technique is demonstrated in Section
 \ref{sec:CKnowledge:Example} by reasoning about common knowledge
 in an asynchronous, partially observable domain, a first for the situation
 calculus. Section \ref{sec:CKnowledge:Comparison} compares the resulting
 formalism with LCC, highlighting both similarities and differences,
-while. Section \ref{sec:CKnowledge:Reasoning} discusses the implications
+while Section \ref{sec:CKnowledge:Reasoning} discusses the implications
 of our more powerful epistemic language for answering the regressed
 knowledge query. Finally, Section \ref{sec:CKnowledge:Encoding-KDoZ}
 presents some additional details of the macro $\KDoZ$ and Section
 \ref{sec:CKnowledge:Discussion} concludes with some general discussion.
 
-The end result is a powerful account of complex epistemic modalities
-constructed almost entirely in the meta-level reasoning machinery
-of the situation calculus, and a regression-based effective reasoning
-procedure for common knowledge.
+The end result is a powerful account of complex group-level epistemic
+modalities constructed almost entirely in the meta-level reasoning
+machinery of the situation calculus, and a regression-based effective
+reasoning procedure capable of reasoning about common knowledge in
+asynchronous domains.
 
 
 \section{Background\label{sec:CKnowledge:Background}}
 
-Let us begin by recalling the definitions of $\EKnows$ and $\CKnows$
+Let us begin by recalling the definitions of group-level modalities
 from Section \ref{sec:Background:Epistemic}:\begin{gather*}
 \mathbf{EKnows}(G,\phi,s)\,\isdef\,\bigwedge_{agt\in G}\,\mathbf{Knows}(agt,\phi,s)\\
 \mathbf{EKnows}^{1}(G,\phi,s)\,\isdef\,\mathbf{EKnows}(G,\phi,s)\\
@@ -132,8 +134,7 @@ epistemic logic \citep{vanbentham07ml_sitcalc}, we can be confident
 that this expressivity limitation also holds in the situation calculus.
 Rather than attempting to formally establish it, we present a short
 summary of the intuitions behind the result and why it should be expected
-to hold in the situation calculus, then proceed directly with a technique
-to circumvent it.
+to hold, then proceed directly with a technique to circumvent it.
 
 Consider again the standard successor state axiom for the $K$ fluent,
 which has the simplified general form:\[
@@ -235,7 +236,7 @@ to the situation calculus.
 As we shall see throughout the development, the extra expressiveness
 of the situation calculus also provides some advantages for our formalism.
 We do not need to manipulate explicit update models, since we have
-a complete axiomatisation of the agent's epistemic uncertainly. The
+a complete axiomatisation of the agent's epistemic uncertainty. The
 definition of our regression rules will also turn out to be much simpler
 than the analogous rules in \citep{vanBenthem06lcc}.
 
@@ -266,12 +267,12 @@ actually have occurred.
 
 While we hope this definition is intuitively plausible, we will not
 formally relate it to the definitions given in the previous chapter
-until Section \ref{sec:CKnowledge:Correctness}. Beginning with
-the assumption of synchronicity allows us to focus first on increasing
+until Section \ref{sec:CKnowledge:Correctness}. Beginning with the
+assumption of synchronicity allows us to focus first on increasing
 the expressiveness of the epistemic language. Once this have been
 achieved, we will generalise the formalism to asynchronous domains.
 
-The first step is to adopt the language of dynamic logic to express
+The next step is to adopt the language of dynamic logic to express
 complex \emph{epistemic} modalities rather than modalities regarding
 action. To deal gracefully with the many first-order aspects of the
 situation calculus we use a variant of \emph{first-order dynamic logic}
@@ -280,6 +281,8 @@ from the dynamic term-modal logic of \citet{kooi07dyn_termmodal_logic}.
 
 First, we must specify the syntax of our epistemic path language.
 We will use $\pi$ to denote an arbitrary epistemic path expression.
+
+\newpage{}
 
 \begin{defnL}
 [{Epistemic~Path}] Let $agt$ be an \noun{Agent }term, $\phi$
@@ -321,8 +324,8 @@ according to the following definitions:\label{def:KDoZ}\[
 
 \end{defnL}
 Where we use the following abbreviations (standing for {}``reflexive'',
-{}``transitive'' and {}``contains'' respectively) to specify that
-$\pi^{*}$ is the reflexive transitive closure of $\pi$:\begin{align*}
+{}``transitive'' and {}``contains'' respectively) to specify $\pi^{*}$
+as the reflexive transitive closure of $\pi$:\begin{align*}
 \mathbf{refl}\isdef & \,\, P(\mu,s,\mu,s)\\
 \mathbf{tran\isdef} & \,\,\forall\mu_{1},s_{1},\mu_{2},s_{2}:\, P(\mu_{1},s_{1},\mu,s)\wedge\KDoZ(\pi,\mu_{2},s_{2},\mu_{1},s_{1})\,\rightarrow\, P(\mu_{2},s_{2},\mu,s)\\
 \mathbf{cont}\isdef & \,\,\forall\mu',s':\,\KDoZ(\pi,\mu',s',\mu,s)\,\rightarrow\, P(\mu',s',\mu,s)\end{align*}
@@ -337,15 +340,14 @@ unless necessary. In Section \ref{sec:CKnowledge:Encoding-KDoZ} we
 construct a definition of $\KDoZ$ that does not require variable-bindings
 as terms in the logic, using macro-expansion into a set of mutually-recursive
 Golog procedures that respect the above semantics. For this reason,
-Definition \ref{def:KDoZ} presents as a series of equivalences rather
+Definition \ref{def:KDoZ} presents a series of equivalences rather
 than macro definitions.
 
 Let us re-iterate: paths are not terms in $\Lsit$, but rather are
 handled by macro-expansion of $\KDoZ(\pi,s,s')$ into second-order
 sentences of the situation calculus. In particular, this means that
 the variables used in epistemic paths are not actual terms and cannot
-appear outside of a $\KDoZ$ macro. We assume that the symbols used
-for path variables are all distinct from the symbols of $\Lsit$.
+appear outside of a $\KDoZ$ macro.
 
 For notational convenience, we also introduce an explicit assignment
 operator:\[
@@ -449,8 +451,8 @@ in equation \eqref{eq:K0_ssa}. Finally, it asserts that the observations
 in the new situation match those recorded in $z$.
 
 Also note that $c$ and $c'$ are proper situation calculus variables,
-not path variables, and are being introduced from outside the scope
-of the $\KDoZ$ and $\PKnowsZ$ macros.
+not path variables, and are being introduced into the path from outside
+the scope of the $\KDoZ$ and $\PKnowsZ$ macros.
 
 The following theorem states that these definitions behave has desired,
 respecting the semantics of epistemic paths:
@@ -469,11 +471,12 @@ The base cases $agt$, $?\phi$ and $\exists y$ follow from Definition
 is simply pushed inside each operator. 
 \end{proofsketch}
 Note that the situations reachable by $\KDoZ(\pi,do(c,s),s'')$ are
-not necessarily all successors of the situations reachable by $\KDoZ(\Trn(\pi,c,c'),s,s')$
+not necessarily successors of the situations reachable by $\KDoZ(\Trn(\pi,c,c'),s,s')$
 -- if one of the agents mentioned in $\pi$ does not make any observations,
 $c'$ is permitted to be empty and the situation $s'$ itself is still
 reachable from $do(c,s)$. This mirrors the handling of empty observations
-by the successor state axiom for $K_{0}$.
+by the successor state axiom for $K_{0}$ and will be critical when
+we extend the formalism to asynchronous domains.
 
 Given that $\Trn$ correctly regresses our epistemic path language,
 we are free to use it to define the regression of a complex epistemic
@@ -483,7 +486,7 @@ follows:\[
 
 
 Note that this rule must universally quantify over action terms $c'$
-in order to account for different actions producing the same observation.
+in order to account for different actions producing the same observations.
 Such quantification is also found in the rule for individual knowledge
 from equation \eqref{eqn:R_do_c_s}, although here it has been taken
 outside the scope of the knowledge macro.
@@ -495,7 +498,7 @@ $\phi$ and action $c$:\begin{gather*}
 
 \end{thm}
 \begin{proofsketch}
-The mechanics of this proof mirror that of Theorem \ref{thm:Reg_PKnows}:
+The mechanics of this proof mirror that of Theorem \ref{thm:Reg_Knows}:
 we expand the $\PKnowsZ$ macro, apply Theorem \ref{thm:Trn-respects-epi-paths}
 as a successor state axiom for $\KDoZ$, re-arrange to eliminate existential
 quantifiers, then collect terms back into forms that match $\PKnowsZ$. 
@@ -527,8 +530,8 @@ between each action:\begin{align*}
 \end{defn}
 The intuition here is that we want $\PKnows(\pi,\phi)$ to hold if
 $\PKnowsZ(\pi,\phi)$ holds after allowing for any number of empty
-actions. Formally, we define $\PKnows(\pi,\phi,s)$ to be the following
-infinite conjunction:\[
+actions. Formally, we will define $\PKnows(\pi,\phi,s)$ to be the
+following infinite conjunction:\[
 \PKnows(\pi,\phi,s)\isdef\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(s))\]
 
 
@@ -536,7 +539,7 @@ To avoid an infinite set of sentences we could also use an equivalent
 second-order definition. The choice is immaterial, since we do not
 intend to actually expend this definition during reasoning. As before,
 we will formulate a regression rule allowing it to be treated as a
-primitive fluent. First, let us demonstrate this this definition is
+primitive fluent. First, let us demonstrate that this definition is
 intuitively plausible with the following theorem:
 
 \begin{thm}
@@ -575,9 +578,12 @@ $\PKnowsZ$ with $\PKnows$:\begin{gather*}
 \UnZ(\phi)\isdef\phi\,,\,\,\mathrm{otherwise}\end{gather*}
 
 
-We then propose the following regression rules for the macro $\PKnows$:\begin{gather}
-\Reg(\PKnows(\pi,\phi,do(c,s)))\,\isdef\,\UnZ(\Reg(\Pst(\PKnowsZ(\pi,\phi),\lambda c:\, c=\{\})[do(c,s)]))\label{eq:Reg_PKnows_do}\\
-\Reg(\PKnows(\pi,\phi,S_{0}))\,\isdef\,\Pst(\PKnowsZ(\pi,\phi),\lambda c:\, c=\{\})[S_{0}]\label{eq:Reg_PKnows_S0}\end{gather}
+Next, we have a simple action description predicate that is only ever
+satisfied by the empty action set:\[
+Empty(a,s)\,\isdef\, a=\{\}\]
+ We then propose the following regression rules for the macro $\PKnows$:\begin{gather}
+\Reg(\PKnows(\pi,\phi,do(c,s)))\,\isdef\,\UnZ(\Reg(\Pst(\PKnowsZ(\pi,\phi),Empty)[do(c,s)]))\label{eq:Reg_PKnows_do}\\
+\Reg(\PKnows(\pi,\phi,S_{0}))\,\isdef\,\Pst(\PKnowsZ(\pi,\phi),Empty)[S_{0}]\label{eq:Reg_PKnows_S0}\end{gather}
 
 
 Here we are using $\Pst$ with a very restrictive action description
@@ -591,8 +597,8 @@ Note that, as in the case of individual-level knowledge, regressing
 $\PKnows$ at $do(c,s)$ produces an expression using $\PKnows$ at
 $s$, while regressing $\PKnows$ at $S_{0}$ produces an expression
 involving $\PKnowsZ$ at $S_{0}$. Repeated applications of these
-rules will thus reduces a path-knowledge query to a synchronous path-knowledge
-query in the initial situation.
+rules will thus reduces a path-knowledge query at some future situation
+to a synchronous path-knowledge query in the initial situation.
 
 \begin{thm}
 \label{thm:Reg_PKnows}Given a basic action theory $\Dt$ and a uniform
@@ -602,10 +608,10 @@ formula $\phi$:\[
 \end{thm}
 \begin{proofsketch}
 Proceed by induction on situation terms. For the base case we demonstrate
-that $\Pst(\PKnowsZ(\pi,\phi),\lambda c:\, c=\{\})[S_{0}]$ is equivalent
-to the infinite conjunction $\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(S_{0}))$,
+that $\Pst(\PKnowsZ(\pi,\phi),Empty)[S_{0}]$ is equivalent to the
+infinite conjunction $\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(S_{0}))$,
 from which the validity of \eqref{eq:Reg_PKnows_S0} is immediate.
-To validate \eqref{eq:Reg_PKnows_do} in the inductive case $\mathcal{E}^{n}(do(c,s))$,
+To validate \eqref{eq:Reg_PKnows_do} in the inductive case of $\mathcal{E}^{n}(do(c,s))$,
 we demonstrate that the use of $\Pst$ accounts for the hidden actions
 inserted \emph{after} $c$, the use of $\Reg$ accounts for $c$ itself,
 and the use of $\UnZ$ lets the inductive hypothesis account for the
@@ -614,11 +620,11 @@ hidden actions before $c$.
 These rules for $\PKnows$ operate in a very similar way to the regression
 rule for $\Knows$ from equation \eqref{eqn:R_do_c_s}, using a fixpoint
 calculation to account for arbitrarily long sequences of hidden actions.
-In the following section we formalism the precise relationship between
+In the following section we formalise the precise relationship between
 $\Knows$ and $\PKnows$.
 
-We note that, as in the previous chapter, our regression rules for
-knowledge are no longer simple syntactic manipulations but require
+We also note that, as in the previous chapter, our regression rules
+for knowledge are no longer simple syntactic manipulations but require
 a meta-level fixpoint calculation to deal with hidden actions. In
 synchronous domains this fixpoint is unnecessary and $\PKnows$ is
 equivalent to $\PKnowsZ$, which can be regressed using purely syntactic
@@ -646,7 +652,7 @@ of $\PKnows(\pi,\phi,s)$ as required. Regressing $\PKnowsZ(\pi,\phi,\mathcal{E}^
 
 
 $\Trn(\pi,\{\},c)$ will have the following form:\[
-\Trn(\pi,\{\},c)\,\Rightarrow\, x\Leftarrow\{\}\,;\,\TrnA(\pi,x)\,;\,?x=c\]
+\Trn(\pi,\{\},c)\,\Rightarrow\,\,\,\,\,\, x\Leftarrow\{\}\,;\,\TrnA(\pi,x)\,;\,?x=c\]
 
 
 For $x$ to take on a new value while traversing this path, it will
@@ -658,12 +664,12 @@ z\,\Leftarrow Obs(agt,x)\,;\, agt\,;\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,?Ob
 Entering this path with $x$ set to $\{\}$ will bind $z$ to $\{\}$.
 $x$ can then take on any new value that is legal and has $Obs(agt,x)=z=\{\}$.
 But the domain is synchronous, so by definition there are no such
-legal actions. $x$ therefore remains set to $\{\}$ along the entire
-path.
+legal actions, and $x$ therefore remains set to $\{\}$ along the
+entire path.
 
 For any value of $c$ other than $\{\}$, there will be no situations
 reachable by this regressed path and $\PKnowsZ$ will be vacuously
-true. We can thus simply away the quantification over $c$ to get:\[
+true. We can thus simplify away the quantification over $c$ to get:\[
 \PKnowsZ(\Trn(\pi,\{\},\{\}),\Reg(\phi,\{\}),s)\]
 
 
@@ -682,9 +688,7 @@ The last remaining link is the most important of all: showing that
 this new path-based account of knowledge actually captures the knowledge
 of the agents, according to the semantics of individual knowledge
 developed in Chapter \ref{ch:knowledge}. The following series of
-theorems establish this important link. First, we produce special
-cases of the regression rule for $\PKnows(\pi,\phi)$ for the case
-of a single agent:
+theorems establish this important link.
 
 \begin{lemma}
 \label{lem:Pknows_LbU_S0}For any $agt$ and $\phi$:\[
@@ -694,8 +698,8 @@ of a single agent:
 \begin{proofsketch}
 Begin by applying equation \eqref{eq:Reg_PKnows_S0} to the LHS to
 get an expression in $\PKnowsZ$. By stepping through the regression
-of $\PKnowsZ(agt,\phi,do(\{\},S_{0}))$ we show that for any $n$,
-$\Pst^{n}(\PKnowsZ(agt,\phi,),\lambda c:c=\{\})[S_{0}]$ is equivalent
+of $\PKnowsZ(agt,\phi,do(\{\},S_{0}))$ we show that for any value
+of $n$, $\Pst^{n}(\PKnowsZ(agt,\phi,),Hidden)[S_{0}]$ is equivalent
 to $\PKnowsZ(agt,\Pst^{n}(\phi,\LbU(agt)),S_{0})$. The fixpoint calculation
 for $\Pst$ thus terminates at the same value of $n$ in both cases,
 giving the required equivalence. 
@@ -716,17 +720,15 @@ $c$ gives us the required $\Reg$ expression. Using $\UnZ$ then
 allows us to transform from $\PKnowsZ$ back to $\PKnows$ to obtain
 the desired result. 
 \end{proofsketch}
-We will also need the following result for individual knowledge:
-
 \begin{lemma}
 \label{lem:Knows_impl_KnowsLbU}For any $agt$, $\phi$ and $s$:\[
 \Dt\cup\Dt_{K}^{obs}\,\models\,\Knows(agt,\phi,s)\,\equiv\,\Knows(agt,\Pst(\phi,LbU(agt)),s)\]
 
 \end{lemma}
 \begin{proofsketch}
-By induction on the regression rules for knowledge, and using the
-following property of the persistence condition ({}``if $\phi$ persists,
-then $\Pst(\phi,\alpha)$ persists''):\[
+By induction on situations and using the regression rules for knowledge,
+along with the following property of the persistence condition ({}``if
+$\phi$ persists, then $\Pst(\phi,\alpha)$ persists''):\[
 \forall s':\,\Pst(\phi,\alpha)[s]\,\wedge\, s\leq_{\alpha}s'\,\rightarrow\,\Pst(\phi,\alpha)[s']\]
 
 
@@ -734,22 +736,15 @@ We consider three cases: $s=S_{0}$, and $s=do(c,s)$ with $c$ both
 observable and unobservable. Each case requires only a simple re-arrangement
 of the relevant regression rule. 
 \end{proofsketch}
-\medskip{}
-
-
-Finally, we are in a position to state the major theorem of this section:
-that $\PKnows$ for a single agent is equivalent to the standard $\Knows$
-macro.
-
 \begin{thm}
 For any $agt$, $\phi$ and $s$:\[
 \Dt\cup\Dt_{K}^{obs}\,\models\,\Knows(agt,\phi,s)\,\,\equiv\,\,\PKnows(agt,\phi,s)\]
 
 \end{thm}
 \begin{proof}
-By induction on the regression rules for each expression. For the
-$S_{0}$ case, we require the following result which is true by the
-definition of $\KDoZ$:\[
+By induction on situation terms, using the regression rules for each
+expression. For the $S_{0}$ case, we require the following result
+which is true by the definition of $\KDoZ$:\[
 \KnowsZ(agt,\phi,S_{0})\equiv\PKnowsZ(agt,\phi,S_{0})\]
  The regression rule for $\Knows$ from equation \eqref{eqn:R_s0}
 then precisely matches the result of Lemma \ref{lem:Pknows_LbU_S0}
@@ -760,9 +755,6 @@ to produce an expression precisely matching the result of Lemma \ref{lem:Pknows_
 Using $\Knows(agt,\phi,s)\equiv\PKnows(agt,\phi,s)$ from the inductive
 hypothesis renders the two equivalent. 
 \end{proof}
-\medskip{}
-
-
 Thus the expressions $\Knows(agt,\phi,s)$ and $\PKnows(agt,\phi,s)$
 are equivalent under our formulation. This link is all that is required
 to validate the additional complex modalities shown in equation \eqref{eq:pknows_identities},
@@ -808,7 +800,7 @@ More formally, it is possible to show that:\[
 $\PKnows$ will always terminate after a single iteration. We will
 therefore use the following identity to simplify presentation of the
 example:\begin{align*}
-\Reg(\PKnows(\pi,\phi,do(c,s))\,\Rightarrow & \UnZ(\Reg(\Pst(\PKnowsZ(\pi,\phi),\lambda c:\, c=\{\})[do(c,s)]))\\
+\Reg(\PKnows(\pi,\phi,do(c,s))\,\Rightarrow & \UnZ(\Reg(\Pst(\PKnowsZ(\pi,\phi),Hidden)[do(c,s)]))\\
 \equiv\,\,\, & \UnZ(\Reg(\Reg(\PKnowsZ(\pi,\phi,\mathcal{E}^{1}(do(c,s))))))\\
 \equiv\,\,\,\forall c',c'': & \,\PKnows(\Trn(\Trn(\pi,\{\},c'),c,c''),\Reg(\Reg(\phi,c'),c''),s)\end{align*}
 
@@ -819,7 +811,7 @@ to $IR$.
 \begin{example}
 After Bob reads the invitation, it is common knowledge that he knows
 where the party is:\[
-\Dt\cup\Dt_{K}^{obs}\,\models\,\PKnows((A\cup B)^{*},\exists x:\Knows(B,loc=x),do(\{read(B)\},S_{0}))\]
+\Dt\cup\Dt_{K}^{obs}\,\models\,\PKnows((A\cup B)^{*},\exists x:\Knows(B,loc=x),do(read(B),S_{0}))\]
 
 \end{example}
 This example hinges on the fact that initially, it is common knowledge
@@ -832,9 +824,9 @@ identity gives:\begin{multline*}
 \Rightarrow\,\,\forall c,c',c'':\,\PKnowsZ(\Trn(\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c'),\{\},c''),\\
 \Reg(\Reg(\Reg(\phi,c),c'),c''),S_{0})\end{multline*}
  We begin by evaluating $\Trn(\pi,\{\},c)$ :\[
-\Trn((A\cup B)^{*},\{\},c)\,\Rightarrow\,\exists x\,;\,?x=\{\}\,;\,(\TrnA(A,x)\cup\TrnA(B,x))^{*}\,;\,?x=c\]
+\Trn((A\cup B)^{*},\{\},c)\,\Rightarrow\,\,\, x\Leftarrow\{\}\,;\,(\TrnA(A,x)\cup\TrnA(B,x))^{*}\,;\,?x=c\]
  With the cases for $\TrnA(agt,x)$ both evaluating to:\[
-\TrnA(agt,x)\,\Rightarrow\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,?Obs(agt,x)=z\]
+\TrnA(agt,x)\,\Rightarrow\,\,\, z\Leftarrow Obs(agt,x)\,;\, agt\,;\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,?Obs(agt,x)=z\]
  Since we know all possible observations that Alice could make, let
 us expand the path $\TrnA(A,x)$ by enumerating the possible values
 for $z$. The first line in the result gives the case where $Obs(Alice,x)=\{\}$,
@@ -855,8 +847,10 @@ to either $\{\}$ or $read(B)$. Subsequent iterations may alternate
 between these values, but can never bind $x$ to any other action.
 An analogous argument for $\TrnA(B,x)$ shows that the path $\Trn((A\cup B)^{*},\{\},c)$
 can be simplified to consider only the actions $\{\}$, $read(A)$
-and $read(B)$, with any other binding of $x$ being unreachable:\begin{multline*}
-\Trn((A\cup B)^{*},\{\},c)\,\Rightarrow\,\exists x\,;\,?x=\{\}\,;\,(\\
+and $read(B)$, with any other binding of $x$ being unreachable:
+
+\begin{multline*}
+\Trn((A\cup B)^{*},\{\},c)\,\Rightarrow\,\,\,\, x\Leftarrow\{\}\,;\,(\\
 ?\, x=\{\}\vee(x=read(B)\wedge\neg IR(A)))\,;\, A\,;\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\\
 \,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\exists x\,;\,?\, x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
 \cup\,\,?\, x=\{\}\vee(x=read(A)\wedge\neg IR(B)))\,;\, B\,;\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\\
@@ -875,13 +869,13 @@ in which Alice is not in the room, reflecting the conditions under
 which that action would be hidden.
 
 Next we evaluate the $\Trn(\pi,read(B),c')$ portion, which will produce:\begin{multline*}
-\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c')\,\Rightarrow\,\exists x'\,;\,?x'=read(B)\,;\,\exists x\,;\,?x=\{\}\,;\\
+\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c')\,\Rightarrow\,\,\,\, x'\Leftarrow read(B)\,;\, x\Leftarrow\{\}\,;\\
 (\TrnA(\TrnA(A,x),x')\cup\TrnA(\TrnA(B,x),x'))^{*}\,;\,?x=c\,;\,?x'=c'\end{multline*}
  As before, the only possible values of $x'$ are $\{\}$, $read(A)$
-and $read(B)$. None of these actions affect any of the tests present
-in $\Trn((A\cup B)^{*},\{\},c)$, so we can safely leave them unchanged
-in the resulting path:\begin{multline*}
-\Trn(\Trn((A\cup B)^{*},\{\},c),read(B),c')\,\Rightarrow\,\exists x'\,;\,?x'=read(B)\,;\,\exists x\,;\,?x=\{\}\,;\,(\\
+and $read(B)$. None of these actions affect the tests present in
+$\Trn((A\cup B)^{*},\{\},c)$, so we leave them unchanged. Expanding
+the applications of $\TrnA$ gives the following inside the iteration
+operator: \begin{multline*}
 ?x=\{\}\vee(x=read(B)\wedge\neg IR(A)));\TrnA(A,x');\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\\
 \,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\exists x;?x=\{\}\vee(x=read(B)\wedge IR(B)\wedge\neg IR(A))\\
 \cup\,?x=\{\}\vee(x=read(A)\wedge\neg IR(B)));\TrnA(B,x');\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\\
@@ -889,8 +883,7 @@ in the resulting path:\begin{multline*}
 \cup\,\,?\, x=read(B)\wedge IR(A)\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(A)\wedge IR(B)\\
 \cup\,\,\exists r\,;\,?\, x=read(A)\wedge loc(r)\,;\,\TrnA(A,x')\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(A)\wedge loc(r)\\
 \cup\,\,?\, x=read(A)\wedge IR(B)\,;\,\TrnA(B,x')\,;\,\exists x\,;\,?\, x=read(A)\wedge IR(B)\wedge IR(A)\\
-\cup\,\,\exists r\,;\,?\, x=read(B)\wedge loc(r)\,;\,\TrnA(B,x')\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(B)\wedge loc(r)\\
-)^{*}\,;\,?x=c\,;\, x'=c'\end{multline*}
+\cup\,\,\exists r\,;\,?\, x=read(B)\wedge loc(r)\,;\,\TrnA(B,x')\,;\,\exists x\,;\,?\, x=read(B)\wedge IR(B)\wedge loc(r)\end{multline*}
  We can complete this expansion using the previously calculated result
 for $\TrnA(A,x)$, but will proceed leaving this implicit. Finally,
 we must apply $\Trn$ again for the $\Trn(\pi,\{\},c'')$ portion.
@@ -907,7 +900,7 @@ For $x$ to switch from its initial value of $\{\}$ to $read(A)$
 (resp. $\neg IR(A)$). Since we know that these tests will never succeed
 on the initial epistemic frame, we can conclude that $x$ will always
 be bound to $\{\}$. Since the path insists that $x=c$ at termination,
-this is the only interesting value for $c$ - any value of $c$ other
+this is the only interesting value for $c$ -- any value of $c$ other
 than $\{\}$ will result in no worlds being reachable by the regressed
 path and will thus have $\PKnowsZ$ vacuously true. By a similar argument,
 we find that the only interesting values of $c'$ and $c''$ are $read(B)$
@@ -929,7 +922,7 @@ domain.
 
 \begin{example}
 After Bob reads the invitation, the location is not common knowledge\[
-\Dt\cup\Dt_{K}^{obs}\,\not\models\,\PKnows((Alice\cup Bob)^{*},loc=C,do(read(Bob),S_{0}))\]
+\Dt\cup\Dt_{K}^{obs}\,\not\models\,\PKnows((A\cup B)^{*},loc=C,do(read(B),S_{0}))\]
 
 \end{example}
 Regression of the epistemic path proceeds as with the previous example,
@@ -939,30 +932,38 @@ from the previous example we know to be redundant, regressing this
 expression produces the following:
 
 \begin{multline*}
-\PKnowsZ(\dots\\
+\PKnowsZ(\dots;(\\
 \cup\,\,?\, x'=read(B)\wedge IR(A)\,;\, A\,;\,\exists x'\,;\,?\, x'=read(B)\wedge IR(A)\wedge IR(B)\\
 \cup\,\,\exists r\,;\,?\, x'=read(B)\wedge loc(r)\,;\, B\,;\,\exists x'\,;\,?\, x'=read(B)\wedge IR(B)\wedge loc(r)\\
-\cup\dots,loc=C,S_{0})\end{multline*}
+\cup\dots)^{*};\dots,loc=C,S_{0})\end{multline*}
 
 
-This means, very roughly, that $read(B)$ could result in common knowledge
-that $loc=C$ if it was commonly known that the preconditions of $read(B)$
-implied $loc=C$. Since $read(B)$ is commonly observed, this would
-be enough to obtain common knowledge of the location. Since no such
-information is not given in the domain description, the example is
-not entailed.
+This expression basically asserts that if a situation in the initial
+epistemic frame can be reached by only traversing situations in which
+$IR(A)$ and $IR(B)$ holds, then that situation will entail that
+$loc=C$. In the previous example, the inner formula was a simple
+tautology and this was vaccuously true.
+
+In this case (and very roughly speaking) the regressed path indicates
+that $read(B)$ can potentially result in common knowledge of the
+party's location, but only if having common knowledge of the preconditions
+of $read(B)$ is enough to establish common knowledge that $loc=C$
+. Since no such information is given in the domain description, the
+example is not entailed.
 
 ~
 
 \begin{example}
-After Alice also reads the invitation, the location becomes common
-knowledge:\[
-\Dt\cup\Dt_{K}^{obs}\,\models\,\PKnows((Alice\cup Bob)^{*},loc=C,do(read(Alice),do(read(Bob),S_{0})))\]
+After Alice also reads the invitation, the location is common knowledge:\[
+\Dt\cup\Dt_{K}^{obs}\,\models\,\PKnows((A\cup B)^{*},loc=C,do(read(A),do(read(B),S_{0})))\]
 
 \end{example}
 The additional action here can be handled in the same manner as the
-previous example. We will not repeat the working, but simply state
-that this indeed is a consequence of our theory.
+previous examples, but the paths quickly become too cumbersome to
+present on the page. We will not repeat the working, but simply state
+that this is indeed a valid consequence of our theory. Note, however,
+that it depends on having common knowledge that both agents are in
+the room.
 
 
 \section{Comparison with LCC\label{sec:CKnowledge:Comparison}}
@@ -977,7 +978,7 @@ The most obvious difference is that our formalism supports - indeed,
 not limited to finite domains. By contrast, LCC is propositional and
 actions must be explicitly specified in terms of a finite update model.
 This is for the most part simply reflective of the different traditions
-from which these formalisms emerge -- of the underlying differences
+from which these formalisms emerge; of the underlying differences
 between modal logics of action and the situation calculus \citep{vanbentham07ml_sitcalc}.
 It is likely that LCC could be expanded into a first-order modal formalism
 without significant modification. We note, however, that the macro-based
@@ -988,7 +989,7 @@ etc \citep{fitting98fo_ml}.
 
 Another important difference is that in the situation calculus, actions
 are concrete terms in the logic that can be manipulated and quantified
-over. In LCC, the update modes responsible for changing the world
+over. In LCC, the update models responsible for changing the world
 come from outside the world itself, and must be specified as an explicit
 structure whenever they are used. They cannot be quantified over.
 This difference is key to our handling of asynchronous domains, by
@@ -1038,24 +1039,25 @@ T_{ij}^{U}(\pi_{1}\cup\pi_{2})\isdef & T_{ij}^{U}(\pi_{1})\cup T_{ij}^{U}(\pi_{1
 T_{ij}^{U}(\pi^{*})\isdef & K_{ijn}^{U}(\pi)\end{align*}
 
 
-Apart from the $\pi^{*}$ case, which we will separately, these definitions
-are broadly similar to the rules for our epistemic path regressor
-from Definition \ref{def:EpistemicPathRegression}. Where our rules
-use a fresh variable to track the {}``current action'' being performed
-in each situation, these rules use external indices $i$ and $j$
-and depend on the restriction to finitely-many possible actions. The
-case for a base $agt$ modality encodes the possibility of that agent
-mistaking event $e_{i}$ for event $e_{j}$, which is represented
-explicitly by the relation $R(agt)$ from the update model. The case
-for $\pi_{1};\pi_{2}$ uses a finite disjunction to permit any intermediate
-event $k$.
+Apart from the $\pi^{*}$ case, which we will discuss separately,
+these definitions are broadly similar to the rules for our epistemic
+path regressor from Definition \ref{def:EpistemicPathRegression}.
+Where our rules use a fresh variable to track the {}``current action''
+being performed in each situation, these rules use external indices
+$i$ and $j$ and depend on the restriction to finitely-many possible
+actions. The case for a base $agt$ modality encodes the possibility
+of that agent mistaking event $e_{i}$ for event $e_{j}$, which is
+represented explicitly by the relation $R(agt)$ from the update model.
+The case for $\pi_{1};\pi_{2}$ uses a finite disjunction to permit
+any intermediate event $k$.
 
-The $\pi^{*}$ case is handled by appealing to a variant of Kleene's
-construction on finite automata, whereby all paths through the automata
-are enumerated by progressively including more and more states \citep[ Theorem 2.5.1]{lewis81theory_of_computation}.
-The auxiliary operator $K_{ijk}^{U}(\pi)$ represents all the paths
-from $i$ to $j$ through the update model $U$ that can be generated
-by following $\pi$ zero or more times, but without using intermediate
+The $\pi^{*}$ case in LCC is handled by appealing to a variant of
+Kleene's construction on finite automata, whereby all paths through
+the automata are enumerated by progressively including more and more
+states \citep[ Theorem 2.5.1]{lewis81theory_of_computation}. The
+auxiliary operator $K_{ijk}^{U}(\pi)$ represents all the paths from
+$i$ to $j$ through the update model $U$ that can be generated by
+following $\pi$ zero or more times, but without using intermediate
 events numbered greater than $k$:\begin{align*}
 K_{ij0}^{U}(\pi)\isdef & \begin{cases}
 ?\top\cup T_{ij}^{U} & if\, i=j\\
@@ -1084,19 +1086,19 @@ We argue that our formulation, using a variable to keep track of the
 expression of the intended operation of the path regression operator.
 Our correctness proofs are correspondingly simpler. The more complicated
 Kleene-style operator of LCC is required in order to render epistemic
-path regression in a propositional formalism.
+path regression into a propositional formalism.
 
 In synchronous domains with a finite state-space the situation calculus
 may not offer a gain in expressiveness, but it can certainly provide
 a more succinct axiomatisation. Moving beyond such domains, our formalism
-offers the potential to incorporate other rich domain features that
-have been developed for the situation calculus, such as continuous
+also offers the potential to incorporate other rich domain features
+that have been developed for the situation calculus, such as continuous
 time and actions with duration \citep{reiter96sc_nat_conc}.
 
 
 \section{Answering the Regressed Query\label{sec:CKnowledge:Reasoning}}
 
-We are now in a position to reduce an epistemic query $\PKnows(\pi,\phi,\sigma)$
+We are now in a position to reduce a complex epistemic query $\PKnows(\pi,\phi,\sigma)$
 at some future situation to an epistemic query $\PKnowsZ(\Trn^{*}(\pi),\Reg^{*}(\phi),S_{0})$
 at the initial situation. While this is a significant gain for effective
 automated reasoning, it still remains to calculate and answer the
@@ -1130,8 +1132,8 @@ Since we do not use \noun{Situation} terms in epistemic paths, it
 seems we should be able to translate $\PKnowsZ$ modalities in such
 domains from FODL into PDL by enumerating the possible values for
 each path variable. This is not straightforward, however, since variable
-re-bindings can be performed inside the scope of an iteration. How
-does one convert a path like the following into PDL?\[
+re-bindings can be performed inside the scope of an iteration. It
+is not obvious how to conervt a path such as the following into PDL:\[
 (?\phi(x);\,\exists x\,;\, A)^{*}\]
 
 
@@ -1172,17 +1174,17 @@ agt & \mathrm{if\, i=j}\\
 
 
 To answer the regressed query in the initial situation, we may be
-to assume that initial knowledge is specified in a restricted form
-that further increases the effectiveness of reasoning. For example,
+able to assume that initial knowledge is specified in a restricted
+form that further increases the effectiveness of reasoning. For example,
 it may be that the initial situation is completely known and uncertainty
 is introduced only due to partial observability of actions. In this
 case the initial epistemic frame contains the lone situation $S_{0}$,
 and the regressed path can be reduced to a series of tests and variable
 re-bindings.
 
-More generally, we have have a specific model to represent the group's
-knowledge in the initial situation. In this case the regressed query
-can be answered using model-checking rather than satisfiability --
+More generally, we may have a specific possible-worlds model to represent
+the group's knowledge in the initial situation. In this case the regressed
+query can be answered using model-checking rather than satisfiability;
 for PDL this reduces the complexity from EXPTIME-complete to PTIME-complete,
 a very significant win \citep{lange05pdl_model_checking}.
 
@@ -1202,8 +1204,11 @@ future research.
 We have produced a preliminary reasoning engine based on our technique
 for propositional domains, utilising a modified version of the PDL
 prover from the Tableaux Workbench suite \citep{abate07twb_pdl},
-and have used it to verify some simple examples. This implementation
-is available TODO.
+and have used it to verify some simple examples. However, due to the
+exponential blowup in path size using the propositionalisation scheme
+described above, we have so far not validated the examples from Section
+\ref{sec:CKnowledge:Example} with this implementation. As usual,
+details on obtaining the source code can be found in Appendix \ref{ch:implementation}.
 
 
 \section{Encoding $\KDoZ$\label{sec:CKnowledge:Encoding-KDoZ}}
@@ -1221,7 +1226,7 @@ into Golog simpler and clearer, and expect many readers familiar with
 the situation calculus will feel likewise. As Golog is well-understood,
 it relieves some our burden of proof in establishing that the embedding
 works as required. Since the semantics of Golog itself it based on
-macro-expansion, the end-result is the the same: sentences of FODL
+macro-expansion, the end result is the the same: sentences of FODL
 macro-expand into sentences of the situation calculus. Finally, our
 modification to Golog so that it is interpreted over epistemic frames
 may further elucidate the intended operation of FODL in this paper.
@@ -1234,20 +1239,20 @@ stands for {}``it is possible to execute program $\delta$, starting
 in situation $s$, and ending in situation $s'$'' \citep{levesque97golog}.
 Since we intend to interpret Golog over epistemic frames, we will
 use the macro $\EDo$ to make this distinction clear. This requires
-only one modification to the standard Golog - the base operators are
-agent terms, rather than actions.
+only one modification to the standard Golog semantics - the base operators
+are agent terms, rather than actions.
 
 \begin{defnL}
 [{Semantics~of~Epistemic~Golog}] The semantics of Golog
 over epistemic frames is given by the macro $\EDo$ defined as follows,
-where $P$ names a predicate symbol:\[
+where $P$ names a predicate variable symbol:\[
 \delta::=agt\,|\,?\phi\,|\,\delta_{1};\delta_{2}\,|\,\delta_{1}\cup\delta_{2}\,|\,\pi(x)(\delta(x))\,|\,\delta^{*}\,|\,\mathbf{proc}\, P(\vars{x})\,\delta(\vars{x})\,\mathbf{end}\,;\,\delta\,|\, P(\vars{x})\]
  \begin{align*}
 \EDo(agt,s,s')\,\isdef\,\, & K_{0}(agt,s',s)\\
 \EDo(?\phi,s,s')\,\isdef\,\, & s=s'\wedge\phi[s]\\
 \EDo(\delta_{1}\,;\,\delta_{2},s,s')\,\isdef\,\, & \exists s'':\,\EDo(\delta_{1},s,s'')\,\wedge\,\EDo(\delta_{2},s'',s')\\
 \EDo(\delta_{1}\,\cup\,\delta_{2},s,s')\,\isdef\,\, & \EDo(\delta_{1},s,s')\vee\EDo(\delta_{2},s,s')\\
-\EDo(\pi(x)(\delta(x)),s,s')\,\isdef\,\, & \exists x:\,\EDo(\delta(x),s,s')\\
+\EDo(\pi(x,\delta(x)),s,s')\,\isdef\,\, & \exists x:\,\EDo(\delta(x),s,s')\\
 \EDo(\delta^{*},s,s')\,\isdef\,\, & \mathrm{refl.\, trans.\, closure\, of}\,\,\EDo(\delta,s,s')\\
 \EDo(P(\vars{x}),s,s')\,\isdef\,\, & P(\vars{x},s,s')\end{align*}
 
@@ -1256,7 +1261,9 @@ The final clause identifies a procedure call with arguments $\vars{x}$.
 Defining procedure calls via macro expansion involves a second-order
 definition corresponding to the standard least-fixed-point semantics
 for recursive procedures. This operates as follows, taking a list
-of $n$ procedure definitions followed by a main program invocation:\begin{multline*}
+of $n$ procedure definitions followed by a main program invocation:
+
+\begin{multline*}
 \EDo(\{\mathbf{proc}\, P_{1}(\vars{v_{1}})\,\delta_{1}\,\mathbf{end}\,;\dots\,;\,\mathbf{proc}\, P_{n}(\vars{v_{n}})\,\delta_{n}\,\mathbf{end}\,;\,\delta_{0}\}\,\isdef\,\\
 \forall(P_{1},\dots,P_{n})\left[\bigwedge_{i=1}^{n}\forall s_{1},s_{2},\vars{v_{i}}:\,\EDo(\delta_{i},s_{1},s_{2})\,\rightarrow\,\EDo(P_{i}(\vars{v}_{i}),s_{1},s_{2})\right]\\
 \rightarrow\,\,\EDo(\delta_{0},s,s')\end{multline*}
@@ -1265,10 +1272,10 @@ of $n$ procedure definitions followed by a main program invocation:\begin{multli
 Clearly Golog is a very powerful language, so the question must be
 asked: could we use Golog directly for our epistemic path language,
 rather than FODL? Unfortunately not, as Golog has no notion of \emph{state}
-- while the Golog operator $\pi(x)(\delta(x))$ is similar to the
-FODL operator $\exists x$, its effect is localised to the contained
-program $\delta(x)$. FODL allows variable assignments to affect the
-entire remaining program.
+- while the Golog operator $\pi(x,\delta(x))$ is similar to the FODL
+operator $\exists x$, its effect is localised to the contained program
+$\delta$. FODL allows variable assignments to affect the entire remaining
+program.
 
 We review the operators and required semantics of FODL for convenience:\[
 \pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\,\exists x\]
@@ -1289,10 +1296,10 @@ stateful variables. In order to simulate this via macro expansion,
 we use what is essentially a continuation-passing transformation to
 avoid explicitly mentioning substitutions.
 
-First, note that any epistemic path $\pi$ will be contain only a
-finite number of path variables. Without loss of generality, suppose
-that $\pi$ contains $n$ such variables named $x_{1}$ to $x_{n}$.
-The idea is to translate each component of the path into a Golog procedure
+First, note that any epistemic path $\pi$ will contain only a finite
+number of path variables. Without loss of generality, suppose that
+$\pi$ contains $n$ such variables named $x_{1}$ to $x_{n}$. The
+idea is to translate each component of the path into a Golog procedure
 with $n$ arguments, where the $i$th argument is used to pass in
 the current value of $x_{i}$. After performing the necessary operations
 to encode the semantics of that path component, it calls a continuation
@@ -1325,7 +1332,7 @@ path, plus the procedure $End$ used to successfully terminate execution.
 Most of these definitions are straightforward translations of equivalent
 operators in FODL to Golog. One interesting case is $\exists x_{i}$,
 which calls the continuation procedure with a fresh variable in position
-$i$.
+$i$ to encode nondeterministic variable re-binding.
 
 The most complex case is $\pi^{*}$, which simulates iteration using
 a pair of mutually recursive procedures $P$ and $N$. Procedure $N$
@@ -1355,18 +1362,20 @@ fluents.
 
 As with the previous chapter, hidden actions are handled using the
 persistence condition meta-operator to perform a fixpoint calculation.
-For synchronous domains, we have proven that this fixpoint calculation
-is unnecessary and regression can be performed as a purely syntactic
-manipulation. Demonstrating the utility of our approach, we have presented
-an example of effective reasoning about common knowledge in an asynchronous,
-partially observable domain. This powerful new ability is a first
-for the situation calculus.
-
 While the expressiveness of our epistemic path language means that
 answering a regressed knowledge query can be difficult in the general
 case, we have shown that for finite domains we maintain the ability
 to propositionalise the queries and answer them in a robustly decidable
 manner.
+
+Demonstrating the utility of our approach, we have presented an example
+of reasoning about common knowledge in an asynchronous, partially
+observable domain. This powerful new ability is a first for the situation
+calculus.
+
+For synchronous domains, we have proven that this fixpoint calculation
+is unnecessary and regression can be performed as a purely syntactic
+manipulation.
 
 Our development has clear parallels with the development of LCC \citep{vanBenthem06lcc}.
 We choose the situation calculus for its much richer ontology, e.g.
@@ -1377,4 +1386,6 @@ the risk of undecidability. On the other, it actually simplifies some
 aspects of our presentation. We do not need explicit update frames,
 and the definition of our path regressor does not require an auxiliary
 Kleene-style operator to handle iteration.
+
+TODO: need a free-variable prover
 
