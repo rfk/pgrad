@@ -5,9 +5,8 @@ proc {Trans D S Dp Sp}
                {Step D1 S D1r res(C1 T S)}
                {Step D2 S D2r res(C2 T S)}
                {LP.neg proc {$} A in
-                 {LP.member A C1}
-                 {LP.member A C2}
-                 {LP.neg proc {$} {Domain.isExog A} end}
+                 {LP.member A C1} {LP.member A C2}
+                 {LP.neg proc {$} {Domain.isNatural A} end}
                end}
                {LP.union C1 C2 Cu}
                {Sitcalc.legal Cu T S}

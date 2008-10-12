@@ -8,16 +8,12 @@ proc {Trans D S Dp Sp}
                  Dp = dosteps({Sitcalc.toStepsList Sp Sr})
                  {Control.sendMessage Dp#Sp}
                catch failure then
-                 {Control.sendMessage plan_failed}
-                 fail
+                 {Control.sendMessage plan_failed} fail
                end
            else Msg in
                {Control.waitForMessage Msg}
-               if Msg == plan_failed then
-                 fail
-               else
-                 (Dp#Sp) = Msg
-               end
+               if Msg == plan_failed then fail
+               else (Dp#Sp) = Msg end
            end
   [] ...
 end

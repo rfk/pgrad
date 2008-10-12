@@ -109,6 +109,8 @@ proceeding to the next step.
 
 %
 \begin{algorithm}[t]
+ 
+
 \caption{The ReadyLog Execution Algorithm for program $\delta$}
 
 
@@ -161,16 +163,16 @@ a similar approach to ReadyLog, but we focus on incorporating rich
 domain features such as concurrency and continuous time. While these
 features have been added to Golog individually in existing works \citep{Reiter98seq_temp_golog,pinto99tcongolog,pirri00planning_nat_acts,reiter01kia},
 our work is the first to provide a combined integration. We also rectify
-some subtle problems with the semantics presented in existing approaches
+some subtle problems with the semantics presented in existing work,
 to provide a more robust combination of rich domain features.\\
 
 
 There are, of course, a variety of other systems and formalisms that
-could be used to model and implement domains such as our example.
-One popular choice is to represent tasks using a variant of the Hierarchical
-Task Networks formalism, which has been employed in systems such as
-STEAM \citep{tambe97flexible_teamwork}, SharedPlans \citep{grosz96sharedplans},
-and TAEMS \citep{decker95designing_coordination}.
+could be used to model and implement domains such as our \char`\"{}cooking
+agents\char`\"{} example. A popular choice is to represent tasks using
+a variant of the Hierarchical Task Networks formalism, which has been
+employed in systems such as STEAM \citep{tambe97flexible_teamwork},
+SharedPlans \citep{grosz96sharedplans}, and TAEMS \citep{decker95designing_coordination}.
 
 The potential advantages of Golog over HTN-based approaches are discussed
 in \citep{son00htn_golog}, where HTN-like constructs are added as
@@ -178,7 +180,7 @@ operators to the Golog language. They identify the following advantages:
 powerful control over and composition of nondeterministic operators;
 a more natural representation of many tasks thanks to common programming
 constructs; and a more sophisticated logic of action. This chapter
-will add to list: the ability to utilise off-the-shelf techniques
+will add to the list: the ability to utilise off-the-shelf techniques
 for distributed logic programming to automatically share the execution
 planning workload.
 
@@ -193,12 +195,16 @@ systems.
 
 Recall the {}``cooking agents'' example domain from Chapter \ref{ch:intro}
 -- several agents inhabit a kitchen along with various ingredients
-and utensils, and they must cooperate to prepare a meal. Specifying
-tasks in this domain requires an interesting combination of features.
-There is much procedural knowledge about recipes that should be encoded
-as precisely as possible, while at the same time there are a lot of
-details of precisely who performs which steps, or precisely when they
-are performed, that should not be explicitly specified by the programmer.
+and utensils, and they must cooperate to prepare a meal. A full definition
+of this domain is given in Appendix \ref{ch:cookingagents}, but the
+specific details are not important for the purposes of this this chapter.
+
+Specifying tasks for the cooking agents requires an interesting combination
+of features. There is much procedural knowledge about recipes that
+should be encoded as precisely as possible, while at the same time
+there are a lot of details of precisely who performs which steps,
+or precisely when they are performed, that should not be explicitly
+specified by the programmer.
 
 The Golog family of languages provide a compelling formalism for specifying
 tasks in this domain, as the controlled nondeterminism they provide
@@ -210,7 +216,7 @@ says, in essence, {}``somebody chop a lettuce, somebody chop a carrot,
 and somebody chop a tomato. Then, somebody mix them together''.
 
 %
-\begin{figure}
+\begin{figure}[!t]
 \begin{centering}
 \framebox{%
 \parbox[t][1\totalheight]{0.85\columnwidth}{%
@@ -232,17 +238,8 @@ endTask(agt,mix(dest,1))\,;\\
 \end{figure}
 
 
-Note that the explicit concurrency operators allow the three ingredients
-to be chopped independently, while the nondeterministic {}``pick''
-operators allow any available agent to perform each sub-task. Expanding
-on this example, the procedure $ChopTypeInto$ could be specified
-as shown in Figure \ref{fig:MIndiGolog:ChopTypeInto}. Here the agent
-must select and acquire an object of the specified type, as well as
-an available chopping board. He then places the object on the board,
-chops it, and transfers it to the destination container.
-
 %
-\begin{figure}
+\begin{figure}[!t]
 \begin{centering}
 \framebox{%
 \parbox[t][1\totalheight]{0.85\columnwidth}{%
@@ -267,6 +264,15 @@ release(agt,board)\,;\\
 
 \end{figure}
 
+
+Note that the explicit concurrency operators allow the three ingredients
+to be chopped independently, while the nondeterministic {}``pick''
+operators allow any available agent to perform each sub-task. Expanding
+on this example, the procedure $ChopTypeInto$ could be specified
+as shown in Figure \ref{fig:MIndiGolog:ChopTypeInto}. Here the agent
+must select and acquire an object of the specified type, as well as
+an available chopping board. He then places the object on the board,
+chops it, and transfers it to the destination container.
 
 Notice that the programs do no specify which agent is to perform which
 task -- in fact they make no assertions at all about the particular
@@ -356,8 +362,7 @@ concurrently-occurring actions, and natural actions in a robust way.
 We use the extensions to the situation calculus discussed in Chapter
 \ref{ch:background} to model concurrent actions (Section \ref{sec:Background:Concurrent-Actions})
 and explicit time (Section \ref{sec:Background:Time}). The arguments
-to $do$, $Legal,$ etc will therefore be \noun{Concurrent\#Timepoint}
-pairs rather than individual actions.
+to $do$ will therefore be \noun{Concurrent\#Timepoint} pairs.
 
 Why do we focus on these three extensions in particular? We consider
 the ability to reason about true concurrency of actions to be fundamental
@@ -389,8 +394,8 @@ rule for this case is:\[
 Trans(a,s,\delta',s')\,\equiv\, Poss(a,s)\wedge\delta'=Nil\wedge s'=do(a,s)\]
 
 
-Modifying this to use concurrent actions and explicit time, and using
-$Legal$ instead of $Poss$, we obtain:\begin{equation}
+Modifying this to use \noun{Concurrent\#Timepoint} pairs and $Legal$,
+we obtain:\begin{equation}
 Trans(a,s,\delta',s')\,\equiv\,\exists t:\, Legal(\{a\}\#t,s)\wedge\delta'=Nil\wedge s'=do(\{a\}\#t,s)\label{eq:MIndiGolog:temp_trans_a}\end{equation}
 
 
@@ -416,13 +421,12 @@ solution:\[
 t_{2}>t_{1}\]
 
 
-This solution thus represents a family of possible legal executions
-that respect the temporal ordering on situations. Since we intend
-for these executions to be performed cooperatively, the agents must
-agree in advance on a convention for grounding these variables, for
-example by setting them to their smallest possible value. To simplify
-the presentation, we have done this in the example executions shown
-throughout the chapter.
+This solution thus represents a family of legal executions that respect
+the temporal ordering on situations. Since we intend for these executions
+to be performed cooperatively, the agents must agree in advance on
+a convention for grounding these variables, for example by setting
+them to their smallest possible value. To simplify the presentation,
+we have done this in the executions shown throughout the chapter.
 
 
 \subsection{Concurrency}
@@ -464,9 +468,7 @@ programs which add ingredients to a bowl:\begin{gather*}
 two units of flour, one unit of sugar and an egg. However, an individual
 transition for both programs is $c_{1}=c_{2}=\{placeIn(Jim,Flour,Bowl)\}$.
 Naively executing $c_{1}\cup c_{2}$ to transition both programs would
-result in only one unit of flour being added. If this were a program
-in a banking domain, concurrently transferring money between different
-accounts, the implications of such an error would be even more significant.
+result in only one unit of flour being added.
 
 Alternately, consider two programs waiting for a timer to ring:\begin{gather*}
 \delta_{1}=ringTimer\,;\, acquire(Jim,Bowl)\\
@@ -496,10 +498,10 @@ Trans(\delta_{1}||\delta_{2},s,\delta',s')\equiv\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,\,
 \wedge\delta'=(\gamma_{1}||\gamma_{2})\wedge s'=do((c_{1}\cup c_{2})\#t,s)\label{eqn:trans_conc_new}\end{multline}
 
 
-There are two other Golog operators that relate to concurrency: the
-prioritised concurrency operator $\delta_{1}\ll\delta_{2}$, and the
-concurrent iteration operator $\delta^{||}$. MIndiGolog leaves both
-of these operators unmodified. For the concurrent iteration operator
+\newpage{}There are two other Golog operators that relate to concurrency:
+the prioritised concurrency operator $\delta_{1}\ll\delta_{2}$, and
+the concurrent iteration operator $\delta^{||}$. MIndiGolog leaves
+both of these operators unmodified. For the concurrent iteration operator
 this is clearly the right thing to do, since its standard semantics
 are defined in terms of the base concurrency operator and will automatically
 inherit our new ability to take advantage of true concurrency.
@@ -511,13 +513,6 @@ which point the lower-priority program is blocked until the interrupt
 handler is complete. It makes no sense to allow concurrent execution
 of both programs in this case, which would destroy these blocking
 semantics.
-
-Our robust integration of concurrent actions thus allows the language
-to more accurately reflect the concurrency present in multi-agent
-teams. Note that, like existing Golog variants, our semantics make
-no attempt to maximise concurrency during program execution. $Trans$
-and $Final$ do not differentiate between potential executions, but
-simple state which transitions can be legally performed.
 
 
 \subsection{Natural Actions}
@@ -550,9 +545,9 @@ Trans(a,s,\delta',s')\equiv\\
 \vee\,\neg\exists t_{n}:\,\LNTP(s,t_{n})\wedge\exists t:\, Legal(\{a\}\#t,s)\wedge s'=do(\{a\}\#t,s)\wedge\delta'=Nil\label{eqn:trans_prim_new}\end{multline}
 
 
-The occurrence of natural actions may also cause test conditions within
-the program to become satisfied, so a new $Trans$ clause for the
-test operator is also required as shown in equation (\ref{eqn:trans_cond_new}).
+\newpage{}The occurrence of natural actions may also cause test conditions
+within the program to become satisfied, so a new $Trans$ clause for
+the test operator is also required as shown in equation (\ref{eqn:trans_cond_new}).
 This permits a program consisting of a single test condition to make
 a transition if the test is satisfied, or a natural action occurs:
 \begin{multline}
@@ -587,12 +582,18 @@ The semantics of MIndiGolog entail:\label{lem:MIndiGolog:trans_legal}\[
 \Dt\cup\Dt_{mgolog}\models\forall s,s',\delta,\delta':\, Legal(s)\wedge Trans(\delta,s,\delta',s')\rightarrow Legal(s')\]
 
 \end{lemma}
-\begin{proofsketch}
-By induction on the structure of $\delta$. That the theorem holds
-for the modified clauses of equations \eqref{eqn:trans_conc_new},
-\eqref{eqn:trans_prim_new} and \eqref{eqn:trans_cond_new} is straightforward,
-and no other clause constructs new situation terms. 
-\end{proofsketch}
+\begin{proof}
+By induction on the structure of $\delta$. The $Trans$ clauses of
+equations \eqref{eqn:trans_conc_new}, \eqref{eqn:trans_prim_new}
+and \eqref{eqn:trans_cond_new} all assert that $Legal(c\#t,s)$ before
+constructing a new situation term $do(c\#t,s)$. The other $Trans$
+clauses either assert that $s=s'$, or set $s'$ to a new situation
+term construct by one of these three base cases. Since we are given
+that $s$ is legal, the lemma holds for each $Trans$ clause in the
+semantics. 
+\end{proof}
+\newpage{}
+
 \begin{thm}
 The semantics of MIndiGolog entail: \[
 \Dt\cup\Dt_{mgolog}\models\forall s',\delta,\delta':\, Trans^{*}(\delta,S_{0},\delta',s')\rightarrow Legal(s')\]
@@ -601,11 +602,16 @@ situations.
 \end{thm}
 \begin{proof}
 By induction on situation terms. For the base case, $S_{0}$ is always
-legal by definition. Lemma \ref{lem:MIndiGolog:trans_legal} proves
-legality for the inductive case. 
+legal by definition. Lemma \ref{lem:MIndiGolog:trans_legal} immediately
+provides legality for the inductive case by the transitivity of $Trans^{*}$. 
 \end{proof}
 The MIndiGolog semantics are thus a powerful but robust extension
-to the standard semantics of the Golog language family.
+to the standard semantics of the Golog language family. Our integration
+of concurrent actions allows the language to more accurately reflect
+the concurrency present in multi-agent teams while ensuring actions
+are performed in a definite order if they are not legal to perform
+concurrently. Natural actions are automatically predicted and inserted
+into the execution at appropriate times.
 
 
 \section{Implementation\label{sec:MIndiGolog:Implementation}}
@@ -654,13 +660,12 @@ case:
 The first option presented by the choicepoint is the case for true
 concurrency of actions, while the two other choices represent interleaved
 concurrency. By putting the true-concurrency case first, a depth-first
-search for executions will try to find a concurrent step before looking
-for a step from only one of the programs. Using $Step$ instead of
-$Trans$ allows this search to consume empty transitions of each program,
-such as test conditions, to find a valid concurrent step. This is
-semantically valid since the empty transitions consumed by $Step$
-would all eventually be generated by the standard interleaved concurrency
-cases.
+search will try to find a concurrent step before looking for a step
+from only one of the programs. Using $Step$ instead of $Trans$ allows
+this search to consume empty transitions of each program, such as
+test conditions, to find a valid concurrent step. This is valid since
+the empty transitions consumed by $Step$ are also generated by the
+interleaved concurrency cases.
 
 These simple implementation details are enough to ensure a high degree
 of concurrency in the generated executions, as we shall demonstrate
@@ -673,37 +678,33 @@ this is used to define the semantics of the search operator.
 
 \programinput{listings/mindigolog/goloz_do.oz}
 
-Our implementation of the search operator uses a simple trick to avoid
-recalculating the complete legal execution - it translates the found
-situation into a list of actions to be performed. More sophisticated
-implementations can further instrument this case to perform failure
-detection and re-planning \citep{Lesperance00improved_indigolog},
+Our implementation of the search operator avoids recalculating the
+complete legal execution by translating it into a direct list of actions
+to be performed. More sophisticated implementations can further instrument
+this case to perform failure detection and re-planning \citep{Lesperance00improved_indigolog},
 but we do not include these techniques in our work.
 
 \programinput{listings/mindigolog/goloz_trans_search1.oz}
 
 Using this implementation, a team of agents can plan and perform the
 execution of a shared MIndiGolog program by following the ReadyLog
-execution algorithm from Algorithm \ref{alg:readylog_exec}. The code
-for the main control loop is shown below.
+execution algorithm from Algorithm \ref{alg:readylog_exec}. First
+we define procedures to detect program termination and to plan a next
+program step, which use built-in search object to resolve choicepoints:
 
 \programinput{listings/mindigolog/goloz_control.oz}
 
-As in ReadyLog, each agent individually executes this control loop.
-When the next step contains an action that is to be performed be the
-agent, they execute it at the indicated time. Otherwise, they wait
-for the actions to be executed by their teammates before proceeding
-to the next iteration.
+The main control loop is then implemented in the procedure $Run$
+as shown below. As in ReadyLog, each agent individually executes this
+control loop. When the next step contains an action that is to be
+performed be the agent, they execute it at the indicated time. Otherwise,
+they wait for the actions to be executed by their teammates before
+proceeding to the next iteration.
 
-The effect of our new semantics can be seen in Figure \ref{fig:MIndiGolog:MakeSalad-in-MIndiGolog}.
-This shows the execution generated by our implementation for the $MakeSalad$
-program from Figure \ref{fig:MIndiGolog:MakeSalad}, using the new
-semantics of MIndiGolog in a domain with three agents. Note the execution
-of several actions at each timestep, demonstrating the integration
-of true concurrency into the language.
+\programinput{listings/mindigolog/goloz_run.oz}
 
 %
-\begin{figure}[t]
+\begin{figure}[!b]
  \framebox{%
 \parbox[t][1\totalheight]{1\columnwidth}{%
 \begin{center}
@@ -716,10 +717,16 @@ of true concurrency into the language.
 \end{figure}
 
 
-Compared to the non-concurrent execution generated by the standard
-IndiGolog semantics (Figure \ref{fig:MIndiGolog:MakeSalad-in-IndiGolog}),
-our semantics clearly provide advantages for planning cooperative
-execution in a multi-agent setting.
+The effect of our new semantics can be seen in Figure \ref{fig:MIndiGolog:MakeSalad-in-MIndiGolog}.
+This shows the execution generated by our implementation for the $MakeSalad$
+program from Figure \ref{fig:MIndiGolog:MakeSalad}, using the new
+semantics of MIndiGolog in a domain with three agents. Note the execution
+of several actions at each timestep, demonstrating the integration
+of true concurrency into the language. Since there are three agents
+but only two chopping boards, in this execution $Jon$ must wait until
+a board becomes available at time 12 before he can begin processing
+his ingredient. This execution is clearly more suited to a multi-agent
+domain than that produced by the standard IndiGolog semantics.
 
 
 \section{Distributed Execution Planning\label{sec:MIndiGolog:Distributed-Planning}}
@@ -730,27 +737,24 @@ Since the task of planning a MIndiGolog execution is encoded as a
 logic program, this immediately allows a team of agents to distribute
 the execution planning workload.
 
-However, there is a certain amount of computational and communication
-overhead involved in such a search, so it must be used judiciously.
-We argue as follows: parts of the program appearing outside the scope
-of a search operator are intended for on-line execution, and so will
-tend to require little deliberation by the agent. By contrast, program
-components enclosed in a search operator are intended to require significant
-planning to generate a legal execution. We therefore modify our implementation
-of the the search operator to perform distributed execution planning,
-but leave the rest of the code intact.
+There are non-trivial computational and communication overheads involved
+in such a search, so it must be used judiciously. We argue that parts
+of the program appearing outside the scope of a search operator are
+intended for on-line execution, and so will tend to require little
+deliberation by the agent. By contrast, program components enclosed
+in a search operator are intended to require significant planning
+to generate a legal execution. We therefore modify the search operator
+to perform distributed execution planning, but leave the rest of the
+code intact.
 
 To coordinate the parallel search, we designate one agent to be the
 \emph{team leader}, who will be responsible for managing the search
-process. This position does not confer any additional capabilities
-on the agent, and is merely a coordination device.
-
-The code below shows the modified implementation of the search operator
+process; the choice of agent is arbitrary and is simply a coordination
+device. The code below shows our implementation of the search operator
 using parallel search. If the executing agent is the team leader,
-it initiates the parallel search using the procedure $ParallelDo$
-and, when a plan is found, sends the details to the other members
-of the team. Subordinate team members simply wait for the message
-to be received before continuing.
+it executes the procedure $ParallelDo$ and, when a plan is found,
+sends the details to the other members of the team. Subordinate team
+members simply wait for the plan to be received before continuing.
 
 \programinput{listings/mindigolog/goloz_trans_search2.oz}
 
@@ -758,6 +762,8 @@ Note that this modification is completely transparent to the rest
 of the implementation. While some details of sending messages are
 not shown, the core implementation of the ParallelDo procedure is
 shown below.
+
+\programinput{listings/mindigolog/goloz_paralleldo.oz}
 
 This code packages up the task to be performed as a \emph{functor},
 a portable piece of code that can be shared across the network by
@@ -768,8 +774,6 @@ all team members, and asking it for a solution to the functor. When
 this code is executed by the team leader, it will utilise the computational
 resources of all team members to plan the execution of the enclosed
 MIndiGolog program.
-
-\programinput{listings/mindigolog/goloz_paralleldo.oz}
 
 As a brief demonstration of the advantages provided by this technique,
 consider the suggestively-named program {}``HardToPlan'' shown in
@@ -783,7 +787,9 @@ Planning a legal execution of this program thus requires a significant
 amount of backtracking and should benefit greatly from parallelisation.
 
 %
-\begin{figure}
+\begin{figure}[!t]
+ 
+
 \begin{centering}
 \framebox{%
 \parbox[t][1\totalheight]{0.85\columnwidth}{%
@@ -810,17 +816,19 @@ HasObject(Joe,Flour5)?\,;\\
 
 
 We used our MIndiGolog implementation to execute $\Sigma(HardToPlan)$
-in two different ways - using parallel search as described above,
-and having the team leader search for a legal execution on its own.
-The program for team leader $Jon$ was executed on an AMD Althon 64
-3000+, while the subordinate team members $Jim$ and $Joe$ each executed
+in two different ways: using parallel search as described above, and
+having the team leader search for a legal execution on its own. The
+program for team leader $Jon$ was executed on an AMD Althon 64 3000+,
+while the subordinate team members $Jim$ and $Joe$ each executed
 on one core an Intel Core2 Duo 1.8 GHz. Three test runs were performed
 for both parallel and individual search. The times required to find
 a legal execution are shown in Table \ref{tab:MIndiGolog:Execution-planning-times}
 along with the speedup factor achieved by using parallel search.
 
 %
-\begin{table}
+\begin{table}[!t]
+ 
+
 \begin{centering}
 \begin{tabular}{|c|c|c|c|}
 \hline 
@@ -870,44 +878,43 @@ of natural actions. As we have shown by comparison to IndiGolog, it
 defines legal executions of Golog programs that are much more suitable
 for cooperative execution by a multi-agent team.
 
-We have also demonstrated a powerful new implementation of MIndiGolog
-using Mozart/Oz instead of the traditional use of Prolog. Since the
-situation calculus and Golog have a straightforward encoding as a
-logic program, the off-the-shelf techniques for distributed logic
-programming provided by the Mozart platform can be used to transparently
-share the execution planning workload between team members.
+We have also demonstrated an innovative implementation of MIndiGolog
+using Mozart/Oz instead of Prolog. Since the situation calculus and
+Golog have a straightforward encoding as a logic program, the off-the-shelf
+techniques for distributed logic programming provided by the Mozart
+platform can be used to transparently share the execution planning
+workload between team members.
 
-The approach presented in this chapter is by no means a a complete
+The approach presented in this chapter is by no means a complete
 account of cooperative execution in multi-agent domains. It pre-supposes
 the existence of a fixed team of agents and their mutual commitment
 to executing a pre-specified shared task. Our implementation therefore
 focuses entirely on planning and performing the execution of such
-a task, without explicit notions of cooperation or commitment. However,
-these techniques could easily form a component of a higher-level multi-agent
-system based on the situation calculus, such as the CASL framework
-\citep{shapiro02casl,lesperance05ecasl}.
+a task, without explicit mental attitudes such as cooperation or commitment.
+However, this technique could easily form a component of a larger
+multi-agent system based on the situation calculus, such as \citep{shapiro02casl,lesperance05ecasl}.
 
-The purpose of this chapter, then, is not to propose the MIndiGolog
-approach as the ultimate solution for programming cooperative behaviour.
-Rather, it serves to highlight the \emph{potential} of the situation
-calculus and Golog for both modelling and implementing rich multi-agent
-systems. Unfortunately, this potential has traditionally been limited
-by some restrictions on the effective reasoning procedures of the
-situation calculus, and this first incarnation of MIndiGolog has inherited
-these limitations.
+The purpose of this chapter is not to propose the MIndiGolog approach
+as the ultimate solution for programming cooperative behaviour. Rather,
+it serves to highlight the \emph{potential} of the situation calculus
+and Golog for both modelling and implementing rich multi-agent systems.
+Unfortunately, this potential has traditionally been limited by some
+restrictions on the effective reasoning procedures of the situation
+calculus, and our implementation of MIndiGolog has inherited those
+limitations.
 
 Most fundamentally, the output of our execution planning process assumes
 that the domain is synchronous and that all actions are publicly observable.
-As discussed in Chapter \ref{ch:intro}, this assumption is necessary
-to allow agents to reason using standard regression techniques. It
-also means that simple situation terms suffice as the output of the
-planning process -- agents have all the information they need to coordinate
-the performance of concurrent actions, and to ensure that actions
-are performed in the correct order. For example, the execution in
-Figure \ref{fig:MIndiGolog:MakeSalad-in-MIndiGolog} calls for $Jim$
-to release $Bowl1$ and then for $Joe$ to acquire it in the next
-timestep, implicitly assuming that the two agents are able to coordinate
-these actions.
+This assumption is necessary to allow reasoning using standard regression
+techniques, as it means the agents do not need to consider arbitrarily-long
+sequences of hidden actions. It also means that simple situation terms
+suffice as the output of the planning process; agents have all the
+information they need to coordinate the performance of concurrent
+actions, and to ensure that actions are performed in the correct order.
+For example, the execution in Figure \ref{fig:MIndiGolog:MakeSalad-in-MIndiGolog}
+calls for $Jim$ to release $Bowl1$ and then for $Joe$ to acquire
+it in the next timestep, implicitly assuming that the two agents are
+able to coordinate and synchronise these actions.
 
 Consider, by contrast, an asynchronous domain in which some actions
 are not public. If $Joe$ is not be able to observe the occurrence
@@ -916,30 +923,33 @@ acquiring it and execution of the plan would fail. To be sure that
 the plans produced by our system can be executed in the real world,
 we must assume that the agents execute their actions in lock-step
 and always know the current state of execution -- in other words,
-that there is constant synchronisation between the agents.
+that there is some form of constant synchronisation between the agents.
 
 Another limitation is that MIndiGolog does only \emph{linear} planning,
 and has no support for sensing actions. In the single-agent case the
 execution of Golog programs that include sensing actions is well understood
 \citep{giacomo99indigolog,lakemeyer99golog_cats}, but there is no
 straightforward way to adopt these techniques to the implicit coordination
-scheme used by this first incarnation of MIndiGolog -- it depends
-crucially on the assumption that all agents have access to the same
-information. Introducing sensing actions to MIndiGolog will require
+scheme used by MIndiGolog. The difficulty arises from the execution
+algorithm's crucial assumption that all agents have access to the
+same information. Introducing sensing actions to MIndiGolog will require
 more explicit reasoning about coordination based on the local information
 available to each agent.
 
 Existing situation calculus techniques for reasoning about the local
 perspective of each agent are based on explicit notions of knowledge,
 as described in Section \ref{sec:Background:Epistemic}. But even
-these formalisms demand that the domain is synchronous, requiring
-agents to always know how many actions have occurred, to allow reasoning
-based on standard regression techniques. The situation calculus currently
-offers no tools for reasoning about the local perspective of an agent
-in asynchronous domains, where some action occurrences may be completely
-hidden. To extend the reach of MIndiGolog - and the situation calculus
-in general - to richer multi-agent settings, we must construct a principled
-account of the local perspective of each agent, which can then be
-used to reason explicitly about knowledge and coordination in asynchronous
-domains.
+these formalisms are limited to synchronous domains, requiring agents
+to always know how many actions have occurred so that standard regression
+techniques techniques can be applied. The situation calculus currently
+offers no tools to extend the MIndiGolog approach into asynchronous
+domains. The remainder of this thesis is devoted to developing the
+foundations for such tools.
+
+While we will revisit the cooking agents again in Chapter \ref{ch:jointexec},
+our final implementation of an asynchronous version of MIndiGolog
+is still ongoing. At the conclusion of this thesis, we will discuss
+the challenges remaining to be faced in bringing our new techniques
+for representing and reasoning about asynchronous domains together
+with a practical implementation of a system such as MIndiGolog.
 
