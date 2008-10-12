@@ -1,17 +1,17 @@
 
-  proc {MakePlan JIn Branches JOut}
-    BClosed BRest
-  in
-    {FindOpenBranch JIn Branches BClosed BRest}
-    case BRest of (D#R#N)|Bs then Dp Rp S J2 OutNs OutBs in
-       {FindTrans1 D R Bs Dp Rp S}
-       OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
-       OutBs = for collect:C N2 in OutNs do
-                     {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
-                  end
-       {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
-    else
-      JOut = JIn
-    end
+proc {MakePlan JIn Leaves JOut}
+  LCls LRest
+in
+  {FindOpenLeaf JIn Leaves LCls LRest}
+  case LRest of (D#H#N)|Ls then Dp Hp S J2 OutNs OutLs in
+     {FindTrans1 D H Ls Dp Hp S}
+     OutNs = {JointExec.insert JIn N S {MkPrecFunc S Hp} J2}
+     OutLs = for collect:C N2 in OutNs do
+                   {C Dp#ex({JointExec.getout J2 N2 S} Hp)#N2}
+                end
+     {MakePlan J2 {List.append LCls {List.append OutLs Ls}} JOut}
+  else
+    JOut = JIn
   end
+end
 

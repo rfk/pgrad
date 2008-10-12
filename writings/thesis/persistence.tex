@@ -4,14 +4,14 @@
 
 \label{ch:persistence}
 
-This chapter develops a new reasoning technique for the situation
-calculus that can handle certain types of universally-quantified query.
-As discussed in Chapter \ref{ch:observations}, for an agent in an
-asynchronous domain to reason about the world based on its local information,
-it needs to pose queries that universally quantify over situation
-terms. Unfortunately such queries cannot be handled using the regression
-operator, and have thus far been beyond the reach of automated reasoning
-systems for the situation calculus.
+This chapter develops a new inductive reasoning technique for the
+situation calculus that can handle certain types of universally-quantified
+query. As discussed in Chapter \ref{ch:observations}, for an agent
+in an asynchronous domain to reason about the world based on its local
+information, it needs to pose queries that universally quantify over
+situation terms. Unfortunately such queries cannot be handled using
+the regression operator, and have thus far been beyond the reach of
+automated reasoning systems for the situation calculus.
 
 We study a restricted subset of universally-quantified queries that
 we refer to as \emph{property persistence queries}, introducing an
@@ -29,6 +29,12 @@ combination with standard regression-based reasoning techniques, allowing
 the inductive component of the reasoning to be {}``factored out''
 and approached using a special-purpose reasoning algorithm. The technique
 is always sound, and is complete in several interesting cases.
+
+While the problematic universally-quantified query identified in Chapter
+\ref{ch:observations} is not directly amenable to our new technique,
+the next chapter will show how to combine property persistence with
+a new formalism for explicit epistemic reasoning, allowing an agent
+to reason effectively using only its local information.
 
 The chapter proceeds as follows: after some more detailed background
 material on inductive reasoning in the situation calculus in Section
@@ -173,7 +179,8 @@ would be well advised to avoid such situations.\\
 show that the constraint holds in every legal situation:\[
 \Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow SC(s)\]
  This can be seen as a variant of goal impossibility, by showing that
-the constraint can never be violated.\newpage{}
+the constraint can never be violated.\\
+
 
 \textbf{Need for Cooperation:} Given an agent $agt$, goal $G$ and
 situation $\sigma$, establish that no sequence of actions performed
@@ -241,8 +248,8 @@ axioms. Formally:\label{def:persistence-condition}\[
 Defining $\Pst_{\Dt}$ to be independent of the initial world state
 allows an agent to calculate it regardless of what (if anything) is
 known about the actual state of the world -- after all, an agent may
-not know all the details of $\Dt_{S_{0}}$, and we still want to agent
-to be able to use this technique.
+not know all the details of $\Dt_{S_{0}}$, and we still want it to
+be able to use this technique.
 
 This definition alone clearly does not make the task of answering
 a persistence query any easier, since it gives no indication of how
@@ -258,15 +265,10 @@ in our definitions precludes the use of various situation calculus
 extensions as described in Section \ref{sec:Background:Extensions}.
 
 \begin{defnL}
-[{Persistence~to~Depth}] A uniform formula $\phi$ persists
+[{Persistence~to~Depth~1}] A uniform formula $\phi$ persists
 to depth 1 under $\alpha$ in situation $s$ when the formula $\Pst_{\Dt}^{1}(\phi,\alpha)[s]$
 holds, as defined by:\label{def:persists-depth-n}\[
 \Pst_{\Dt}^{1}(\phi,\alpha)\,\isdef\,\phi^{-1}\,\wedge\,\forall a:\,\Reg_{\Dt}(\alpha[a,s])^{-1}\rightarrow\Reg_{\Dt}(\phi[do(a,s)])^{-1}\]
- More generally, for any $n\geq0$, a uniform formula $\phi$ persists
-to depth $n$ under $\alpha$ in situation $s$ when the formula $\Pst_{\Dt}^{n}(\phi,\alpha)[s]$
-holds, as defined by:\begin{gather*}
-\Pst_{\Dt}^{0}(\phi,\alpha)\,\isdef\,\phi\\
-\Pst_{\Dt}^{n}(\phi,\alpha)\,\isdef\,\Pst_{\Dt}^{1}(\Pst_{D}^{n-1}(\phi,\alpha),\alpha)\end{gather*}
 
 \end{defnL}
 Note that $\Pst_{\Dt}^{1}$ is a literal encoding of the requirement
@@ -278,9 +280,18 @@ Without the use of regression, the definition would appear as follows:\[
  Since $\alpha$ is an action description predicate and $\phi$ is
 a uniform formula, the expressions $\Reg_{\Dt}(\alpha[a,s])^{-1}$
 and $\Reg(\phi[do(a,s)])^{-1}$ are always defined and always produce
-uniform formulae. Successive applications of $\Pst_{\Dt}^{1}$ then
-assert persistence to greater depths.
+uniform formulae. Successive applications of $\Pst_{\Dt}^{1}$ can
+then assert persistence to greater depths:
 
+\begin{defnL}
+[{Persistence~to~Depth~N}] For any $n\geq0$, a uniform
+formula $\phi$ persists to depth $n$ under $\alpha$ in situation
+$s$ when the formula $\Pst_{\Dt}^{n}(\phi,\alpha)[s]$ holds, as
+defined by:\begin{gather*}
+\Pst_{\Dt}^{0}(\phi,\alpha)\,\isdef\,\phi\\
+\Pst_{\Dt}^{n}(\phi,\alpha)\,\isdef\,\Pst_{\Dt}^{1}(\Pst_{D}^{n-1}(\phi,\alpha),\alpha)\end{gather*}
+
+\end{defnL}
 The following theorem confirms that $\Pst_{\Dt}^{n}$ operates according
 to this intuition -- that for any sequence of actions of length $i=0$
 to $i=n$, if each action satisfies $\alpha$ in the situation it
@@ -305,7 +316,7 @@ LHS:\[
 Substituting for $\Pst_{\Dt}^{n-1}$ using the inductive hypothesis
 gives us a conjunction ranging over $i\leq n-1$, with universally
 quantified variables $a_{1},\dots,a_{i}$, and we must establish the
-$i=n$ case. Pushing the conjunction inside the scope of the $\forall a$
+$i=n$ case. Pushing this conjunction inside the scope of the $\forall a$
 quantifier, we find we can rename $a\Rightarrow a_{1}$, $a_{1}\Rightarrow a_{2}$
 etc to get the required expression. 
 \end{proofsketch}
@@ -318,10 +329,10 @@ Such a fixpoint could then be calculated using standard iterative
 approximation techniques. The remainder of this section is devoted
 to verifying this intuition.
 
-We begin by adapting two existing results involving induction to operate
-with our generalised $\leq_{\alpha}$ notation, and be based at situations
-other than $S_{0}$.\\
-
+We begin by adapting two existing results involving induction from
+the situation calculus literature, so that they operate with our generalised
+$\leq_{\alpha}$ notation and can be based at situations other than
+$S_{0}$.
 
 \begin{prop}
 For any action description predicate $\alpha$, the foundational axioms
@@ -471,9 +482,10 @@ query at situation $\sigma$, there is a unique (up to equivalence)
 corresponding query that is uniform in $\sigma$ and is thus amenable
 to standard effective reasoning techniques of the situation calculus.
 
-The definition of $\Pst(\phi,\alpha)$ as a fixpoint also suggests
-that it can be calculated by iterative approximation, which we discuss
-in the next section.
+Of course, it remains to actually calculate the persistence condition
+for a given $\phi$ and $\alpha$. The definition of $\PstD(\phi,\alpha)$
+as a fixpoint suggests that it can be calculated by iterative approximation,
+which we discuss in the next section.
 
 
 \section{Calculating $\PstD$\label{sec:Persistence:Calculating}}
@@ -531,7 +543,7 @@ first-order logical inference in the loop condition may be undecidable
 and fail to terminate.
 
 The later case indicates that the basic action theory $\Dt$ is undecidable.
-While this is a concern, it affects more than just our algorithm -
+While this is a concern, it affects more than just our algorithm --
 any system implemented around such an action theory will be incomplete.
 With respect to this source of incompleteness, our algorithm is no
 more incomplete than any larger reasoning system it would form a part
@@ -576,7 +588,9 @@ guarantee.
 Alternately, suppose all successor state axioms and action description
 predicates have the following restricted form, where the terms in
 $\vars{y}$ are a subset of the terms in $\vars{x}$ and $\Phi_{F}$,
-$\Pi_{ADP}$ mention no terms other than $\vars{x}$, $a$ and $s$:\begin{gather*}
+$\Pi_{ADP}$ mention no terms other than $\vars{x}$, $a$ and $s$:
+
+\begin{gather*}
 F(\vars{x},do(a,s))\,\equiv\,\bigwedge_{i=1}^{n}a=a_{i}(\vars{y}_{i})\wedge\Phi_{F}(\vars{x},a,s)\\
 ADP(\vars{x},a,s)\,\equiv\,\bigwedge_{i=1}^{n}a=a_{i}(\vars{y})\wedge\Pi_{ADP}(\vars{x},a,s)\end{gather*}
 
@@ -585,37 +599,37 @@ Under such theories, applications of $\PstDI$ will introduce no new
 terms into the query, apart from finitely many action terms $a_{i}$.
 The range of $\PstDI$ applied to $\phi$ is then a finite subset
 of the lattice of equivalence classes of formulae uniform in $s$,
-again guaranteed well-foundedness an terminating calculation of $\Pst_{\Dt}$.
+again guaranteed well-foundedness and terminating calculation of $\Pst_{\Dt}$.
 
 Of course this is a very strong restriction on the structure of the
-theory, as successor state axioms are not able to contain any quantifiers.
-It does demonstrate, however, that certain syntactical restrictions
-on $\Dt$ are able to guarantee terminating calculation of $\Pst_{\Dt}$.
-It seems there should be a more general {}``syntactic well-foundedness''
-restriction that can be applied to these axioms, but we have not successfully
-formulated one at this stage.
+theory, as the successor state axioms are not able to contain any
+quantifiers. It does demonstrate, however, that certain syntactical
+restrictions on $\Dt$ are able to guarantee terminating calculation
+of $\Pst_{\Dt}$. It seems there should be a more general {}``syntactic
+well-foundedness'' restriction that can be applied to these axioms,
+but we have not successfully formulated one at this stage.
 
-In a simlar vein, suppose that the theory of action is \emph{context
-free} as defined by \citep{reiter97progression}. In such theories
-successor state axioms have the following form:\[
+In a similar vein, suppose that the theory of action is \emph{context
+free} \citep{reiter97progression}. In such theories successor state
+axioms have the following form:\[
 F(\vars{x},do(a,s))\,\equiv\,\Phi_{F}^{+}(\vars{x},a)\,\vee\,\left(F(\vars{x},s)\,\wedge\,\neg\Phi_{F}^{-}(\vars{x},a)\right)\]
 
 
 The effects of an action are thus independent of the situation it
 is performed in. \citet{levesque98what_robots_can_do} demonstrate
 that such theories have a finite state space, again ensuring our algorithm
-operates over a finite lattice and hence guaranteing termination.
+operates over a finite lattice and hence guaranteeing termination.
 Context free domains are surprisingly expressive; for example, domains
 described in the style of STRIPS operators are context free.
 
-From a slightly different angle, suppose that $\phi$ can never persist
-under $\alpha$, so that $\PstD(\phi,\alpha)\equiv\bot$. Further
-suppose that $\Dt$ has the \emph{compactness} property as in standard
-first-order logic. Then the {}``quantum levels'' of \citet{savelli06sc_quantum_levels}
-guarantee that there is a fixed, finite number of actions within which
-$\neg\phi$ can always be achieved. In this case Algorithm \ref{alg:calc_p}
-will determine $\PstD(\phi,\alpha)\equiv\bot$ within finitely many
-iterations.
+From a slightly different perspective, suppose that $\phi$ can never
+persist under $\alpha$, so that $\PstD(\phi,\alpha)\equiv\bot$.
+Further suppose that $\Dt$ has the \emph{compactness} property as
+in standard first-order logic. Then the {}``quantum levels'' of
+\citet{savelli06sc_quantum_levels} guarantee that there is a fixed,
+finite number of actions within which $\neg\phi$ can always be achieved.
+In this case Algorithm \ref{alg:calc_p} will determine $\PstD(\phi,\alpha)\equiv\bot$
+within finitely many iterations.
 
 It would also be interesting to determine whether known decidable
 variants of the situation calculus (such as \citep{yu07twovar_sitcalc})
@@ -684,9 +698,8 @@ from $\sigma$:\[
 and goal futility. This highlights the advantage of re-using the persistence
 condition at multiple situations. Our approach makes it feasible for
 an agent to check for goal futility each time it considers performing
-an action, and avoid situations that would make its goals unachievable.
+an action, and avoid situations that would make its goals unachievable.\\
 
-\newpage{}
 
 \textbf{Checking State Constraints:} Given a state constraint $SC$,
 show that the constraint holds in every legal situation:\[
@@ -700,11 +713,11 @@ it must satisfy the following equivalence:
 \Dt_{bg}\models\phi\equiv\Pst_{\Dt}(\phi,Legal)\]
 
 
-If this equivalence does not hold then $\Pst_{\Dt}(\phi,Poss)$ indicates
+If this equivalence does not hold then $\Pst_{\Dt}(\phi,Legal)$ indicates
 the additional conditions that are necessary to ensure that $\phi$
 persists, which may be used to adjust the action theory to enforce
-the constraint. The approach to state-constraints developed by \citet{Lin94-StateConstraints}
-can be seen as a variant of this technique.\\
+the constraint. This particular application has strong parallels to
+the approach to state constraints developed by \citet{Lin94-StateConstraints}.\\
 
 
 \textbf{Need for Cooperation:} Given an agent $agt$, goal $G$ and
@@ -778,6 +791,6 @@ advance our ability to effectively calculate the persistence condition.
 
 This chapter has thus significantly increased the scope of queries
 that can be posed when building systems upon the situation calculus,
-and allowed us to treat the inductive aspects of reasoning as a separate,
-well-defined component of the overall reasoning machinery.
+and allowed us to treat certain inductive aspects of reasoning as
+a separate, well-defined component of the overall reasoning machinery.
 

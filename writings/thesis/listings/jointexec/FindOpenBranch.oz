@@ -1,13 +1,13 @@
 
-  proc {FindOpenBranch J Branches BClosed BRest}
-    case Branches of (D1#R1#N1)|Bs then D R N NewBs in
-        (D#R#N)|NewBs = {HandleExistingEvents J D1#R1#N1}
-        if {MIndiGolog.isFinal D R} then
-          BClosed = (D#R#N)|_
-          {FindOpenBranch J {List.append NewBs Bs} BClosed.2 BRest}
-        else
-          BClosed = nil BRest = (D#R#N)|{List.append NewBs Bs}
-        end
-    else BClosed = nil BRest = nil end
-  end
+proc {FindOpenLeaf J Leaves LCls LRest}
+  case Leaves of (D1#H1#N1)|Ls then D H N NewLs in
+      (D#H#N)|NewLs = {HandleExistingEvents J D1#H1#N1}
+      if {MIndiGolog.isFinal D H} then
+        LCls = (D#H#N)|_
+        {FindOpenLeaf J {List.append NewLs Ls} LCls.2 LRest}
+      else
+        LClosed = nil LRest = (D#H#N)|{List.append NewLs Ls}
+      end
+  else LCls = nil LRest = nil end
+end
 
