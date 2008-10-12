@@ -46,7 +46,7 @@ export
   Assert
   Finish
   NextEvent
-  Getobs
+  Getout
 
   WriteDotFile
   WriteDotFileAgt
@@ -84,7 +84,7 @@ define
   in
     J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = J2 %{FixActionInvariants J2 AId}
+    JOut = {FixActionInvariants J2 AId}
     Outcomes = for collect:C I in OIds do
                  {C {BranchPush JOut I Ns}}
                end
@@ -342,7 +342,7 @@ define
 
   %
   %  Assert that the given action is in the execution at event N.
-  %  This is an analogue to {Insert} but instead of adding new actions,
+  %  This is analogous to {Insert} but instead of adding new actions,
   %  it verifies existing ones.
   %
   proc {Assert J Ns N S Preceeds Outcomes}
@@ -387,7 +387,7 @@ define
   %  the observations in the outcome event, and 'seqn' is the event
   %  number.
   %
-  proc {Getobs J Ns SIn SOut}
+  proc {Getout J Ns SIn SOut}
     Data = {IntMap.get J Ns.1}
   in
     SOut = {Record.adjoinList SIn [out#Data.out seqn#Ns.1]}

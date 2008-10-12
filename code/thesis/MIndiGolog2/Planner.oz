@@ -58,9 +58,8 @@ define
        OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
        {System.showInfo "...inserted"}
        OutBs = for collect:C N2 in OutNs do
-                     {C Dp#ex({JointExec.getobs J2 N2 S} Rp)#N2}
+                     {C Dp#ex({JointExec.getout J2 N2 S} Rp)#N2}
                   end
-       {System.show J2}
        {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
     else {System.showInfo "all done!"} JOut = JIn end
   end
@@ -186,7 +185,7 @@ define
       {MIndiGolog.trans1 D R Dp Rp S}
       OutNs = {JointExec.assert J N Ne S {MkPrecFunc S Rp}}
       Branches=for append:Acc OutN in OutNs do
-                 S2 = {JointExec.getobs J OutN S} in
+                 S2 = {JointExec.getout J OutN S} in
                  {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#OutN}}
                end
     end

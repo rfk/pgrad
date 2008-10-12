@@ -10,6 +10,12 @@ FUNCTORS = Domain.ozf Procedures.ozf LP.ozf Control.ozf IntMap.ozf JointExec.ozf
 %.png: %.dot
 	dot -o $@ -Tpng $<
 
+%.dia: %.dot
+	dot -o $@ -Tdia $<
+
+%.svg: %.dot
+	dot -o $@ -Tsvg $<
+
 %.tex: %.dot
 	dot2tex --preproc $< | dot2tex --figonly > $@
 
@@ -20,9 +26,7 @@ main.exe: main.ozf $(FUNCTORS)
 plans: main.exe
 	./main.exe
 	make plan.png
-	make plan_jim.png
-	make plan_joe.png
-	make plan_jon.png
+	make plan.dia
 	gthumb plan*.png &
 
 clean:

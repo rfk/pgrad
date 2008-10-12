@@ -51,7 +51,6 @@ import
   VarMap
 
   Search
-  System
   Space
 
 export
@@ -430,7 +429,6 @@ define
   %
   proc {Theory_done SData Outcome Res}
     {Lang.assign {StripVE {Dictionary.items SData.fvBind}}}
-    {System.show SData.aVars}
     %{Lang.assign {StripVE SData.aVars}}
     Res = SData
   end
@@ -575,7 +573,6 @@ define
       not Sol=nil end
     end
     S = {Space.new Check}
-    local Status = {Space.askVerbose S} in {Wait Status} {System.show status(Status)} end
     case {Space.askVerbose S} of failed then B = false
     else B = true end
   end
