@@ -63,16 +63,15 @@ the epistemic path as well as the enclosed formula, transforming $\PKnowsZ(\pi,\
 into an equivalent expression $\forall c':\,\PKnowsZ(\Trn(\pi,c,c'),\Reg(\phi,c'),s)$.
 
 Section \ref{sec:CKnowledge:Asynchronous} introduces hidden actions
-by using the empty action set to explicitly represent {}``nothing
-happens''.. We simulate agents reasoning about arbitrarily-long sequences
-of hidden actions by inserting arbitrarily many empty action sets
-between each real action in a situation term. A regression rule is
-formulated for this infinitary construction using the persistence
-condition meta-operator in a similar way to the previous chapter.
-Section \ref{sec:CKnowledge:Correctness} then demonstrates the correctness
-of this construction by showing that in the case of a single agent,
-it precisely matches the definition of individual knowledge presented
-in Chapter \ref{ch:knowledge}.
+by using the empty action set to explicitly represent a hidden action.
+We simulate agents reasoning about arbitrarily-long sequences of hidden
+actions by inserting arbitrarily many empty action sets between each
+real action in a situation term. A regression rule is formulated for
+this infinitary construction using the persistence condition meta-operator
+in a similar way to the previous chapter. Section \ref{sec:CKnowledge:Correctness}
+then demonstrates the correctness of this construction by showing
+that in the case of a single agent, it precisely matches the definition
+of individual knowledge presented in Chapter \ref{ch:knowledge}.
 
 The effectiveness of our new technique is demonstrated in Section
 \ref{sec:CKnowledge:Example} by reasoning about common knowledge
@@ -269,8 +268,8 @@ While we hope this definition is intuitively plausible, we will not
 formally relate it to the definitions given in the previous chapter
 until Section \ref{sec:CKnowledge:Correctness}. Beginning with the
 assumption of synchronicity allows us to focus first on increasing
-the expressiveness of the epistemic language. Once this have been
-achieved, we will generalise the formalism to asynchronous domains.
+the expressiveness of the epistemic language. Once this has been achieved,
+we will generalise the formalism to asynchronous domains.
 
 The next step is to adopt the language of dynamic logic to express
 complex \emph{epistemic} modalities rather than modalities regarding
@@ -514,7 +513,7 @@ support for hidden actions directly in the rules governing the regression
 operator.
 
 The idea is to use the empty action set to explicitly represent the
-notion that {}``nothing happens''. We simulate agents reasoning
+occurrence of a single hidden action. We simulate agents reasoning
 about hypothetical futures in which they make no more observations
 by inserting these empty actions between each regular action in a
 situation term.
@@ -563,7 +562,7 @@ that can be falsified by a sequence of hidden actions. By arguments
 entirely analogous to those used in Chapter \ref{ch:persistence},
 the addition of empty actions must eventually reach a well-defined
 fixpoint, and it may be helpful to think of $\PKnows$ as a fixpoint
-definition with the suggestive notation:\[
+definition with the following suggestive notation:\[
 \PKnows(\pi,\phi,s)\,\isdef\,\PKnowsZ(\pi,\phi,\mathcal{E}^{\infty}(s))\]
 
 
@@ -580,7 +579,7 @@ $\PKnowsZ$ with $\PKnows$:\begin{gather*}
 
 Next, we have a simple action description predicate that is only ever
 satisfied by the empty action set:\[
-Empty(a,s)\,\isdef\, a=\{\}\]
+Empty(a,s)\,\equiv\, a=\{\}\]
  We then propose the following regression rules for the macro $\PKnows$:\begin{gather}
 \Reg(\PKnows(\pi,\phi,do(c,s)))\,\isdef\,\UnZ(\Reg(\Pst(\PKnowsZ(\pi,\phi),Empty)[do(c,s)]))\label{eq:Reg_PKnows_do}\\
 \Reg(\PKnows(\pi,\phi,S_{0}))\,\isdef\,\Pst(\PKnowsZ(\pi,\phi),Empty)[S_{0}]\label{eq:Reg_PKnows_S0}\end{gather}
@@ -597,7 +596,7 @@ Note that, as in the case of individual-level knowledge, regressing
 $\PKnows$ at $do(c,s)$ produces an expression using $\PKnows$ at
 $s$, while regressing $\PKnows$ at $S_{0}$ produces an expression
 involving $\PKnowsZ$ at $S_{0}$. Repeated applications of these
-rules will thus reduces a path-knowledge query at some future situation
+rules will thus reduce a path-knowledge query at some future situation
 to a synchronous path-knowledge query in the initial situation.
 
 \begin{thm}
@@ -780,6 +779,18 @@ for $a\in G$. Since $\PKnows(a,\phi,s)$ and $\Knows(a,\phi,s)$
 are the same relation, their transitive closures are also the same
 and the identity is entailed. 
 \end{proof}
+Let us briefly return to the initial premise of this chapter: that
+the regression of common knowledge cannot be expressed in terms of
+common knowledge alone. Since Theorems \ref{thm:Reg_PKnowsZ} and
+\ref{thm:Reg_PKnows} and equivalences, we have shown that the operation
+of $\Trn$ captures precisely the information needed to regress common
+knowledge. The path resulting from $\Trn((A\cup B)^{*},c,c')$ will
+contain various test conditiosn and variable re-binding \emph{inside}
+the scope of the iteration. Such a path clearly beyond the expressive
+power of the ordinary common knowledge operator, providing a satisfying
+confirmation of our intuitions that the results of \citet{baltag98pa_ck}
+wold also apply to the situation calculus.
+
 
 \section{An Illustrative Example\label{sec:CKnowledge:Example}}
 
@@ -1280,7 +1291,7 @@ program.
 We review the operators and required semantics of FODL for convenience:\[
 \pi::=agt\,|\,?\phi\,|\,\pi_{1};\pi_{2}\,|\,\pi_{1}\cup\pi_{2}\,|\,\pi^{*}\,|\,\exists x\]
  \[
-\KDoZ(\pi,s,s')\,\,\equiv\,\,\exists\mu'\,\KDoZ(\pi,\varepsilon,s,\mu',s')\]
+\KDoZ(\pi,s,s')\,\,\equiv\,\,\exists\mu,\mu'\,\KDoZ(\pi,\mu,s,\mu',s')\]
  \begin{gather*}
 \KDoZ(agt,\mu'',s'',\mu,s)\,\equiv\,\mu''=\mu\,\wedge\, K_{0}(agt,s'',s)\\
 \KDoZ(?\phi,\mu'',s'',\mu,s)\,\equiv\, s''=s\,\wedge\,\mu''=\mu\,\wedge\,\mu(\phi)[s]\\
@@ -1360,23 +1371,6 @@ epistemic path. To avoid having to expand these macros during reasoning,
 we have modified the regression operator to treat them as primitive
 fluents.
 
-As with the previous chapter, hidden actions are handled using the
-persistence condition meta-operator to perform a fixpoint calculation.
-While the expressiveness of our epistemic path language means that
-answering a regressed knowledge query can be difficult in the general
-case, we have shown that for finite domains we maintain the ability
-to propositionalise the queries and answer them in a robustly decidable
-manner.
-
-Demonstrating the utility of our approach, we have presented an example
-of reasoning about common knowledge in an asynchronous, partially
-observable domain. This powerful new ability is a first for the situation
-calculus.
-
-For synchronous domains, we have proven that this fixpoint calculation
-is unnecessary and regression can be performed as a purely syntactic
-manipulation.
-
 Our development has clear parallels with the development of LCC \citep{vanBenthem06lcc}.
 We choose the situation calculus for its much richer ontology, e.g.
 preconditions and effects are first order, while actions take arguments
@@ -1387,5 +1381,80 @@ aspects of our presentation. We do not need explicit update frames,
 and the definition of our path regressor does not require an auxiliary
 Kleene-style operator to handle iteration.
 
-TODO: need a free-variable prover
+As with the previous chapter, hidden actions are handled using the
+persistence condition meta-operator to perform a fixpoint calculation.
+While the expressiveness of our epistemic path language means that
+answering a regressed knowledge query can be difficult in the general
+case, we have shown that for finite domains we maintain the ability
+to propositionalise the queries and produce a robustly decidable theory.
+
+Demonstrating the utility of our approach, we have presented an example
+of reasoning about common knowledge in an asynchronous, partially
+observable domain. This powerful new ability is a first for the situation
+calculus.\\
+
+
+Our synchronous path-knows operator $\PKnowsZ$is a significant new
+contribution in its own right. For synchronous domains this operator
+is provably equivalent to $\PKnows$ and allows common knowledge to
+be handled using a purely syntactic transformation, rather than requiring
+a fixpoint calculation to deal with hidden actions. This chapter thus
+provides powerful new reasoning techniques for group-level knowledge
+that are comparable in complexity to the standard account of epistemic
+reasoning in synchronous domains, while also extending its reach into
+asynchronous domanis where some inductive reasoning is required. \\
+
+
+As disucssed in Section \ref{sec:CKnowledge:Reasoning}, reasoning
+in our new epistemic can be very expensive in general. Although we
+have demonstrated that it can be reduced to PDL in finite domains,
+naive use of this reduction is not suitable for automated reasoning
+in any but the simplest domains. Like the reduction of first-order
+logic into propositional logic, it results in an exponential blowup
+in the size of the formula.
+
+In standard first-order logic this is avoided using a \emph{free-variable}
+prover such a Prolog, which can avoid generating cases that will obviously
+not lead to a proof. Effective automated reasoning in our epistemic
+language would seem to require simlar use of free variables to control
+this exponential blowup. We are aware of no existing systems that
+could easily support this reasoning.
+
+We do have the beginnings of a free-variable prover for our logic,
+using a combination of the first-order Shannon Graph techniques of
+\citep{Posegga95shannong_graphs} and the PDL tableaux rules described
+in \citep{abate07twb_pdl}, but it is not sufficiently complete to
+be included in this thesis.\\
+
+
+In Chapter \ref{ch:intro} we noted a famous result of \citet{halpern90knowledge_distrib},
+which states that common knowledge cannot be obtained through asynchronous
+communication. Our complex epistemic macros reflect this result in
+a more general way. Suppose we have an action $a$ that is \emph{never
+}observable by a particular agent:\[
+Obs(agt,a)=o\,\equiv\, o=\{\}\]
+Then according to the definition of $K_{0}$, the situations considered
+possible by $agt$ after the occurrenece of $a$ are a \emph{superset
+}of the situations considered possible by $agt$ before the occurrence
+of $a$:\[
+K_{0}(agt,s',s)\,\rightarrow\, K_{0}(agt,s',do(a,s))\]
+
+
+Thus actions that are always hidden from an agent, such as asyncrhonous
+communication actions, cannot \emph{remove} possible situations; they
+can only add additional uncertainty about the state of the world.
+For a proposition $\phi$ to be common knowledge after the occurrence
+of a such an action, it must already have been common knowledge before
+that action. Always-hidden actions therefore do not increase the common
+knowledge of the agents, as demonstrated by the results of \citep{halpern90knowledge_distrib}.
+
+Our explicit formulation of $Obs$ allows the epistemic path regressor
+$\Trn(\pi,c,c')$ to deal with more subtle cases, such as actions
+that are only observable under certain conditions. Intuitively, if
+the agents have common knowledge that an action $c$ will be simultaneously
+observed, then the occurrence of $c$ can increase the common knowledge
+of the agents. But if there is any path through the agent's epistemic
+frame which allows the occurrence of $c$ to be hidden from an agent,
+then their epistemic frame after the occurrence of $c$ will still
+contain those situations from before the occurrence of $c$. 
 

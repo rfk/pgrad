@@ -4,90 +4,173 @@
 
 \label{ch:conclusion}
 
-This thesis has laid the foundations for effective reasoning with
-the situation calculus in asynchronous multi-agent domains.
+This thesis has laid the foundations for reasoning about asynchronous
+multi-agent domains in the situation calculus. As highlighted by our
+initial investigations and implementation of the multi-agent Golog
+variant MIndiGolog, the standard reasoning and planning machinery
+of the sitution calculus often depends on an assumption of synchronicity.
+In many cases, synchronicity is enfored by requiring all actions to
+be publicly observable.
 
-We began by constructing a multi-agent variant of Golog in Chapter
-\ref{ch:mindigolog}, both to motivate the use of the situation calculus
-in a multi-agent setting and to highlight some of the limitations
-that it has traditionally faced. The remainder of the thesis was devoted
-to systematically overcoming those limitations.
+We identified three main limitations of the situation calculus when
+trying to extend its reach into asynchronous domains. It generates
+fully-ordered sequences of actions as the output of the Golog execution
+planning process, which cannot be feasibly executed in the face of
+hidden actions. Its standard account of agent-level knowledge cannot
+effectively account for arbitrarily-long sequences of hidden actions.
+Finally, it lacks a formal account of reasoning about group-level
+epistemic modalities such as common knowledge, which are vital for
+coordination in multi-agent domains.
 
-At the core of our approach is the explicit representation of the
-local perspective of each agent developed in Chapter \ref{ch:observations},
-in which agents make a set of \emph{observations} in response to each
-action occurrence. The agent's \emph{view} in a particular situation
-is its history of obserations, but excluding the case where the set
-of observations was empty. These structures are direct analogues to
-the actions and situations that represent the omniscient perspective
-of the system designer. By reifying the local perspective as terms
-in the logic, and by explicitly allowing for the case when some actions
-are hidden from some agents, we have been able to construct a variety
-of reasoning and planning tools on top of a common, principled foundation.
+At the core of our approach to overcoming this limitations is a new,
+explicit representation of the local perspective of each agent. By
+formalising what each agent \emph{observes} when a particular set
+of actions is performed, and its corresponding local \emph{view }in
+each situation, we are able to approach reasoning and planning in
+a principled way without making any assumptions about the dynamics
+of the domain. In particular, we can explicitly define and represent
+asynchronous domains as those in which some action occurrences generate
+no observations; in other words, domains in which agents cannot determine
+how many actions have been performed. 
 
-The first of three key contributions was a partially-ordered branching
-action structure designed to replace the use of raw situation terms
-in the Golog execution planning process. This structure, a \emph{joint
-execution} as defined in Chapter \ref{ch:jointexec}, leverages the
-notion of a view to let the planning process explicitly reason about
-inter-agents coordination of actions. The resulting plans allow the
-agents to perform independent actions independently while ensuring
-they can always syncrhonise their actions when necessary, and that
-each agent always knows what actions to perform next. They thus provide
-a much more powerful formalism with which the situation calculus can
-represent and plan the cooperative execution of shared tasks in asynchronous
-domains.
+Building on this foundation, we have developed four key extensions
+to the reasoning and planning machinery of the situation calculus
+that can help overcome its current limitations in asynchronous multi-agent
+domains. 
 
-Our second contribution was to identify a restricted form of universally
-quantified query that is amenable to more effective automated reasoning
-than open-ended inductive theorem proving. Dubbed \emph{property persistence
-queries}, we have shown that they are always equivalence to the evaluation
-of a uniform formula at a given situation. This uniform formula, which
-we call the \emph{persistence condition} of the query, can be calculated
-using a meta-level fixpoint approximation which provably terminates
-in some interesting cases. The inductive reasoning required to answer
-such queries can thus be {}``factored out'' as a separate calculation,
-and approached using specialised tools that are separate from the
-rest of the reasoning process.
 
-Finally, we have constructed a powerful new account of multi-agent
-\emph{knowledge} in the situation calculus in Chapters \ref{ch:knowledge}
-and \ref{ch:cknowledge}. To correctly characterise knowledge in asynchronous
-domains, the agents are required to inductively reason about arbitarily-long
-sequences of hidden actions. We have shown that this inductive reasoning
-can be precisely characterised using the persistence condition, allowing
-us to factor it out of the query and construct a regression rule for
-effective reasoning about knowledge. Also unique in our formalism
-is the provision of a regression rule for \emph{common knowledge}
-based on a more expressive epistemic language. These features have
-enabled us to reason effectively about group-level knowledge in asynchronous
-domains such as the {}``party invitation'' example, which have previously
-been beyond the reach of automated reasoning in the situation calculus.
+\section{Contributions}
 
-Despite the signicant increase in expressive power of our epistemic
-language, and the use of a meta-level fixpoint calculation for inductive
-reasoning, we have demonstrated that our formalism maintains an important
-property of existing work in the situation calculus: that if non-\noun{Situation}
-sorts are restricted to be finitely enumerable, queries can be effectively
-{}``propositionalised'' and reasoning becomes robustly decidable.
-We have also highlighted some key areas in which future work could
-identify less onerous restrictions on the theory of action that will
-permit more efficient reasoning procedures.
+Our first key contribution was to define a partially-ordered branching
+action structure that can replace raw situation terms as the output
+of the Golog execution planning process. Called \emph{joint executions},
+these structures allow independent actions to be performed independently,
+while ensuring that inter-agent synchronisation is always possible
+when required. By formulating these requirements explicitly in terms
+of the local view available to each agent, we can identify joint executions
+that are feasible to perform in the world despite potential asynchronicity
+in the domain.
 
-Using our explicit account of the local perspective of an agent, we
-have given a formal definition of \emph{sychronicity} in the situation
-calculus that parallels the definitions used in epistemic reasoning
-literature. We have shown that inductive reasoning is not necessary
-for reasoning about knowledge in synchronous domains, and our new
-regression rules all reduce back to simple syntactic transformations.
-This means that our formalism can be directly adopted for synchronous
-domains, providing powerful new abilities such as reasoning about
-common knowledge without a significant increase in reasoning complexity.
+The utility of these structures was demonstrated by implementing an
+offline execution planner that produces joint executions as its output.
+By imposing some simple restrictions on the theory of action, the
+planner is able to reason about joint executions without having to
+explicitly consider the exponentially-many possible histories of such
+a partially-ordered structure. It can therefore operate effectively
+using standard regression techniques.\\
 
-The clearest avenue for future work from this thesis is to merge explcit
-knowledge-based reasonining with the MIndiGolog execution planner.
-Although we have identified the basics of the necessary control algorithm,
-we do not have a prover efficient enough to make use of this technique.
-TODO: free-variable FODL prover, implemented on top of Shannon Graphs
-formalism.
+
+Second, we have characterised a kind of inductive query that we call
+a \emph{property persistence }query. These queries are restricted
+enough to be amenable to a special-purpose reasoning algorithm based
+on a meta-level fixpoint calculation. A simple iterative approximation
+algorithm was presented and shown to be complete for several interesting
+cases. More importantly, we have shown that such queries can always
+be replaced with a uniform formula called the\emph{ persistence condition,}
+in a way that integrates well with the standard regression operator.
+This allows certain second-order aspects of our formulation to be
+{}``factored out'' and handled using special-purpose tools, while
+maintaining the use of regression as the primary reasoning technique.\\
+
+
+The third major contribution was a powerul new account of individual-level
+epistemic reasoning, in which an agent's knowledge is expressed directly
+in terms of its local observations. In asynchronous domains agents
+are required to account for arbitrarily-long sequences of hidden actions
+and must therefore perform some inductive reasoning. By precisely
+characterising inductive component of their reasoning in terms of
+a property persistence query, we can factor it out of the reasoning
+process and provide a regression rule for answering knowledge queries.
+
+Basing our formalism explicitly on an agent's observations provides
+two important benefits. It make our formalism robust to theory elaboration,
+as our theorems and our regression rule apply unmodified as more complex
+knowledge-producing actions are added into the axioms defining observations
+and views. Second, it means that a situated agent can directly use
+our regress rules to reason about its own knowledge using only its
+local information.
+
+We have also demonstrated that if the theory of action is known to
+be synchronous, then our regression rule does not require inductive
+reasoning and it reduces to a simple syntactic transformation. Our
+account of individual-level knowledge thus provides a flexible new
+formalism that is comparable in reasoning complexity to the standard
+account of knowledge for synchronous domains, while at the same time
+extending gracefully to asyncrhonous domains where inductive reasoning
+is required.\\
+
+
+Finally, we have introduced a powerful new language of comlex epistemic
+modalities to the situation calculus. Based on an epistemic interpretation
+of dynamic logic, these modalities are expressive enough to formulate
+a regression rule for common knowledge while still permitting arbitrarily-long
+sequences of hidden actions to be handled separately by the persistence
+condition operator.
+
+Our work provides the first formal account of effective reasoning
+about common knowledge in the situation calculus, even in  purely
+synchronous domains. As in the case of individual-level knowledge,
+retricting the domain to be synchronous means our regression rule
+does not require inductive reasoning, so the complexity of reasoning
+about common knowledge is comparable to that of reasoning about individual-level
+knowledge in such domains. Our formalism again has the advantage of
+extending gracefully to asynchronous domains in which inductive reasoning
+is required.\\
+
+
+These contributions thus provide a powerul fundamental framework for
+the situation calculus to represent and reason about asynchronous
+multi-agent domains.
+
+
+\section{Future Work}
+
+Throughout the thesis, we have also identified areas where further
+work is required to bring our new techniques together with practical
+systems built on the situation calculus. Work continues on developing
+a MIndiGolog execution planner capable of coordinating \emph{online}
+execution of a shared program by a team of agents, building on the
+techniques we have developed here. The most pressing avenues of future
+research are summarised below.
+
+While a possible-worlds formulation of knowledge as developed in this
+thesis provides an excellent theoretical foundation for epistemic
+reasoning, possible-worlds reasoning can be highly intractable in
+practice. In Section \ref{sec:Knowledge:Advances} we identified an
+existing approach to more tractable epistemic reasoning that could
+be combined with our formalism, and provides a promising avenue for
+future work.
+
+Chapter \ref{ch:cknowledge} developed a precise characterisation
+of the processes required to reason about common knowledge in the
+situation calculus, and demonstrated that it is decidable in finite
+domains, but existing implementation techniques are not sufficient
+to take advantage of this ability in practical systems. A naive translation
+of our complex epistemic modalities into PDL quick produces an exponential
+blowup in problem size. While we have some initial intuitions on constructing
+a free-variable based prover to overcome this limitation, there is
+still much work to be done before our technique can be applied in
+practical domains.
+
+Two open questions remain about our complex epistemic modalities.
+First, is there a \emph{less }powerful episemic language that can
+still capture a regression rule for common knowledge? We have shown
+that our formalism generates epistemic paths with a quite a regular
+structure, but it is unclear whether the required structure can be
+formulated in a less expressive kind of path language.
+
+Second, is there the possibility of performing \emph{approximate}
+reasoning about common knowledge? This would require a set {}``disjunctive
+knowledge'' axioms similar to those used by TODO in the case of individual
+knowledge, but it is not clear how such axioms would be formulated
+in the presenece of the transitive closure necessary to express common
+knowledge. Both of these questions have significant potential for
+ongoing work.
+
+Finally, agents in a cooperative team need not consider \emph{all}
+possible actions of their teammates, since they know that the other
+agents will behave according to some protocol. While we have identified
+a potential approach to such reasoning that would allow protocols
+to be expressed as Golog programs, significant work will be required
+to produce a workable theory based on these ideas.
 
