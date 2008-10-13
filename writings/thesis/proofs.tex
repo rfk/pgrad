@@ -5,7 +5,8 @@
 \label{ch:proofs}
 
 This appendix contains complete proofs for various lemmas and theorems
-throughout the paper, along with some additional lemmas.
+throughout the paper, along with some additional lemmas.\medskip{}
+
 
 \begin{thmext}
 [\ref{thm:PstN-works}] For any $n\in\mathbb{N}$, $\Pst_{\Dt}^{n}(\phi,\alpha)[\sigma]$
@@ -48,6 +49,9 @@ The remaining $i=n-1$ clause is equivalent to the required RHS: \[
 
 We therefore have the desired equivalence. 
 \end{proof}
+\medskip{}
+
+
 \begin{lemma}
 \label{lem:pbu-implies-legal}For situation terms $s$ and $s'$,
 and agent $agt$:\[
@@ -55,8 +59,9 @@ and agent $agt$:\[
 
 \end{lemma}
 \begin{proof}
-Trivial, since $\LbU$ implies $Poss$ and $Legal$ is equivalent
-to $\leq_{Poss}$. 
+Since $\LbU$ implies $Legal$, $s\leq_{LbU(agt)}s'$ implies $s\leq_{Legal}s'$.
+Given the definition of $Legal(s)$ as $root(s)\leq_{Legal}s$, we
+have the implication as desired. 
 \end{proof}
 \medskip{}
 
@@ -68,7 +73,13 @@ agent $agt$:\[
 
 \end{lemma}
 \begin{proof}
-Trivial, by induction on the definition of $View$ from equation (\ref{eq:view_defn}). 
+By induction on situations, using the definition of $View$ from equation
+(\ref{eq:view_defn}). In the base case of $s'=s$ the lemma is trivial.
+For the inductive case let $s'=do(c,s'')$, with $s\leq_{LbU(agt)}s''$
+and $View(agt,s'')=View(agt,s)$ by the inductive hypothesis. By the
+definition of $\leq_{\LbU(agt)}$ we have that $Obs(agt,c,s'')=\{\}$.
+By the definition of $View$ we then have that $View(agt,s')=View(agt,s'')$,
+which equals $View(agt,s)$ giving the lemma as required. 
 \end{proof}
 \medskip{}
 
@@ -76,15 +87,16 @@ Trivial, by induction on the definition of $View$ from equation (\ref{eq:view_de
 \begin{lemma}
 \label{lem:K-implies-root}For situation terms $s$ and $s''$, and
 agent $agt$:\[
-\Dt\cup\Dt_{K}^{obs}\,\models\, K(agt,s'',s)\,\rightarrow\, K(agt,root(s''),root(s))\]
+\Dt\cup\Dt_{K}^{obs}\,\models\, K(agt,s'',s)\,\rightarrow\, K_{0}(agt,root(s''),root(s))\]
 
 \end{lemma}
 \begin{proof}
-Trivial in the base case of $Init(s)$. For the $do(c,s)$ case, suppose
-that we have $K(agt,s'',do(c,s))$. Then by equation (\ref{eqn:new_k_ssa})
-there is some $s'$ such that $s'\sqsubseteq s''$ and $K(agt,s',s)$.
-Then $root(s'')$ = $root(s')$, and $K(root(s'),root(s))$ by the
-inductive hypothesis, giving the required result. 
+By induction on situations. The lemma is trivial in the base case
+of $Init(s)$. For the $do(c,s)$ case, suppose that we have $K(agt,s'',do(c,s))$.
+Then by equation (\ref{eqn:new_k_ssa}) there is some $s'$ such that
+$s'\sqsubseteq s''$ and $K(agt,s',s)$. Then $root(s'')$ = $root(s')$,
+and $K_{0}(root(s'),root(s))$ by the inductive hypothesis, giving
+the required result. 
 \end{proof}
 \medskip{}
 
@@ -96,14 +108,15 @@ agent $agt$:\[
 
 \end{lemma}
 \begin{proof}
-All $s'$ such that $K_{0}(agt,s',s)$ are initial and therefore legal.
-So using equation (\ref{eqn:new_k_s0}) in the base case, there must
-be a legal $s'$ such that $s'\leq_{\LbU(agt)}s''$, making $s''$
-legal by lemma \ref{lem:pbu-implies-legal}. For the $do(c,s)$ case,
-equation (\ref{eqn:new_k_ssa}) ensures that $do(c',s')\leq_{\LbU(agt)}s''$
-for some $s'$,$c'$ satisfying $K(agt,s',s)$ and $Poss(c',s')$.
+By induction on situations. All $s'$ such that $K_{0}(agt,s',s)$
+are initial and therefore legal. So using equation (\ref{eqn:new_k_s0})
+in the base case, if $K(agt,s'',s)$ then there must be an $s'$ such
+that $Init(s')$ and $s'\leq_{\LbU(agt)}s''$, making $s''$ legal
+by Lemma \ref{lem:pbu-implies-legal}. For the $do(c,s)$ case, equation
+(\ref{eqn:new_k_ssa}) ensures that $do(c',s')\leq_{\LbU(agt)}s''$
+for some $s'$,$c'$ satisfying $K(agt,s',s)$ and $Legal(c',s')$.
 So $s'$ is legal by the inductive hypothesis, making $s''$ legal
-as required. 
+by Lemma \ref{lem:pbu-implies-legal} as required. 
 \end{proof}
 \medskip{}
 
@@ -115,10 +128,11 @@ agent $agt$:\[
 
 \end{lemma}
 \begin{proof}
-For the base case of $Init(s)$, using equation \eqref{eqn:new_k_s0},
-$K(agt,s'',s)$ implies that there must be an $s'$ such that $Init(s')$
-and $s'\leq_{\LbU(agt)}s''$. Therefore $View(s'')$ = $View(s')$
-= $\epsilon$ = $View(s)$ as required.
+By induction on situation terms. For the base case of $Init(s)$,
+using equation \eqref{eqn:new_k_s0}, $K(agt,s'',s)$ implies that
+there must be an $s'$ such that $Init(s')$ and $s'\leq_{\LbU(agt)}s''$.
+Therefore $View(s'')$ = $View(s')$ = $\epsilon$ = $View(s)$ as
+required.
 
 For the $do(c,s)$ case, suppose $Obs(agt,c,s)=\{\}$. Then we have
 $View(agt,do(c,s))$ = $View(agt,s)$, while equation \eqref{eqn:new_k_ssa}
@@ -129,37 +143,37 @@ Alternately, suppose $Obs(agt,c,s)\neq\{\}$, then equation \eqref{eqn:new_k_ssa}
 gives us $s'$,$c'$ such that $do(c',s')\leq_{\LbU(agt)}s''$, $Obs(agt,c,s)$
 = $Obs(agt,c',s')$, and $K(agt,s',s)$. By the inductive hypothesis
 $View(agt,s')=View(agt,s)$, and we have the following: $View(agt,s'')$
-= $View(agt,do(c',s'))$ = $Obs(agt,c,s)\cdot View(agt,s')$ = $View(agt,do(c,s))$
-as required. 
+= $View(agt,do(c',s'))$ = $Obs(agt,c,s)\cdot View(agt,s')$. This
+is in turn equal to $View(agt,do(c,s))$ as required. 
 \end{proof}
 \medskip{}
 
 
 \begin{thmext}
 [\ref{thm:k_obs_equiv}] For any agent $agt$ and situations
-$s$ and $s''$:\[
-\Dt\cup\Dt_{K}^{obs}\,\models K(agt,s'',s)\equiv K(root(s''),root(s))\wedge Legal(s'')\wedge View(agt,s'')=View(agt,s)\]
+$s$ and $s''$:\begin{multline*}
+\Dt\cup\Dt_{K}^{obs}\,\models K(agt,s'',s)\equiv\\
+K_{0}(root(s''),root(s))\wedge Legal(s'')\wedge View(agt,s'')=View(agt,s)\end{multline*}
 
 \end{thmext}
 \begin{proof}
-For the \emph{if} direction, we simply combine lemmas \ref{lem:K-implies-root},
+For the \emph{if} direction, we simply combine Lemmas \ref{lem:K-implies-root},
 \ref{lem:K-implies-legal} and \ref{lem:K-implies-view}. For the
-\emph{only-if} base case of $Init(s)$, the $\exists s'$ part of
-equation (\ref{eqn:new_k_s0}) is trivially satisfied by $root(s'')$
-and the equivalence holds as required.
+\emph{only-if} direction we proceed by induction on situations. In
+the base case of $Init(s)$, the $\exists s'$ part of equation (\ref{eqn:new_k_s0})
+is trivially satisfied by $root(s'')$ and the equivalence holds as
+required.
 
-For the \emph{only-if} inductive case with $do(c,s)$, we have two
-sub-cases to consider. Suppose $Obs(agt,c,s)=\{\}$: then $View(agt,s'')$
-= $View(agt,do(c,s))$ = $View(agt,s)$ and $K(agt,s'',s)$ holds
-by the inductive hypothesis, satisfying the equivalence in equation
-(\ref{eqn:new_k_ssa}).
-
-Alternately, suppose $Obs(agt,c,s)\neq\{\}$: then we have:\[
+For the inductive case with $do(c,s)$, we have two sub-cases to consider.
+Suppose $Obs(agt,c,s)=\{\}$: then $View(agt,s'')$ = $View(agt,do(c,s))$
+= $View(agt,s)$ and $K(agt,s'',s)$ holds by the inductive hypothesis,
+satisfying the equivalence in equation (\ref{eqn:new_k_ssa}). Alternately,
+suppose $Obs(agt,c,s)\neq\{\}$: then we have:\[
 View(agt,do(c,s))=Obs(agt,c,s)\cdot View(agt,s)=View(agt,s'')\]
- For this to be the case, and since $s''$ is legal, there must be
-some $s'$,$c'$ satisfying $Obs(agt,c',s')$ = $Obs(agt,c,s)$, $View(agt,s')$
-= $View(agt,s)$ and $do(c',s')\leq_{\LbU(agt)}s''$ . This is enough
-to satisfy the $\exists s',a'$ part of equation (\ref{eqn:new_k_ssa})
+ Since $s''$ is legal, this implies there there is some $s'$,$c'$
+satisfying $Obs(agt,c',s')$ = $Obs(agt,c,s)$, $View(agt,s')$ =
+$View(agt,s)$ and $do(c',s')\leq_{\LbU(agt)}s''$ . This is enough
+to satisfy the $\exists s',c'$ part of equation (\ref{eqn:new_k_ssa})
 and so the equivalence holds as required. 
 \end{proof}
 \medskip{}
@@ -168,34 +182,32 @@ and so the equivalence holds as required.
 \begin{thmext}
 [\ref{thm:Reg_Knows}] Given a basic action theory $\Dt\cup\Dt_{K}^{obs}$
 and a uniform formula $\phi$:\[
-\Dt\cup\Dt_{K}^{obs}\,\models\,\phi[do(c,s)]\equiv\Reg(\phi,c)[s]\]
+\Dt\cup\Dt_{K}^{obs}\,\models\,\Knows(agt,\phi,s)\equiv\Reg(\Knows(agt,\phi,s))\]
 
 \end{thmext}
 \begin{proof}
-We need only consider applications of $\Reg$ when $\phi$ has the
-form $\Knows(agt,\phi,s)$, as other regression rules have not been
-modified. We must establish that our new regression rules in equations
-\eqref{eqn:R_do_c_s} and \eqref{eqn:R_s0} are equivalences under
-the theory of action $\Dt\cup\Dt_{K}^{obs}$.
+To obtain this result, we must establish that our new regression rules
+in equations \eqref{eqn:R_do_c_s} and \eqref{eqn:R_s0} are equivalences
+under the theory of action $\Dt\cup\Dt_{K}^{obs}$.
 
 For notational clarity we define the abbreviation $\mathbf{PEO}(agt,\phi,o,s)$
 (for {}``persists under equivalent observations'') which states
 that $\phi$ holds in all legal futures of $s$ compatible with observations
 $o$:\begin{multline*}
 \mathbf{PEO}(agt,\phi,o,s)\,\isdef\,\\
-\forall c':\, Obs(agt,c',s)=o\wedge Poss(c',s)\rightarrow\left[\forall s':\, do(c',s)\leq_{\LbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
+\forall c':\, Obs(agt,c',s)=o\wedge Legal(c',s)\rightarrow\left[\forall s':\, do(c',s)\leq_{\LbU(agt)}s'\rightarrow\,\phi[s']\right]\end{multline*}
  Expanding the definition of the $\Knows$ macro at $do(c,s)$, and
 applying the successor state axiom from equation \eqref{eqn:new_k_ssa}
 to the $K(agt,s'',do(c,s))$ term, we can produce the following:\begin{align*}
 \Knows(agt,\phi,do(c,s))\equiv\, & \forall s'':\, K(agt,s'',do(c,s))\,\rightarrow\,\phi[s'']\\
-\equiv\, & \exists o\,.\, Obs(agt,c,s)=o\\
+\equiv\, & \exists o:\, Obs(agt,c,s)=o\\
  & \wedge\,\left[o=\{\}\rightarrow\forall s':\, K(agt,s',s)\rightarrow\phi[s']\right]\\
  & \wedge\,\left[o\neq\{\}\rightarrow\forall s':\, K(agt,s',s)\rightarrow\mathbf{PEO}(agt,\phi,o,s')\right]\end{align*}
 
 
 Noting that both conjuncts contain sub-formulae matching the form
 of the $\Knows$ macro, it can be substituted back in to give:\begin{align*}
-\mathbf{Knows}(agt,\phi,do(c,s))\equiv\, & \exists o\,.\, Obs(agt,c,s)=o\\
+\mathbf{Knows}(agt,\phi,do(c,s))\equiv\, & \exists o:\, Obs(agt,c,s)=o\\
  & \wedge\,\left[o=\{\}\rightarrow\mathbf{Knows}(agt,\phi,s)\right]\\
  & \wedge\,\left[o\neq\{\}\rightarrow\mathbf{Knows}(agt,\mathbf{PEO}(agt,\phi,o,s'),s)\right]\end{align*}
 
@@ -204,7 +216,7 @@ For $\mathbf{PEO}(agt,\phi,o,s')$ to legitimately appear inside the
 $\mathbf{Knows}$ macro it must be uniform in the situation variable
 $s'$. Applying the persistence condition and regressing to make the
 expression uniform, we develop the following equivalence:\[
-\mathbf{PEO}(agt,\phi,o,s)\equiv\forall c':\, Obs(agt,c',s)=o\wedge Poss(c',s)\rightarrow\Reg_{\Dt}(\Pst_{\Dt}(\phi,\LbU(agt)),c')\]
+\mathbf{PEO}(agt,\phi,o,s)\equiv\forall c':\, Obs(agt,c',s)=o\wedge Legal(c',s)\rightarrow\Reg(\Pst(\phi,\LbU(agt)),c')\]
 
 
 Suppressing the situation term in this uniform formula gives the regression
@@ -212,7 +224,7 @@ rule from equation \eqref{eqn:R_do_c_s} as required.
 
 For $S_{0}$, a straightforward transformation of equations \eqref{eqn:Knowledge:knows_def}
 and \eqref{eqn:new_k_s0} gives:\[
-\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s'\,.\, s\leq_{\LbU(agt)}s'\rightarrow\phi[s']\right]\]
+\mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s:\, K_{0}(agt,s,S_{0})\rightarrow\left[\forall s':\, s\leq_{\LbU(agt)}s'\rightarrow\phi[s']\right]\]
  Applying the persistence condition operator, this can easily be re-written
 as:\[
 \mathbf{Knows}(agt,\phi,S_{0})\equiv\forall s\,.\, K_{0}(agt,s,S_{0})\rightarrow\Pst(\phi,\LbU(agt))[s]\]
@@ -221,6 +233,12 @@ as:\[
 This matches the form of the definition for $\KnowsZ$, which we can
 substitute in to give:\[
 \Knows(agt,\phi,S_{0})\equiv\KnowsZ(agt,\Pst(\phi,\LbU(agt)),S_{0})\]
+
+
+Since all situations reachable by $K_{0}$ are initial, and since
+regression preserves equivalence, it is valid to use $\Reg(\psi[S_{0}])^{-1}$
+on the enclosed formula to give:\[
+\Knows(agt,\phi,S_{0})\equiv\KnowsZ(agt,\Reg(\Pst(\phi,\LbU(agt))[S_{0}])^{-1},S_{0})\]
 
 
 This is the regression rule from equation \eqref{eqn:R_s0} as required.
@@ -237,8 +255,53 @@ and a uniform formula $\phi$:\[
 
 \end{thmext}
 \begin{proof}
-TODO 
+Recall the definition of $\Knows(agt,\phi,v)$ as follows:\[
+\mathbf{Knows}(agt,\phi,v)\,\isdef\,\forall s:\, View(agt,s)=v\wedge root(s)=S_{0}\rightarrow\mathbf{Knows}(agt,\phi,s)\]
+
+
+We also have the following simple corollary of Theorem \ref{thm:k_obs_equiv}:\begin{multline*}
+\Dt\cup\Dt_{K}^{obs}\models\forall s,s',s'':\, root(s)=root(s')\wedge View(s)=View(s')\\
+\wedge K(agt,s'',s)\rightarrow K(agt,s'',s')\end{multline*}
+ 
+
+The definition of $\Knows(agt,\phi,v)$ is thus equivalent to:\begin{alignat*}{1}
+\mathbf{Knows}(agt,\phi,v)\,\equiv\, & \,\neg\exists s:\, View(agt,s)=v\wedge root(s)=S_{0}\\
+ & \vee\,\exists s:\, View(agt,s)=v\wedge root(s)=S_{0}\wedge\mathbf{Knows}(agt,\phi,s)\end{alignat*}
+
+
+We thus need to find a single witness situation rather than examining
+all situations with that view. We proceed by induction over views.
+For the $\epsilon$ case, $S_{0}$ serves as an appropriate witness
+since $View(agt,S_{0})=\epsilon$ and $root(S_{0})=S_{0}$. Applying
+the regression rule for $\Knows(agt,\phi,S_{0})$ gives us the same
+expression as applying the regression rule for $\Knows(agt,\phi,\epsilon)$.
+So if $\Reg(\Knows(agt,\phi,\epsilon))$ holds then so does $\Knows(agt,\phi,S_{0})$.
+Using $S_{0}$ as a witness we conclude $\Knows(agt,\phi,\epsilon)$
+as desired.
+
+For the inductive $o\cdot v$ case we split on whether there is any
+situation having that view. Suppose there is no such situation, then
+the definition of $\Knows(agt,\phi,o\cdot v)$ is trivially satisfied
+and the agent knows all statements. We need to show that the regression
+of $\Knows(agt,\phi,o\cdot v)$ produces a tautology. The regressed
+expression is:\[
+\mathbf{Knows}(agt,\forall c:\, Obs(agt,c)=o\wedge Legal(c)\rightarrow\Reg(\Pst(\phi,\LbU(agt)),c),v)\]
+
+
+If there is no situation having view $v$, then there is also no situation
+having view $o\cdot v$, and the above is tautology by the inductive
+hypothesis. Alternately, for there to be some situation $\sigma$
+having view $v$ but no situation having view $o\cdot v$, the domain
+must entail :\[
+\neg\exists c,s:\,\sigma\leq_{Obs(agt)=\{\}}s\,\wedge Obs(agt,c,s)=o\]
+This falsifies the antededent in the implication of the above regressed
+expression, making it a simple tautology.
+
+TODO: finish this proof
 \end{proof}
+\medskip{}
+
+
 \begin{lemma}
 \label{lem:TrnA_works}For any epistemic path $\pi$:\begin{multline*}
 \Dt\cup\Dt_{K}^{obs}\models\,\KDoZ(\pi,do(c,s),s'')\,\equiv\,\exists\mu,\mu',c',s':\\
@@ -248,18 +311,18 @@ TODO
 \begin{proof}
 Proceed by cases, covering each path operator in turn. For the base
 case of an individual agent, we have:\begin{align*}
-\KDoZ(\pi,do(c,s),s'')\,\equiv\, & K_{0}(agt,s'',do(c,s))\end{align*}
- \[
-\TrnA(agt,x)\Rightarrow\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,?Obs(agt,x)=z\]
+\KDoZ(agt,do(c,s),s'')\,\equiv\, & K_{0}(agt,s'',do(c,s))\end{align*}
+\[
+\TrnA(agt,x)\Rightarrow z\Leftarrow Obs(agt,x)\,;\, agt\,;\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,?Obs(agt,x)=z\]
  Expanding $\KDoZ(\TrnA(agt,x),\mu,s,\mu',s')$ thus produces:\begin{multline*}
-\KDoZ(\TrnA(agt,x),\mu,s,\mu',s')\equiv\exists z:\, Obs(agt,\mu(x),s)=z\,\wedge\,\exists s'':\, K_{0}(agt,s'',s)\,\wedge\\
-\left(Poss(\mu'(x),s'')\vee\mu'(x)=\{\}\right)\,\wedge\, Obs(agt,\mu'(x),s'')=z\,\wedge\, s''=s'\end{multline*}
+\KDoZ(\TrnA(agt,x),\mu,s,\mu',s')\equiv z\Leftarrow Obs(agt,\mu(x),s)\,\wedge\,\exists s'':\, K_{0}(agt,s'',s)\,\wedge\\
+\left(Legal(\mu'(x),s'')\vee\mu'(x)=\{\}\right)\,\wedge\, Obs(agt,\mu'(x),s'')=z\,\wedge\, s''=s'\end{multline*}
  Note that $\mu$ and $\mu'$ are never applied to a variable other
 than $x$. When we substitute this into the RHS of the hypothesis,
 $\mu(x)$ and $\mu'(x)$ are asserted to be $c$ and $c'$ respectively,
 so they can be simplified away to give:\begin{multline*}
 \Dt\cup\Dt_{K}^{obs}\models K(agt,s'',do(c,s))\equiv\exists c',s':\left(s''=do(c',s')\,\vee\, s''=s'\wedge c'=\{\}\right)\\
-\wedge K_{0}(agt,s,s')\,\wedge\,\left(Poss(c',s')\vee c'=\{\}\right)\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
+\wedge K_{0}(agt,s,s')\,\wedge\,\left(Legal(c',s')\vee c'=\{\}\right)\wedge\, Obs(agt,c,s)=Obs(agt,c',s')\end{multline*}
  This is the successor state axiom for $K_{0}$, which is trivially
 entailed by the domain.\\
 
@@ -281,13 +344,14 @@ The case for $\exists y$ is trivial as $\KDoZ(\exists y,s,s')\equiv s=s'$.\\
 
 The inductive cases are straightforward as $\Trn_{a}$ is simply pushed
 inside each operator. We will take the $\pi^{*}$ case as an example.
-The inductive hypothesis gives us:\begin{multline*}
+The inductive hypothesis gives:\begin{multline*}
 \KDoZ(\pi,do(c,s),s'')\,\equiv\exists\mu,\mu',c',s':\\
 \mu(x)=c\wedge\mu'(x)=c'\wedge\left(s''=do(c',s')\,\vee\, s''=s'\wedge c'=\{\}\right)\wedge\KDoZ(\Trn_{a}(\pi,x),\mu,s,\mu,'s')\end{multline*}
- We can apply $RTC$ to both sides of this equivalence, along with
-two rearrangements: the LHS is expanded to put $\exists\mu,\mu''$
-at its front, and the rigid tests on the RHS are taken outside the
-$RTC$ operation. The result is:\begin{multline}
+ We can apply reflexive transitive closure to $\KDoZ$ on both sides
+of this equivalence, along with two rearrangements: the LHS is expanded
+to the four-argument form with $\exists\mu,\mu''$ at its front, and
+the rigid tests on the RHS are taken outside the $RTC$ operation.
+The result is the following equivalence:\begin{multline}
 \exists\mu,\mu'':\, RTC[\KDoZ(\pi,\mu,do(c,s),\mu'',s'')]\,\equiv\\
 \exists\mu,\mu',c',s':\,\mu(x)=c\wedge\mu'(x)=c'\wedge s''=do(c',s')\wedge RTC[\KDoZ(\Trn_{a}(\pi,x),\mu,s,\mu,'s')]\label{eq:rtc-inductive-hyp}\end{multline}
  Using the definitions of $\KDoZ$ and $\TrnA$ we have:\[
@@ -295,7 +359,8 @@ $RTC$ operation. The result is:\begin{multline}
  \[
 \KDoZ(\TrnA(\pi^{*},x),\mu,s,\mu',s')\equiv RTC[\KDoZ(\TrnA(\pi,x),\mu,s,\mu',s')]\]
  Substituting these into the $RTC$ of the inductive hypothesis from
-equation \eqref{eq:rtc-inductive-hyp} completes the proof. 
+equation \eqref{eq:rtc-inductive-hyp} quives us the $\KDoZ(\pi^{*})$
+we need to satisfy the theorem. 
 \end{proof}
 \medskip{}
 
@@ -309,7 +374,7 @@ $\pi$:\begin{multline*}
 \end{thmext}
 \begin{proof}
 Recall the rule for $\Trn(\pi,c,c')$:\[
-\Trn(\pi,c,c')\Rightarrow\exists x\,;\,?x=c\,;\,\TrnA(\pi,x)\,;\,?x=c'\]
+\Trn(\pi,c,c')\Rightarrow\,\,\, x\Leftarrow c\,;\,\TrnA(\pi,x)\,;\,?x=c'\]
  Expanding $\KDoZ$ for this rule:\[
 \KDoZ(\Trn(\pi,c,c'),s,s')\equiv\exists\mu,\mu':\,\mu(x)=c\,\wedge\mu'(x)=c'\wedge\KDoZ(\TrnA(\pi,x),\mu,s,\mu',s')\]
  We can thus substitute $\KDoZ(\Trn(\pi,c,c'),s,s')$ into the RHS
@@ -325,7 +390,7 @@ formula $\phi$ and action $c$:\begin{gather*}
 
 \end{thmext}
 \begin{proof}
-This mechanics of this proof mirror that of Theorem \ref{thm:Reg_Knows}:
+The mechanics of this proof mirror that of Theorem \ref{thm:Reg_Knows}:
 we expand the $\PKnowsZ$ macro, apply Theorem \ref{thm:Trn-respects-epi-paths}
 as a successor state axiom for $\KDoZ$, re-arrange to eliminate existential
 quantifiers, then collect terms back into forms that match $\PKnowsZ$.
@@ -364,20 +429,20 @@ back into the $\PKnowsZ$ macro completes the proof:\begin{align*}
 \begin{proof}
 By a case analysis on the epistemic path operators. For the base case
 of an individual agent, we have:\begin{align*}
-\Trn(agt,\{\},\{\})\,=\, & \exists x\,;\,?x=\{\}\,;\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
- & \,\,\,\,\,\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,\,?Obs(agt,x_{a})=z\,;\,?x=\{\}\\
-=\, & \exists z\,;\,?z=\{\}\,;\, agt\,;\,?Poss(\{\})\vee\{\}=\{\}\,;\,?z=\{\}\\
+\Trn(agt,\{\},\{\})\,=\, & x\Leftarrow\{\}\,;\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
+ & \,\,\,\,\,\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,\,?Obs(agt,x_{a})=z\,;\,?x=\{\}\\
+=\, & \exists z\,;\,?z=\{\}\,;\, agt\,;\,?Legal(\{\})\vee\{\}=\{\}\,;\,?z=\{\}\\
 =\, & agt\end{align*}
 
 
 So the hypothesis is clearly entailed. For the $?\phi$ case:\begin{align*}
-\Trn(?\phi,\{\},\{\})= & \exists x\,;\,?x=\{\}\,;\,?\Reg(\phi,x)\,;\,?x=\{\}\\
+\Trn(?\phi,\{\},\{\})= & x\Leftarrow\{\}\,;\,?\Reg(\phi,x)\,;\,?x=\{\}\\
 = & ?\Reg(\phi,\{\})\\
 = & ?\phi\end{align*}
 
 
 So the hypothesis is clearly entailed. For the $\exists z$ case:\begin{align*}
-\Trn(\exists z,\{\},\{\})= & \exists x\,;\,?x=\{\}\,;\,\exists z\,;\,?x=\{\}\\
+\Trn(\exists z,\{\},\{\})= & x\Leftarrow\{\}\,;\,\exists z\,;\,?x=\{\}\\
 = & \exists z\end{align*}
 
 
@@ -403,8 +468,9 @@ Using equation \ref{thm:Trn-respects-epi-paths} on the LHS gives:\begin{multline
 \left.\wedge\KDoZ(\Trn(\pi,\{\},c'),s,s')\rightarrow\phi[s'']\right)\,\,\rightarrow\,\,\left(\forall s':\,\KDoZ(\pi,s,s')\rightarrow\phi[s']\right)\end{multline*}
 
 
-This implication must hold individually for each disjunct in the antecedent.
-We can thus break out the $c'=\{\}$ case to obtain:\begin{multline*}
+We can strengthen the antecedent by dropping the $do(c',s')$ case;
+if the implication holds with this stronger antecedent then it must
+hold in its weaker form above. We obtain:\begin{multline*}
 \left(\forall s'':\,\exists c',s':\, s''=s'\wedge c'=\{\}\wedge\KDoZ(\Trn(\pi,\{\},c'),s,s')\rightarrow\phi[s'']\right)\,\,\rightarrow\\
 \left(\forall s':\,\KDoZ(\pi,s,s')\rightarrow\phi[s']\right)\end{multline*}
 
@@ -426,23 +492,38 @@ and a uniform formula $\phi$:\[
 
 \end{thmext}
 \begin{proof}
-TODO 
+By induction on situation terms and the natural numbers. In the base
+case of $S_{0}$ we have:\begin{gather*}
+\PKnows(\pi,\phi,S_{0})\,\isdef\bigwedge_{n\in\mathbb{N}}\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(S_{0}))\\
+\Reg(\PKnows(\pi,\phi,s))\,\isdef\,\Pst(\PKnowsZ(\pi,\phi),Empty)[S_{0}]\end{gather*}
+
+
+Now, begin with $n=1$. Using regression on $\PKnowsZ$ we obtain:\[
+\PKnowsZ(\pi,\phi,do(\{\},S_{0}))\,\equiv\,\]
+
+
+TODO: finish this proof!
 \end{proof}
+\medskip{}
+
+
 \begin{lemmaext}
 [\ref{lem:Pknows_LbU_S0}] For any $agt$ and $\phi$:\[
 \Dt\cup\Dt_{K}^{obs}\,\models\,\PKnows(agt,\phi,S_{0})\,\equiv\,\PKnowsZ(agt,\Pst(\phi,LbU(agt)),S_{0})\]
 
 \end{lemmaext}
 \begin{proof}
+TODO: needs to be redone
+
 Recall the definition of $\PKnows$:\[
 \PKnows(agt,\phi,S_{0})\,\isdef\,\PKnowsZ(agt,\phi,\mathcal{E}^{\infty}(S_{0}))\]
  Begin by considering the sequence of calculations required to calculate
 the regression of $\PKnowsZ(agt,\phi,\mathcal{E}^{1}(S_{0}))$. First,
 we perform some simplification on $\Trn(agt,\{\},c')$:\begin{align*}
 \Trn(agt,\{\},c')=\,\,\, & \exists x\,;\,?x=\{\}\,;\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
- & \,\,\,\,\,\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,\,?Obs(agt,x)=z\,;\,?x=c'\\
-=\,\,\, & \exists z\,;\,?Obs(agt,\{\})=z\,;\, agt\,;\,?Poss(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\\
-=\,\,\, & agt\,;\,?Obs(agt,c')=\{\}\wedge\left(Poss(c')\vee c'=\{\}\right)\\
+ & \,\,\,\,\,\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,\,?Obs(agt,x)=z\,;\,?x=c'\\
+=\,\,\, & \exists z\,;\,?Obs(agt,\{\})=z\,;\, agt\,;\,?Legal(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\\
+=\,\,\, & agt\,;\,?Obs(agt,c')=\{\}\wedge\left(Legal(c')\vee c'=\{\}\right)\\
 =\,\,\, & agt\,;\,?\left(\LbU(agt,c')\vee c'=\{\}\right)\end{align*}
  Now we can use this in the regression of $\PKnowsZ(agt,\phi,\mathcal{E}^{1}(S_{0}))$,
 as follows: \begin{align*}
@@ -473,7 +554,7 @@ Therefore, we have the required:\[
 $s$:\begin{multline*}
 \PKnows(agt,\phi,do(c,s))\,\equiv\,\exists z:\, Obs(agt,c,s)=z\\
 \wedge\,\left[z=\{\}\,\rightarrow\,\PKnows(agt,\Pst(\phi,\LbU(agt)),s)\right]\\
-\wedge\,\left[z\neq\{\}\,\rightarrow\,\PKnows(agt,\forall c':\,\left(Poss(c')\wedge Obs(agt,c')=z\right)\rightarrow\Reg(\Pst(\phi,\LbU(agt)),c),s)\right]\end{multline*}
+\wedge\,\left[z\neq\{\}\,\rightarrow\,\PKnows(agt,\forall c':\,\left(Legal(c')\wedge Obs(agt,c')=z\right)\rightarrow\Reg(\Pst(\phi,\LbU(agt)),c),s)\right]\end{multline*}
 
 \end{lemmaext}
 \begin{proof}
@@ -491,14 +572,14 @@ Regressing the RHS over the actions $c$, we obtain:\begin{align*}
 
 Now, let us expand and re-arrange $\Trn(agt,c,c')$:\begin{align*}
 \Trn(agt,c,c')=\,\,\, & \exists x\,;\,?x=c\,;\,\exists z\,;\,?Obs(agt,x)=z\,;\, agt\,;\\
- & \,\,\,\,\,\,\exists x\,;\,?Poss(x)\vee x=\{\}\,;\,\,?Obs(agt,x_{a})=z\,;\,?x=c'\\
-=\,\,\, & \exists z\,;\,?Obs(agt,c)=z\,;\, agt\,;\,?Poss(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\\
+ & \,\,\,\,\,\,\exists x\,;\,?Legal(x)\vee x=\{\}\,;\,\,?Obs(agt,x_{a})=z\,;\,?x=c'\\
+=\,\,\, & \exists z\,;\,?Obs(agt,c)=z\,;\, agt\,;\,?Legal(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\\
 =\,\, & \exists z\,;\,?Obs(agt,c)=z\,;\\
- & \,\,\,\,\,\,\left(z=\{\}\,;\, agt\,;\,?Poss(c')\vee c'=\{\}\,;\,?Obs(agt,c')=\{\}\right)\\
- & \,\,\,\cup\left(z\neq\{\}\,;\, agt\,;\,?Poss(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\right)\\
+ & \,\,\,\,\,\,\left(z=\{\}\,;\, agt\,;\,?Legal(c')\vee c'=\{\}\,;\,?Obs(agt,c')=\{\}\right)\\
+ & \,\,\,\cup\left(z\neq\{\}\,;\, agt\,;\,?Legal(c')\vee c'=\{\}\,;\,?Obs(agt,c')=z\right)\\
 =\,\, & \exists z\,;\,?Obs(agt,c)=z\,;\,\left(z=\{\}\,;\, agt\,;\,?c'=\{\}\right)\\
  & \,\,\,\cup\left(z=\{\}\,;\, agt\,;\,?LbU(agt,c')\right)\\
- & \,\,\,\cup\left(z\neq\{\}\,;\, agt\,;\,?Poss(c')\wedge Obs(agt,c')=z\right)\end{align*}
+ & \,\,\,\cup\left(z\neq\{\}\,;\, agt\,;\,?Legal(c')\wedge Obs(agt,c')=z\right)\end{align*}
 
 
 Substituting this back into the RHS, we can bring the leading tests
@@ -506,7 +587,7 @@ outside the macro and split the $\cup$ into a conjunction to give:\begin{multlin
 \PKnows(agt,\phi,do(c,s))\,\equiv\,\forall c':\,\exists z:\, Obs(agt,c,s)=z\\
 \wedge\,\PKnows(\left(?z=\{\};\, agt\right),\Reg(\Pst(\phi,\LbU(agt)),\{\}),s)\\
 \wedge\,\PKnows(\left(?z=\{\};agt;?LbU(agt,c')\right),\Reg(\Pst(\phi,\LbU(agt)),c'),s)\\
-\wedge\,\PKnows(\left(?z\neq\{\};agt;?Poss(c')\wedge Obs(agt,c')=z\right),\Reg(\Pst(\phi,\LbU(agt)),c'),s)\end{multline*}
+\wedge\,\PKnows(\left(?z\neq\{\};agt;?Legal(c')\wedge Obs(agt,c')=z\right),\Reg(\Pst(\phi,\LbU(agt)),c'),s)\end{multline*}
 
 
 Extracting the remaining tests from these paths, removing regression
@@ -515,7 +596,7 @@ its narrowest scope, we get:\begin{multline*}
 \PKnows(agt,\phi,do(c,s))\,\equiv\,\exists z:\, Obs(agt,c,s)=z\\
 \wedge\,\left[z=\{\}\rightarrow\PKnows(agt,\Pst(\phi,\LbU(agt)),s)\right]\\
 \wedge\,\left[z=\{\}\rightarrow\PKnows(agt,\forall c':\, LbU(agt,c')\,\rightarrow\,\Reg(\Pst(\phi,\LbU(agt)),c'),s)\right]\\
-\wedge\,\left[z\neq\{\}\rightarrow\PKnows(agt,\forall c':\left(Poss(c')\wedge Obs(agt,c')=z\right)\rightarrow\Reg(\Pst(\phi,\LbU(agt)),c'),s)\right]\end{multline*}
+\wedge\,\left[z\neq\{\}\rightarrow\PKnows(agt,\forall c':\left(Legal(c')\wedge Obs(agt,c')=z\right)\rightarrow\Reg(\Pst(\phi,\LbU(agt)),c'),s)\right]\end{multline*}
 
 
 To complete the proof, we need the following property of the persistence
@@ -573,15 +654,15 @@ These can be directly equated using the inductive hypothesis, so the
 theorem holds in this case. Alternately, if $Obs(agt,c,s)\neq\{\}$
 then the regression rule gives us:\begin{multline*}
 \Knows(agt,\phi,do(c,s))\equiv\exists o:\, Obs(agt,c,s)=o\,\wedge\\
-\Knows(agt,\forall c':\, Poss(c')\wedge Obs(agt,c')=o\,\rightarrow\,\Reg(\Pst(\phi,LbU(agt)),c'),s)\end{multline*}
+\Knows(agt,\forall c':\, Legal(c')\wedge Obs(agt,c')=o\,\rightarrow\,\Reg(\Pst(\phi,LbU(agt)),c'),s)\end{multline*}
  \begin{multline*}
 \Knows(agt,\Pst(\phi,LbU(agt)),do(c,s))\equiv\exists o:\, Obs(agt,c,s)=o\,\wedge\\
-\Knows(agt,\forall c':\, Poss(c')\wedge Obs(agt,c')=o\,\rightarrow\,\Reg(\Pst(\Pst(\phi,LbU(agt)),LbU(agt)),c'),s)\end{multline*}
+\Knows(agt,\forall c':\, Legal(c')\wedge Obs(agt,c')=o\,\rightarrow\,\Reg(\Pst(\Pst(\phi,LbU(agt)),LbU(agt)),c'),s)\end{multline*}
 
 
 Simplifying the second equation using the properties of $\Pst$ gives:\begin{multline*}
 \Knows(agt,\Pst(\phi,LbU(agt)),do(c,s))\equiv\exists o:\, Obs(agt,c,s)=o\,\wedge\\
-\Knows(agt,\forall c':\, Poss(c')\wedge Obs(agt,c')=o\,\rightarrow\,\Reg(\Pst(\phi,LbU(agt)),c'),s)\end{multline*}
+\Knows(agt,\forall c':\, Legal(c')\wedge Obs(agt,c')=o\,\rightarrow\,\Reg(\Pst(\phi,LbU(agt)),c'),s)\end{multline*}
 
 
 Which matches the equivalence for $\Knows(agt,\phi,do(c,s))$, so
