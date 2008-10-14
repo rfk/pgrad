@@ -36,7 +36,7 @@ concurrent computation known as \emph{prime event} \emph{structures},
 which are partially-ordered branching sequences of events \citep{npw79event_structures}.
 A \emph{joint execution} is defined as a particular kind of prime
 event structure that is rich enough to capture the concurrent execution
-of independent actions, and can branch on the results of sensing actions.
+of independent actions and can branch on the results of sensing actions.
 We use our explicit account of an agent's local view to identify joint
 executions that can feasibly be executed based on the local information
 available to each agent at runtime.
@@ -488,7 +488,7 @@ We introduce new sorts \noun{Event }and \noun{JointExec} to $\Lsit$,
 and will collect the axioms defining joint executions in a separate
 axiom set $\Dt_{je}$. Events are opaque identifiers with which a
 joint execution associates a label, a set of enablers, and a set of
-alternatives. In practise we identify events with the integers, although
+alternatives. In practice we identify events with the integers, although
 our definitions require only a total ordering relation over events.
 Labels are either \noun{Action} or \noun{Outcome} terms. A joint execution
 is then a term containing:
@@ -727,8 +727,8 @@ y[agt]=\{\}\,\rightarrow\, View(agt,(c\#y)\cdot h)=View(agt,h)\\
 y[agt]\neq\{\}\,\rightarrow\, View(agt,(c\#y)\cdot h)=y[agt]\cdot View(agt,h)\end{gather*}
 
 
-We will say that a branch can \emph{generate a view} if one of its
-histories corresponds to the given view:\[
+A branch can \emph{generate a view} if one of its histories corresponds
+to that view:\[
 GeneratesView(ex,br,agt,v)\,\equiv\,\exists h:\, History(ex,br,h)\,\wedge\, View(agt,h)=v\]
  Let $actor(ex,i)$ be the agent responsible for performing an action
 event $i$. Then that event is \emph{enabled by a view} if there is
@@ -741,17 +741,19 @@ actor(ex,i)=agt\,\wedge\, GeneratesView(ex,ens(ex,i),agt,v)\end{multline*}
 Since an agent's view does not have complete information, $EnabledByView$
 identifies events that the agent \emph{might} be required to perform
 based on its local information. It is not sufficient to precisely
-identify a branch, and therefore cannot be used to determine whether
-an event is enabled. Agents can only be expected to act based on their
-local information, so we must ensure that this information is sufficient
-for each agent to determine what actions to perform. This \emph{feasibility}
-is ensured using two structural restrictions.
+identify a particular branch, and therefore cannot be used to determine
+for certain whether any particular event should be performed.
+
+To ensure the feasibility of performing a joint execution based on
+each agent's local information, we must assert two additional structural
+restrictions to ensure each agent can always determine the action
+it is to perform.
 
 The first restriction corresponds to the idea of \emph{knowing when}
 to perform an action. If an action event $i$ is enabled by an outcome
 event $j$, then $j$ must not be hidden from the agent performing
 $i$. Otherwise, it has no way of enforcing the required ordering
-between the two events. This is formalised by the following requirement:\begin{multline*}
+between the two events. This requirement is formalised by:\begin{multline*}
 KnowsWhen(ex)\,\isdef\,\\
 \forall i,j\in events(ex):\, IsAction(lbl(ex,i))\,\wedge j\in ens(ex,i)\\
 \rightarrow\, lbl(ex,i)[actor(ex,i)]\neq\{\}\end{multline*}
@@ -807,8 +809,8 @@ of a joint execution that does not meet this requirement. This plan
 calls for $Jim$ to check for the availability of eggs, then for $Joe$
 to acquire an appropriate ingredient depending on whether they are
 available. But since $Joe$ cannot distinguish between outcome events
-$O1$ and $O2$, he doesn't know what action to perform and the plan
-cannot be executed.
+$O1$ and $O2$ after he observes $checkFor(egg)$, he doesn't know
+what action to perform and the plan cannot be executed.
 
 We say a joint execution is \emph{feasible} if it meets both of these
 restrictions:\[
@@ -914,6 +916,8 @@ have about the state of the world.
 
 %
 \begin{algorithm}[t]
+ 
+
 \caption{Offline Execution Algorithm using Joint Executions}
 
 
@@ -957,8 +961,8 @@ it in the world. A restricted version of this algorithm is used by
 our implementation that will be described in Section \ref{sec:JointExec:Implementation}.
 
 Since this algorithm is to be executed independently by each agent
-in the team, it must identify actions to perform using on the agent's
-local view. Since we restrict the joint execution to be feasible,
+in the team, it must identify actions to perform using only the agent's
+local view. We restrict the joint execution to be feasible so that
 the $EnabledByView$ query is sufficient to identify what action to
 perform next. If we did not have this restriction, Algorithm \ref{alg:je_offline_exec}
 would not be correct.
@@ -983,6 +987,8 @@ planning the next step of execution.
 
 %
 \begin{algorithm}[t]
+ 
+
 \caption{Hypothetical (Incorrect) Online Execution Algorithm}
 
 
@@ -1028,12 +1034,12 @@ its teammates will retain leaves that they think \emph{it} could still
 consider possible, and so-on ad infinitum.
 
 The difficulty here is the well-known correspondence between coordination
-and common knowledge. In order to extend this execution algorithm
-to the case of incomplete information, the agents must plan based
-on what is \emph{commonly known} at each stage of execution, rather
-based on their own individual view. Unfortunately the situation calculus
-offers no tools for reasoning about common knowledge, not even in
-synchronous domains.
+and common knowledge \citep{halpern90knowledge_distrib}. In order
+to extend this execution algorithm to the case of incomplete information,
+the agents must plan based on what is \emph{commonly known} at each
+step of execution, rather than based on their own individual view.
+Unfortunately the situation calculus currently offers no tools for
+reasoning about common knowledge, not even in synchronous domains.
 
 Coordinating the online execution of a shared Golog program in asynchronous
 domains thus requires more explicit reasoning about the knowledge
@@ -1152,7 +1158,7 @@ mIndep(c\cup\{a\})\end{gather*}
 
 By mutual independence, and restrictions 2 and 5, we have: \begin{gather*}
 Legal(\{a\},Sit((\{c\}\#y')\cdot h_{p}))\,\equiv\, Legal(\{a\},Sit(h_{p}))\\
-Legal(c\cup\{a\},Sit(h_{p})\,\equiv\, Legal(\{a\},Sit(h_{p}))\wedge\forall a'\in c:\, Legal(\{a'\},Sit(h_{p}))\end{gather*}
+Legal(c\cup\{a\},Sit(h_{p}))\,\equiv\, Legal(\{a\},Sit(h_{p}))\wedge\forall a'\in c:\, Legal(\{a'\},Sit(h_{p}))\end{gather*}
 
 
 Similarly for outcomes, using restrictions 3 and 6:\begin{gather*}
@@ -1232,7 +1238,7 @@ We have modified our MIndiGolog execution planner from Chapter \ref{ch:mindigolo
 to perform offline execution planning and generate a joint execution
 rather than a raw situation term. For details on obtaining the full
 source code see Appendix \ref{ch:implementation}; for the full axiomatisation
-of our example domain see Appendix \ref{ch:cookingagents}.
+of observability in our example domain see Appendix \ref{ch:cookingagents}.
 
 As mentioned in Section \ref{sec:JointExec:JEs}, Figure \ref{fig:JE:MakeSalad1}
 shows the output of our planner when run on the $MakeSalad$ program
@@ -1357,10 +1363,10 @@ performing the step
 thread in which the step is performed 
 \item outcome: the outcome of performing the action. 
 \end{itemize}
-These steps track the necessary information for the planner to determine
-whether two actions can be performed independently. A sequence of
-steps can be used as a history term in the obvious way, taking only
-the action and outcome attributes.
+Step records track the necessary information to determine whether
+the program allows any given pair of actions to be performed independently.
+A sequence of steps can be used as a history term in the obvious way,
+taking only the actions and outcomes.
 
 The thread-naming scheme used here is similar to that of \citep{fritz08congolog_sin_trans}.
 Each time $Trans$ chooses to execute a step from the left-hand side
@@ -1372,17 +1378,19 @@ if not, they are steps from different threads and can potentially
 be performed concurrently.
 
 The procedure implementing $Trans$ takes a program and a history
-as input, returning an new step of execution along with the remainder
+as input, returning a new step of execution along with the remainder
 of the program to be executed. The code below is representative of
 this procedure:
 
 \programinput{listings/jointexec/Trans.oz}
 
-In particular, note that the evaluation of test conditions is performed
-as normal using the input history. The planner ensures that this is
-the canonical history of the leaf that is being planned for, so we
-can be sure that the test will hold in all possible histories of the
-leaf if it holds in the given history.
+In particular, note that the evaluation of test conditions calls $Sitcalc.holds$
+passing it the input history. This procedure performs standard regression-based
+reasoning using a {}``just-in-time history'' assumption to handle
+sensing results, in the same manner as standard IndiGolog \citep{giacomo99indigolog}.
+The planner ensures that this is the canonical history of the leaf
+that is being planned for, so we can be sure that the test will hold
+in all possible histories of the leaf if it holds in the given history.
 
 We say that two steps are \emph{ordered} if any of the following holds:
 their action terms are not independent; one's thread is a prefix of
@@ -1396,7 +1404,7 @@ in the $conc(D1\, D2)$ case, unlike the MIndiGolog implementation
 from Chapter \ref{ch:mindigolog}. Rather, the potential for truly
 concurrent execution is captured in the partial ordering of the joint
 execution itself, which allows independent actions to be performed
-concurrently while forcing independent actions to occur in a particular
+concurrently while forcing non-independent actions to occur in a particular
 order.
 
 
@@ -1411,27 +1419,27 @@ used to determine the action's enablers.
 
 \programinput{listings/jointexec/JointExec.oz}
 
-The joint execution enumerates all possible outcomes of the action
+The joint execution code enumerates all possible outcomes of the action
 and inserts corresponding outcome events. This extends the input leaf
 by the given action, and if the input leaf was legal, then one the
-new leaves so generated is also guaranteed to be legal. The new joint
-execution is returned along with the new outcome events.
+new leaves so generated is also guaranteed to be legal. The updated
+joint execution is returned along with the new outcome events.
 
-The call to $FixActionInvariants$ ensures that the joint execution
-remains feasible, by inserting additional action events if it discovers
-branches that have identical views for the performing agent. Currently
-this is done using a brute-force search through all possible histories,
-but it is able to eliminate many branches quickly by checking their
-enablers for incompatible observations.
+The call to $FixFeasibility$ ensures that the joint execution remains
+feasible, by inserting additional action events if it discovers branches
+that have identical views for the performing agent. Currently this
+is done using a brute-force search through all possible histories,
+but it is able to eliminate many branches quickly by first checking
+whether they will always contain an incompatible observation.
 
 When determining the enablers for a new action, the joint execution
-has potentially many choices, and generates choice points accordingly.
+code has potentially many choices, and generates choice points accordingly.
 It processes all existing events on the leaf in turn, first checking
 if they are \emph{orderable} according to the restrictions on feasible
 joint executions. If they are orderable, the function $MustPrec$
-is called to determine whether they must be ordered according to the
-semantics of the program. If they are orderable, but need not be ordered,
-a choice point is generated.
+is called to determine whether they must be \emph{ordered} according
+to the semantics of the program. If they are orderable, but need not
+be ordered, a choice point is generated.
 
 \programinput{listings/jointexec/FindEnablers.oz}
 
@@ -1452,7 +1460,10 @@ $MakePlan$ with an empty joint execution and a single, empty leaf:
 
 \programinput{listings/jointexec/Planner.oz}
 
-$MakePlan$ is a recursive procedure implementing the planning loop:
+$MakePlan$ is a recursive procedure implementing the planning loop.
+Note that it cannot discard leaves or process them in isolation, since
+extending one leaf with an action may cause actions to be added to
+other leaves in order to maintain the feasibility restrictions.
 
 \programinput{listings/jointexec/MakePlan.oz}
 
@@ -1499,22 +1510,24 @@ On one hand, joint executions are restricted enough to be practical
 for such use. By restricting ourselves to \emph{reasonable} joint
 executions, each leaf can be easily converted into a single history
 term for the purposes of reasoning, and can be extended one action
-at a time. By ensuring that the joint execution is \emph{feasible},
+at a time. This allows us to re-use much of the standard IndiGolog
+reasoning machinery. By ensuring that the joint execution is \emph{feasible},
 the agent are guaranteed to be able to carry it out in a purely reactive
 fashion using only their local information.
 
 Joint executions are also significantly more flexible than previous
 approaches. They allow independent actions to be performed without
 synchronisation, in any order. The agents need never know precisely
-what actions have been executed, only those that enable them to perform
-their next action. Synchronisation is automatically achieved when
-required by explicitly reasoning about what actions each agent can
-observe, rather than requiring that all actions be public.
+what actions have been executed, as long as their local observations
+are sufficient to determine the next action to perform. Synchronisation
+is automatically achieved when required by explicitly reasoning about
+what actions each agent can observe, rather than requiring that all
+actions be public.
 
 To demonstrate the utility of these structures, we have implemented
 a new version of our MIndiGolog interpreter that produces joint executions
-as its output, and demonstrated they the resulting executions can
-enable significant independence among agents when cooperative executing
+as its output, and shown that the resulting executions can enable
+significant independence among agents when cooperatively executing
 the plan.\\
 
 
@@ -1538,8 +1551,8 @@ We make no use of many concepts common in partial-order goal-based
 planning (causal links, threats, conflicts, etc) because we do not
 deal explicitly with goals, but with steps generated by an underlying
 transition semantics. Our approach can be considered roughly equivalent
-to \emph{deordering} of a totally-ordered plan as described in \citep{backstrom99reordering}
--- we plan as if actions are performed in the specific order identified
+to \emph{deordering} of a totally-ordered plan as described in \citep{backstrom99reordering};
+we plan as if actions are performed in the specific order identified
 by the canonical leaf history, but allow actions to be performed out-of-order
 if they are independent.
 
@@ -1550,7 +1563,8 @@ but is significantly less expressive. In particular, joint executions
 do not allow looping constructs and thus lack the universality of
 general robot programs. It would be interesting to incorporate loops
 in our structures, but how to do so if far from clear in the face
-of partial observability.\\
+of partial observability. Indeed, producing iterative plans is still
+an active area of research even in the single-agent case \citep{levesque05planning_with_loops}\\
 
 
 By explicitly formalising the local perspective of each agent, we

@@ -92,10 +92,10 @@ $\epsilon$ be the empty history, then the definitions are:\begin{alignat*}{1}
 
 
 Then, instead of asking whether a query holds at the current situation
-$s$:
+$\sigma$:
 
 \[
-\Dt\,\models\,\phi[s]\]
+\Dt\,\models\,\phi[\sigma]\]
 
 
 The agent asks whether the query holds given its current history $h$:\[
@@ -129,7 +129,7 @@ The effect of sensing results on an agent's knowledge is axiomatised
 in \citep{scherl03sc_knowledge} by directly specifying it in the
 successor state axiom for the knowledge fluent $K$. Agents discard
 situations that do not agree with the obtained sensing result:\[
-K(agt,do(a,s'),do(a,s))\,\equiv\, K(agt,s',s)\wedge SR(a,s')=SR(a,s)\]
+K(agt,do(a,s'),do(a,s))\,\equiv\, K(agt,s',s)\wedge Legal(a,s')\wedge SR(a,s')=SR(a,s)\]
  As a variety of richer domains have been modelled on top of this
 formalism, their particular accounts of the local information available
 to each agent have been specified by progressively modifying this
@@ -159,7 +159,7 @@ The observation-based approach will also allow us to work directly
 with the local information available to each agent without needing
 to make explicit statements about knowledge. For example, when planning
 the cooperative execution of a task, we can formulate a reactive plan
-in which each agent can act based directly on its local observations
+in which each agent can act based directly on its local observations,
 without having to introspectively reason about what it knows.\\
 
 
@@ -319,7 +319,7 @@ perceive observations that are not caused by some action:\[
 \Dt\,\models\,\forall agt,s:\, Obs(agt,\{\},s)=\{\}\]
 
 \end{defnL}
-The key distinguishing features of our approach is that the agent's
+The key distinguishing feature of our approach is that the agent's
 view excludes cases where $Obs(agt,c,s)$ is empty, so the agent may
 not have enough information to determine how many actions have been
 performed in the world. As discussed in Chapter \ref{ch:intro}, this
@@ -434,9 +434,9 @@ of effective reasoning in such asynchronous domains.
 While the standard approach to sensing actions has the result $SR(a,s)$
 returned unconditionally, it is also possible to model actions that
 return sensing information only when some additional conditions hold
-in the environment, for example as used by \citet{Petrick06thesis}.
-These can be modelled in our framework by adding the guard conditions
-$\Psi$ to the definition of $Obs$:\[
+in the environment \citep{Petrick06thesis}. These can be modelled
+in our framework by adding the guard conditions $\Psi$ to the definition
+of $Obs$:\[
 a\#r\in Obs(agt,c,s)\,\equiv\, a\in c\wedge actor(a)=agt\wedge SR(a,s)=r\wedge\Psi(a,s)\]
 
 
@@ -643,7 +643,7 @@ operator.
 We can pose a similar query using the definition of a global history
 in our framework. First, define a history to be legal if it contains
 the correct sensing results for a legal situation:\[
-Legal(h)\,\equiv\, Legal(Sit(h))\wedge History(Sit(h))=h\]
+Legal(h)\,\isdef\, Legal(Sit(h))\wedge History(Sit(h))=h\]
  Then an appropriate query using the current history $h$ would be:\[
 \Dt\,\models\, Legal(h)\,\rightarrow\,\phi[Sit(h)]\]
 
@@ -654,16 +654,15 @@ techniques. However, since a history can always be converted into
 a unique corresponding situation term, we can easily provide special-purpose
 regression rules as follows: \begin{gather*}
 \Reg(\phi[Sit(\epsilon)])\,\isdef\,\phi[S_{0}]\\
-\Reg(\phi[Sit((c\#y)\cdot h)])\,\isdef\,\Reg(\phi,c)[Sit(h)]\\
-\Reg(Legal(\epsilon))\,\isdef\,\top\\
-\Reg(Legal((c\#y)\cdot h))\,\isdef\,\Reg(Legal(c,Sit(h))\wedge Out(c,Sit(h))=y)\wedge Legal(h)\end{gather*}
+\Reg(\phi[Sit((c\#y)\cdot h)])\,\isdef\,\Reg(\phi,c)[Sit(h)]\end{gather*}
 
 
-These rules mirror the definition of $\mathbf{end}$ and $\mathbf{sense}$,
-and preserve equivalence given the definition of the $History$ function.
-Agents can therefore use such a query to do regression-based reasoning
-about some hypothetical future state of the world, for example for
-the purposes of planning.
+These rules mirror the definition of $\mathbf{end}$ and preserve
+equivalence given the definition of the $History$ function. Since
+$Legal$ and $History$ are ordinary fluents they can be handled by
+standard regression rules. Agents can therefore use such a query to
+do regression-based reasoning about some hypothetical future state
+of the world, for example for the purposes of planning.
 
 An agent could not, however, answer queries about the actual current
 state of the world in this manner. They will not have access to the
@@ -703,7 +702,7 @@ As we shall see in the coming chapters, for offline planning we can
 permit the agents to reason using the hypothetical global history
 rather than their local observations. For richer epistemic reasoning
 about the current state of the world, we will require a technique
-capable of performing inductive reasoning.\newpage{}
+capable of performing inductive reasoning.
 
 
 \section{Discussion\label{sec:Observations:Discussion}}

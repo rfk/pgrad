@@ -1,12 +1,12 @@
 
-  proc {Insert JIn Ns S MustPrec JOut Outcomes}
-    PossEns = {FindEnablingEvents JIn S.action Ns MustPrec}
+  proc {Insert JIn Lf S MustPrec JOut Outcomes}
+    PossEns = {FindEnablingEvents JIn S.action Lf MustPrec}
     Ens = {FilterEnablers JIn PossEns}
   in
-    {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
+    {InsertWithEnablers JIn Lf S Ens JOut Outcomes}
   end
 
-  proc {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
+  proc {InsertWithEnablers JIn Lf S Ens JOut Outcomes}
     Outs = {Sitcalc.outcomes S}
     AId|OIds = {IntMap.nextAvailLabels JIn S|Outs}
     J1 J2
@@ -15,9 +15,9 @@
                                 enablers: Ens
                                 outcomes: OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = {FixActionInvariants J2 AId}
+    JOut = {FixFeasibility J2 AId}
     Outcomes = for collect:C I in OIds do
-                 {C {BranchPush JOut I Ns}}
+                 {C {BranchPush JOut I Lf}}
                end
   end
 

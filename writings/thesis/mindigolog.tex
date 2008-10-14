@@ -30,17 +30,18 @@ as described in Section \ref{sec:Background:Mozart/Oz}, the agents
 can transparently share the workload of planning a program execution.
 The ability to utilise off-the-shelf techniques such as parallel search
 highlights a significant advantage of building our system on the situation
-calculus -- it has a straightforward encoding as a logic program.
+calculus: it has a straightforward encoding as a logic program.
 
 Concluding the chapter is a discussion of the limitations of this
 first incarnation of MIndiGolog, which derive from the effective reasoning
-procedures of the situation calculus: it can only operate in fully-observable,
-synchronous domains. Subsequent chapters of this thesis develop new
-extensions to the situation calculus that can help overcome this limitation.
-So while the semantics and initial implementation of MIndiGolog are
-of independent interest, this chapter should also be seen as motivating
-the use of the situation calculus in rich multi-agent domains, and
-therefore the techniques developed later in this thesis.
+procedures of the situation calculus. Specifically, it can only operate
+in fully-observable, synchronous domains. Subsequent chapters of this
+thesis develop new extensions to the situation calculus that work
+towards overcoming this limitation. So while the semantics and initial
+implementation of MIndiGolog are of independent interest, this chapter
+should also be seen as motivating the use of the situation calculus
+in rich multi-agent domains, and therefore the techniques developed
+later in this thesis.
 
 The chapter proceeds as follows: Section \ref{sec:MIndiGolog:Background}
 provides some more detailed background material; Section \ref{sec:MIndiGolog:Motivation}
@@ -66,9 +67,9 @@ defined as the concurrent execution of the individual agent's programs:\[
 \delta=\delta_{agt1}\,||\,\delta_{agt2}\,||\,\dots\,||\,\delta_{agtN}\]
 
 
-This is the approach followed by TeamGolog \citep{farinelli07team_golog},
-the Cognitive Agents Specification Language \citep{shapiro02casl}
-and earlier work in a similar vein \citep{lesperance99modeling}.
+This is the approach followed by TeamGolog \citep{farinelli07team_golog}
+and the Cognitive Agents Specification Language \citep{shapiro02casl},
+along with earlier work in a similar vein \citep{lesperance99modeling}.
 In such a setting, the agents do not necessarily cooperate or coordinate
 their actions, and it is assumed that any legal execution of the combined
 agent programs is a possible evolution of the entire system.
@@ -87,7 +88,7 @@ soccer team.
 The one-program-per-agent approach can be considered a special case
 of the shared-task approach, one which does not require coordination
 or cooperation between team members. So while we focus exclusively
-the on cooperative execution of a shared task in this and subsequent
+on the cooperative execution of a shared task in this and subsequent
 chapters, the techniques we develop are likely to have application
 in the case of multiple individual control programs as well.
 
@@ -168,9 +169,9 @@ to provide a more robust combination of rich domain features.\\
 
 
 There are, of course, a variety of other systems and formalisms that
-could be used to model and implement domains such as our \char`\"{}cooking
-agents\char`\"{} example. A popular choice is to represent tasks using
-a variant of the Hierarchical Task Networks formalism, which has been
+could be used to model and implement domains such as our {}``cooking
+agents'' example. A popular choice is to represent tasks using a
+variant of the Hierarchical Task Networks formalism, which has been
 employed in systems such as STEAM \citep{tambe97flexible_teamwork},
 SharedPlans \citep{grosz96sharedplans}, and TAEMS \citep{decker95designing_coordination}.
 
@@ -373,11 +374,10 @@ of them where possible for concurrent program execution.
 
 Natural actions form an important part of rich multi-agent domains
 with many long-running tasks, as the $endTask$ action is a natural
-action. As we shall see in the next chapter, they are also useful
-for modelling delayed communication between agents. Since they are
-entirely predictable based on the theory of action, we contend that
-Golog should provide support for them at the semantic level to relieve
-the programmer from having to specify them explicitly.
+action. Since they are entirely predictable based on the theory of
+action, we contend that Golog should provide support for them at the
+semantic level to relieve the programmer from having to specify them
+explicitly.
 
 An explicit temporal component is a prerequisite for supporting natural
 actions, and also provides for a much more convincing domain model,
@@ -415,7 +415,7 @@ would be:\[
 do(\{placeIn(Jim,Sugar,Bowl)\}\#t_{2},do(\{placeIn(Jim,Flour,Bowl)\}\#t_{1},S_{0}))\]
 
 
-Where $t_{1}$ and $t_{2}$ are variables giving the execution times
+Here $t_{1}$ and $t_{2}$ are variables giving the execution times
 of each action. It would also output the following constraint on this
 solution:\[
 t_{2}>t_{1}\]
@@ -588,7 +588,7 @@ equations \eqref{eqn:trans_conc_new}, \eqref{eqn:trans_prim_new}
 and \eqref{eqn:trans_cond_new} all assert that $Legal(c\#t,s)$ before
 constructing a new situation term $do(c\#t,s)$. The other $Trans$
 clauses either assert that $s=s'$, or set $s'$ to a new situation
-term construct by one of these three base cases. Since we are given
+term constructed by one of these three base cases. Since we are given
 that $s$ is legal, the lemma holds for each $Trans$ clause in the
 semantics. 
 \end{proof}
@@ -645,10 +645,13 @@ implementation:
 
 \programinput{listings/mindigolog/goloz_final.oz}
 
-Of particular interest is our implementation of the concurrency operator,
-reflecting the new semantics from equation \eqref{eqn:trans_conc_new}.
-First, we introduce a procedure \emph{Step} which calculates a series
-of transitions to produce a single next action:
+The calls to $Sitcalc.holds$ etc here perform standard regression-based
+theorem proving in the style of Prolog-based Golog implementations
+\citep{levesque97golog,giacomo00congolog}. Of particular interest
+is our implementation of the concurrency operator, reflecting the
+new semantics from equation \eqref{eqn:trans_conc_new}. First, we
+introduce a procedure \emph{Step} which calculates a series of transitions
+to produce a single next action:
 
 \programinput{listings/mindigolog/goloz_step.oz}
 
@@ -929,7 +932,7 @@ Another limitation is that MIndiGolog does only \emph{linear} planning,
 and has no support for sensing actions. In the single-agent case the
 execution of Golog programs that include sensing actions is well understood
 \citep{giacomo99indigolog,lakemeyer99golog_cats}, but there is no
-straightforward way to adopt these techniques to the implicit coordination
+straightforward way to adapt these techniques to the implicit coordination
 scheme used by MIndiGolog. The difficulty arises from the execution
 algorithm's crucial assumption that all agents have access to the
 same information. Introducing sensing actions to MIndiGolog will require
@@ -949,9 +952,9 @@ of each agent that explicitly deals with the hidden actions inherent
 in an asynchronous domain.
 
 While we will revisit the cooking agents again in Chapter \ref{ch:jointexec},
-our final implementation of an asynchronous version of MIndiGolog
-is still ongoing. At the conclusion of this thesis, we will discuss
-the challenges remaining to be faced in bringing our new techniques
-for representing and reasoning about asynchronous domains together
-with a practical implementation of a system such as MIndiGolog.
+our implementation of a new, asynchronous version of MIndiGolog is
+still ongoing. At the conclusion of this thesis, we will discuss the
+challenges remaining to be faced in bringing our new techniques for
+representing and reasoning about asynchronous domains together with
+a practical implementation of a system such as MIndiGolog.
 

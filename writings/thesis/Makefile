@@ -35,7 +35,7 @@ GARBAGE = $(LATEX_GARBAGE) *~ *.ch.tex *.ed.tex *.ed.lyx rawchapters.tex *.bak
 CLOBBERAGE = thesis.pdf *.ch.pdf *.tmp.pdf rawchapters.pdf ./upload-thesis/
 
 CHAPTERS = abstract.tex intro.tex background.tex mindigolog.tex observations.tex jointexec.tex persistence.tex knowledge.tex cknowledge.tex conclusion.tex 
-APPENDICES = implementation.tex proofs.tex
+APPENDICES = proofs.tex implementation.tex cookingagents.tex
 AUXFILES = preamble.tex mathmacros.tex bibcmds.tex
 LISTINGS_PDF = listings/jointexec/example_je.pdf listings/jointexec/example_pes.pdf listings/jointexec/unfeas_je.pdf listings/jointexec/unfeas_je2.pdf listings/jointexec/salad2_plan.pdf listings/jointexec/salad1_plan.pdf
 LISTINGS_EPS = listings/jointexec/example_je.eps listings/jointexec/example_pes.eps listings/jointexec/unfeas_je.eps listings/jointexec/unfeas_je2.eps listings/jointexec/salad2_plan.eps listings/jointexec/salad1_plan.eps
