@@ -311,7 +311,7 @@ in order to model these substitutions as concrete objects. Since any
 path $\pi$ will have a finite number of variables, the substitutions
 used in its macro-expansion can be directly replaced with finite tuples
 of variables from $\Lsit$. We will continue to use the notation $\mu$
-in line with the standard semanitcs of FODL, which operate over pairs
+in line with the standard semantics of FODL, which operate over pairs
 $(\mu,s)$.
 
 \begin{defnL}
@@ -567,7 +567,9 @@ definition with the following suggestive notation:\[
 It is this fixpoint nature that will allow us to construct a regression
 rule using the persistence condition operator. First, let us define
 an auxiliary meta-level operator $\UnZ$ that replaces instances of
-$\PKnowsZ$ with $\PKnows$:\begin{gather*}
+$\PKnowsZ$ with $\PKnows$:
+
+\begin{gather*}
 \UnZ(\phi_{1}\wedge\phi_{2})\isdef\UnZ(\phi_{1})\wedge\UnZ(\phi_{2})\\
 \UnZ(\exists x:\,\phi(x))\isdef\exists x:\,\UnZ(\phi(x))\\
 \UnZ(\neg\phi)\isdef\neg\UnZ(\phi)\\
@@ -634,7 +636,7 @@ reach of our formalism into richer domains where some inductive reasoning
 is required.
 
 \begin{thm}
-Let $\Dt_{sync}$ be a synchronous basic action theory, then:\ref{thm:Sync-PKnows-PKnowsZ}\[
+Let $\Dt_{sync}$ be a synchronous basic action theory, then:\label{thm:Sync-PKnows-PKnowsZ}\[
 \Dt_{sync}\cup\Dt_{K}^{obs}\models\forall s:\,\PKnows(\pi,\phi,s)\,\equiv\,\PKnowsZ(\pi,\phi,s)\]
 
 \end{thm}
@@ -647,7 +649,7 @@ Then by Theorem \ref{thm:En_impl_En-1} we have that $\PKnowsZ(\pi,\phi,s)$
 is enough to establish $\PKnowsZ(\pi,\phi,\mathcal{E}^{n}(s))$ for
 any $n$, which establishes the infinite conjunction in the definition
 of $\PKnows(\pi,\phi,s)$ as required. The regression of $\PKnowsZ(\pi,\phi,\mathcal{E}^{1}(s))$
-contains the modality $\Trn(\pi,\{\},c')$ , and we demsontrate that
+contains the modality $\Trn(\pi,\{\},c')$ , and we demonstrate that
 since the domain is synchronous it is not possible for the regressed
 path to exit successfully unless $c'=\{\}$. Showing that $\Trn(\pi,\{\},\{\})$
 is equivalent to $\pi$ in synchronous domains completes the proof. 
@@ -1137,8 +1139,11 @@ in state $i$. Let $\phi^{\downarrow}$ represent the standard propositionalisatio
 of first-order formula $\phi$. A FODL modality $\PKnowsZ(\pi,\phi)$
 can be translated into a PDL modality $\mathbf{Prop}[\PKnowsZ(\pi,\phi)]$
 as follows. $\mathbf{Prop}_{ij}[\pi]$ represents the propositionalisation
-of path $\pi$ with start state $i$ and end state $j$:\begin{align*}
-\mathbf{Prop}[\PKnowsZ(\pi,\phi)]\isdef & \bigwedge_{i=0}^{m}\bigwedge_{j=0}^{m}\PKnowsZ(\mathbf{Prop}_{ij}[\pi],\phi^{\downarrow})\\
+of path $\pi$ with start state $i$ and end state $j$:\[
+\mathbf{Prop}[\PKnowsZ(\pi,\phi)]\isdef\bigwedge_{i=0}^{m}\bigwedge_{j=0}^{m}\PKnowsZ(\mathbf{Prop}_{ij}[\pi],\phi^{\downarrow})\]
+
+
+\begin{align*}
 \mathbf{Prop}_{ij}[agt]\isdef & \begin{cases}
 agt & \mathrm{if\, i=j}\\
 ?\bot & \mathrm{otherwise}\end{cases}\\
@@ -1151,7 +1156,9 @@ agt & \mathrm{if\, i=j}\\
 \mathbf{Prop}_{ij}[\pi_{1};\pi_{2}]\isdef & \bigcup_{k=0}^{m}(\mathbf{Prop}_{ik}[\pi_{1}];\mathbf{Prop}_{kj}[\pi_{2}])\\
 \mathbf{Prop}_{ij}[\pi_{1}\cup\pi_{2}]\isdef & \,\,\mathbf{Prop}_{ij}[\pi_{1}]\cup\mathbf{Prop}_{ij}[\pi_{2}]\\
 \mathbf{Prop}_{ij}[\pi^{*}]\isdef & \,\,\mathbf{PropK}_{ijm}(\pi)\end{align*}
- \begin{align*}
+
+
+\begin{align*}
 \mathbf{PropK}_{ij0}[\pi] & \isdef\begin{cases}
 ?\top\cup\mathbf{Prop}_{ij}[\pi] & \mathrm{if\, i=j}\\
 \mathbf{Prop}_{ij}[\pi] & \mathrm{otherwise}\end{cases}\\
@@ -1177,7 +1184,7 @@ More generally, we may have a specific possible-worlds model to represent
 the group's knowledge in the initial situation. In this case the regressed
 query can be answered using model-checking rather than satisfiability;
 for PDL this reduces the complexity from EXPTIME-complete to PTIME-complete,
-a very significant win \citep{lange05pdl_model_checking}.
+a significant win \citep{lange05pdl_model_checking}.
 
 It may also be possible to identify restricted fragments of FODL that
 are sufficient to capture the regression of common knowledge in restricted
@@ -1211,15 +1218,16 @@ epistemic path. To avoid having to expand these macros during reasoning,
 we have modified the regression operator to treat them as primitive
 fluents.
 
-Our development has clear parallels with the development of LCC \citep{vanBenthem06lcc}.
-We choose the situation calculus for its much richer ontology, e.g.
-preconditions and effects are first order, while actions take arguments
-and may be performed concurrently. On one hand, this forces us to
-use a more powerful dynamic logic for our epistemic language and run
-the risk of undecidability. On the other, it actually simplifies some
-aspects of our presentation. We do not need explicit update frames,
-and the definition of our path regressor does not require an auxiliary
-Kleene-style operator to handle iteration.
+Our development was inspired by and has clear parallels with the Logic
+of Communication and Change of \citet{vanBenthem06lcc}. We choose
+the situation calculus for its much richer ontology, e.g. preconditions
+and effects are first order, while actions take arguments and may
+be performed concurrently. On one hand, this forces us to use a more
+powerful dynamic logic for our epistemic language and run the risk
+of undecidability. On the other, it actually simplifies some aspects
+of our presentation. We do not need explicit update frames, and the
+definition of our path regressor does not require an auxiliary Kleene-style
+operator to handle iteration.
 
 As with the previous chapter, hidden actions are handled using the
 persistence condition meta-operator to perform a fixpoint calculation.
@@ -1253,33 +1261,58 @@ logic into propositional logic, it results in an exponential blowup
 in the size of the formula.
 
 In standard first-order logic this is avoided using a \emph{free-variable}
-prover such a Prolog, which can avoid generating cases that will obviously
-not lead to a proof. Effective automated reasoning in our epistemic
-language would seem to require similar use of free variables to control
-this exponential blowup. We are aware of no existing systems that
-could easily support this reasoning.
+prover which can avoid generating cases that will obviously not lead
+to a proof. Effective automated reasoning in our epistemic language
+would seem to require similar use of free variables to control this
+exponential blowup. We are aware of no existing systems that could
+easily support this reasoning.
 
-We do have the beginnings of a free-variable prover for our logic,
-using a combination of the first-order Shannon Graph techniques of
-\citep{Posegga95shannong_graphs} and the PDL tableaux rules described
-in \citep{abate07twb_pdl}, but it is not sufficiently complete to
-be included in this thesis.\\
+We have the beginnings of a free-variable prover for our logic, using
+a combination of the first-order Shannon Graph techniques of \citep{Posegga95shannong_graphs}
+and the PDL tableaux rules described in \citep{abate07twb_pdl}, there
+is substantial work still be done towards this goal.\\
 
 
-As a first step towards this, we note that when starting from the
-expression for common knowledge, our epistemic path regressor $\Trn$
-will not generate nested iteration operators. Formulae in such \emph{star-normal
-form} are known to simplify proof search in PDL \citep{abate07twb_pdl}.
-Identifying more restricted fragments that can simplify our epistemic
-language is a promising avenue for future research.
+There is also an important open question left by our work so far:
+does FODL \emph{precisely} characterise the expressivity required
+to regress common knowledge? This chapter has provided an upper bound
+on the required expressivity by formulating a sound and complete regression
+rule for FODL knowledge modalities. It is also clear that the standard
+$\Knows$ and $\CKnows$ modalities do not have the required expressivity.
+But is there a language between these two bounds that is rich enough
+to regress common knowledge, while having a more tractable reasoning
+procedure than full dynamic logic?
 
-Clearly Golog is a very powerful language, so the question must be
-asked: could we use Golog directly for our epistemic path language,
-rather than FODL? Unfortunately not, as Golog has no notion of \emph{state}
-- while the Golog operator $\pi(x,\delta(x))$ is similar to the FODL
-operator $\exists x$, its effect is localised to the contained program
-$\delta$. FODL allows variable assignments to affect the entire remaining
-program.\\
+Our epistemic path regressor constructs paths with a very regular
+internal structure, so the possibility cannot be ruled out at this
+stage. For example, we note that when starting from the expression
+for common knowledge, $\Trn$ will not generate nested iteration operators.
+Formulae in such \emph{star-normal form} are known to simplify proof
+search in PDL \citep{abate07twb_pdl}. Identifying more restricted
+fragments that can simplify our epistemic language, even if they are
+only complete for restricted classes of action theory, is a promising
+avenue for future research.
+
+On a related note, let us briefly justify why we construct a new dynamic
+logic semantics in the situation calculus rather than adapting the
+existing semantics of Golog for our purpose. The difficulty is that
+Golog has no notion of \emph{state} -- while the Golog operator $\pi(x,\delta(x))$
+is similar to the FODL operator $\exists x$, its effect is localised
+to the contained program $\delta$. By contrast, FODL allows variable
+assignments to affect the entire remaining program. While it is possible
+to simulate global state in Golog using mutually recursive procedure
+calls, the presentation and proofs are much cleaner using a special-purpose
+language as we have developed in this chapter.\\
+
+
+Once again, let us note that we deal only with a logic of knowledge
+in this chapter, rather than a logic of belief. The discussion on
+belief-based formalisms at the end of Chapter \ref{ch:knowledge}
+also applies to our group-level formalism. This would, however, be
+a promising avenue for future research -- can an approach similar
+to the one developed in this chapter provide effective reasoning techniques
+for other group-level mental attitudes in the situation calculus,
+such a mutual belief or joint goals? \\
 
 
 In Chapter \ref{ch:intro} we noted a famous result of \citet{halpern90knowledge_distrib},
@@ -1313,7 +1346,4 @@ frame which allows the occurrence of $c$ to be hidden from an agent,
 then their epistemic frame after the occurrence of $c$ will still
 contain those situations from before the occurrence of $c$.\\
 
-
-TODO: can similar techniques reason about mutual goals? \citet{lesperance05ecasl,shapiro07sc_goal_change}
-or mutual beliefs \citep{shapiro04sc_belief_exog}
 
