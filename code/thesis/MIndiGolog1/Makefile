@@ -6,6 +6,9 @@ TIME_CMD = /usr/bin/time -f "%e" -a -o
 
 all: main.exe $(FUNCTORS)
 
+main.exe: $(FUNCTORS)
+
+
 run-%-p: main.exe
 	./main.exe --agent=$* --psearch
 
@@ -45,20 +48,6 @@ time-test: main.exe
 	sleep 1
 	$(TIME_CMD) TIME.s ./main.exe --agent=joe --nopsearch
 
-run-serial: main.exe
-	./main.exe --agent=jon &
-	sleep 1
-	./main.exe --agent=jim &
-	sleep 1
-	./main.exe --agent=joe
-
-run-parallel: main.exe
-	./main.exe --agent=jon --psearch &
-	sleep 1
-	./main.exe --agent=jim --psearch &
-	sleep 1
-	./main.exe --agent=joe --psearch
-
 %.ozf: %.oz
 	ozc -g -p -c $< -o $@
 
@@ -68,5 +57,9 @@ run-parallel: main.exe
 clean:
 	rm -rf *.ozf *.exe *.ozf 
 
-main.exe: $(FUNCTORS)
+dist:
+	mkdir MIndiGolog1
+	cp Makefile *.txt *.oz ./MIndiGolog1
+	tar -czvf MIndiGolog1.tar.gz MIndiGolog1
+	rm -rf MIndiGolog1
 

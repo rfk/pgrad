@@ -34,4 +34,11 @@ clean:
 
 clobber: clean
 	rm -rf *.exe *.dot *.png
+dist:
+	mkdir MIndiGolog2
+	cp Makefile *.txt *.oz ./MIndiGolog2
+	tar -czvf MIndiGolog2.tar.gz MIndiGolog2
+	rm -rf MIndiGolog2
+
+
 
