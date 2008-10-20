@@ -1,15 +1,36 @@
 
-This is MIndiGolog: IndiGolog for cooperative execution by multi-agent teams
+This is a MIndiGolog interpreter implemented using SWI-Prolog.
+It was developed as part of Ryan Kelly's PhD thesis "Asynchronous Multi-Agent
+Reasoning in the Situation Calculus".  Further details are available at:
 
-The base files:   * sitcalc.pl: foundational axioms of the situation calculus
-                  * mindigolog.pl: semantics and solver for MIndiGolog programs
-                  * main.pl: top-level control file, pulling it all together
+   http://www.rfk.id.au/research/thesis/
 
-The domain-specific files:
-             * domain.pl: axiomatisation of your domain in the calculus
-             * program.pl: definitions of your procedures
 
-The environment:   Development is being done under SWI prolog, as it
-                   is open source and provides a real-valued constraint
-                   solver.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+To get up and running, you will need a working installation of SWI-Prolog,
+available from:
+
+   http://www.swi-prolog.org/
+
+
+The included files are:
+
+  main.pl:        top-level control file - load this into the SWI Prolog shell
+  sitcalc.pl:     domain-independent axioms of the situation calculus
+  mindigolog.pl:  domain-independent semantics of MIndiGolog
+  domain.pl:      domain-specific axioms
+  program.pl:     domain-specific MIndiGolog procedure definitions
 

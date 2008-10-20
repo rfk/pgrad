@@ -1,8 +1,11 @@
 %%
-%%  MIndiGolog procedures
+%%  program.pl:  MIndiGolog procedure definitions
 %%
-%%  The following are a collection of useful procedures in the domain,
-%%  from which larger programs can be built.
+%%  Copyright 2005, Ryan Kelly
+%%
+%%  The predicate proc/2 is used to define procedures.  Its first argument
+%%  is called with the term representing the procedure call, and it should
+%%  bind its second argument to the corresponding procedure body.
 %%
 
 
@@ -113,7 +116,7 @@ proc(makeSalad(Dest),
 
 
 %%  Main control program - prepare a nice meal
-proc(control,
+proc(main,
      makeSalad(bowl1)
     ).
 

@@ -1,43 +1,11 @@
 %%
-%%  mindigolog.pl:  IndiGolog for multiple agents in the Concurrent, Temporal
-%%                  Situation Calculus with Natural Actions
+%%  mindigolog.pl:  transition semantics for MIndiGolog
 %%
-%%  Author:  Ryan Kelly (rfk)
+%%  Copyright 2005, Ryan Kelly
 %%
-%%  Date Created:  28/07/05
-%%
-%%    This is an extension of the transition semantics for ConGolog given
-%%    by De Giacomo et al ("ConGolog, a concurrent programming language
-%%    based on the situation calculus") to operate with the extented 
-%%    situation calculus defined in [sitcalc.pl].  Many of the transition
-%%    operators are unchanged from this work, simply implemented in CIAO
-%%    prolog.
-%%
-%%    This implementation will also incorporate a 'search' operator in
-%%    the manner of IndiGolog, but this has not yet been implemented.
-%%
-%%    TODO:  document how programs are formed
-%%
-%%    The execution of an MIndiGolog program is defined by a transition
-%%    semantics based on single-stepping and termination checking. For
-%%    a program D and a situation S, the program may be partially
-%%    executed to result in a new situation Sp and remaining program Dp
-%%    if the predicate trans(D,S,Dp,Sp) holds.  A program D may legally
-%%    terminate in situation S if the predicate final(D,S) holds.
-%%
-%%    It should be noted that many of the constructs in the Golog family
-%%    of languaged involve some nondeterminism, so trans/4 and final/2
-%%    are nondeterministic.
-%%
-%%    Programs can be executed in both an off-line and an on-line manner.
-%%
-%%    The predicate do(D,S,Sp) will take a program D and initial situation
-%%    S and find a situation Sp in which the program will legally terminate.
-%%    The actions performed by the program are available in the action
-%%    history of Sp.  This predicate will backtrack over possible transitions
-%%    until a legal execution is found, and will determine more legal
-%%    executions when it is backtracked.  This provides offline execution
-%%    (planning) for MIndiGolog programs.
+%%    The predicate do(D,S,Sp) plans an execution of program D in an offline
+%%    manner, printing the actions to be performed to standard output as well
+%%    as returning them in the situation term Sp.
 %%
 %%    The predicate ol_do(D,S) executes the program D in an on-line manner,
 %%    beginning in situation S.  This means that it will not backtrack over
@@ -56,7 +24,7 @@
 %%  final(D,S):  program termination is possible
 %%
 %%  The predicate final/2 is true when program D may legally terminate
-%%  in situation S.  It is typically defined recursively for higher-order
+%%  in situation S.  It is typically defined recursively for higher-level
 %%  program constructs.  The specifics of each individual clause are
 %%  explained below.
 %%
@@ -168,7 +136,6 @@ final(D,S) :-
 %%
 trans(C,S,Dp,Sp) :-
     sub(now,S,C,CS), to_cact(CS,CA), start(S,SStart),
-    % TODO: Should a C containing LNTP actions be allowed after LNTP?
     ( lntp(S,LNTP) ->
       (
         % Get the list of LNTP actions
@@ -301,8 +268,6 @@ trans(pcall(PArgs),S,Dp,Sp) :-
     proc(PArgsS,P), trans(P,S,Dp,Sp).
 
 %%  TODO:  a search() operator similar to IndiGolog.
-%trans(search(D),S,Dp,Sp) :-
-%    do(D,S,S2),
 
 %%  A program may also transition if it contains syntactic sugar, and is
 %%  equivalent to a program that may transition.
@@ -445,7 +410,6 @@ step(D,S,Dp,Sp) :-
 %%
 do(D,S,Sp) :-
     trans*(D,S,Dp,Sp),
-    %nl, nl, display(Sp), nl, nl, display(Dp), nl, get_code(_),
     final(Dp,Sp),
     show_action_history(Sp).
 
@@ -476,7 +440,6 @@ show_action_history(do(C,T,S)) :-
 %%  performing each at the minimum possible time.
 %%
 ol_do(D,S) :-
-    %( ol_valid_step(D,S,Dr,Sr) ->
     ( step(D,S,Dr,Sr) ->
         Sr = do(C,T,S),
         ( inf(T,MinT) ->
@@ -493,20 +456,5 @@ ol_do(D,S) :-
     ;
         write('FAILED!'), nl, write('Remaining: '),
         write(D), nl
-    ).
-
-
-% If the step being called for contains a natural action, ensure that
-% the resulting program is not waiting for that action.
-ol_valid_step(D,S,Dr,do(C,T,S)) :-
-    step(D,S,Dr,do(C,T,S)),
-    %write('step: '), write(C), nl,
-    ( member(NA,C), natural(NA) ->
-        %write('contains NA'), nl,
-        \+ ( step(Dr,S,_,do(C2,_,S)),
-             member(NA,C2) %, write('which is broken'), nl
-           )
-      ;
-        true
     ).
 

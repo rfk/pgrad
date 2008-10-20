@@ -1,11 +1,9 @@
 %%
 %%  main.pl:  Top-level prolog file for MIndiGolog
 %%
-%%  Author:  Ryan Kelly (rfk)
+%%  Copyright 2005, Ryan Kelly
 %%
-%%  Date Created:  28/07/05
-%%
-%%    This file is the entry-point for an MIndiGolog program consisting
+%%    This file is the entry-point for a MIndiGolog interpreter consisting
 %%    of the following files:
 %%
 %%      * Axioms of the Concurrent, Temporal Situation Calculus with
@@ -61,7 +59,7 @@
 %%
 main(Args) :-
     ( length(Args,0) ->
-        nl, do(control,s0,S), nl
+        nl, do(main,s0,S), nl
     ;
         nl, display('ERROR: No arguments can be given'), nl
     ).

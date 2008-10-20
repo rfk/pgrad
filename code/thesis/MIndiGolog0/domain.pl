@@ -1,9 +1,7 @@
 %%
 %%  domain.pl:  Axiomatisation of the "Cooking Agents" domain for MIndiGolog
 %%
-%%  Author:  Ryan Kelly (rfk)
-%%
-%%  Date Created:  28/07/05
+%%  Copyright 2005, Ryan Kelly
 %%
 %%    This file contains an axiomatisation of the "Cooking Agents" domain
 %%    in the Concurrent, Temporal Situation Calculus with Natural Actions.
