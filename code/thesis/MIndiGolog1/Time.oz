@@ -1,9 +1,12 @@
 %
-%  Time.oz:  module implementing time-points
+%  Time.oz:  implement time-points as an abstract data type
+%
+%  Copyright 2008, Ryan Kelly
 %
 %  Timepoints are an abstract quantity with constraint-handling
 %  abilities.  Currently they are implemented as finite domain
-%  integers.
+%  integers, but I'd like to use a more powerful constraint solver
+%  eventually.
 %
 
 functor 

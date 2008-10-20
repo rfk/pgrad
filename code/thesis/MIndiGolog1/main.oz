@@ -1,3 +1,18 @@
+%
+%  main.oz:  top-level control file for MIndiGolog1
+%
+%  Copyright 2008, Ryan Kelly
+%
+%  This file implements the top-level control loop for each agent executing
+%  a shared MIndiGolog program, and should be compiled into an executable
+%  using the '-x' option to the Oz compiler.
+%
+%  The program accepts the command-line option --agent to specify the name
+%  of the agent being executed, and --[no]psearch to specify whether parallel
+%  search should be used.  It initialised the Control module appropriately,
+%  then proceeds with the ReadyLog online execution algorithm for the
+%  MIndiGolog procedure named 'main'.
+%
 
 functor
 
@@ -23,7 +38,7 @@ define
   % Read the command-line arguments, and initialise Control module accordingly
   %
   MyArgs = {Application.getArgs record(agent(single type:atom)
-                                   psearch(single type:bool default:false))}
+                                   psearch(single type:bool default:true))}
   Control.teamLeader = jon
   Control.teamMember = MyArgs.agent
   Control.doParallelSearch = MyArgs.psearch
@@ -73,6 +88,7 @@ define
   {Run pcall(main) s0}
 
   % Count to 10000, so other agents have a chance to finish, then exit...
+  %
   proc {CountDown X}
     if X == 0 then skip
     else {CountDown (X-1)} end

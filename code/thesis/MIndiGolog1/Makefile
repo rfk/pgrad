@@ -58,7 +58,7 @@ clean:
 	rm -rf *.ozf *.exe *.ozf 
 
 clobber: clean
-	rm -rf MIndiGolog2-0.9.9.tar.gz
+	rm -rf MIndiGolog2-0.9.9.tar.gz TIME.*
 
 dist:
 	mkdir MIndiGolog1-0.9.9

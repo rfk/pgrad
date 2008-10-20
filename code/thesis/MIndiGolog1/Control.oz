@@ -1,6 +1,19 @@
 %
 %  Control.oz:  procedures for controlling an individual team-member
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file manages communication between individual instances of the
+%  interpreter, representing different team members.  The top-level control
+%  file should call {Control.init}, which will establish the necessary
+%  inter-agent communication links.
+%
+%  Things are slightly complicated by the fact that communication cannot be
+%  performed from within a subordinated computation space, meaning that it
+%  cannot be performed from inside a Search object.  To get around this,
+%  must use Mozart's Port objects to route communication out to a separate
+%  thread running in the top-level computation space.
+%
 
 functor 
 
@@ -16,14 +29,9 @@ import
 
 export
 
-  % Name of the current team member
   TeamMember
-  % Name of the designated team leader
   TeamLeader
-
-  % List of all agents in the team
   Agents
-  % List of all agents who are not team leader
   Subordinates
 
   DoParallelSearch
@@ -37,12 +45,19 @@ export
 
 define
 
-  % We depend on the main script to bind these values
+  %  We depend on the main script to bind these values to something
+  %  useful, they are simply collected here for easy access.
+
+  % Name of agent designated as team leader
   TeamLeader = _
+
+  % Name of team member executing this program
   TeamMember = _
+
+  % Whether or not to use the parallel search feature
   DoParallelSearch = _
 
-  % Open-ended stream to which messages will be writetn, and mutable
+  % Open-ended stream to which messages will be writen, and mutable
   % pointer to the (free) tail of the stream.
   Msgs = _
   MsgPntr = {Cell.new Msgs}
@@ -50,7 +65,9 @@ define
   % Port on which to perform initial team sync
   CommPort = 8013
 
-  % These will be bound when Init is called
+  % List of all agents in the team, and all agents who are not the team
+  % leader.  These will be bound when Init is called, by introsepcting the
+  % definitions in Domain.oz
   Agents = _
   Subordinates = _
 
@@ -64,6 +81,8 @@ define
   %  and everyone can start executing.
   %
   proc {Init}
+    % Populate lists of agents and subordinates by intropsecting domain defns
+    %
     Agents = {Search.base.all proc {$ Agt}
                {Domain.isAgent Agt}
              end}
@@ -71,10 +90,17 @@ define
                      {Domain.isAgent Agt}
                      (Agt == TeamLeader)=false
                    end}
+    % Default to using parallel search if not already set otherwise
+    %
+    if {IsFree DoParallelSearch} then
+      DoParallelSearch = true
+    end
+    %  Wait for all team members to check in
+    %
     if TeamMember == TeamLeader then Tkt Skt Serve in
-      % Ticket used to share the message stream
+      % I am the team leader, create a ticket to the shared message
+      % stream and serve it over TCP to all subordinate agents.
       Tkt = {Connection.offerUnlimited Msgs}
-      % Listen on the CommPort for incoming requests
       Skt = {New Open.socket init}
       {Skt bind(takePort:CommPort)}
       {Skt listen}
@@ -170,7 +196,7 @@ define
     end
   end 
 
-  %  Log a message.
+  %  Log a message - just shows it on stdout.
   %
   proc {Log Msg}
     {System.show Msg}

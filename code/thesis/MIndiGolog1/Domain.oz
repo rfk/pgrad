@@ -1,6 +1,12 @@
 %
 %  Domain.oz:  procedures specifying the details of the domain
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file provides the basic procedures to define a particular domain -
+%  the available actions, agents, fluents etc, along with their successor
+%  state axioms and initial world state.
+%
 
 functor 
 
@@ -26,6 +32,8 @@ export
 
 define
 
+  %  Enumerate the agents operating in the domain
+  %
   proc {IsAgent A}
     choice  A = jim
     []      A = joe
@@ -33,17 +41,20 @@ define
     end
   end
 
+  %  Enumerate the long-running tasks available in the domain
+  %
   proc {IsTask Tsk}
     choice Cont in Tsk=mix(Cont _) {ObjIsType Cont container}
     []     Cont in Tsk=chop(Cont) {ObjIsType Cont container}
     end
   end
 
+  %  Enumerate primitive domain objects, and their types.
+  %
   proc {IsPrimObjT Obj Type}
     choice Type=knife {LP.member Obj [knife1 knife2 knife3]}
     []     Type=bowl {LP.member Obj [bowl1 bowl2 bowl3]}
     []     Type=board {LP.member Obj [board1 board2]}
-    []     Type=oven {LP.member Obj [oven1]}
     []     Type=flour {LP.member Obj [flour1 flour2 flour3 flour4 flour5]}
     []     Type=sugar {LP.member Obj [sugar1 sugar2 sugar3 sugar4 sugar5]}
     []     Type=egg {LP.member Obj [egg1 egg2 egg3]}
@@ -53,23 +64,32 @@ define
     end
   end
 
+  %  Assert that <Obj> is a primitive object of unspecified type.
+  %
   proc {IsPrimObj Obj}
     {IsPrimObjT Obj _}
   end
 
+  %  Constructs a simple hierarchy of object types
+  %
   proc {IsSuperType Type SType}
-    choice SType=container {LP.member Type [bowl board oven]}
+    choice SType=container {LP.member Type [bowl board]}
     []     SType=ingredient
            {LP.member Type [flour egg sugar tomato lettuce carrot]}
     end
   end
 
+  %  Assert that <Obj> is a primitive object of type <Type>
+  %
   proc {ObjIsType Obj Type}
     choice  {IsPrimObjT Obj Type}
     []      SubType in {IsSuperType SubType Type} {ObjIsType Obj SubType}
     end
   end
 
+  %  Enumerate the actions possible in the domain, as well as binding their
+  %  arguments to objects of the appropriate type.
+  %
   proc {IsAction Act}
     choice Agt Obj in Act=acquire(Agt Obj)
                       {IsAgent Agt}  {IsPrimObj Obj}
@@ -90,6 +110,8 @@ define
     end
   end
 
+  %  Identify natural actions.
+  %
   proc {IsNatural Act}
     choice  Act = ringTimer(_)
     []      Act = endTask(_ _)
@@ -98,11 +120,15 @@ define
     %{IsAction Act}
   end
 
+  %  Identify exogenous actions
+  %
   proc{IsExog Act}
     {IsNatural Act}
   end
 
 
+  %  Specify the possibility predicate for each individual action type.
+  %
   proc {Poss A T S}
     {Time.decl T}
     choice A=nil fail
@@ -140,6 +166,8 @@ define
     end
   end
 
+  %  Determine whether a set of concurrent actions is in conflict.
+  %
   proc {Conflicts C T S}
     A1 A2
   in
@@ -156,6 +184,10 @@ define
     end
   end
 
+
+  %  Implement basic successor state axiom for each primitive fluent
+  %  in the domain.
+  %
   proc {SSA F C T S}
     case F of hasObject(Agt Obj) then 
              choice {LP.member acquire(Agt Obj) C}
@@ -239,10 +271,15 @@ define
     else {StaticFact F} end
   end
 
+  %  Determine whether a given primitive fluent holds initially.
+  %
   proc {Init F}
     {StaticFact F}
   end
 
+  %  Specify static domain facts - i.e. things that can be queried but
+  %  are not fluents, and do not change as a result of actions
+  %
   proc {StaticFact F}
     case F of objIsType(Obj Type) then
              {ObjIsType Obj Type}

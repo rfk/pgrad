@@ -1,5 +1,11 @@
 %
-%  Sitcalc.oz:  procedure for domain-independent sitcalc stuff
+%  Sitcalc.oz:  procedures for domain-independent sitcalc stuff
+%
+%  Copyright 2008, Ryan Kelly
+%
+%  This file implements the domain-independent axioms of the situation
+%  calculus - handling of time, determining whether arbitrary uniform formulae
+%  holds in a given situation, etc.
 %
 
 functor
@@ -16,8 +22,6 @@ export
 
   Actor
   Start
-  Preceeds
-  PreceedsEq
   Legal
   ToConcAct
   ToStepsList
@@ -42,23 +46,8 @@ define
     end
   end
 
-  %  Assert that situation S1 preceeds situation S2
+  %  Assert that it's legal to perform actions C at time T in situation S.
   %
-  proc {Preceeds S1 S2}
-    C T Sp
-  in
-    S2 = res(C T Sp) {Poss C T Sp}
-    {PreceedsEq S1 Sp} {Time.lessEq {Start Sp} T}
-  end
-
-  %  Assert that situation S1 preceeds or is equal to situation S2
-  %
-  proc {PreceedsEq S1 S2}
-    choice  S1 = S2
-    []      {Preceeds S1 S2}
-    end
-  end
-
   proc {Legal C T S}
     {Poss C T S}
     {Time.less {Start S} T}
@@ -74,7 +63,8 @@ define
     end}
   end
 
-  %  Determine LNTP of situation S1
+  %  Determine least natural time point of situation S.
+  %  This is basically the smallest time at which a natural action is possible.
   %
   proc {LNTP S Tn}
     proc {PotentialLNTP Tnp} An Sl in
@@ -88,7 +78,8 @@ define
     end}
   end
 
-  % Determine PNA of situation S1
+  % Determine pending natural actions in situation S
+  %
   proc {PNA S Cn}
     Tn = {LNTP S}
   in
@@ -98,8 +89,9 @@ define
          end}
   end
 
-  % Generic possibility predicate - succeeds if C is not empty, each action
-  % is individually possible,  and they don't conflict.
+  % Generic possibility predicate for concurrent actions.
+  % This succeeds if C is not empty, each action
+  % is individually possible, and they don't conflict.
   %
   proc {Poss C T S}
     C = _|_
@@ -137,7 +129,9 @@ define
   % Determine whether a fluent holds in a given situation
   %
   proc {Holds F S}
-    % Reduce the formula down to NNF
+    %
+    %  First, reduce the formula down to NNF
+    %
     case F of conj(F1 F2) then {Holds F1 S} {Holds F2 S}
     []   disj(F1 F2) then choice {Holds F1 S} [] {Holds F2 S} end
     []   all(Var F1) then {Holds neg(ex(Var neg(F1))) S}
@@ -156,7 +150,9 @@ define
                                {Holds {LP.copyTerm F1} {LP.copyTerm S}}
                            end}
                       end
+    %
     % Then call into either SSA or Init
+    %
     else case S of s0 then
                 {Domain.init F}
          [] res(C T Sp) then
@@ -166,4 +162,3 @@ define
   end
 
 end
-

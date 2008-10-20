@@ -1,6 +1,11 @@
 %
 %  LP.oz:  generic logic-programming procedures
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file provides some utility procedures to make Prolog-style logic
+%  programming in Oz more pleasant.
+%
 
 functor 
 
@@ -163,7 +168,12 @@ define
   end
     
   %  Serialize a term, replacing free/kinded variables with specially named
-  %  records from which they can be re-created.
+  %  records from which they can be re-created.  This is needed to communicate
+  %  partially-instantiated records outside their original computation space.
+  %
+  %  Note that this is *extremely* bad Oz practise, but it the simplest way
+  %  the achieve what we want without moving too far from standard Golog
+  %  implementation techniques, which assume prolog-style free variables.
   %
   proc {Serialize TIn TOut}
     {SerializeRec _ TIn TOut}
@@ -244,6 +254,9 @@ define
     end
   end
 
+  %  Allow creation of new unique names from within a subordinated computation
+  %  space.  This is pretty similar to prolog's gensym/2 predicate.
+  %
   NewGlobalName = _
   local IPort IStream in
     IPort = {Port.new IStream}
@@ -257,7 +270,6 @@ define
     end
   end
   
- 
 
 end
 

@@ -1,6 +1,27 @@
 %
 %  MIndiGolog.oz:  semantics of MIndiGolog
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file implements the transition semantics of each MIndiGolog operator,
+%  as well as the parallel-search functionality for planning offline execution.
+%  The operators are constructed using the following record labels, some of
+%  which are non-standard to avoid conflicts with Oz keywords:
+%
+%    seq(D1 D2)       - sequential execution
+%    test(C)          - test condition
+%    choose(D1 D2)    - nondeterministic choice of program
+%    pick(V D1)       - nondeterministic choice of argument
+%    star(D1)         - nondeterministic iteration
+%    ifte(C D1 D2)    - if-then-else
+%    wloop(C D1)      - while-loop
+%    conc(D1 D2)      - concurrent program execution
+%    pconc(D1 D2)     - prioritised concurrent execution
+%    cstar(D1)        - concurrent iteration
+%    pcall(P)         - procedure call
+%    search(D)        - search for offline execution
+%    dosteps(S)       - execute pre-planned list of actions
+%
 
 functor
 
@@ -29,11 +50,11 @@ define
   %
   proc {Trans D S Dp Sp}
       case D of nil then fail
-      []   test(Cond) then {Sitcalc.holds Cond S} Sp=S Dp=nil
-                           %[]     Tn = {Sitcalc.lntp S}
-                           %       Cn = {Sitcalc.pna S} in
-                           %       Dp=D Sp=res(Cn Tn S)
-                           %end
+      []   test(Cond) then choice {Sitcalc.holds Cond S} Sp=S Dp=nil
+                           []     Tn = {Sitcalc.lntp S}
+                                  Cn = {Sitcalc.pna S} in
+                                  Dp=D Sp=res(Cn Tn S)
+                           end
       []   seq(D1 D2) then choice D1r in {Trans D1 S D1r Sp} Dp=seq(D1r D2)
                            []            {Final D1 S} {Trans D2 S Dp Sp}
                            end
@@ -185,7 +206,7 @@ define
     end
   end
 
-  %  {Do D S Sp}  -  execution semantics for MIndiGolog.
+  %  {Do D S Sp}  -  offline execution planning for MIndiGolog.
   %  Find a sequence of transitions beginning from (D,S), and ending in
   %  a terminating state with situation Sp.
   %

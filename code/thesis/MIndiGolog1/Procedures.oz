@@ -1,6 +1,13 @@
 %
 %  Procedures.oz:  definitions of procedures for the domain
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file provides a single function {Procdef}, which takes a
+%  MIndiGolog procedure call as input and returns the corresponding
+%  procedure body as output.
+%
+%
 
 functor
 
