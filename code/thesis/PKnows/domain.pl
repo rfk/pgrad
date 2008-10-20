@@ -1,8 +1,12 @@
 %
 %  Domain-specific definitions.
 %
+%  Copyright 2008, Ryan Kelly
+%
 %  This axiomatisation is for the "party invitation" domain from the
-%  paper "Common Knowledge, Hidden Actions, and the Frame Problem".
+%  paper "Common Knowledge, Hidden Actions, and the Frame Problem", as
+%  well as Ryan's thesis "Asynchronous Multi-Agent Reasoning in the
+%  Situation Calculus".
 %
 
 :- discontiguous(causes_true/3).
@@ -32,23 +36,6 @@ observation(pair(A,R)) :-
 
 object(O) :-
     agent(O) ; location(O) ; result(O) ; observation(O).
-
-obj1(O) :- objN(O,1).
-obj2(O) :- objN(O,2).
-obj3(O) :- objN(O,3).
-obj4(O) :- objN(O,4).
-obj5(O) :- objN(O,5).
-obj6(O) :- objN(O,6).
-obj7(O) :- objN(O,7).
-obj8(O) :- objN(O,8).
-obj9(O) :- objN(O,9).
-obj10(O) :- objN(O,10).
-
-objN(O,N) :-
-    setof(X,observation(X),Xs),
-    length(Os,N),
-    append(Os,_,Xs),
-    member(O,Os).
 
 % Enumerates primitive actions, and the types of their arguments.
 prim_action(read(agent)).
@@ -169,7 +156,7 @@ test(pknows3) :-
     holds(pknows((ann | bob)*,inroom(ann)),s0), !.
 
 %
-%  Examples from "Common Knowledge, Hidden Actions, and the Frame Problem".
+%  Examples from the thesis
 %
 test(example1) :-
     holds(~ ?([L:location]:knows(ann,loc(L))),s0), !.

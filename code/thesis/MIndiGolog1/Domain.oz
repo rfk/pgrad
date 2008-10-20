@@ -7,6 +7,9 @@
 %  the available actions, agents, fluents etc, along with their successor
 %  state axioms and initial world state.
 %
+%  These definitions are for the "cooking agents" example domain used
+%  throughout the thesis.
+%
 
 functor 
 

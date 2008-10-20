@@ -1,6 +1,8 @@
 %
 %  fluent.pl:  predicates for manipulating fluent terms
 %
+%  Copyright 2008, Ryan Kelly
+%
 %  This file supplies the basic predicates for manipulating and reasoning
 %  about fluent terms.  It shells out to a third-party prover for the
 %  hard work.
@@ -14,10 +16,10 @@
 %  The following predicate is expected to be provided as a 'black box'
 %  reasoning engine:
 %
-%    entails(Axioms,Conc):  Succeeds when conc is logically entailed by Axioms
+%    entails(Axioms,Conc):  Succeeds when Conc is logically entailed by Axioms
 %
 %  Axioms is a list of formulae, and Conc is a formula.  The predicate must
-%  not bind any cariables in Conc.
+%  not bind any variables in Conc.
 %
 
 

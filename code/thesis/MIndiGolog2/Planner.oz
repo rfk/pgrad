@@ -1,11 +1,13 @@
 %
 %  Planner.oz:  construct a JointExec for a given program.
 %
-%  The planning process proceeds by maintaining a list of open branches,
-%  selecting and extending a branch repeatedly until they are all closed.
+%  Copyright 2008, Ryan Kelly
 %
-%  A branch is a tuple D#R#N where D is the program remaining to be executed,
-%  R is the run of execution so far, and N is the corresponding branch in
+%  The planning process proceeds by maintaining a list of open leaves,
+%  selecting and extending a leaf repeatedly until they are all closed.
+%
+%  A leaf is a tuple D#H#L where D is the program remaining to be executed,
+%  H is the execution history so far, and L is the corresponding leaf in
 %  the joint execution.
 %
 
@@ -16,7 +18,6 @@ import
   MIndiGolog
   JointExec
   Domain
-  Sitcalc
   LP
 
   System
@@ -30,75 +31,75 @@ define
 
   %
   %  Search for a joint execution of program D in the current situation.
-  %  To do so, we start with a single branch containing the entire program,
-  %  an empty run and empty JointExec branch.
+  %  To do so, we start with a single leaf containing the entire program,
+  %  and an empty history.
   %
   proc {Plan D J}
     {MakePlan {JointExec.init} [D#now#nil] J}
   end
 
   %
-  %  Construct a joint execution, one step at a time, one branch at a time.
+  %  Construct a joint execution, one step at a time, one leaf at a time.
   %  JIn is the joint exec constructed so far.
-  %  Branches is a list of D#R#N tuples that are still to be processed.
+  %  Leaves is a list of D#H#L tuples that are still to be processed.
   %
-  proc {MakePlan JIn Branches JOut}
-    BClosed BRest
+  proc {MakePlan JIn Leaves JOut}
+    LCls LRest
   in
     {System.showInfo "{MakePlan}"}
-    {System.print {List.length Branches}}
-    {System.printInfo " branches to process\n"}
-    {FindOpenBranch JIn Branches BClosed BRest}
-    {System.print {List.length BClosed}} {System.showInfo " closed"}
-    case BRest of (D#R#N)|Bs then Dp Rp S J2 OutNs OutBs in
+    {System.print {List.length Leaves}}
+    {System.printInfo " leaves to process\n"}
+    {FindOpenLeaf JIn Leaves LCls LRest}
+    {System.print {List.length LCls}} {System.showInfo " closed"}
+    case LRest of (D#H#L)|Ls then Dp Hp S J2 OutNs OutLs in
        {System.showInfo "trying to trans1"}
-       {FindTrans1 D R Bs Dp Rp S}
+       {FindTrans1 D H Ls Dp Hp S}
        {System.printInfo "...found: "}
        {System.show S.action}
-       OutNs = {JointExec.insert JIn N S {MkPrecFunc S Rp} J2}
+       OutNs = {JointExec.insert JIn L S {MkPrecFunc S Hp} J2}
        {System.showInfo "...inserted"}
-       OutBs = for collect:C N2 in OutNs do
-                     {C Dp#ex({JointExec.getout J2 N2 S} Rp)#N2}
+       OutLs = for collect:C N2 in OutNs do
+                     {C Dp#ex({JointExec.getout J2 N2 S} Hp)#N2}
                   end
-       {MakePlan J2 {List.append BClosed {List.append OutBs Bs}} JOut}
+       {MakePlan J2 {List.append LCls {List.append OutLs Ls}} JOut}
     else {System.showInfo "all done!"} JOut = JIn end
   end
 
   %
-  %  Find the first open branch in the given list.
-  %  Each branch is rolled forward to handle any existing events
-  %  before it is checked.  The list BClosed will be the closed
-  %  branches at the head of Branches, while BRest is the rest of the
-  %  list.  BRest.1 will be the first open branch.
+  %  Find the first open leaf in the given list.
+  %  Each leaf is rolled forward to handle any existing events
+  %  before it is checked.  The list LCls will be the closed
+  %  leaves at the head of Leaves, while LRest is the rest of the
+  %  list.  LRest.1 will be the first open leaf.
   %
-  proc {FindOpenBranch J Branches BClosed BRest}
-    case Branches of (D1#R1#N1)|Bs then D R N NewBs in
-        (D#R#N)|NewBs = {HandleExistingEvents J D1#R1#N1}
-        if {MIndiGolog.isFinal D R} then
-          BClosed = (D#R#N)|_
-          {FindOpenBranch J {List.append NewBs Bs} BClosed.2 BRest}
+  proc {FindOpenLeaf J Leaves LCls LRest}
+    case Leaves of (D1#H1#L1)|Ls then D H L NewLs in
+        (D#H#L)|NewLs = {HandleExistingEvents J D1#H1#L1}
+        if {MIndiGolog.isFinal D H} then
+          LCls = (D#H#L)|_
+          {FindOpenLeaf J {List.append NewLs Ls} LCls.2 LRest}
         else
-          BClosed = nil BRest = (D#R#N)|{List.append NewBs Bs}
+          LCls = nil LRest = (D#H#L)|{List.append NewLs Ls}
         end
-    else BClosed = nil BRest = nil end
+    else LCls = nil LRest = nil end
   end
 
 
   %
-  %  Find a step of execution for the given D#R.  This wraps
+  %  Find a step of execution for the given D#H.  This wraps
   %  MIndiGolog.trans1 to return the potential solutions in order
   %  of 'most promising' to 'least promising', according to how
   %  much concurrency is present.
   %
-  proc {FindTrans1 D R Bs Dp Rp S}
+  proc {FindTrans1 D H Ls Dp Hp S}
     Searcher SearchProc
   in
-    proc {SearchProc Q} Dp Rp S in
-      {MIndiGolog.trans1 D R Dp Rp S}
-      Q = Dp#Rp#S
+    proc {SearchProc Q} Dp Hp S in
+      {MIndiGolog.trans1 D H Dp Hp S}
+      Q = Dp#Hp#S
     end
     Searcher = {New Search.object script(SearchProc)}
-    Dp#Rp#S = {LP.yieldOrdered Searcher CompareTrans1}
+    Dp#Hp#S = {LP.yieldOrdered Searcher CompareTrans1}
   end
 
   %
@@ -106,25 +107,25 @@ define
   %  second transition.  This is determined based on how many
   %  actions the latest step can be performed concurrently with.
   %
-  proc {CompareTrans1 _#Rp1#S1 _#Rp2#S2 B}
-    N1 = {NumConc Rp1 S1}
-    N2 = {NumConc Rp2 S2}
+  proc {CompareTrans1 _#Hp1#S1 _#Hp2#S2 B}
+    N1 = {NumConc Hp1 S1}
+    N2 = {NumConc Hp2 S2}
   in
     if N1 > N2 then B=true
     elseif N1 < N2 then B=false
-    else B=({RunLength Rp1} < {RunLength Rp2}) end
+    else B=({RunLength Hp1} < {RunLength Hp2}) end
   end
 
-  proc {NumConc R S N}
-    case R of ex(S2 R2) then
-      if S2.action == nil then N = {NumConc R2 S}
+  proc {NumConc H S N}
+    case H of ex(S2 H2) then
+      if S2.action == nil then N = {NumConc H2 S}
       elseif {MustPrec S2 S} then N = 0
-      else N = 1 + {NumConc R2 S} end
+      else N = 1 + {NumConc H2 S} end
     else N = 0 end
   end
 
-  proc {RunLength R N}
-    case R of ex(_ R2) then N = 1 + {RunLength R2}
+  proc {RunLength H N}
+    case H of ex(_ H2) then N = 1 + {RunLength H2}
     else N = 0 end
   end
 
@@ -133,11 +134,11 @@ define
   %  Create a function that will determine ordering when inserting
   %  into a joint exec.  This is basically a closure around the function
   %  {MustPrec} to transform the event into a proper step record based
-  %  on the current run.
+  %  on the current history.
   %
-  proc {MkPrecFunc S R F}
+  proc {MkPrecFunc S H F}
     proc {F N B}
-      S2 = {GetStepFromRun N R}
+      S2 = {GetStepFromRun N H}
     in
       if S2 == nil then B = false
       else B = {MustPrec S2 S} end
@@ -146,12 +147,12 @@ define
 
   %
   %  Convert an JointExec event id into a step object from the given
-  %  run.  If a corresponding step cannot be found, returns nil.
+  %  history run.  If a corresponding step cannot be found, returns nil.
   %
-  proc {GetStepFromRun N R S}
-    case R of ex(S2 R2) then
+  proc {GetStepFromRun N H S}
+    case H of ex(S2 H2) then
       if S2.seqn == N then S = S2
-      else S = {GetStepFromRun N R2} end
+      else S = {GetStepFromRun N H2} end
     else S = nil end
   end
 
@@ -172,21 +173,21 @@ define
   %
   %  Transition the program D so that any events inserted after N are
   %  accounted for.  This ensures that its execution is compatible with
-  %  those of existing branches.  Since this may in itself create
+  %  those of existing leaves.  Since this may in itself create
   %  additional branch points if steps with multiple outcomes have
-  %  been added, the result is a list of branches.
+  %  been added, the result is a list of leaves.
   %
-  proc {HandleExistingEvents J D#R#N Branches}
-    Ne = {JointExec.nextEvent J N}
+  proc {HandleExistingEvents J D#H#L Leaves}
+    Ne = {JointExec.nextEvent J L}
   in
     if Ne == nil then
-      Branches=[D#R#N]
-    else OutNs Dp Rp S in
-      {MIndiGolog.trans1 D R Dp Rp S}
-      OutNs = {JointExec.assert J N Ne S {MkPrecFunc S Rp}}
-      Branches=for append:Acc OutN in OutNs do
-                 S2 = {JointExec.getout J OutN S} in
-                 {Acc {HandleExistingEvents J Dp#ex(S2 Rp)#OutN}}
+      Leaves=[D#H#L]
+    else OutLs Dp Hp S in
+      {MIndiGolog.trans1 D H Dp Hp S}
+      OutLs = {JointExec.assert J L Ne S {MkPrecFunc S Hp}}
+      Leaves=for append:Acc OutL in OutLs do
+                 S2 = {JointExec.getout J OutL S} in
+                 {Acc {HandleExistingEvents J Dp#ex(S2 Hp)#OutL}}
                end
     end
   end

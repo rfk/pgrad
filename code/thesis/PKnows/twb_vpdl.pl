@@ -1,14 +1,10 @@
 %
 %  twb_vpdl.pl:  interface to our VPDL prover built using Tableaux Workbench
 %
+%  Copyright 2008, Ryan Kelly
+%
 %  The main predicate we export is entails/2, which shells out to a stand-alone
 %  prover for "PDL-plus-variable-assignment".
-%
-%  The Tableaux Workbench suite can be obtained from:
-%     
-%        http://twb.rsise.anu.edu.au/
-%
-%  Then use `cd vpdl && twbcompile vpdl.ml` to build the prover.
 %
 
 twb_pdl_exe('vpdl/vpdl.twb').
@@ -39,15 +35,21 @@ twb_pdl_prove(Axioms,Conc,Result) :-
     told, !,
     % Call TWB and have it write its conclusions into output file
     twb_pdl_exe(CmdFile),
-    sformat(PCmd,'~w < ~w > ~w',[CmdFile,InFile,OutFile]),
+    sformat(PCmd,'~w < ~w > ~w 2>&1',[CmdFile,InFile,OutFile]),
     shell(PCmd,_),
     % Grep output file for "Result:Closed" indicating truthity
     sformat(TCmd,'grep "Result:Closed" ~w > /dev/null',[OutFile]),
     ( shell(TCmd,0) ->
         Result = yes
     ;
-        % Propositional prover, so we cannot get Result=unknown
-        Result = no
+        % Check for any fatal errors, and report them
+        sformat(ErrCmd,'grep "Fatal" ~w > /dev/null',[OutFile]),
+        ( shell(ErrCmd,0) ->
+            throw(badly_formed_twb_file(InFile))
+        ;
+            % Propositional prover, so we cannot get Result=unknown
+            Result = no
+        )
     ).
 
 
@@ -67,13 +69,13 @@ twb_write_fml(A=B) :-
     twb_write_term(A),
     write(' == '),
     twb_write_term(B),
-    write(' )').
+    write(' )'), !.
 twb_write_fml(A\=B) :-
     write('~ ( '),
     twb_write_term(A),
     write(' == '),
     twb_write_term(B),
-    write(' )').
+    write(' )'), !.
 twb_write_fml(P) :-
     is_atom(P),
     twb_write_pred(P).
@@ -115,7 +117,7 @@ twb_write_fml(?([]:P)) :-
     twb_write_fml(P).
 twb_write_fml(?([V:T|Vs]:P)) :-
     write('( '),
-    twb_write_fml_sols(twb_valuate_var(T,?(Vs:P)),V,'|',false),
+    twb_write_fml_sols(twb_valuate_var(T,?(Vs:P)),V,'v',false),
     write(' )'), flush.
 twb_write_fml(knows(A,P)) :-
     write('( ['),
@@ -213,6 +215,7 @@ twb_write_path(-VA) :-
       write(' )')
     ).
 twb_write_path(A) :-
+    agent(A),
     write(A).
 
 twb_write_vassign([]).

@@ -1,7 +1,9 @@
 %
-%  JointExec.oz
+%  JointExec.oz:  joint executions as an abstract data type
 %
-%  Implements a joint execution, a prime event structure over actions
+%  Copyright 2008, Ryan Kelly
+%
+%  This file implements joint executions, a prime event structure over actions
 %  and their outcomes that can be performed in a reactive manner by 
 %  a team of agents.
 %
@@ -14,14 +16,6 @@
 %  Only action events can be added to the execution explicitly - outcome
 %  events are automatically added for every action.
 %
-%  A "branch of execution" is a partial run of execution that selects one
-%  outcome for each action performed.  It is identified by a sorted list
-%  of outcome event IDs, highest ID first.  A branch Ns must satisfy the
-%  following constraint, ensuring it uniquely identifies a branch:
-%
-%    all N < Ns.1:  N in NS  xor
-%                   (exists N' in Ns: Conflicts(N N') v Preceeds(N N'))
-%
 %  A special action labelled 'finish' is used to indicate that a branch
 %  of execution has completed execution, and no more actions should be
 %  added to it.
@@ -33,11 +27,9 @@ functor
 import
 
   IntMap
-  LP
   Sitcalc
  
   System
-  Open
 
 export
 
@@ -49,7 +41,6 @@ export
   Getout
 
   WriteDotFile
-  WriteDotFileAgt
 
 define
 
@@ -60,33 +51,32 @@ define
     J = {IntMap.init}
   end
 
-  %
   %  Insert a new action into the execution.  S should be a record with
   %  feature 'action' containing the action to be added.  MustPrec should
   %  be a function taking as single argument an event ID, and returning true
-  %  if that event must preceed the new event. Ns is the branch considered
-  %  before the new action, and is used to determine the events that might
-  %  preceed S.
+  %  if that event must preceed the new event. Lf is the leaf on which
+  %  the action is being inserted, and is used to determine the events
+  %  that might preceed S.
   %
   %  The set of all possible outcomes of the action are automatically added,
-  %  with the corresponding expanded branches in Outcomes.
+  %  with the corresponding expanded leaves being returned in Outcomes.
   %
-  proc {Insert JIn Ns S MustPrec JOut Outcomes}
-    Ens = {FilterEnablers JIn {FindEnablingEvents JIn S.action Ns MustPrec}}
+  proc {Insert JIn Lf S MustPrec JOut Outcomes}
+    Ens = {FilterEnablers JIn {FindEnablingEvents JIn S.action Lf MustPrec}}
   in
-    {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
+    {InsertWithEnablers JIn Lf S Ens JOut Outcomes}
   end
 
-  proc {InsertWithEnablers JIn Ns S Ens JOut Outcomes}
+  proc {InsertWithEnablers JIn Lf S Ens JOut Outcomes}
     Outs = {Sitcalc.outcomes S}
     AId|OIds = {IntMap.nextAvailLabels JIn S|Outs}
     J1 J2
   in
-    J1 = {IntMap.append JIn act(action: S.action enablers: Ens outcomes: OIds)}
+    J1 = {IntMap.append JIn act(action:S.action enablers:Ens outcomes:OIds)}
     J2 = {InsertOutcomes AId J1 Outs OIds}
-    JOut = {FixActionInvariants J2 AId}
+    JOut = {FixFeasibility J2 AId}
     Outcomes = for collect:C I in OIds do
-                 {C {BranchPush JOut I Ns}}
+                 {C {BranchPush JOut I Lf}}
                end
   end
 
@@ -103,9 +93,12 @@ define
 
   %
   %  Find the events that enable a new action event, by querying {MustPrec}.
-  %  Ns is the branch after which the new event is being inserted, i.e.
-  %  we assume that any events greater than Ns.1 conflict with the newly
+  %  Lf is the leaf on which the new event is being inserted, i.e.
+  %  we assume that any events greater than Lf.1 conflict with the newly
   %  added event.
+  %
+  %  This procedure is nondeterministic, as many events may be able to
+  %  enable to new event, but not required to.
   %
   proc {FindEnablingEvents J Act Ns MustPrec Ens}
     case Ns of N|Nt then
@@ -129,9 +122,12 @@ define
     else Ens = nil end
   end
 
-  proc {FilterEnablers J NsIn NsOut}
-    NsOut = for collect:C N1 in NsIn do
-              if for return:R default:false N2 in NsIn do
+  %  Filter redundant information out of a list of enabling events - 
+  %  basically make sure they they are all unordered.
+  %
+  proc {FilterEnablers J EnsIn EnsOut}
+    EnsOut = for collect:C N1 in EnsIn do
+              if for return:R default:false N2 in EnsIn do
                    if {Preceeds J N1 N2} then {R true} end
                  end
               then skip else {C N1} end
@@ -201,7 +197,6 @@ define
     NsOut = {InsertInOrder N Keepers}
   end
 
-  %
   %  Determine whether branch Ns1 is "smaller" than branch Ns2. 
   %  This means that everything in Ns1 is either also in Ns2,
   %  or preceeds something in Ns2.
@@ -216,44 +211,29 @@ define
         end
   end
 
-  %
   %  Reduce a set of enabling branches to the minimal set possible.
   %  Any entries in Ens that are larger than another entry are
   %  removed.
   %
-  proc {MinimizeEnablerSet J Ens MinEns}
-    {MinimizeEnablerSetRec J Ens nil MinEns}
+  proc {MinimizeBranchSet J Ens MinEns}
+    {MinimizeBranchSetRec J Ens nil MinEns}
   end
 
-  proc {MinimizeEnablerSetRec J Ens Acc MinEns}
+  proc {MinimizeBranchSetRec J Ens Acc MinEns}
     case Ens of E|Es then Covered in
       Covered = for return:R default:false A in Acc do
                   if {BranchIsSmaller J A E} then {R true} end
                 end
-      if Covered then {MinimizeEnablerSetRec J Es Acc MinEns}
+      if Covered then {MinimizeBranchSetRec J Es Acc MinEns}
       else Keepers in
         Keepers = for collect:C A in Acc do
                     if {Not {BranchIsSmaller J E A}} then {C A} end
                   end
-        {MinimizeEnablerSetRec J Es E|Keepers MinEns}
+        {MinimizeBranchSetRec J Es E|Keepers MinEns}
       end
     else MinEns = Acc end
   end
   
-  %
-  %  Construct a step object representing the outcome event O.
-  %  This will contain only the 'action' and 'out' features, since that's
-  %  all a joint execution knows about.  This is also the only information
-  %  needed to reason about what holds after a run.
-  %
-  proc {OutToStep J O S}
-    OData = {IntMap.get J O}
-    AData = {IntMap.get J OData.act}
-  in
-    S = step(action:AData.action out:OData.out)
-  end
-
-  %
   %  Utility procedures for generating lists of events of different types.
   %
   %    GetActions: get all ordinary action events (not finish actions)
@@ -273,54 +253,70 @@ define
          end}
   end
 
-  %
-  %  Check and correct any broken action invariants introduced by
+  %  Check and correct any broken feasibility invariants introduced by
   %  the addition of a new action event AId.
   %
-  proc {FixActionInvariants JIn AId JOut}
+  %  We must perform the check not only for action AId itself, but also
+  %  for any actions that do not preceed AId, as it may generate new histories
+  %  for those actions which break their feasibility.
+  %
+  proc {FixFeasibility JIn AId JOut}
     As = {List.filter {GetActions JIn} fun {$ I} {Not {Preceeds JIn I AId}} end}
   in
-    {System.showInfo "...fixing invariants for:"}
+    {System.showInfo "...fixing feasibility for:"}
     {System.show As}
-    {FixInvariantActs JIn As JOut}
+    {FixActionFeasibility JIn As JOut}
   end
 
   %
-  %  Fix invariants for each action in the list Acts.
+  %  Fix feasibility invariants for each action in the list Acts.
   %
-  proc {FixInvariantActs JIn Acts JOut}
-    case Acts of A|As then
-      D = {IntMap.get JIn A} Matches in
-      Matches = {IndistinguishableSets JIn {Sitcalc.actor D.action} D.enablers}
-      {FixInvariantMatches JIn As D Matches JOut}
+  proc {FixActionFeasibility JIn Acts JOut}
+    case Acts of AId|As then
+       A = {IntMap.get JIn AId}
+       Equivs = {IndistinguishableSets JIn {Sitcalc.actor A.action} A.enablers}
+       JOut2 = {AddFeasibilityEvents JIn A Equivs}
+      in
+       % If the above call modifies the JE, then it will re-execute the
+       % feasibility fixing routines and we don't need to continue the loop.
+       if JOut2 == JIn then
+         {FixActionFeasibility JIn As JOut}
+       else
+          JOut = JOut2
+       end
     else JIn = JOut end
   end
 
   %
-  %  Ensure that for each entry in Matches, there is an event corresponding
+  %  Ensure that for each branch in Equivs, there is an event corresponding
   %  to the action event A.
   %
-  proc {FixInvariantMatches JIn Acts Act Matches JOut}
-    case Matches of M|Ms then MAct in
-      MAct = {IntMap.nextMatching JIn 0 fun {$ I} 
+  proc {AddFeasibilityEvents JIn Act Equivs JOut}
+    case Equivs of E|Es then EAct in
+      %
+      % Try to find an appropriate event already in the JE
+      %
+      EAct = {IntMap.nextMatching JIn 0 fun {$ I} 
                         Data = {IntMap.get JIn I} in
                         if {Record.label Data} == act then
-                          Data.enablers == M andthen Data.action == Act.action
+                          Data.enablers == E andthen Data.action == Act.action
                         else false end 
                      end}
-      if MAct == nil then
-        if {CannotInsertAfter JIn M} then fail
+      %
+      % If there isn't one, we must insert one
+      %
+      if EAct == nil then
+        if {CannotInsertAfter JIn E} then fail
         else J2 in
-          {InsertWithEnablers JIn M Act M J2 _}
-          % For the moment this is unnecessary, since {InsertWithEnablers}
-          % will run {FixActionInvariants} all over again
-          % {FixInvariantMatches J2 Acts Act Ms JOut}
+          % We don't need to continue the loop, because this call will
+          % re-invoke the feasibility fixing procedures.
+          {InsertWithEnablers JIn E Act E J2 _}
           J2 = JOut
         end
       else
-        {FixInvariantMatches JIn Acts Act Ms JOut}
+        {AddFeasibilityEvents JIn Act Es JOut}
       end
-    else {FixInvariantActs JIn Acts JOut} end
+    else JOut = JIn end
   end
 
   %
@@ -345,12 +341,12 @@ define
   %  This is analogous to {Insert} but instead of adding new actions,
   %  it verifies existing ones.
   %
-  proc {Assert J Ns N S Preceeds Outcomes}
+  proc {Assert J Lf N S Preceeds Outcomes}
     Data = {IntMap.get J N}
     Outs
   in
     Data.action = S.action
-    Data.enablers = {FindEnablingEvents J S.action Ns Preceeds}
+    Data.enablers = {FindEnablingEvents J S.action Lf Preceeds}
     Outs = {Sitcalc.outcomes S}
     {List.length Outs} = {List.length Data.outcomes}
     for O1 in Outs O2 in Data.outcomes do
@@ -358,22 +354,22 @@ define
       OData.out = O1.out
     end
     Outcomes = for collect:C I in Data.outcomes do
-                 {C {BranchPush J I Ns}}
+                 {C {BranchPush J I Lf}}
                end
   end
 
   %
-  %  Insert special 'finish' action to close the branch Ns
+  %  Insert special 'finish' action to close the leaf Lf
   %
-  proc {Finish JIn Ns JOut}
-    FEvent = act(action:finish enablers:Ns outcomes:nil)
+  proc {Finish JIn Lf JOut}
+    FEvent = act(action:finish enablers:Lf outcomes:nil)
   in
     JOut = {IntMap.append JIn FEvent}
   end
 
   %
   %  Determine the next-oldest action event in the execution that
-  %  could extend the run Ns. This will be nil if there is no such
+  %  could extend the branch Ns. This will be nil if there is no such
   %  action, or an event identifier otherwise.
   %
   fun {NextEvent J Ns}
@@ -394,7 +390,6 @@ define
   end
 
 
-  %
   %  Lazily generate a list of all events E for which must preceed the
   %  given event.  There may be duplicate entries.
   %
@@ -419,7 +414,6 @@ define
   end
 
 
-  %
   %  Generate the preceeders of the given event that are observable
   %  by the given agent.
   %
@@ -435,7 +429,6 @@ define
           end}
   end
 
-  %
   %  Determine whether event N1 must preceed event N2. We can shortcut
   %  some cases since we know that larger IDs cannot preceed smaller
   %  IDs.
@@ -445,7 +438,6 @@ define
     else B = {List.member N1 {Preceeders J N2}} end
   end
 
-  %
   %  Determine whether events N1 and N2 are in conflict.
   %  This is true if a pair of preceeders are in direct conflict, that
   %  is, they are alternate outcomes of the same action.
@@ -480,21 +472,12 @@ define
     else B = false end
   end
 
-  %
-  %  List all the events which are currently active - that is, they
-  %  have no preceeders left to fire.
-  %
-  %proc {ActiveEvents J Evts}
-  %  Evts = {IntMap.allMatching J fun {$ I} {Preceeders J I} == nil end}
-  %end
-
-  %
   %  List all events that could be active from the perspective of the
-  %  given agent.  
-  % 
+  %  given agent.
+  %
   proc {ActiveEventsAgt J Agt Evts}
     Evts = {IntMap.allMatching J fun {$ I}
-      Data = {IntMap.get J I} in 
+      Data = {IntMap.get J I} in
       {PreceedersAgt J Agt I} == nil andthen
       if {Record.label Data} == out then
         Data.out.Agt \= nil
@@ -504,7 +487,7 @@ define
     end}
   end
 
-  %
+
   %  Recursively generates the histories of observation produced by events
   %  in Ns, for agent Agt.  Hs is a list of tuples O#J2#Ns2 where O is the
   %  next act or obs made by the agent, J2 is the remaining execution, and
@@ -532,17 +515,15 @@ define
   end
 
 
-  %
   %  Given a set of outcome events Ns, determine all other sets of
   %  outcome events that would be indistinguishable from the perspective
   %  of agent Agt.  For the moment, brute force it used.
   %
-  proc {IndistinguishableSets J Agt Ns Matches}
+  proc {IndistinguishableSets J Agt Ns Equiv}
     AllBranches = {FindIndistinguishableBranches J Agt J#Ns [nil#J]} in
-    Matches = {List.subtract {MinimizeEnablerSet J AllBranches} Ns}
+    Equiv = {List.subtract {MinimizeBranchSet J AllBranches} Ns}
   end
 
-  %
   %  From the perspective of agent Agt, find all branches that have
   %  a run in common with the given branch Ns.  JOrig maintains the
   %  original execution, used for manipulating branches.  J is
@@ -576,7 +557,6 @@ define
   end
 
 
-  %
   %  Roll the execution forward by the given action label.  This
   %  generates a list of E#J pairs, where E is the event that was
   %  performed and J is the resulting execution.
@@ -594,7 +574,6 @@ define
             end
   end
 
-  %
   %  Roll the execution forward by the given observation label,
   %  from the perspective of the given agent.  The label can match
   %  any event with that label where all its {Preceeders} would be
@@ -613,7 +592,6 @@ define
             end
   end
 
-  %
   %  Roll the execution forward to directly after the performance
   %  of the given event.  If the event has preceeders, they will
   %  also be performed.
@@ -641,7 +619,6 @@ define
     end
   end
 
-  %
   %  Utility function to update the outcome events of a just-performed
   %  action event.
   %
@@ -653,7 +630,6 @@ define
     else JOut = JIn end
   end
 
-  %
   %  Remove all event from the execuction that conflict with E.
   %
   fun {DropConflictingEvents JIn E}
@@ -724,45 +700,6 @@ define
              end
            end
     Lbl = {List.toTuple '#' Lbls}
-  end
-
-  proc {OutcomeLabelAgt Agt OData Lbl}
-    Lbl = {Value.toVirtualString OData.out.Agt ~1 ~1}
-  end
-
-
-  proc {WriteDotFileAgt J Agt File}
-    % TODO: JointExec.writeDotFileAgt
-    {File write(vs: "digraph G {\n")}
-    {IntMap.forEach J
-       proc {$ N Data}
-          Data = {IntMap.get J N}
-       in
-         case Data of act(...) then
-           if Data.action == finish
-           orelse {Sitcalc.actor Data.action} == Agt then
-               {File write(vs: "n"#N#" [shape=ellipse,label=\""#{Value.toVirtualString Data.action ~1 ~1}#"\"];\n")}
-               for E in Data.enablers do
-                 {File write(vs: "n"#E#" -> n"#N#";\n")}
-               end
-               for O in Data.outcomes do
-                 {File write(vs: "n"#N#" -> n"#O#";\n")}
-               end
-           end
-         else
-           if Data.out.Agt \= nil then
-               {File write(vs: "n"#N#" [shape=box,label=\""#{OutcomeLabelAgt Agt Data}#"\"];\n")}
-               case {PreceedersAgt J Agt N} of P|_ then
-                 PData = {IntMap.get J P} in
-                 if {Record.label PData} == out then
-                   {File write(vs: "n"#P#" -> n"#N#";\n")}
-                 end
-               else skip end
-           end
-         end
-       end
-    } = _
-    {File write(vs: "}\n")}
   end
 
 end

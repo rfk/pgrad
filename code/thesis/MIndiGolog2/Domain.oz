@@ -1,6 +1,16 @@
 %
 %  Domain.oz:  procedures specifying the details of the domain
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file provides the basic procedures to define a particular domain -
+%  the available actions, agents, fluents etc, along with their successor
+%  state axioms and initial world state.
+%
+%  These definitions are for the "cooking agents" example domain used
+%  throughout the thesis.
+%
+
 
 functor 
 
@@ -10,7 +20,6 @@ import
   LP
 
   Search
-  System
 
 export
 
@@ -27,6 +36,8 @@ export
 
 define
 
+  %  Enumerate the agents in the domain.
+  %
   proc {IsAgent A}
     choice  A = jim
     []      A = joe
@@ -34,6 +45,8 @@ define
     end
   end
 
+  %  Enumerate the primitive objects and types in the domain.
+  %
   proc {IsPrimObjT Obj Type}
     choice Type=knife {LP.member Obj [knife1 knife2 knife3]}
     []     Type=bowl {LP.member Obj [bowl1 bowl2 bowl3]}
@@ -49,10 +62,14 @@ define
     end
   end
 
+  %  Assert that <Obj> is a primitive object of unspecified type
+  %
   proc {IsPrimObj Obj}
     {IsPrimObjT Obj _}
   end
 
+  %  Constructs a simple hierarchy of object types
+  %
   proc {IsSuperType Type SType}
     choice SType=container {LP.member Type [bowl board oven]}
     []     SType=ingredient
@@ -60,12 +77,17 @@ define
     end
   end
 
+  %  Assert that <Obj> is a primitive object of type <Type>
+  %
   proc {ObjIsType Obj Type}
     choice  {IsPrimObjT Obj Type}
     []      SubType in {IsSuperType SubType Type} {ObjIsType Obj SubType}
     end
   end
 
+  %  Enumerate the actions possible in the domain, as well as binding their
+  %  arguments to objects of the appropriate type.
+  %
   proc {IsAction Act}
     choice Agt Obj in Act=acquire(Agt Obj)
                       {IsAgent Agt}  {IsPrimObj Obj}
@@ -86,6 +108,8 @@ define
     end
   end
 
+  %  Specify the possibility predicate for each individual action type
+  %
   proc {Poss A H}
     choice A=nil fail
     []  Obj in A=acquire(_ Obj)
@@ -108,8 +132,17 @@ define
     end
   end
 
+  %  Enumerate the potential outcomes of each individual action type.
+  %  This is an record whose features are agent names, and the corresponding
+  %  values give the observations made by each agent.  E.g.
+  %
+  %     out(jon:nil jim:[chop(jim board1)] joe:nil)
+  %
   proc {Outcome A O}
     case A of checkFor(Agt _) then Res Feats in
+            %  checkFor yields "t" or "f", which is visible only
+            %  to the performing agent.
+            %
             choice Res=t [] Res=f end
             Feats = {Search.base.all proc {$ R} Agt2 in
                          {IsAgent Agt2}
@@ -118,18 +151,27 @@ define
                      end}
             O = {Record.adjoinList out Feats}
     []  acquire(_ _) then Feats in
+            %
+            % acquire is observable by all agents
+            %
             Feats = {Search.base.all proc {$ R} Agt2 in
                        {IsAgent Agt2}
                        R = Agt2#[A]
                     end}
             O = {Record.adjoinList out Feats}
     []  release(_ _) then Feats in
+            %
+            % release is observable by all agents
+            %
             Feats = {Search.base.all proc {$ R} Agt2 in
                        {IsAgent Agt2}
                        R = Agt2#[A]
                     end}
             O = {Record.adjoinList out Feats}
     else Feats in
+            %
+            % all other actions are private to the performing agent
+            %
             Feats = {Search.base.all proc {$ R} Agt2 in
                          {IsAgent Agt2}
                          if Agt2 == {Sitcalc.actor A} then R = Agt2#[A]
@@ -140,11 +182,18 @@ define
   end
 
 
+  %  Add the sensing results from the given outcome into the list.
+  %  When reasoning based on a history, we accumulate all sensing results
+  %  into a list and use it to answer queries in the initial situation.
+  %  
   proc {AddSensingResults SRIn Out SROut}
     NewRes
   in
     NewRes = for return:R default:nil Agt in {Record.arity Out} do
                case Out.Agt of [Res] then
+                 %
+                 %  Only checkFor(Agt Type) can give useful results
+                 %
                  case Res of checkFor(_ Type)#Whether then
                    {R [Type#Whether]}
                  else skip end
@@ -154,6 +203,8 @@ define
   end
 
 
+  %  Determine whether actions in C are in conflict, given current history H
+  %
   proc {Conflicts C H}
     A1 A2
   in
@@ -170,6 +221,11 @@ define
     end
   end
 
+  %  Determine whether two given actions are independent.
+  %  In the cooking agents domain, actions are independent if they
+  %  each with different objects, which we check by simply comparing their
+  %  arguments in a loop.
+  %
   proc {Indep A1 A2 B}
     if A1.1 == A2.1 then B=false
     else
@@ -181,6 +237,10 @@ define
     end
   end
 
+  %  Successor state axioms for primitive fluents.
+  %  We accumulate a list of sensing results from the given history,
+  %  which will eventually be used by {Init} to answer some queries.
+  %
   proc {SSA F C SR H}
     case F of hasObject(Agt Obj) then 
              choice {LP.member acquire(Agt Obj) C}
@@ -243,6 +303,11 @@ define
     else {StaticFact F} end
   end
 
+  %  Check whether a primitive fluent holds initially.
+  %
+  %  For used(Obj), this may hold if Obj is an egg and the accumulated
+  %  sensing results indicate that all eggs have been used.
+  %
   proc {Init F SR}
     case F of used(Obj) then
       {IsPrimObjT Obj egg}
@@ -252,6 +317,9 @@ define
     end
   end
 
+  %  Specify static domain facts - i.e. things that can be queried but
+  %  are not fluents, and do not change as a result of actions
+  %
   proc {StaticFact F}
     case F of objIsType(Obj Type) then
              {ObjIsType Obj Type}

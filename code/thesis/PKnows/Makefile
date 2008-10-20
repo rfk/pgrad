@@ -1,9 +1,12 @@
 
+vpdl/vpdl.twb:
+	cd vpdl && twbcompile vpdl.ml
+
 clean:
 	true
 
 clobber: clean
-	rm -rf *.exe *.dot *.png PKnows-0.9.9*
+	rm -rf PKnows-0.9.9* vpdl/vpdl.twb
 
 dist:
 	mkdir PKnows-0.9.9

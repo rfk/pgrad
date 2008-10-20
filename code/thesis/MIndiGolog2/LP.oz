@@ -2,7 +2,7 @@
 %  LP.oz:  basic logic-programming facilities
 %
 %  This functor provides some standard logic-programming facilities
-%  found in e.g. Prolog but missing in Oz.
+%  found in Prolog but missing in Oz.
 %
 
 functor 

@@ -26,7 +26,7 @@ evaluating a fluent at a given situation.  Used like so:
 
 We assume all variables have a finite domain, so that fluents can be
 propositionalized to perform reasoning.  We have also modified the PDL
-provier from the Tableuax Workbench project do handle variable assignments,
+prover from the Tableuax Workbench project do handle variable assignments,
 which we shell out to for the actual reasoning.  You will need to compile
 the file "vpdl/vpdl.ml" using the TWB compiler.
 

@@ -1,5 +1,18 @@
 %
 %  Sitcalc.oz:  procedure for domain-independent sitcalc stuff
+% 
+%  Copyright 2008, Ryan Kelly
+%
+%  This file implements the domain-independent axioms of the situation
+%  calculus - checking legality of concurrent actions, determining whether
+%  arbitrary uniform formulae holds in a given situation, etc.
+%
+%  The predicate {Holds F H} is used to determine whether formula F holds
+%  after history H, and using the sensing results contained in the history.
+%  This embodied the "just-in-time closed-world" assumption of IndiGolog -
+%  we assume that if the planner calls {Holds F H} for a formula that 
+%  could depend on sensing information, then the requisite sensing actions
+%  are contained in the history H.
 %
 
 functor
@@ -11,7 +24,6 @@ import
   Domain
 
   Search
-  System
 
 export
 
@@ -29,6 +41,8 @@ define
     Agt = Actn.1
   end
 
+  %  Determine whether a given concurrent action is Legal
+  %
   proc {Legal C S}
     {Poss C S}
   end
@@ -58,10 +72,14 @@ define
   end
 
   % Determine whether a fluent holds in a given history, assuming sensing
-  % results as given by SR.
+  % results as given by SR.  We do not manipulate SR ourselves, but depend
+  % on Domain.oz to store appropriate values in it and answer queries 
+  % based on those values.
   %
   proc {HoldsR F SR H}
+    %
     % Reduce the formula down to NNF
+    %
     case F of conj(F1 F2) then {HoldsR F1 SR H} {HoldsR F2 SR H}
     []   disj(F1 F2) then choice {HoldsR F1 SR H} [] {HoldsR F2 SR H} end
     []   all(Var F1) then {HoldsR neg(ex(Var neg(F1))) SR H}
@@ -80,7 +98,9 @@ define
                                {HoldsR {LP.copyTerm F1} {LP.copyTerm SR} {LP.copyTerm H}}
                            end}
                       end
+    %
     % Then call into either SSA or Init
+    %
     else case H of now then
                 {Domain.init F SR}
          [] ex(Step H2) then SR2 in 
@@ -90,6 +110,11 @@ define
     end
   end
 
+  %  List all the possible outcomes of the given step.
+  %  The output is a list of steps identical to the input one,
+  %  except their 'out' attribute is set to one possible outcome
+  %  of their 'action' attribute.
+  %
   proc {Outcomes S Outs}
     Outs = {Search.base.all proc {$ OutStep} O in
       {Domain.outcome S.action O}

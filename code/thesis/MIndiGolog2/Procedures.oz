@@ -1,6 +1,12 @@
 %
 %  Procedures.oz:  definitions of procedures for the domain
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  This file provides a single function {Procdef}, which takes a
+%  MIndiGolog procedure call as input and returns the corresponding
+%  procedure body as output.
+%
 
 functor
 
@@ -14,7 +20,7 @@ define
 
   fun {Procdef Nm}
     case Nm of main then
-          pcall(makeSalad(bowl1))
+          pcall(makeVegSalad(bowl1))
     [] ensureHas(Agt Obj) then
            ifte(hasObject(Agt Obj) nil acquire(Agt Obj))
     [] doPlaceIn(Agt Obj Dest) then

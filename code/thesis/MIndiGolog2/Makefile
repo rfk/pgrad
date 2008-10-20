@@ -1,5 +1,5 @@
 
-FUNCTORS = Domain.ozf Procedures.ozf LP.ozf Control.ozf IntMap.ozf JointExec.ozf MIndiGolog.ozf Planner.ozf Sitcalc.ozf Step.ozf
+FUNCTORS = Domain.ozf Procedures.ozf LP.ozf IntMap.ozf JointExec.ozf MIndiGolog.ozf Planner.ozf Sitcalc.ozf Step.ozf
 
 %.ozf: %.oz
 	ozc -p -c $< -o $@
@@ -16,18 +16,13 @@ FUNCTORS = Domain.ozf Procedures.ozf LP.ozf Control.ozf IntMap.ozf JointExec.ozf
 %.svg: %.dot
 	dot -o $@ -Tsvg $<
 
-%.tex: %.dot
-	dot2tex --preproc $< | dot2tex --figonly > $@
-
 all: main.exe
 
 main.exe: main.ozf $(FUNCTORS)
 
-plans: main.exe
+plan: main.exe
 	./main.exe
 	make plan.png
-	make plan.dia
-	gthumb plan*.png &
 
 clean:
 	rm -rf *.ozf
@@ -40,6 +35,4 @@ dist:
 	cp Makefile *.txt *.oz ./MIndiGolog2-0.9.9
 	tar -czvf MIndiGolog2-0.9.9.tar.gz MIndiGolog2-0.9.9
 	rm -rf MIndiGolog2-0.9.9
-
-
 

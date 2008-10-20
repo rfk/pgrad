@@ -1,6 +1,8 @@
 %
 %  sitcalc.pl:   domain-independent sitcalc predicates.
 %
+%  Copyright 2008, Ryan Kelly
+%
 
 :- multifile(adp_fluent/3).
 :- index(adp_fluent(1,1,0)).
@@ -188,15 +190,12 @@ regression1(pknows(E,P),A,Fr) :-
     regression1(FP,A,FPr),
     regression1_pknows_rename(FPr,Fr).
 regression1_pknows_fixpoint(PKn,FP) :-
-    % TODO: cheating here, we know this will terminate after a single iteration
     regression1(PKn,nil,PKn1),
-    FP = PKn1.
-    %regression1(PKn,nil,PKn1),
-    %( domain_tautology(PKn => PKn1) ->
-    %    FP = PKn
-    %;
-    %    regression1_pknows_fixpoint(PKn1,FP)
-    %).
+    ( domain_tautology(PKn => PKn1) ->
+        FP = PKn
+    ;
+        regression1_pknows_fixpoint(PKn1,FP)
+    ).
 regression1_pknows_rename(!(V : PK),!(V : PKr)) :-
     regression1_pknows_rename(PK,PKr).
 regression1_pknows_rename(pknows0(E,P),pknows(E,P)).

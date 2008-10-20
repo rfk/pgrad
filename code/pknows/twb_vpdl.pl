@@ -67,13 +67,13 @@ twb_write_fml(A=B) :-
     twb_write_term(A),
     write(' == '),
     twb_write_term(B),
-    write(' )').
+    write(' )'), !.
 twb_write_fml(A\=B) :-
     write('~ ( '),
     twb_write_term(A),
     write(' == '),
     twb_write_term(B),
-    write(' )').
+    write(' )'), !.
 twb_write_fml(P) :-
     is_atom(P),
     twb_write_pred(P).
@@ -115,7 +115,7 @@ twb_write_fml(?([]:P)) :-
     twb_write_fml(P).
 twb_write_fml(?([V:T|Vs]:P)) :-
     write('( '),
-    twb_write_fml_sols(twb_valuate_var(T,?(Vs:P)),V,'|',false),
+    twb_write_fml_sols(twb_valuate_var(T,?(Vs:P)),V,'v',false),
     write(' )'), flush.
 twb_write_fml(knows(A,P)) :-
     write('( ['),
@@ -213,6 +213,7 @@ twb_write_path(-VA) :-
       write(' )')
     ).
 twb_write_path(A) :-
+    agent(A),
     write(A).
 
 twb_write_vassign([]).

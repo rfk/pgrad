@@ -1,6 +1,18 @@
 %
 %  epath.pl:  create and manipulate epistemic path terms.
 %
+%  Copyright 2008, Ryan Kelly
+%
+%  Syntax for epistemic paths is:
+%
+%    A           - primitive agent name
+%    E1 ; E2     - sequence
+%    E1 | E2     - choice
+%    ?(C)        - test
+%    E*          - iteration
+%    !(X:T)      - nondet variable rebind with given type
+%    -[X:V|..]   - variable assignment
+%
 
 %
 %  epath_poss_values(E,VVIn,VVOut)  -  determine possible var values
@@ -188,7 +200,7 @@ epath_ends_with_assign(-(VA),VA,?true).
 %  epath_push_assign(E,VA,Ep)  -  push a variable assignment as far to the
 %                                 right as possible.
 %
-%  This may involved, for example, pushing it over a test operator and
+%  This may involve, for example, pushing it over a test operator and
 %  substituting the assigned values into the test formula.
 %
 epath_push_assign(E1 ; E2,VA,Ep) :-

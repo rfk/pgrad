@@ -1,10 +1,29 @@
 %
 %  MIndiGolog.oz:  implementation of MIndiGolog semantics
 %
+%  Copyright 2008, Ryan Kelly
+%
 %  This functor implements the MIndiGolog semantics as a pair of
 %  procedures Trans() and Final().  Rather than operating over ordinary
 %  situation terms, they accept a run as the "current situation" and
 %  return a step indicating the next action to be performed.
+%
+%  The operators are constructed using the following record labels, some of
+%  which are non-standard to avoid conflicts with Oz keywords:
+%
+%    seq(D1 D2)       - sequential execution
+%    test(C)          - test condition
+%    choose(D1 D2)    - nondeterministic choice of program
+%    pick(V D1)       - nondeterministic choice of argument
+%    star(D1)         - nondeterministic iteration
+%    ifte(C D1 D2)    - if-then-else
+%    wloop(C D1)      - while-loop
+%    conc(D1 D2)      - concurrent program execution
+%    pconc(D1 D2)     - prioritised concurrent execution
+%    cstar(D1)        - concurrent iteration
+%    pcall(P)         - procedure call
+%    search(D)        - search for offline execution
+%    dosteps(S)       - execute pre-planned list of actions
 %
 
 functor 
