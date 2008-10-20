@@ -57,9 +57,12 @@ time-test: main.exe
 clean:
 	rm -rf *.ozf *.exe *.ozf 
 
+clobber: clean
+	rm -rf MIndiGolog2-0.9.9.tar.gz
+
 dist:
-	mkdir MIndiGolog1
-	cp Makefile *.txt *.oz ./MIndiGolog1
-	tar -czvf MIndiGolog1.tar.gz MIndiGolog1
-	rm -rf MIndiGolog1
+	mkdir MIndiGolog1-0.9.9
+	cp Makefile *.txt *.oz ./MIndiGolog1-0.9.9
+	tar -czvf MIndiGolog1-0.9.9.tar.gz MIndiGolog1-0.9.9
+	rm -rf MIndiGolog1-0.9.9
 
