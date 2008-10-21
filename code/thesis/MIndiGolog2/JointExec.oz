@@ -540,7 +540,7 @@ define
   %
   proc {IndistBranches J Agt B Bs}
     AllBranches = {FindIndistBranches J Agt B} in
-    Bs = {MinimizeBranchSet J AllBranches}
+    Bs = {List.subtract {MinimizeBranchSet J (B|AllBranches)} B}
   end
 
   proc {FindIndistBranches J Agt B Bs}
@@ -577,9 +577,54 @@ define
   end
 
   proc {BranchesAreIndist J Agt B1 B2 B}
-    B = ({Search.base.one proc {$ V}
-      {FindCommonView J Agt B1 B2 V}
-    end} \= nil)
+    % First, check whether they can possible have an overlapping view
+    % using simple subset checks
+    if {LP.subset {ObsThatMustOccur J Agt B1} {ObsThatMayOccur J Agt B2}} then
+      if {LP.subset {ObsThatMustOccur J Agt B2} {ObsThatMayOccur J Agt B1}} then
+        % If they pass this test, do a brute-force search to find an
+        % actual view they have in common
+        B = ({Search.base.one proc {$ V}
+          {FindCommonView J Agt B1 B2 V}
+        end} \= nil)
+      else
+        B = false
+      end
+    else
+      B = false
+    end
+  end
+
+  %  Find the set of observations that must occur in any view
+  %  of the given branch.
+  %
+  proc {ObsThatMustOccur J Agt B Os}
+    Os = for append:App N in B do Os2 in
+           {App [{IntMap.get J N}.out.Agt]}
+           Os2 = for collect:C Np in {PreceedersAgt J Agt N} do
+             Data = {IntMap.get J Np} in
+             if {Record.label Data} == out then
+               {C Data.out.Agt}
+             end
+           end
+           {App Os2}
+         end
+  end
+
+  %  Find the set of all observations that may occur in a view
+  %  of the given branch
+  %
+  proc {ObsThatMayOccur J Agt B Os}
+    Os = for collect:C N in {IntMap.allMatching J fun {$ I}
+                              Data = {IntMap.get J I} in
+                              {Record.label Data} == out andthen
+                              {Not {ConflictsB J I B}} andthen
+                              for default:true return:R N in B do
+                                if {Preceeds J N I} then {R false} end
+                              end
+                            end} do
+           Data = {IntMap.get J N} in
+           {C Data.out.Agt}
+         end
   end
 
   %  Roll the execution forward to directly after the performance

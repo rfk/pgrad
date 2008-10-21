@@ -22,6 +22,7 @@ export
   YieldOrdered
   Member
   Union
+  Subset
   ListAcc
   SubInTerm
   TermEq
@@ -159,6 +160,17 @@ define
           end
         end
     end
+  end
+
+  %
+  %  Determine if one list of a subset of another.
+  %
+  proc {Subset L1 L2 B}
+    case L1 of E|Es then
+      if {List.member E L2} then
+        B = {Subset Es L2}
+      else B = false end
+    else B = true end
   end
 
   %
