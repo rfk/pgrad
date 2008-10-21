@@ -20,7 +20,7 @@ define
 
   fun {Procdef Nm}
     case Nm of main then
-          pcall(makeVegSalad(bowl1))
+          pcall(makeSalad(bowl1))
     [] ensureHas(Agt Obj) then
            ifte(hasObject(Agt Obj) nil acquire(Agt Obj))
     [] doPlaceIn(Agt Obj Dest) then
@@ -53,6 +53,13 @@ define
     [] chopTypeInto(Agt Type Dest) then
            pick(obj seq(test(objIsType(obj Type))
                         pcall(chopInto(Agt obj Dest))))
+    [] branchTest then
+          seq(checkFor(jon egg)
+              ifte(used(egg1)
+                   pick(agt seq(test(isAgent(agt)) acquire(agt carrot1)))
+                   pick(agt seq(test(isAgent(agt)) acquire(agt egg1)))
+                  )
+             )
     [] makeSalad(Dest) then
           seq(conc(pick(a seq(test(isAgent(a))
                               pcall(chopTypeInto(a lettuce Dest))))

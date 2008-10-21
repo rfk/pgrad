@@ -28,8 +28,9 @@ import
 
   IntMap
   Sitcalc
+  LP
  
-  System
+  Search
 
 export
 
@@ -197,13 +198,13 @@ define
     NsOut = {InsertInOrder N Keepers}
   end
 
-  %  Determine whether branch Ns1 is "smaller" than branch Ns2. 
-  %  This means that everything in Ns1 is either also in Ns2,
-  %  or preceeds something in Ns2.
+  %  Determine whether B1 is "smaller" than branch B2. 
+  %  This means that everything in B1 is either also in B2,
+  %  or preceeds something in B2.
   %
-  proc {BranchIsSmaller J Ns1 Ns2 B}
-    B = for return:R default:true N1 in Ns1 do Covered in
-          Covered = for return:R2 default:false N2 in Ns2 do
+  proc {BranchIsSmaller J B1 B2 B}
+    B = for return:R default:true N1 in B1 do Covered in
+          Covered = for return:R2 default:false N2 in B2 do
                       if {Preceeds J N1 N2} then {R2 true} end
                       if N1 == N2 then {R2 true} end
                     end
@@ -212,26 +213,26 @@ define
   end
 
   %  Reduce a set of enabling branches to the minimal set possible.
-  %  Any entries in Ens that are larger than another entry are
+  %  Any entries in Bs that are larger than another entry are
   %  removed.
   %
-  proc {MinimizeBranchSet J Ens MinEns}
-    {MinimizeBranchSetRec J Ens nil MinEns}
+  proc {MinimizeBranchSet J Bs MinBs}
+    {MinimizeBranchSetRec J Bs nil MinBs}
   end
 
-  proc {MinimizeBranchSetRec J Ens Acc MinEns}
-    case Ens of E|Es then Covered in
+  proc {MinimizeBranchSetRec J Bs Acc MinBs}
+    case Bs of B|Bs2 then Covered in
       Covered = for return:R default:false A in Acc do
-                  if {BranchIsSmaller J A E} then {R true} end
+                  if {BranchIsSmaller J A B} then {R true} end
                 end
-      if Covered then {MinimizeBranchSetRec J Es Acc MinEns}
+      if Covered then {MinimizeBranchSetRec J Bs2 Acc MinBs}
       else Keepers in
         Keepers = for collect:C A in Acc do
-                    if {Not {BranchIsSmaller J E A}} then {C A} end
+                    if {Not {BranchIsSmaller J B A}} then {C A} end
                   end
-        {MinimizeBranchSetRec J Es E|Keepers MinEns}
+        {MinimizeBranchSetRec J Bs2 B|Keepers MinBs}
       end
-    else MinEns = Acc end
+    else MinBs = Acc end
   end
   
   %  Utility procedures for generating lists of events of different types.
@@ -263,20 +264,23 @@ define
   proc {FixFeasibility JIn AId JOut}
     As = {List.filter {GetActions JIn} fun {$ I} {Not {Preceeds JIn I AId}} end}
   in
-    {System.showInfo "...fixing feasibility for:"}
-    {System.show As}
     {FixActionFeasibility JIn As JOut}
   end
 
   %
-  %  Fix feasibility invariants for each action in the list Acts.
+  %  Fix feasibility invariants for each action event in the list Acts.
+  %
+  %  To do so, we find a minimal set of branches that are indistinguishable
+  %  from that action's enablers.  Each such branch must enable a matching
+  %  action event, which we insert if necessary.
   %
   proc {FixActionFeasibility JIn Acts JOut}
     case Acts of AId|As then
        A = {IntMap.get JIn AId}
-       Equivs = {IndistinguishableSets JIn {Sitcalc.actor A.action} A.enablers}
-       JOut2 = {AddFeasibilityEvents JIn A Equivs}
+       IBs = {IndistBranches JIn {Sitcalc.actor A.action} A.enablers}
+       JOut2
       in
+       JOut2 = {AddFeasibilityEvents JIn A IBs}
        % If the above call modifies the JE, then it will re-execute the
        % feasibility fixing routines and we don't need to continue the loop.
        if JOut2 == JIn then
@@ -284,37 +288,40 @@ define
        else
           JOut = JOut2
        end
-    else JIn = JOut end
+    else
+      JIn = JOut
+    end
   end
 
   %
-  %  Ensure that for each branch in Equivs, there is an event corresponding
+  %  Ensure that for each branch in IBs, there is an event corresponding
   %  to the action event A.
   %
-  proc {AddFeasibilityEvents JIn Act Equivs JOut}
-    case Equivs of E|Es then EAct in
+  proc {AddFeasibilityEvents JIn Act IBs JOut}
+    case IBs of B|Bs then EAct in
       %
       % Try to find an appropriate event already in the JE
       %
       EAct = {IntMap.nextMatching JIn 0 fun {$ I} 
                         Data = {IntMap.get JIn I} in
                         if {Record.label Data} == act then
-                          Data.enablers == E andthen Data.action == Act.action
+                          Data.enablers == B andthen Data.action == Act.action
                         else false end 
                      end}
       %
       % If there isn't one, we must insert one
       %
       if EAct == nil then
-        if {CannotInsertAfter JIn E} then fail
+        if {CannotInsertAfter JIn B} then
+          fail
         else J2 in
           % We don't need to continue the loop, because this call will
           % re-invoke the feasibility fixing procedures.
-          {InsertWithEnablers JIn E Act E J2 _}
+          {InsertWithEnablers JIn B Act B J2 _}
           J2 = JOut
         end
       else
-        {AddFeasibilityEvents JIn Act Es JOut}
+        {AddFeasibilityEvents JIn Act Bs JOut}
       end
     else JOut = JIn end
   end
@@ -472,124 +479,107 @@ define
     else B = false end
   end
 
-  %  List all events that could be active from the perspective of the
-  %  given agent.
+
+  %  Search for a common view of branches B1 and B2 from persective of Agt.
+  %  We achieve this by selecting and performing enabled events with
+  %  identical observations, until we are able to fully execute both
+  %  branches.
   %
-  proc {ActiveEventsAgt J Agt Evts}
-    Evts = {IntMap.allMatching J fun {$ I}
-      Data = {IntMap.get J I} in
-      {PreceedersAgt J Agt I} == nil andthen
-      if {Record.label Data} == out then
-        Data.out.Agt \= nil
-      else
-        Data.action == finish orelse {Sitcalc.actor Data.action} == Agt
-      end
-    end}
+  proc {FindCommonView J Agt B1 B2 V}
+    {FindCommonViewRec J Agt B1#J B2#J V}
   end
 
-
-  %  Recursively generates the histories of observation produced by events
-  %  in Ns, for agent Agt.  Hs is a list of tuples O#J2#Ns2 where O is the
-  %  next act or obs made by the agent, J2 is the remaining execution, and
-  %  Ns2 is the input events that have not yet been determined.
-  %  Ns must contain only outcome events.
-  %
-  proc {GenerateHistories J Agt Ns Hs}
-    if Ns == nil then Hs = nil
-    else
-      Active = {ActiveEventsAgt J Agt} in
-      Hs = for collect:C E in Active do
-             Data = {IntMap.get J E} in
-             case Data of act(...) then
-               J2 = {PerformEvent J E} in
-               {C act(Data.action)#J2#Ns}
-             else
-               J2 = {PerformEvent J E}
-               Ns2 = {List.subtract Ns E} in
-               if {IntMap.hasLabels J2 Ns2} then
-                 {C out(Data.out.Agt)#J2#Ns2}
-               end
-             end
-           end
+  proc {FindCommonViewRec J Agt B1#J1 B2#J2 V}
+    %  Branches must be fully executed at the same time, so
+    %  fail if one is empty and the other is not.
+    if B1 == nil then
+      if B2 \= nil then
+        fail
+      end
+    elseif B2 == nil then
+      fail
+    else A1 O1 A2 O2 Obs1 Obs2 B1n B2n J1n J2n in
+      %  Otherwise, we select an enabled event following each branch,
+      %  and ensure matching observations.
+      A1#O1 = {FindActiveEventAgt J1 Agt}
+      A2#O2 = {FindActiveEventAgt J2 Agt}
+      {ConflictsB J1 O1 B1 false}
+      {ConflictsB J2 O2 B2 false}
+      Obs1 = {IntMap.get J1 O1}.out.Agt
+      Obs2  = {IntMap.get J2 O2}.out.Agt
+      Obs1 = Obs2
+      J1n = {PerformEvent {PerformEvent J1 A1} O1}
+      J2n = {PerformEvent {PerformEvent J2 A2} O2}
+      B1n = {List.subtract B1 O1}
+      B2n = {List.subtract B2 O2}
+      V = Obs1|{FindCommonViewRec J Agt B1n#J1n B2n#J2n}
     end
   end
 
 
-  %  Given a set of outcome events Ns, determine all other sets of
-  %  outcome events that would be indistinguishable from the perspective
-  %  of agent Agt.  For the moment, brute force it used.
+  %  Find an Action#Outcome event pair that could be active from
+  %  the perspective of Agt.
   %
-  proc {IndistinguishableSets J Agt Ns Equiv}
-    AllBranches = {FindIndistinguishableBranches J Agt J#Ns [nil#J]} in
-    Equiv = {List.subtract {MinimizeBranchSet J AllBranches} Ns}
+  proc {FindActiveEventAgt J Agt A#O}
+    Acts Outs in
+    Acts = {IntMap.allMatching J fun {$ I}
+             Data = {IntMap.get J I} in
+             {Record.label Data} == act andthen
+             {PreceedersAgt J Agt I} == nil
+           end}
+    {LP.member A Acts}
+    Outs = {IntMap.get J A}.outcomes
+    {LP.member O Outs}
+    ({IntMap.get J O}.out.Agt \= nil)=true
   end
 
-  %  From the perspective of agent Agt, find all branches that have
-  %  a run in common with the given branch Ns.  JOrig maintains the
-  %  original execution, used for manipulating branches.  J is
-  %  rolled forward as each event is fired on the branch.  SoFar is
-  %  an accumulator of N#J pairs representing branches that match the
-  %  run so far.
+  %  Given a branch B, determine a minimal set of other branches Bs
+  %  that would be indistinguishable from the perspective of agent Agt.
+  %  For the moment, brute force is used to check for generation of
+  %  identical histories.
   %
-  proc {FindIndistinguishableBranches JOrig Agt J#Ns SoFar IBs}
-    if Ns == nil then 
-      IBs = for collect:C B#_ in SoFar do {C B} end
-    else Hs in
-      Hs = {GenerateHistories J Agt Ns}
-      IBs = for append:Acc (O#J2#Ns2) in Hs do NewSoFar Res in
-        case O of act(Act) then 
-             NewSoFar = for collect:C (Bsf#Jsf) in SoFar do
-                        for E2#J2 in {PerformAct Jsf Act} do
-                          {C {BranchPush JOrig E2 Bsf}#J2}
-                        end
-                      end
-        []  out(Obs) then
-             NewSoFar = for collect:C (Bsf#Jsf) in SoFar do
-                        for E2#J2 in {PerformObs Jsf Agt Obs} do
-                          {C {BranchPush JOrig E2 Bsf}#J2}
-                        end
-                      end
+  proc {IndistBranches J Agt B Bs}
+    AllBranches = {FindIndistBranches J Agt B} in
+    Bs = {MinimizeBranchSet J AllBranches}
+  end
+
+  proc {FindIndistBranches J Agt B Bs}
+    %  A branch indistinguishable from B must contain an event with
+    %  a matching observation to each event from the input branch.
+    %  We generate all such branches and test whether they can in fact
+    %  generate an indistinguishable history.
+    %  
+    PossBs = {List.subtract {GeneratePossIndistBranches J Agt B} B} in
+    Bs = for collect:C B2 in PossBs do
+      if {BranchesAreIndist J Agt B B2} then
+        {C B2}
+      end
+    end
+  end 
+
+  proc {GeneratePossIndistBranches J Agt B Bs}
+    case B of N|Ns then
+      Out1 = {IntMap.get J N}
+      N2s = {IntMap.allMatching J fun {$ I}
+              Out2 = {IntMap.get J I} in
+              {Record.label Out2} == out andthen
+              Out2.out.Agt == Out1.out.Agt
+            end}
+      in
+      Bs = for collect:C B2 in {GeneratePossIndistBranches J Agt Ns} do
+        for N2 in N2s do
+            if {Not {ConflictsB J N2 B2}} then
+              {C {BranchPush J N2 B2}}
+            end
         end
-        Res = {FindIndistinguishableBranches JOrig Agt J2#Ns2 NewSoFar}
-        {Acc Res}
       end
-    end
+    else Bs = [nil] end
   end
 
-
-  %  Roll the execution forward by the given action label.  This
-  %  generates a list of E#J pairs, where E is the event that was
-  %  performed and J is the resulting execution.
-  %
-  proc {PerformAct JIn Act Outs}
-    Es = {IntMap.allMatching JIn fun {$ I}
-             D = {IntMap.get JIn I} in
-             {Record.label D} == act andthen
-             {Preceeders JIn I} == nil andthen
-             D.action == Act
-         end}
-  in
-    Outs = for collect:C E in Es do
-              {C E#{PerformEvent JIn E}}
-            end
-  end
-
-  %  Roll the execution forward by the given observation label,
-  %  from the perspective of the given agent.  The label can match
-  %  any event with that label where all its {Preceeders} would be
-  %  unobservable to Agt.
-  %
-  proc {PerformObs JIn Agt Obs Outs}
-    Es = {IntMap.allMatching JIn fun {$ I}
-           D = {IntMap.get JIn I} in
-           {Record.label D} == out andthen
-           D.out.Agt == Obs andthen
-           {PreceedersAgt JIn Agt I} == nil
-         end}
-  in
-    Outs = for collect:C E in Es do
-              {C E#{PerformEvent JIn E}}
-            end
+  proc {BranchesAreIndist J Agt B1 B2 B}
+    B = ({Search.base.one proc {$ V}
+      {FindCommonView J Agt B1 B2 V}
+    end} \= nil)
   end
 
   %  Roll the execution forward to directly after the performance
