@@ -194,63 +194,140 @@ The situation calculus, along with the programming language Golog that is
 \end_layout
 
 \begin_layout Standard
-When multi-agent domains are considered, they are almost invariant assumed
- to be 
+When multi-agent domains are considered, for example as in 
+\begin_inset LatexCommand citep
+key "shapiro02casl,Ferrein2005readylog,Lesperance01epi_feas_casl,delgrande01sitcalc_cleudo"
+
+\end_inset
+
+, they are almost invariably assumed to be 
 \emph on
 syncrhonous
 \emph default
-; that is, each agent is assumed to know precisely how many actions have
- been performed in the world.
- This assumption allows the agents to reason about their world using techniques
- developed for the single-agent setting.
+; each agent is able to determine precisely how many actions have been performed
+ in the world.
+ This assumption allows the agents to reason about their world using standard
+ techniques developed in a single-agent setting, such as regression 
+\begin_inset LatexCommand citep
+key "reiter91frameprob"
+
+\end_inset
+
+.
+ With the notable exception of 
+\begin_inset LatexCommand citep
+key "farinelli07team_golog"
+
+\end_inset
+
+, there has been little work on using the situation calculus in rich 
+\emph on
+asyncrhonous
+\emph default
+ multi-agent domains.
 \end_layout
 
 \begin_layout Standard
-The fundamental unit of reasoning in the situation calculus, and the output
- of the Golog execution planning process, is the 
+To address this shortcoming, we study a challenging multi-agent problem
+ within the framework of the situation calculus: how to enable a team of
+ agents to cooperatively plan and perform the joint execution of a shared
+ task.
+ We extend the reasoning and planning machinery of the situation calculus
+ to provide a powerful approach to cooperative task execution, even in the
+ face of asyncrhonicity.
+ Our approach is developed in two phases.
+\end_layout
+
+\begin_layout Standard
+First, we extend the standard semantics of Golog to incorporate true concurrency
+ of actions, in order to better represent the dynamics of a multi-agent
+ team.
+ This new language -- dubbed 
+\emph on
+MIndiGolog
+\emph default
+ for 
+\begin_inset Quotes eld
+\end_inset
+
+Multi-Agent IndiGolog
+\begin_inset Quotes erd
+\end_inset
+
+ -- provides a powerful mechanism for specifying the shared tasks to be
+ performed by a team of agents.
+ We develop an implementation of MIndiGolog based on the cooperative execution
+ algorithm of ReadyLog 
+\begin_inset LatexCommand citep
+key "Ferrein2005readylog"
+
+\end_inset
+
+, using the powerful distributed logic programming capabilities of the Mozart
+ platform 
+\begin_inset LatexCommand citep
+key "vanroy99mozart"
+
+\end_inset
+
+ to transparently share the planning workload.
+\end_layout
+
+\begin_layout Standard
+This first implementation, like previous work, is limited to syncrhonous
+ domains by the reasoning and planning machinery of the situation calculus.
+ The difficulty here is that the fundamental unit of reasoning, and the
+ output of the Golog execution planning process, is the 
 \emph on
 situation
 \emph default
 : a complete, ordered history of all actions that are to be performed.
- Having to execute a totally-ordered sequence of actions is far from ideal
- in a multi-agent setting, as it requires constant synchronisation between
- the agents.
- While this may be acceptable for systems that are already restricted to
- synchronous domains, it does not take advantage of the concurrency inherent
- in a multi-agent team.
- In asynchronous domains the required synchronisation of actions may be
- impossible to achieve, and a partially-ordered representation must be used
- instead.
- But there have been no formal accounts of such a representation in the
- existing situation calculus literature.
+ Working with totally-ordered sequences of actions is far from ideal in
+ a multi-agent setting.
+ On one hand, each agent may have only partial information about the actions
+ performed so far, so they may be unable to construct a situation term in
+ order to reason about the current state of the world.
+ On the other, cooperatively executing a totally-ordered sequence of actions
+ requires constrant synchronisation between the agents, which may be undersirabl
+e or even impossible in some domains.
 \end_layout
 
 \begin_layout Standard
-To overcome these limitations we develop a new multi-agent variant of Golog,
- with which a team of agents can plan the cooperative execution of a shared
- task.
- The language, dubbed 
+To support richer multi-agent domains in which synchronicity cannot be quarantee
+d, we develop a partially-ordered representation of the actions to be performed
+ by the team.
+ Dubbed 
 \emph on
-MIndiGolog
+joint executions
 \emph default
-, is implemented on the Mozart programming platform, using its powerful
- distributed logic programming capabilities to share the planning workload
- between all members of the team.
- 
+, these structures provide a much more flexible plan representation formalism
+ for multi-agent domains.
+ Unlike raw situation terms joint executions permit branching based on results
+ obtained at run-time; allow independent actions to be performed without
+ synchronsation; and ensure that when synchronisation of actions is required,
+ it is actually achievable based on the local information available to each
+ agent.
 \end_layout
 
 \begin_layout Standard
-For asyncrhonous domains, we provide a partially-ordered representation
- of the actions to be performed by a team of agents, that ensures synchronisatio
-n is always possible based on the local information available to each agent.
- 
+We identify a restricted class of joint executions that can be reasoned
+ about using standard regression techniques, and extend our MIndiGolog interpret
+er to generate joint executions instead of raw situation terms.
+ The end result is a powerful new approach to cooperative task execution
+ in the situation calculus that is suitable for use in a much wider variety
+ of multi-agent domains.
 \end_layout
 
-\begin_layout Subsection*
+\begin_layout Subsection
 Motivating Example: The Cooking Agents
 \end_layout
 
 \begin_layout Standard
+To make things more concrete, consider the following example domain which
+ will be used throughout the paper:
+\end_layout
+
+\begin_layout Quotation
 Cathy is hosting a dinner party.
  A brilliant engineer but a mediocre cook, she has built a team of robotic
  chefs to help her prepare the meal, and must now program them to carry
@@ -263,8 +340,6 @@ Cathy is hosting a dinner party.
  program, and have the agents automatically distribute the work amongst
  themselves in such a way that they can operate independently where possible
  and synchronise their actions only when necessary.
-\newline
-
 \end_layout
 
 \begin_layout Standard
@@ -273,40 +348,24 @@ The situation calculus offers a compelling approach for this example domain:
  to plan and perform the concurrent execution of these shared programs.
  However, existing Golog implementations generate raw situation terms as
  the output of their planning process.
- These are fully-ordered sequences of the actions to be performed, requiring
- constant synchronisation if the agents are to execute them cooperatively.
+ Such fully-ordered sequences of actions require constant synchronisation
+ if the agents are to execute them cooperatively.
 \end_layout
 
 \begin_layout Standard
-In synchronous domains this is not a problem, as the agents will always
- know how many steps of execution have already been performed, and thus
- what actions should be performed next.
- But it is still desirable to take advantage of the natural concurrency
- present when planning for a team of agents.
- The Golog planning process must be modified to reason about and allow such
- concurrency.
+If the domain is synchronous, the agents will be able to carry out such
+ a plan without difficulty.
+ But in asyncrhonous domains, the plan must only call for an action to be
+ performed if the relevant agent can determine, based solely on its local
+ information, that is should do so.
+\end_layout
+
+\begin_layout Subsection
+Overview of Paper
 \end_layout
 
 \begin_layout Standard
-In asynchronous domains, an agent may not necessarily know how far execution
- has progressed, and may thus be unsure when or if to perform its next action.
- The planning process should account for this by only calling for agents
- to perform an action if they will know, based on their local information,
- that the action should be performed.
- But the situation calculus currently has no means of representing this
- kind of partially-ordered action structure, or of determining whether it
- is executable.
-\end_layout
-
-\begin_layout Standard
-Rather than demand that Cathy equip her robots with a global synchronisation
- mechanism of some kind, we will extend the situation calculus and the semantics
- of Golog execution planning to better handle concurrency and inter-agent
- synchronisation in asynchronous, partially-observable domains.
-\end_layout
-
-\begin_layout Standard
-The paper proceeds as follows....TODO
+The paper proceeds as follows...TODO
 \end_layout
 
 \begin_layout Section
@@ -344,19 +403,19 @@ key "reiter96sc_nat_conc"
 
 .
  A brief overview is presented below.
- Readers familiar with the situation calculus should note the following:
- our generalisation of the 
+ Readers familiar with the situation calculus should note our generalisation
+ of the 
 \begin_inset Formula $Poss$
 \end_inset
 
- fluent to action description predicates; and our use of the single-step
- variant of the regression operator;
+ fluent to action description predicates, and our use of the single-step
+ variant of the regression operator.
 \end_layout
 
 \begin_layout Subsubsection
-Notation and Axioms
+Notation
 \begin_inset LatexCommand label
-name "sub:Notation-and-Axioms"
+name "sub:Notation"
 
 \end_inset
 
@@ -364,8 +423,12 @@ name "sub:Notation-and-Axioms"
 \end_layout
 
 \begin_layout Standard
-The situation calculus is a many-sorted language of first-order logic augmented
- with a second-order induction axiom.
+The language 
+\begin_inset Formula $\Lsit$
+\end_inset
+
+ of the situation calculus is a many-sorted language of first-order logic
+ with equality, augmented with a second-order induction axiom.
  Its has the following sorts: 
 \noun on
 Agent
@@ -410,56 +473,48 @@ Fluents
 \end_layout
 
 \begin_layout Standard
-Throughout the paper we will present examples from a simple multi-agent
- domain, in which two agents Ann and Bob are attending a party.
- The location of the party (the fluent 
-\begin_inset Formula $loc(s)$
-\end_inset
-
-) is either 
-\begin_inset Formula $C$
-\end_inset
-
- or 
-\begin_inset Formula $D$
-\end_inset
-
- but they do not know which, and they have just received an invitation telling
- them the location of the party.
- Each agent may read the invitation (the action 
-\begin_inset Formula $read$
-\end_inset
-
-) and leave/enter the room (the actions 
-\begin_inset Formula $leave$
-\end_inset
-
- and 
-\begin_inset Formula $enter$
-\end_inset
-
-) at any time.
- Some example formulae from this domain are: 
+For concreteness, let us present some formulae from the example domain that
+ will be used throughout the paper.
+ In the 
 \begin_inset Quotes eld
 \end_inset
 
-Ann is in the room initially
+cooking agents
 \begin_inset Quotes erd
 \end_inset
 
-, and 
+ domain a group of robotic chefs inhabit a kitchen containing various ingredient
+s and utensils, and they must cooperate to prepare a meal.
+ Some example statements from this domain include 
 \begin_inset Quotes eld
 \end_inset
 
-Bob is not in the room after leaving it
+Joe does not have the knife initially
+\begin_inset Quotes erd
+\end_inset
+
+, 
+\begin_inset Quotes eld
+\end_inset
+
+Jim has the knife after he acquires it
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+It is only possible to acquire an object if nobody else has it
 \begin_inset Quotes erd
 \end_inset
 
 .
- Written formally:
+ Formally:
 \begin_inset Formula \begin{gather*}
-InRoom(Ann,S_{0})\\
-\neg InRoom(Bob,do(leave(Bob),S_{0}))\end{gather*}
+\neg HasObject(Joe,Knife1,S_{0})\\
+HasObject(Jim,Knife1,do(\{acquire(Jim,Knife1)\},S_{0}))\\
+Poss(acquire(agt,obj),s)\equiv\neg\exists agt_{2}:\, HasObject(agt_{2},obj,s)\end{gather*}
 
 \end_inset
 
@@ -467,8 +522,240 @@ InRoom(Ann,S_{0})\\
 \end_layout
 
 \begin_layout Standard
-The dynamics of a particular domain are captured by a set of sentences called
- a 
+In multi-agent domains it is customary to introduce a distinct sort 
+\noun on
+Agent
+\noun default
+ to explicitly represent the agents operating in the world, and we will
+ do so here.
+ As seen in the example formulae above, the first argument of each action
+ term gives the performing agent, which can be accessed by the function
+ 
+\begin_inset Formula $actor(a)$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Complex properties of the state of the world are represented using 
+\emph on
+uniform formulae
+\emph default
+.
+ These are basically logical combinations of fluents referring to a common
+ situation term.
+\end_layout
+
+\begin_layout DefinitionLbld
+[
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+Uniform\InsetSpace ~
+Terms
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+] Let 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ be a fixed situation term, 
+\begin_inset Formula $r$
+\end_inset
+
+ an arbitrary rigid function symbol, 
+\begin_inset Formula $f$
+\end_inset
+
+ an arbitrary fluent function symbol, and 
+\begin_inset Formula $x$
+\end_inset
+
+ a variable that is not of sort 
+\noun on
+Situation
+\noun default
+.
+ Then the terms uniform in 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ are the smallest set of syntactically-valid terms satisfying:
+\begin_inset Formula \[
+\tau\,::=x\,|\, r(\vars{\tau})\,|\, f(\vars{\tau},\sigma)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout DefinitionLbld
+[
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
+Uniform\InsetSpace ~
+Formulae
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+] Let 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ be a fixed situation term, 
+\begin_inset Formula $R$
+\end_inset
+
+ an arbitrary rigid predicate, 
+\begin_inset Formula $F$
+\end_inset
+
+ an arbitrary primitive fluent predicate, 
+\begin_inset Formula $\tau$
+\end_inset
+
+ an arbitrary term uniform in 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, and 
+\begin_inset Formula $x$
+\end_inset
+
+ an arbitrary variable that is not of sort 
+\noun on
+Situation
+\noun default
+.
+ Then the formulae uniform in 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ are the smallest set of syntactically-valid formulae satisfying:
+\begin_inset Formula \[
+\phi::=F(\vars{\tau},\sigma)\,|\, R(\vars{\tau})\,|\,\tau_{1}=\tau_{2}\,|\,\phi_{1}\wedge\phi_{2}\,|\,\neg\phi\,|\,\exists x:\phi\]
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+We will call a formula 
+\emph on
+uniform
+\emph default
+ if it is uniform in some situation.
+ The important aspect of this definition is that the formula refers to no
+ situation other than 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, which appears as the final argument of all fluents in the formula.
+ In particular, uniform formulae cannot quantify over situations or compare
+ situation terms, and cannot contain non-primitive fluents.
+\end_layout
+
+\begin_layout Standard
+The meta-variable 
+\begin_inset Formula $\phi$
+\end_inset
+
+ is used throughout to refer to an arbitrary uniform formula.
+ Since they represent some aspect of the state of the world, it is frequently
+ useful to evaluate uniform formulae at several different situation terms.
+ The notation 
+\begin_inset Formula $\phi[s']$
+\end_inset
+
+ represents a uniform formula with the particular situation 
+\begin_inset Formula $s'$
+\end_inset
+
+ inserted into all its fluents.
+ We may also completely suppress the situation term to simplify the presentation
+, using 
+\begin_inset Formula $\phi^{-1}$
+\end_inset
+
+ to represent a uniform formula with the situation argument removed from
+ all its fluents.
+ For example, given: 
+\begin_inset Formula \[
+\phi=HasObject(Jim,Knife1,s)\wedge HasObject(Joe,Bowl2,s)\]
+
+\end_inset
+
+ Then we have:
+\begin_inset Formula \begin{gather*}
+\phi[s']\,=\, HasObject(Jim,Knife1,s')\wedge HasObject(Joe,Bowl2,s')\\
+\phi^{-1}\,=\, HasObject(Jim,Knife1)\wedge HasObject(Joe,Bowl2)\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note that these are strictly meta-level operations, corresponding to possibly
+ quite complex sentences from the underlying logic.
+ They are 
+\emph on
+not
+\emph default
+ terms or operators from the logic itself.
+\end_layout
+
+\begin_layout Subsubsection
+Axioms
+\begin_inset LatexCommand label
+name "sec:Background:SC:Axioms"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The dynamics of a particular domain are captured by a set of sentences from
+ 
+\begin_inset Formula $\Lsit$
+\end_inset
+
+ called a 
 \emph on
 basic action theory
 \emph default
@@ -478,9 +765,31 @@ basic action theory
 \end_layout
 
 \begin_layout DefinitionLbld
+[
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+{
+\end_layout
+
+\end_inset
+
 Basic\InsetSpace ~
 Action\InsetSpace ~
-Theory A basic action theory, denoted 
+Theory
+\begin_inset ERT
+status collapsed
+
+\begin_layout Standard
+
+}
+\end_layout
+
+\end_inset
+
+] A basic action theory, denoted 
 \begin_inset Formula $\Dt$
 \end_inset
 
@@ -489,10 +798,6 @@ Theory A basic action theory, denoted
  It consists of the following disjoint sets: the foundational axioms of
  the situation calculus (
 \begin_inset Formula $\Sigma$
-\end_inset
-
-); unique names axioms for actions (
-\begin_inset Formula $\Dt_{una}$
 \end_inset
 
 ); action description axioms defining preconditions etc for each action
@@ -505,14 +810,18 @@ Theory A basic action theory, denoted
 \begin_inset Formula $\Dt_{ssa}$
 \end_inset
 
-); and axioms describing the value of primitive fluents in the initial situation
+); axioms describing the value of primitive fluents in the initial situation
  (
 \begin_inset Formula $\Dt_{S_{0}}$
 \end_inset
 
+); and axioms describing the static background facts of the domain (
+\begin_inset Formula $\Dt_{bg}$
+\end_inset
+
 ):
 \begin_inset Formula \[
-\Dt=\Sigma\cup\Dt_{una}\cup\Dt_{ad}\cup\Dt_{ssa}\cup\Dt_{S_{0}}\]
+\Dt=\Sigma\cup\Dt_{ad}\cup\Dt_{ssa}\cup\Dt_{S_{0}}\cup\Dt_{bg}\]
 
 \end_inset
 
@@ -521,117 +830,75 @@ Theory A basic action theory, denoted
 
 \begin_layout Standard
 These axioms must satisfy some simple consistency criteria to constitute
- a valid domain description 
+ a valid domain description; see 
 \begin_inset LatexCommand citep
 key "pirri99contributions_sitcalc"
 
 \end_inset
 
+ for the details.
+ This definition is slightly broader than the standard definitions found
+ in the literature 
+\begin_inset LatexCommand citep
+key "levesque98sc_foundations,pirri99contributions_sitcalc,reiter01kia"
+
+\end_inset
+
+ and is designed to accommodate a variety of extensions to the situation
+ calculus in a uniform manner.
+ We assume an arbitrary, but fixed, basic action theory 
+\begin_inset Formula $\Dt$
+\end_inset
+
 .
- We assume an arbitrary, but fixed, basic action theory.
 \end_layout
 
-\begin_layout Standard
-The 
-\emph on
-uniform formulae
-\emph default
- can be thought of as properties of the state of the world.
- They are basically logical combinations of fluents referring to a common
- situation term.
- For the moment we restrict ourselves to 
-\emph on
-objective
-\emph default
- uniform formulae; the complete definition includes statements about knowledge
- and will be introduced in the next section.
-\end_layout
-
-\begin_layout DefinitionLbld
-Objective\InsetSpace ~
-Uniform\InsetSpace ~
-Formulae Let 
-\begin_inset Formula $s$
-\end_inset
-
- be a fixed situation term, 
-\begin_inset Formula $F$
-\end_inset
-
- an arbitrary fluent, 
-\begin_inset Formula $\vars{x}$
-\end_inset
-
- a vector of terms mentioning no situation term other than 
-\begin_inset Formula $s$
-\end_inset
-
-, and 
-\begin_inset Formula $y$
-\end_inset
-
- a variable that is not of sort 
-\noun on
-Situation
-\noun default
-.
- Then the objective formulae uniform in 
-\begin_inset Formula $s$
-\end_inset
-
- are the smallest set of syntactically-valid formulae satisfying:
-\begin_inset Formula \[
-\phi::=F(\vars{x},s)\,|\,\phi_{1}\wedge\phi_{2}\,|\,\phi_{1}\vee\phi_{2}\,|\,\neg\phi\,|\,\exists y:\phi\,|\,\forall y:\phi\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The meta-variable 
-\begin_inset Formula $\phi$
-\end_inset
-
- is used throughout this paper to refer to an arbitrary uniform formula.
- Since they represent properties of the world, it is often useful to evaluate
- uniform formulae at several different situation terms.
- We will frequently suppress the situation term in 
-\begin_inset Formula $\phi$
-\end_inset
-
- to simplify the presentation.
- The notation 
-\begin_inset Formula $\phi[s']$
-\end_inset
-
- represents a uniform formula with the particular situation 
-\begin_inset Formula $s'$
-\end_inset
-
- inserted into all its fluents, while 
-\begin_inset Formula $\phi^{-1}$
-\end_inset
-
- represents a uniform formula with the situation argument removed from all
- its fluents.
+\begin_layout Paragraph
+Background Axioms
 \end_layout
 
 \begin_layout Standard
 The set 
-\begin_inset Formula $\Dt_{una}$
+\begin_inset Formula $\Dt_{bg}$
 \end_inset
 
- restricts action terms to a finite number of action types, and ensures
- that actions with different types or different arguments are in fact different.
- The function 
+ characterises the static aspects of the domain, and contains all axioms
+ defining rigid predicates or functions.
+ In particular, it must contain a set of unique names axioms asserting that
+ action terms with different types or arguments are in fact different, e.g.:
+\begin_inset Formula \begin{gather*}
+acquire(agt,obj)\neq release(agt,obj)\\
+acquire(agt_{1},obj_{1})=acquire(agt_{2},obj_{2})\,\rightarrow\, agt_{1}=agt_{2}\,\wedge\, obj_{1}=obj_{2}\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It also contains domain closure axioms for the sorts 
+\noun on
+Action, Agent
+\noun default
+ and 
+\noun on
+Object
+\noun default
+, and defines the function 
 \begin_inset Formula $actor(a)$
 \end_inset
 
- gives the agent performing an action, which is always the action's first
- argument.
-\newline
+ to give the agent performing an action.
+ The background axioms are a generalisation of the set 
+\begin_inset Formula $\Dt_{una}$
+\end_inset
 
+ commonly found in the literature, which contains only the unique names
+ axioms.
+\end_layout
+
+\begin_layout Paragraph
+Successor State Axioms
 \end_layout
 
 \begin_layout Standard
@@ -643,23 +910,39 @@ The set
 \emph on
 successor state axiom
 \emph default
- for each primitive fluent in the domain, providing a monotonic solution
- to the frame problem for that fluent.
- These axioms have the following general form
-\begin_inset Foot
-status collapsed
-
-\begin_layout Standard
-We follow standard naming conventions for the situation calculus: lower-case
- roman names indicate variables, and free variables are implicitly universally
- quantified at the outermost scope
-\end_layout
+ for each primitive fluent in the domain.
+ These axioms provide an elegant monotonic solution to the frame problem
+ for that fluent 
+\begin_inset LatexCommand citep
+key "reiter91frameprob"
 
 \end_inset
 
-: 
+ which has been instrumental to the popularity and utility of the situation
+ calculus.
+ They have the following general form:
 \begin_inset Formula \[
-F(\vars{x},do(c,s))\equiv\Phi_{F}^{+}(\vars{x},c,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},c,s)\]
+F(\vars{x},do(a,s))\,\equiv\,\Phi_{F}(\vars{x},a,s)\]
+
+\end_inset
+
+ Here 
+\begin_inset Formula $\Phi_{F}$
+\end_inset
+
+ is uniform in 
+\begin_inset Formula $s$
+\end_inset
+
+.
+ While we will make no assumptions about the internal structure of 
+\begin_inset Formula $\Phi_{F}$
+\end_inset
+
+, it typically takes the form shown below, which may help elucidate the
+ purpose of these axioms: 
+\begin_inset Formula \[
+F(\vars{x},do(a,s))\equiv\Phi_{F}^{+}(\vars{x},a,s)\,\,\vee\,\, F(\vars{x},s)\wedge\neg\Phi_{F}^{-}(\vars{x},a,s)\]
 
 \end_inset
 
@@ -679,7 +962,7 @@ Here
 \begin_inset Formula $s$
 \end_inset
 
-.
+, representing the positive and negative effect axioms for that fluent.
  This may be read as 
 \begin_inset Quotes eld
 \end_inset
@@ -689,15 +972,15 @@ Here
 \end_inset
 
  is true after performing 
-\begin_inset Formula $c$
+\begin_inset Formula $a$
 \end_inset
 
  if 
-\begin_inset Formula $c$
+\begin_inset Formula $a$
 \end_inset
 
  made it true, or it was previously true and 
-\begin_inset Formula $c$
+\begin_inset Formula $a$
 \end_inset
 
  did not make it false
@@ -705,8 +988,40 @@ Here
 \end_inset
 
 .
-\newline
+ For example, the dynamics of the 
+\begin_inset Formula $HasObject$
+\end_inset
 
+ fluent may be specified using:
+\begin_inset Formula \begin{multline*}
+HasObject(agt,obj,do(a,s))\,\equiv\, a=acquire(agt,obj)\\
+\vee\,\, HasObject(agt,obj,s)\wedge a\neq release(agt,obj)\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+For functional fluents, 
+\begin_inset Formula $\Dt_{ssa}$
+\end_inset
+
+ contains a similar axiom to specify the value 
+\begin_inset Formula $v$
+\end_inset
+
+ of the fluent after an action has occurred:
+\begin_inset Formula \[
+f(\vars{x},do(a,s))=v\,\equiv\,\Phi_{f}(v,\vars{x},a,s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Action Description Predicates
 \end_layout
 
 \begin_layout Standard
@@ -724,109 +1039,141 @@ key "pirri99contributions_sitcalc"
 
 \end_inset
 
- to define fluents describing various aspects of the performance of an action,
- which we call 
+ to define fluents that describe various aspects of the performance of an
+ action, which we call 
 \emph on
 action description predicates
 \emph default
 .
+ These are the only non-primitive fluents permitted in a basic action theory.
  The predicate 
 \begin_inset Formula $Poss(a,s)$
 \end_inset
 
  is the canonical example, indicating whether it is possible to perform
  an action in a given situation.
- For example, it is only possible for an agent to leave the room if they
- are actually in it:
-\begin_inset Formula \[
-Poss(leave(agt),s)\equiv InRoom(agt,s)\]
-
-\end_inset
-
-
+ The set 
 \begin_inset Formula $\Dt_{ad}$
 \end_inset
 
- contains one axiom of the form 
-\begin_inset Formula $Poss(A(\vars{x}),s)\equiv\Phi_{Poss}^{A}(\vars{x},s)$
+ contains a single axiom of the following form, defining the complete set
+ of preconditions for the action variable 
+\begin_inset Formula $a$
 \end_inset
 
- for each type of action 
-\begin_inset Formula $A$
+, where 
+\begin_inset Formula $\Pi_{Poss}$
 \end_inset
 
-.
- These are combined into a generalised 
-\begin_inset Formula $Poss$
+ is a formula uniform in 
+\begin_inset Formula $s$
 \end_inset
 
- axiom for sets of concurrent actions, which in its simplest form is just:
+:
 \begin_inset Formula \[
-Poss(c,s)\equiv c\neq\{\}\,\wedge\,\forall a\in c:\, Poss(a,s)\]
+Poss(a,s)\,\equiv\,\Pi_{Poss}(a,s)\]
 
 \end_inset
 
-Note that it is never possible to perform an empty set of actions.
- In more complex domains actions may interact, so that they cannot be performed
- concurrently even if possible individually.
- We assume that 
-\begin_inset Formula $\Dt_{ad}$
-\end_inset
 
- contains an appropriate axiomatisation of such interaction; 
-\begin_inset LatexCommand citet
-key "pinto94temporal"
-
-\end_inset
-
- provides a full discussion of this issue;
 \end_layout
 
 \begin_layout Standard
-In principle any number of predicates and functions can be defined in this
- way, and we will use the meta-variable 
-\begin_inset Formula $\alpha$
+Note that this is a slight departure from the standard approach of 
+\begin_inset LatexCommand citep
+key "pirri99contributions_sitcalc"
+
 \end_inset
 
- to represent an arbitrary action description predicate.
- Forthcoming examples include the sensing-result function 
+, in which the preconditions for each action type are enumerated individually.
+ The more restrictive approach presented here embodies a domain-closure
+ assumption on the 
+\noun on
+Action
+\noun default
+ sort.
+ If there are finitely many action types then 
+\begin_inset Formula $\Pi_{Poss}$
+\end_inset
+
+ is simply the completion of the precondition axioms for each action type.
+ The single-axiom form is necessary when quantifying over 
+\begin_inset Quotes eld
+\end_inset
+
+all possible actions
+\begin_inset Quotes erd
+\end_inset
+
+ and has been widely used in the literature 
+\begin_inset LatexCommand citep
+key "vassos08progression_future_queries,savelli06sc_quantum_levels"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In principle, any number of predicates and functions can be defined in this
+ way; a common example is the sensing-result function 
 \begin_inset Formula $SR(a,s)$
 \end_inset
 
- of Section 
+ which we will describe in Chapter 
 \begin_inset LatexCommand ref
-reference "sub:Knowledge-and-Sensing"
-
-\end_inset
-
- and the observability predicate 
-\begin_inset Formula $CanObs(agt,a,s)$
-\end_inset
-
- of Section 
-\begin_inset LatexCommand ref
-reference "sub:Knowledge-and-Observation"
+reference "ch:observations"
 
 \end_inset
 
 .
+ The general notion of an action description predicate allows us to treat
+ all of them in a uniform manner.
+ We will use the meta-variable 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ to represent an arbitrary action description predicate, and allow the action
+ and situation arguments to be suppressed in a similar way to situation-suppress
+ed uniform formulae.
 \end_layout
 
 \begin_layout Standard
-We assume that these definitions are finitely enumerable and well-founded,
- allowing them to be expanded down to primitive fluents even when they refer
- to an action variable.
- For example, we assume that 
-\begin_inset Formula $Poss(a,s)$
-\end_inset
-
- can be replaced by an enumeration over action types such as the following:
-\begin_inset Formula \[
-Poss(a,s)\equiv\,\, a=A_{1}(\vars{x}_{1})\wedge\Phi_{Poss}^{A_{1}}(\vars{x}_{1},s)\,\vee\,\dots\,\vee a=A_{n}(\vars{x}_{n})\wedge\Phi_{Poss}^{A_{n}}(\vars{x}_{n},s)\]
+In preparation for the coming material on extensions to the situation calculus
+ in Section 
+\begin_inset LatexCommand ref
+reference "sec:Background:Extensions"
 
 \end_inset
 
+, let us introduce an action description predicate 
+\begin_inset Formula $Legal$
+\end_inset
 
+ that identifies actions that can be legally executed in the real world.
+ In the basic situation calculus, it is simply equivalent to 
+\begin_inset Formula $Poss$
+\end_inset
+
+:
+\begin_inset Formula \begin{gather*}
+Legal(a,s)\,\equiv\, Poss(a,s)\end{gather*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As shown by the above, it is often useful to define new action description
+ predicates in terms of simpler existing ones, rather than directly in terms
+ of the primitive fluents of the domain.
+ As long as these definitions are well-founded they can be expanded down
+ to primitive fluents when constructing the basic action theory.
+\end_layout
+
+\begin_layout Paragraph
+Foundational Axioms
 \end_layout
 
 \begin_layout Standard
@@ -835,38 +1182,60 @@ The foundational axioms
 \end_inset
 
  ensure that situations form a branching-time account of the world state.
- There are initial situations identified by the predicate 
-\begin_inset Formula $Init(s)$
-\end_inset
-
-, and a distinguished initial situation 
+ There is a distinguished situation 
 \begin_inset Formula $S_{0}$
 \end_inset
 
  called the 
 \emph on
-actual 
+initial situation
 \emph default
-initial situation.
- Other initial situations are used to represent the agents' epistemic uncertaint
-y, and will be discussed in the following section.
- Situations in general form a tree structure with an initial situation at
- the root and 
-\begin_inset Formula $do(c,s)$
+.
+ Situations in general form a tree structure with the initial situation
+ at the root and 
+\begin_inset Formula $do(a,s)$
 \end_inset
 
- constructing the successor situation resulting when the actions 
-\begin_inset Formula $c$
+ constructing the successor situation resulting when the action 
+\begin_inset Formula $a$
 \end_inset
 
- are performed in 
+ is performed in situation 
 \begin_inset Formula $s$
 \end_inset
 
 .
- We abbreviate the performance of several successive actions by writing:
+ All situations thus produced are distinct:
 \begin_inset Formula \[
-do([c_{1},\dots,c_{n}],s)\,\isdef\, do(c_{n},do(\dots,do(c_{1},s)))\]
+do(a_{1},s_{1})=do(a_{2},s_{2})\,\rightarrow\, a_{1}=a_{2}\,\wedge\, s_{1}=s_{2}\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We abbreviate the performance of several successive actions by writing:
+\begin_inset Formula \[
+do([a_{1},\dots,a_{n}],s)\,\isdef\, do(a_{n},do(\dots,do(a_{1},s)))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+There is also a second-order induction axiom asserting that all situations
+ must be constructed in this way, which is needed to prove statements that
+ universally quantify over situations 
+\begin_inset LatexCommand citep
+key "Reiter93proving"
+
+\end_inset
+
+:
+\begin_inset Formula \[
+\forall P:\,\left[P(S_{0})\wedge\forall s,a:\,\left(P(s)\rightarrow P(do(a,s))\right)\right]\,\rightarrow\,\forall s:\, P(s)\]
 
 \end_inset
 
@@ -888,8 +1257,8 @@ The relation
 
  and is defined as follows:
 \begin_inset Formula \begin{gather*}
-Init(s)\,\rightarrow\,\neg(s'\sqsubset s)\\
-s\sqsubset do(c,s')\equiv s\sqsubseteq s'\end{gather*}
+\neg(s\sqsubset S_{0})\\
+s\sqsubset do(a,s')\equiv s\sqsubseteq s'\end{gather*}
 
 \end_inset
 
@@ -906,13 +1275,7 @@ Here
 \end_inset
 
 .
- There is also a second-order induction axiom asserting that all situations
- must be constructed in this way, which is needed to prove statements that
- universally quantify over situations
-\end_layout
-
-\begin_layout Standard
-This notation for 
+ This notion of 
 \begin_inset Quotes eld
 \end_inset
 
@@ -922,18 +1285,33 @@ in the future of
 
  can be extended to consider only those futures in which all actions satisfy
  a particular action description predicate.
- We include a relation 
+ We define as a macro the relation 
 \begin_inset Formula $<_{\alpha}$
 \end_inset
 
- for each action description predicate 
+ for an arbitrary action description predicate 
 \begin_inset Formula $\alpha$
 \end_inset
 
-, with the following definitions:
+, with the following definition:
+\begin_inset Formula \[
+s<_{\alpha}s'\,\isdef\, s\sqsubset s'\wedge\forall a,s'':\,\left(s\sqsubset do(a,s'')\sqsubseteq s'\rightarrow\alpha[a,s'']\right)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is straightforward to demonstrate that this macro satisfies the following
+ properties, which are analogous to the definition of 
+\begin_inset Formula $\sqsubset$
+\end_inset
+
+:
 \begin_inset Formula \begin{gather*}
-Init(s)\,\rightarrow\,\neg\left(s'<_{\alpha}s\right)\\
-s<_{\alpha}do(c,s')\equiv s\leq_{\alpha}s'\wedge\alpha(c,s')\end{gather*}
+\neg\left(s<_{\alpha}S_{0}\right)\\
+s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha[a,s']\end{gather*}
 
 \end_inset
 
@@ -945,23 +1323,19 @@ The
 \emph on
 legal situations
 \emph default
- are those in which every action was possible to perform in the preceding
- situation.
+ are those in which every action was legal to perform in the preceding situation.
  These are of fundamental importance, as they are the only situations that
- could be reached in the real world.
- The 
-\emph on
-root
-\emph default
- of a situation is the initial situation from which it was constructed:
-\begin_inset Formula \begin{gather*}
-Init(s)\,\rightarrow\, root(s)=s\\
-root(do(c,s))=root(s)\\
-Legal(s)\,\equiv\, root(s)\leq_{Poss}s\end{gather*}
+ could be reached in the real world:
+\begin_inset Formula \[
+Legal(s)\isdef S_{0}\leq_{Legal}s\]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Paragraph
+Initial State Axioms
 \end_layout
 
 \begin_layout Standard
@@ -970,13 +1344,36 @@ The set
 \end_inset
 
  describes the actual state of the world before any actions are performed.
- It is a collection of sentences of the form 
-\begin_inset Formula $\phi[S_{0}]$
+ It is a collection of sentences uniform in 
+\begin_inset Formula $S_{0}$
 \end_inset
 
- stating what holds in the actual initial situation.
- It also defines the initial knowledge of each agent, as described in the
- next section.
+ stating what holds in the initial situation.
+ In many domains the initial state can be completely specified, so 
+\begin_inset Formula $\Dt_{S_{0}}$
+\end_inset
+
+ is often in a closed form suitable for efficient automated reasoning.
+\end_layout
+
+\begin_layout Standard
+Note that, unlike 
+\begin_inset LatexCommand citep
+key "levesque98sc_foundations,pirri99contributions_sitcalc,reiter01kia"
+
+\end_inset
+
+, we include static facts about the domain in 
+\begin_inset Formula $\Dt_{bg}$
+\end_inset
+
+ rather than 
+\begin_inset Formula $\Dt_{S_{0}}$
+\end_inset
+
+.
+ This is entirely a cosmetic change to allow us to talk about these static
+ facts separately from the initial database.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1018,7 +1415,7 @@ key "pirri99contributions_sitcalc"
  In particular, queries about the initial situation can be answered using
  only first-order logic (FOL) and a limited set of axioms:
 \begin_inset Formula \[
-\mathcal{D}\models_{SOL}\phi[S_{0}]\,\,\,\,\,\mathit{\mathrm{iff}}\,\,\,\,\,\Dt_{S_{0}}\cup\Dt_{una}\models_{FOL}\phi[S_{0}]\]
+\mathcal{D}\models_{SOL}\phi[S_{0}]\,\,\,\,\,\mathit{\mathrm{iff}}\,\,\,\,\,\Dt_{S_{0}}\cup\Dt_{bg}\models_{FOL}\phi[S_{0}]\]
 
 \end_inset
 
@@ -1027,7 +1424,7 @@ key "pirri99contributions_sitcalc"
 
 \begin_layout Standard
 Since the axioms 
-\begin_inset Formula $\Dt_{S_{0}}\cup\Dt_{una}$
+\begin_inset Formula $\Dt_{S_{0}}\cup\Dt_{bg}$
 \end_inset
 
  often satisfy the closed-world assumption, provers such as Prolog can be
@@ -1175,7 +1572,7 @@ ent operator
 
  using the situation-suppression operator from Section 
 \begin_inset LatexCommand ref
-reference "sub:Notation-and-Axioms"
+reference "sub:Notation"
 
 \end_inset
 
@@ -3312,6 +3709,10 @@ same
 \end_layout
 
 \begin_layout Standard
+TODO: note that similar approach as been used for HTN (and find the ref)
+\end_layout
+
+\begin_layout Standard
 However, the semantics of ReadyLog remain largely single-agent and do not
  address concerns such as the possibility of performing actions concurrently,
  sharing the computational workload of planning, or predicting the behaviour
@@ -3325,7 +3726,7 @@ Extensions
 
 \begin_layout Standard
 There have been a wide range of Golog extensions developed which we will
- not consider in this thesis.
+ not consider in this paper.
  Among them have been extensions to include decision-theoretic 
 \begin_inset LatexCommand citep
 key "boutilier00dtgolog"
@@ -4000,28 +4401,18 @@ MIndiGolog
 \end_layout
 
 \begin_layout Standard
-This chapter develops a Golog variant specifically designed for cooperative
+In tihs section we develop a Golog variant specifically designed for cooperative
  execution in multi-agent domains.
- Motivated by the 
-\begin_inset Quotes eld
-\end_inset
-
-cooking agents
-\begin_inset Quotes erd
-\end_inset
-
- example domain, we want to allow a team of agents to cooperatively plan
- and perform the execution of a shared Golog program.
- As this chapter will demonstrate, the existing features of the situation
- calculus go a long way towards achieving this goal, but are ultimately
- limited to execution in synchronous domains.
+ As we will demonstrate, the existing features of the situation calculus
+ go a long way towards achieving this goal, but are ultimately limited to
+ execution in synchronous domains.
 \end_layout
 
 \begin_layout Standard
-Key among these is true concurrency of actions, which is combined with the
- standard interleaved concurrency of ConGolog to give a flexible account
- of concurrent execution.
- We name the resulting language 
+Key to our approach is a robust integration of true concurrency of actions
+ with the standard interleaved concurrency semantics of ConGolog/IndiGolog,
+ giving a flexible account of concurrent execution in multi-agent domains.
+ We name the resulting Golog variant 
 \begin_inset Quotes eld
 \end_inset
 
@@ -4041,9 +4432,8 @@ Multi-Agent IndiGolog
 \end_layout
 
 \begin_layout Standard
-In addition to these new Golog semantics, we develop an innovative implementatio
-n of our language using the distributed logic programming features of the
- Mozart platform.
+We also develop an innovative implementation of our language using the distribut
+ed logic programming features of the Mozart platform.
  Utilising the parallel search facility as described in Section 
 \begin_inset LatexCommand ref
 reference "sec:Background:Mozart/Oz"
@@ -4058,93 +4448,12 @@ reference "sec:Background:Mozart/Oz"
 \end_layout
 
 \begin_layout Standard
-Concluding the chapter is a discussion of the limitations of this first
+Concluding the section is a discussion of the limitations of this first
  incarnation of MIndiGolog, which derive from the effective reasoning procedures
  of the situation calculus.
  Specifically, it can only operate in fully-observable, synchronous domains.
  Subsequent chapters of this thesis develop new extensions to the situation
  calculus that work towards overcoming this limitation.
-\end_layout
-
-\begin_layout Standard
-The semantics of MIndiGolog that we develop in this chapter follow a similar
- approach to ReadyLog, but we focus on incorporating rich domain features
- such as concurrency and continuous time.
- While these features have been added to Golog individually in existing
- works 
-\begin_inset LatexCommand citep
-key "Reiter98seq_temp_golog,pinto99tcongolog,pirri00planning_nat_acts,reiter01kia"
-
-\end_inset
-
-, our work is the first to provide a combined integration.
- We also rectify some subtle problems with the semantics presented in existing
- work, to provide a more robust combination of rich domain features.
-\newline
-
-\end_layout
-
-\begin_layout Standard
-There are, of course, a variety of other systems and formalisms that could
- be used to model and implement domains such as our 
-\begin_inset Quotes eld
-\end_inset
-
-cooking agents
-\begin_inset Quotes erd
-\end_inset
-
- example.
- A popular choice is to represent tasks using a variant of the Hierarchical
- Task Networks formalism, which has been employed in systems such as STEAM
- 
-\begin_inset LatexCommand citep
-key "tambe97flexible_teamwork"
-
-\end_inset
-
-, SharedPlans 
-\begin_inset LatexCommand citep
-key "grosz96sharedplans"
-
-\end_inset
-
-, and TAEMS 
-\begin_inset LatexCommand citep
-key "decker95designing_coordination"
-
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-The potential advantages of Golog over HTN-based approaches are discussed
- in 
-\begin_inset LatexCommand citep
-key "son00htn_golog"
-
-\end_inset
-
-, where HTN-like constructs are added as operators to the Golog language.
- They identify the following advantages: powerful control over and composition
- of nondeterministic operators; a more natural representation of many tasks
- thanks to common programming constructs; and a more sophisticated logic
- of action.
- This chapter will add to the list: the ability to utilise off-the-shelf
- techniques for distributed logic programming to automatically share the
- execution planning workload.
-\end_layout
-
-\begin_layout Standard
-The purpose of this chapter, though, is not to propose the MIndiGolog approach
- as the ultimate solution for programming cooperative behaviour.
- Rather, it serves to highlight the 
-\emph on
-potential
-\emph default
- of the situation calculus and Golog for both modelling and implementing
- rich multi-agent systems.
 \end_layout
 
 \begin_layout Subsection
@@ -4166,22 +4475,15 @@ cooking agents
 \begin_inset Quotes erd
 \end_inset
 
- example domain from Chapter 
-\begin_inset LatexCommand ref
-reference "ch:intro"
-
-\end_inset
-
- -- several agents inhabit a kitchen along with various ingredients and
- utensils, and they must cooperate to prepare a meal.
- A full definition of this domain is given in Appendix 
+ example domain -- several agents inhabit a kitchen along with various ingredien
+ts and utensils, and they must cooperate to prepare a meal.
+ A full axiomatisation of this domain is given in Appendix 
 \begin_inset LatexCommand ref
 reference "ch:cookingagents"
 
 \end_inset
 
-, but the specific details are not important for the purposes of this this
- chapter.
+, but the precise details are not important here.
 \end_layout
 
 \begin_layout Standard
@@ -4436,7 +4738,7 @@ Notice that the programs do no specify which agent is to perform which task
  A library of procedures such as this can be combined very flexibly to specify
  the behaviour of the cooking agents, and the resulting program could be
  given to any team of agents for execution.
- The agents can prepare several dishes concurrently:
+ For example, the agents can easily prepare several dishes concurrently:
 \end_layout
 
 \begin_layout Standard
@@ -4468,64 +4770,6 @@ status collapsed
 \begin_layout Standard
 \begin_inset Formula \[
 MakeSalad()\,||\, MakePasta()\,||\, MakeCake()\]
-
-\end_inset
-
- 
-\end_layout
-
-\end_inset
-
-
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-
-\newline
-
-\end_layout
-
-\begin_layout Standard
-They can even plan to have different dishes ready at different times:
-\end_layout
-
-\begin_layout Standard
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-
-\backslash
-framebox{
-\end_layout
-
-\end_inset
-
-
-\begin_inset Box Frameless
-position "t"
-hor_pos "c"
-has_inner_box 1
-inner_pos "t"
-use_parbox 1
-width "85col%"
-special "none"
-height "1in"
-height_special "totalheight"
-status collapsed
-
-\begin_layout Standard
-\begin_inset Formula \begin{multline*}
-\left(\left[MakeSalad()\,||\, MakePasta()\right]\,;\,?(time<7:30)\right)\\
-||\,\left(MakeCake()\,;\,?(8:15<time<8:30)\right)\end{multline*}
 
 \end_inset
 
@@ -4596,7 +4840,6 @@ reference "fig:MIndiGolog:MakeSalad-in-IndiGolog"
 
 \begin_layout Standard
 \begin_inset Float figure
-placement t
 wide false
 sideways false
 status collapsed
@@ -4727,51 +4970,15 @@ name "sec:MIndiGolog:Semantics"
 \end_layout
 
 \begin_layout Standard
-We use the extensions to the situation calculus discussed in Chapter 
-\begin_inset LatexCommand ref
-reference "ch:background"
-
-\end_inset
-
- to model concurrent actions (Section 
-\begin_inset LatexCommand ref
-reference "sec:Background:Concurrent-Actions"
-
-\end_inset
-
-) and explicit time (Section 
-\begin_inset LatexCommand ref
-reference "sec:Background:Time"
-
-\end_inset
-
-).
- The arguments to 
-\begin_inset Formula $do$
-\end_inset
-
- will therefore be 
-\noun on
-Concurrent
-\noun default
- action sets rather than individual action terms.
-\end_layout
-
-\begin_layout Standard
 To take advantage of true concurrency, we must first allow sets of concurrent
  actions to appear in a MIndiGolog execution.
- The modified 
-\begin_inset Formula $Trans$
-\end_inset
-
- clause for primitive actions shown in equation 
-\begin_inset LatexCommand ref
-reference "eq:MIndiGolog:temp_trans_a"
+ The transition rule for a single action then becomes:
+\begin_inset Formula \[
+Trans(a,s,\delta,s')\,\equiv\, Legal(a,s)\wedge\delta=nil\wedge s'=do(\{a\},s)\]
 
 \end_inset
 
- already ensures that sets of concurrent actions are performed rather than
- raw action terms.
+
 \end_layout
 
 \begin_layout Standard
@@ -6187,14 +6394,12 @@ name "sec:MIndiGolog:Discussion"
 \end_layout
 
 \begin_layout Standard
-Our work in this chapter has integrated several important extensions to
- the situation calculus and Golog to better model the dynamics of multi-agent
- teams.
- Specifically, MIndiGolog combines true and interleaved concurrency, an
- explicit account of time, and seamless integration of natural actions.
- As we have shown by comparison to IndiGolog, it defines legal executions
- of Golog programs that are much more suitable for cooperative execution
- by a multi-agent team.
+Our work in this section has produced a Golog variant specifically designed
+ for task specification in multi-agent domains, by combining true concurrency
+ of actions with the interleaved concurrency semantics of ConGolog.
+ As we have shown by comparison to the standard IndiGolog semantics, it
+ defines legal executions of Golog programs that are much more suitable
+ for cooperative execution by a multi-agent team.
 \end_layout
 
 \begin_layout Standard
@@ -6207,7 +6412,7 @@ We have also demonstrated an innovative implementation of MIndiGolog using
 \end_layout
 
 \begin_layout Standard
-The approach presented in this chapter is by no means a complete account
+The approach presented in this section is by no means a complete account
  of cooperative execution in multi-agent domains.
  It pre-supposes the existence of a fixed team of agents and their mutual
  commitment to executing a pre-specified shared task.
@@ -6225,7 +6430,7 @@ key "shapiro02casl,lesperance05ecasl"
 \end_layout
 
 \begin_layout Standard
-The purpose of this chapter is not to propose the MIndiGolog approach as
+The purpose of this section is not to propose the MIndiGolog approach as
  the ultimate solution for programming cooperative behaviour.
  Rather, it serves to highlight the 
 \emph on
@@ -6234,8 +6439,8 @@ potential
  of the situation calculus and Golog for both modelling and implementing
  rich multi-agent systems.
  Unfortunately, this potential has traditionally been limited by some restrictio
-ns on the effective reasoning procedures of the situation calculus, and
- our implementation of MIndiGolog has inherited those limitations.
+ns on the reasoning and planning machinery of the situation calculus, and
+ our implementation of MIndiGolog has so far inherited those limitations.
 \end_layout
 
 \begin_layout Standard
@@ -6325,25 +6530,11 @@ reference "sec:Background:Epistemic"
 n techniques can be applied.
  The situation calculus currently offers no tools to extend the MIndiGolog
  approach into asynchronous domains.
- The remainder of this thesis is devoted to developing the foundations for
- such tools, based on a formal characterisation of the local perspective
- of each agent that explicitly deals with the hidden actions inherent in
- an asynchronous domain.
+ 
 \end_layout
 
 \begin_layout Standard
-While we will revisit the cooking agents again in Chapter 
-\begin_inset LatexCommand ref
-reference "ch:jointexec"
-
-\end_inset
-
-, our implementation of a new, asynchronous version of MIndiGolog is still
- ongoing.
- At the conclusion of this thesis, we will discuss the challenges remaining
- to be faced in bringing our new techniques for representing and reasoning
- about asynchronous domains together with a practical implementation of
- a system such as MIndiGolog.
+We therefore need a formalisation of the local perspective of each agent.
 \end_layout
 
 \begin_layout Section
@@ -6351,7 +6542,7 @@ Observations and Views
 \end_layout
 
 \begin_layout Standard
-This chapter develops an explicit formalisation of the local perspective
+This section develops an explicit formalisation of the local perspective
  of each agent, representing it using concrete terms in the logic, so that
  we can approach reasoning and planning in asynchronous domains in a systematic
  way.
@@ -6822,31 +7013,9 @@ observation
  when some action has occurred.
 \end_layout
 
-\begin_layout Standard
-[
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-{
-\end_layout
-
-\end_inset
-
-Observations
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-] An observation is a notification event received by an agent, making it
- aware of some change in the state of the world.
+\begin_layout DefinitionLbld
+Observations An observation is a notification event received by an agent,
+ making it aware of some change in the state of the world.
  When an agent receives such a notification, we say that it 
 \begin_inset Quotes eld
 \end_inset
@@ -6979,30 +7148,8 @@ view
  an agent as the world has evolved.
 \end_layout
 
-\begin_layout Standard
-[
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-{
-\end_layout
-
-\end_inset
-
-Views
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-] An agent's view in a given situation 
+\begin_layout DefinitionLbld
+Views An agent's view in a given situation 
 \begin_inset Formula $\mathrm{s}$
 \end_inset
 
@@ -7082,30 +7229,8 @@ Agent#Observation
  pairs:
 \end_layout
 
-\begin_layout Standard
-[
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-{
-\end_layout
-
-\end_inset
-
-Outcomes
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-] The outcome of an action 
+\begin_layout DefinitionLbld
+Outcomes The outcome of an action 
 \begin_inset Formula $c$
 \end_inset
 
@@ -7127,30 +7252,8 @@ Then we can build the global history of a situation as a sequence of actions
  paired with their respective outcomes:
 \end_layout
 
-\begin_layout Standard
-[
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-{
-\end_layout
-
-\end_inset
-
-Histories
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-] The history of a situation 
+\begin_layout DefinitionLbld
+Histories The history of a situation 
 \begin_inset Formula $s$
 \end_inset
 
@@ -7215,32 +7318,10 @@ To ensure that these definitions operate in an intuitively correct way,
 :
 \end_layout
 
-\begin_layout Standard
-[
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-{
-\end_layout
-
-\end_inset
-
+\begin_layout DefinitionLbld
 Observation\InsetSpace ~
 Causality\InsetSpace ~
-Requirement
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-] A basic action theory 
+Requirement A basic action theory 
 \begin_inset Formula $\Dt$
 \end_inset
 
@@ -7286,32 +7367,10 @@ synchronous
  in the situation calculus.
 \end_layout
 
-\begin_layout Standard
-[
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-{
-\end_layout
-
-\end_inset
-
+\begin_layout DefinitionLbld
 Synchronous\InsetSpace ~
 Action\InsetSpace ~
-Theory
-\begin_inset ERT
-status collapsed
-
-\begin_layout Standard
-
-}
-\end_layout
-
-\end_inset
-
-] A basic action theory 
+Theory A basic action theory 
 \begin_inset Formula $\Dt$
 \end_inset
 
@@ -7339,11 +7398,11 @@ ong sequences of hidden actions.
 \end_inset
 
 , let us briefly foreshadow how observations and views will be used in the
- coming chapters.
+ coming sections.
 \end_layout
 
 \begin_layout Standard
-In Chapter 
+In Section 
 \begin_inset LatexCommand ref
 reference "ch:jointexec"
 
@@ -7392,34 +7451,6 @@ joint execution,
 .
  These restrictions ensure that the joint execution can feasibly be carried
  out by the agents.
-\end_layout
-
-\begin_layout Standard
-In Chapter 
-\begin_inset LatexCommand ref
-reference "ch:knowledge"
-
-\end_inset
-
-, we formalise the intuition that an agent's knowledge should be based only
- on its local information.
- So if the agent believes that the world might be in situation 
-\begin_inset Formula $s$
-\end_inset
-
-, then it must also consider possible any other situation 
-\begin_inset Formula $s'$
-\end_inset
-
- such that 
-\begin_inset Formula $View(agt,s)=View(agt,s')$
-\end_inset
-
-.
- By decoupling the axiomatisation of knowledge from the specific details
- of how each action affects the agent's local information, we develop a
- very general and robust formalism that can be applied without modification
- in a wide variety of domains.
 \end_layout
 
 \begin_layout Subsection
@@ -8388,8 +8419,9 @@ Joint Executions
 \end_layout
 
 \begin_layout Standard
-This chapter constructs a new representation for the actions to be performed
- by a team of agents during the cooperative execution of a shared task.
+In this section we construct a new representation for the actions to be
+ performed by a team of agents during the cooperative execution of a shared
+ task.
  Dubbed 
 \emph on
 joint executions
