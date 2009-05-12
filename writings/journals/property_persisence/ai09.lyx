@@ -1,4 +1,4 @@
-#LyX 1.6.1 created this file. For more info see http://www.lyx.org/
+#LyX 1.6.2 created this file. For more info see http://www.lyx.org/
 \lyxformat 345
 \begin_document
 \begin_header
@@ -180,7 +180,7 @@ We develop a new automated reasoning technique for the situation calculus
  terms.
  Although such queries arise naturally in many important reasoning tasks,
  the situation calculus includes a second-order induction axiom which makes
- them prohibitively difficult to answer.
+ them difficult to answer.
  We show how to reduce queries about property persistence, a common type
  of universally-quantified query, to an equivalent form that does not quantify
  over situations and is thus amenable to existing automated reasoning techniques.
@@ -196,37 +196,24 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-The situation calculus has long been a popular formalism for representing
- and reasoning about dynamic worlds 
+The situation calculus is one of the most popular and influential AI formalisms
+ for reasoning about action and change, having found application in a wide
+ variety of both theoretical and practical works 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "pirri99contributions_sitcalc"
+key "reiter91frameprob,shapiro02casl,giacomo04sem_delib_indigolog,ghaderi07sc_joint_ability,Ferrein2005readylog,farinelli07team_golog"
 
 \end_inset
 
 .
- It has more recently become a popular choice for 
-\emph on
-implementing
-\emph default
- systems situated in a dynamic world, as it offers, among other advantages:
- a formalism based in first-order logic; an elegant monotonic solution to
- the frame problem; and an effective reasoning procedure for the projection
- problem 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "reiter91frameprob"
-
-\end_inset
-
-.
- Coupled with logic programming languages such as Prolog, it has facilitated
- the implementation of a wide range of systems [TODO: refs].
+ A key contributor to the success of the formalism is that it combines a
+ powerful modelling language built on first-order logic with techinques
+ for effective automated reasoning.
 \end_layout
 
 \begin_layout Standard
-A crucial consideration for applications of the situation calculus is whether
- queries can be restricted to forms that are amenable to automated reasoning.
+Much of the important foundational work on the situation calculus has been
+ managing this tradeoff between expressivity and effectiveness.
  The foundational axioms of the situation calculus include an induction
  axiom to define the structure of situations terms, so answering arbitrary
  queries requires reasoning in second-oder logic 
@@ -251,12 +238,12 @@ existential
 
 \begin_layout Standard
 Unfortunately there are many reasoning tasks that require universal quantificati
-on over situations.
- One of the most basic is determining that a goal is impossible -- this
- is equivalent to stating that for all situations, the goal formula does
- not hold.
- In this paper we are interested in a subset of universally-quantified queries
- which we refer to as 
+on over situations, for which the situation caluclus currently offers no
+ effective reasoning tools.
+ One of the most basic is determining that a goal is impossible -- that
+ is, that all possible situations fail to satisfy the goal.
+ In this paper we study a subset of universally-quantified queries which
+ we refer to as 
 \emph on
 persistence queries
 \emph default
@@ -331,32 +318,6 @@ persistence condition
 
 , and show how to calculate it in a form suitable for effective automated
  reasoning.
-\end_layout
-
-\begin_layout Standard
-To determine 
-\begin_inset Formula $\PstD(\phi)$
-\end_inset
-
-, we first define an operator 
-\begin_inset Formula $\PstDI(\phi)$
-\end_inset
-
- that holds at 
-\begin_inset Formula $\sigma$
-\end_inset
-
- whenever 
-\begin_inset Formula $\phi$
-\end_inset
-
- holds at 
-\begin_inset Formula $\sigma$
-\end_inset
-
- and all its immediate successors.
- The persistence condition is shown to be a fixpoint of this operator, which
- can be sought using a straightforward iterative algorithm.
  The resulting formula can then be used in combination with standard regression-
 based reasoning techniques, allowing the inductive component of the reasoning
  to be 
@@ -368,12 +329,21 @@ factored out
 \end_inset
 
  and approached using a special-purpose reasoning algorithm.
- The technique is sound and complete, and provably terminates in several
- interesting cases.
+ 
 \end_layout
 
 \begin_layout Standard
-A preliminary version of this paper as appeared in 
+The persistence condition is shown to be a fixpoint of applications of the
+ regression operator.
+ The technique is sound and complete, and provably terminates in several
+ interesting cases.
+ It provides a powerful new tools for verififying sophisticated domain propertie
+s while taking advantage of the full representational power of the situation
+ calculus.
+\end_layout
+
+\begin_layout Standard
+A preliminary version of this paper as appeared as 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "kelly07sc_persistence"
@@ -386,49 +356,52 @@ sive discussion of the termination properties of our algorithm, and a detailed
 \end_layout
 
 \begin_layout Standard
-The paper is organised as follows: after some background material on the
- situation calculus in Section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Background"
+The paper proceeds with a review of the situation calculus and techniques
+ for effective automated reasoning, before formally definiing the persistence
+ condition and demonstrating its use with a short example.
+\end_layout
 
+\begin_layout Standard
+Readers familiar with the situation calculus should note some modified notation:
+ the unique names axioms 
+\begin_inset Formula $\Dt_{una}$
 \end_inset
 
-, we formally define the class of property persistence queries in Section
+ are incorporated into a general background theory 
+\begin_inset Formula $\Dt_{bg}$
+\end_inset
+
+; the 
+\begin_inset Formula $Poss$
+\end_inset
+
+ fluent is subsumed by a general class of 
+\emph on
+action description predicates
+\emph default
+ defined in 
+\begin_inset Formula $\Dt_{ad}$
+\end_inset
+
+; we parameterise the 
+\begin_inset Quotes eld
+\end_inset
+
+future situations
+\begin_inset Quotes erd
+\end_inset
+
+ predicate 
+\begin_inset Formula $s\sqsubset s'$
+\end_inset
+
+ to assert that all intermediate actions satisfy a given predicate using
  
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Definitions"
-
+\begin_inset Formula $s<_{\alpha}s'$
 \end_inset
 
-, along with several examples of practical queries that are of this form.
- Section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Condition"
-
-\end_inset
-
- defines the persistence condition operator and demonstrates that it is
- equivalent to the result of a meta-level fixpoint calculation.
- Section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Calculating"
-
-\end_inset
-
- presents a simple iterative algorithm for calculating the persistence condition
-, and discusses its correctness, completeness, and effectiveness.
- We conclude with some general discussion in Sections 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Conclusion"
-
-\end_inset
-
-.
+; and we use the single-step variant of the regression operator, with correspond
+ing definitions of regressable formulae.
 \end_layout
 
 \begin_layout Section
@@ -487,60 +460,6 @@ key "levesque98sc_foundations,pirri99contributions_sitcalc,reiter01kia"
 \end_inset
 
 , with some conservative extensions.
-\end_layout
-
-\begin_layout Standard
-Readers familiar with the situation calculus should note some modified notation:
- the unique names axioms 
-\begin_inset Formula $\Dt_{una}$
-\end_inset
-
- are incorporated into a general background theory 
-\begin_inset Formula $\Dt_{bg}$
-\end_inset
-
-; the 
-\begin_inset Formula $Poss$
-\end_inset
-
- fluent is subsumed by a general class of 
-\emph on
-action description predicates
-\emph default
- defined in 
-\begin_inset Formula $\Dt_{ad}$
-\end_inset
-
-; we parameterise the 
-\begin_inset Quotes eld
-\end_inset
-
-future situations
-\begin_inset Quotes erd
-\end_inset
-
- predicate 
-\begin_inset Formula $s\sqsubset s'$
-\end_inset
-
- to assert that all intermediate actions satisfy a given predicate using
- 
-\begin_inset Formula $s<_{\alpha}s'$
-\end_inset
-
-; and we use the single-step variant of the regression operator, with correspond
-ing definitions of regressable formulae.
-\end_layout
-
-\begin_layout Subsection
-Notation and Axioms
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Background:SC:Notation"
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -701,46 +620,6 @@ Uniform
 \begin_inset space ~
 \end_inset
 
-Terms Let 
-\begin_inset Formula $\sigma$
-\end_inset
-
- be a fixed situation term, 
-\begin_inset Formula $r$
-\end_inset
-
- an arbitrary rigid function symbol, 
-\begin_inset Formula $f$
-\end_inset
-
- an arbitrary fluent function symbol, and 
-\begin_inset Formula $x$
-\end_inset
-
- a variable that is not of sort 
-\noun on
-Situation
-\noun default
-.
- Then the terms uniform in 
-\begin_inset Formula $\sigma$
-\end_inset
-
- are the smallest set of syntactically-valid terms satisfying:
-\begin_inset Formula \[
-\tau\,::=x\,|\, r(\vars{\tau})\,|\, f(\vars{\tau},\sigma)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_deeper
-\begin_layout Labelled Definition
-Uniform
-\begin_inset space ~
-\end_inset
-
 Formulae Let 
 \begin_inset Formula $\sigma$
 \end_inset
@@ -757,10 +636,10 @@ Formulae Let
 \begin_inset Formula $\tau$
 \end_inset
 
- an arbitrary term uniform in 
-\begin_inset Formula $\sigma$
-\end_inset
-
+ an arbitrary term that is not of sort 
+\noun on
+Situation
+\noun default
 , and 
 \begin_inset Formula $x$
 \end_inset
@@ -783,7 +662,6 @@ Situation
 
 \end_layout
 
-\end_deeper
 \begin_layout Standard
 We will call a formula 
 \emph on
@@ -1266,8 +1144,304 @@ key "pirri99contributions_sitcalc"
  description predicate in order to simplify the presentation.
 \end_layout
 
-\begin_layout Subsection
-Reasoning
+\begin_layout Section
+Property Persistence Queries
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Persistence:Definitions"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With this notation in hand, let us now formally define the kinds of query
+ that will be approached in this paper.
+ Given some property 
+\begin_inset Formula $\phi$
+\end_inset
+
+ and situation 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, a 
+\emph on
+property persistence query
+\emph default
+ asks whether 
+\begin_inset Formula $\phi$
+\end_inset
+
+ will hold in all situations in the future of 
+\begin_inset Formula $\sigma$
+\end_inset
+
+: 
+\begin_inset Formula \[
+\Dt\models\forall s:\,\sigma\sqsubseteq s\,\rightarrow\,\phi[s]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+More generally, one may wish to limit the futures under consideration to
+ those brought about by actions satisfying a certain action description
+ predicate 
+\begin_inset Formula $\alpha$
+\end_inset
+
+, which is easily accomplished using the 
+\begin_inset Formula $\leq_{\alpha}$
+\end_inset
+
+ macro.
+ We thus have the following definition of a persistence query:
+\end_layout
+
+\begin_layout Labelled Definition
+Property
+\begin_inset space ~
+\end_inset
+
+Persistence
+\begin_inset space ~
+\end_inset
+
+Query Let 
+\begin_inset Formula $\phi$
+\end_inset
+
+ be a uniform formula, 
+\begin_inset Formula $\alpha$
+\end_inset
+
+ an action description predicate, and 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ a situation term.
+ Then a property persistence query is a query of the form:
+\begin_inset Formula \[
+\Dt\models\forall s:\,\sigma\le_{\alpha}s\rightarrow\phi[s]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In words, a persistence query states that 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $\phi$
+\end_inset
+
+ holds in 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, and assuming all subsequent actions satisfy 
+\begin_inset Formula $\alpha$
+\end_inset
+
+, 
+\begin_inset Formula $\phi$
+\end_inset
+
+ will continue to hold
+\begin_inset Quotes erd
+\end_inset
+
+.
+ For succinctness we will henceforth describe this as 
+\begin_inset Quotes eld
+\end_inset
+
+
+\begin_inset Formula $\phi$
+\end_inset
+
+ persists under 
+\begin_inset Formula $\alpha$
+\end_inset
+
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Queries of this form are involved in many useful reasoning tasks, of which
+ the following are a small selection:
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Goal Impossibility:
+\series default
+ Given a goal 
+\begin_inset Formula $G$
+\end_inset
+
+, establish that there is no legal situation in which that goal is achieved:
+\begin_inset Formula \[
+\Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow\neg G(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Goal Futility:
+\series default
+ Given a goal 
+\begin_inset Formula $G$
+\end_inset
+
+ and situation 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, establish that the goal cannot be achieved in any legal future of 
+\begin_inset Formula $\sigma$
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt\models\forall s:\,\sigma\leq_{Legal}s\rightarrow\neg G(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Note how this differs from goal impossibility: while the agent may have
+ initially been able to achieve its goal, the actions that have subsequently
+ been performed have rendered the goal unachievable.
+ Agents would be well advised to avoid such situations.
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Checking State Constraints:
+\series default
+ Given a state constraint 
+\begin_inset Formula $SC$
+\end_inset
+
+, show that the constraint holds in every legal situation:
+\begin_inset Formula \[
+\Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow SC(s)\]
+
+\end_inset
+
+ This can be seen as a variant of goal impossibility, by showing that the
+ constraint can never be violated.
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Need for Cooperation:
+\series default
+ Given an agent 
+\begin_inset Formula $agt$
+\end_inset
+
+, goal 
+\begin_inset Formula $G$
+\end_inset
+
+ and situation 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, establish that no sequence of actions performed by that agent can achieve
+ the goal.
+ Suppose we define 
+\begin_inset Formula $MyAction$
+\end_inset
+
+ to identify the agent's own actions:
+\begin_inset Formula \[
+MyAction(a,s)\,\isdef\, actor(a)=agt\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Then the appropriate query is:
+\begin_inset Formula \[
+\Dt\models\forall s:\,\sigma\leq_{MyAction}s\rightarrow\neg G(s)\]
+
+\end_inset
+
+ If this is the case, the agent will need to seek cooperation from another
+ agent in order to achieve its goal.
+\begin_inset Newline newline
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Knowledge with Hidden Actions:
+\series default
+ An agent reasoning about its own knowledge in asynchronous domains must
+ account for arbitrarily-long sequences of hidden actions.
+ To establish that it knows 
+\begin_inset Formula $\phi$
+\end_inset
+
+, it must establish that 
+\begin_inset Formula $\phi$
+\end_inset
+
+ cannot become false through a sequence of hidden actions:
+\begin_inset Formula \[
+\Dt\models\forall s:\,\sigma\leq_{Hidden}s\rightarrow\phi[s]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+While the situation calculus makes it straigtforward to express such queries,
+ it currently offers no tools to answer them effectively.
+ In the following section we review these tools and why they are inadequate
+ for this purpose.
+\end_layout
+
+\begin_layout Section
+Effective Reasoning
 \end_layout
 
 \begin_layout Standard
@@ -1553,39 +1727,6 @@ Regressable
 \begin_inset space ~
 \end_inset
 
-Terms Let 
-\begin_inset Formula $\sigma$
-\end_inset
-
- be an arbitrary situation term, 
-\begin_inset Formula $x$
-\end_inset
-
- an arbitrary variable not of sort situation, 
-\begin_inset Formula $r$
-\end_inset
-
- an arbitrary rigid function and 
-\begin_inset Formula $f$
-\end_inset
-
- an arbitrary fluent function.
- Then the regressable terms are the smallest set of syntactically-valid
- terms satisfying: 
-\begin_inset Formula \[
-\nu::=\sigma\,|\, x\,|\, f(\vars{\nu},\sigma)\,|\, r(\vars{\nu})\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_deeper
-\begin_layout Labelled Definition
-Regressable
-\begin_inset space ~
-\end_inset
-
 Formulae 
 \begin_inset CommandInset label
 LatexCommand label
@@ -1601,11 +1742,19 @@ Let
 \begin_inset Formula $x$
 \end_inset
 
- an arbitrary variable not of sort situation, 
-\begin_inset Formula $\nu$
+ an arbitrary variable not of sort 
+\noun on
+Situation
+\noun default
+, 
+\begin_inset Formula $\tau$
 \end_inset
 
- an arbitrary regressable term, 
+ an arbitrary term not of sort 
+\noun on
+Situation
+\noun default
+, 
 \begin_inset Formula $R$
 \end_inset
 
@@ -1621,14 +1770,13 @@ Let
  Then the regressable formulae are the smallest set of syntactically-valid
  formulae satisfying: 
 \begin_inset Formula \[
-\varphi::=F(\vars{\nu},\sigma)\,|\,\alpha(\vars{\nu},a,\sigma)\,|\, R(\vars{\nu})\,|\,\nu_{1}=\nu_{2}\,|\,\neg\varphi\,|\,\varphi_{1}\wedge\varphi_{2}\,|\,\exists x:\,\varphi\]
+\varphi::=F(\vars{\tau},\sigma)\,|\,\alpha(\vars{\tau},a,\sigma)\,|\, R(\vars{\tau})\,|\,\tau_{1}=\tau_{2}\,|\,\neg\varphi\,|\,\varphi_{1}\wedge\varphi_{2}\,|\,\exists x:\,\varphi\]
 
 \end_inset
 
 
 \end_layout
 
-\end_deeper
 \begin_layout Standard
 Regressable formulae are more general than uniform formulae.
  In particular, they can contain action description predicates and may mention
@@ -1697,10 +1845,10 @@ Operator Let
 \Reg_{\Dt}(\varphi_{1}\wedge\varphi_{2})\,\isdef\,\Reg_{\Dt}(\varphi_{1})\wedge\Reg_{\Dt}(\varphi_{2})\\
 \Reg_{\Dt}(\exists x:\,\varphi)\,\isdef\,\exists x:\,\Reg_{\Dt}(\varphi)\\
 \Reg_{\Dt}(\neg\varphi)\,\isdef\,\neg\Reg_{\Dt}(\varphi)\\
-\Reg_{\Dt}(\alpha(\vars{\nu},a,\sigma))\,\isdef\,\Reg_{\Dt}(\Pi_{\alpha}(\vars{\nu},a,\sigma))\\
-\Reg_{\Dt}(F(\vars{\nu},do(a,\sigma)))\,\isdef\,\Phi_{F}(\vars{\nu},a,\sigma)\\
-\Reg_{\Dt}(F(\vars{\nu},s))\,\isdef\, F(\vars{\nu},s)\\
-\Reg_{\Dt}(F(\vars{\nu},S_{0}))\,\isdef\, F(\vars{\nu},S_{0})\end{gather*}
+\Reg_{\Dt}(\alpha(\vars{\tau},a,\sigma))\,\isdef\,\Reg_{\Dt}(\Pi_{\alpha}(\vars{\tau},a,\sigma))\\
+\Reg_{\Dt}(F(\vars{\tau},do(a,\sigma)))\,\isdef\,\Phi_{F}(\vars{\tau},a,\sigma)\\
+\Reg_{\Dt}(F(\vars{\tau},s))\,\isdef\, F(\vars{\tau},s)\\
+\Reg_{\Dt}(F(\vars{\tau},S_{0}))\,\isdef\, F(\vars{\tau},S_{0})\end{gather*}
 
 \end_inset
 
@@ -2107,313 +2255,6 @@ This is a direct consequence of the induction axiom for situations, which
  of actions in the initial situation.
  This result captures an important intuition about situation terms that
  is fundamental to the operation of our approach.
-\end_layout
-
-\begin_layout Section
-Property Persistence Queries
-\begin_inset CommandInset label
-LatexCommand label
-name "sec:Persistence:Definitions"
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Let us now formally define the kinds of query that will be approached in
- this paper.
- Given some property 
-\begin_inset Formula $\phi$
-\end_inset
-
- and situation 
-\begin_inset Formula $\sigma$
-\end_inset
-
-, a 
-\emph on
-property persistence query
-\emph default
- asks whether 
-\begin_inset Formula $\phi$
-\end_inset
-
- will hold in all situations in the future of 
-\begin_inset Formula $\sigma$
-\end_inset
-
-: 
-\begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\sqsubseteq s\,\rightarrow\,\phi[s]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-More generally, one may wish to limit the futures under consideration to
- those brought about by actions satisfying a certain action description
- predicate 
-\begin_inset Formula $\alpha$
-\end_inset
-
-, which is easily accomplished using the 
-\begin_inset Formula $\leq_{\alpha}$
-\end_inset
-
- macro.
- We thus have the following definition of a persistence query:
-\end_layout
-
-\begin_layout Labelled Definition
-Property
-\begin_inset space ~
-\end_inset
-
-Persistence
-\begin_inset space ~
-\end_inset
-
-Query Let 
-\begin_inset Formula $\phi$
-\end_inset
-
- be a uniform formula, 
-\begin_inset Formula $\alpha$
-\end_inset
-
- an action description predicate, and 
-\begin_inset Formula $\sigma$
-\end_inset
-
- a situation term.
- Then a property persistence query is a query of the form:
-\begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\le_{\alpha}s\rightarrow\phi[s]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-In words, a persistence query states that 
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Formula $\phi$
-\end_inset
-
- holds in 
-\begin_inset Formula $\sigma$
-\end_inset
-
-, and assuming all subsequent actions satisfy 
-\begin_inset Formula $\alpha$
-\end_inset
-
-, 
-\begin_inset Formula $\phi$
-\end_inset
-
- will continue to hold
-\begin_inset Quotes erd
-\end_inset
-
-.
- For succinctness we will henceforth describe this as 
-\begin_inset Quotes eld
-\end_inset
-
-
-\begin_inset Formula $\phi$
-\end_inset
-
- persists under 
-\begin_inset Formula $\alpha$
-\end_inset
-
-
-\begin_inset Quotes erd
-\end_inset
-
-.
- Queries of this form are involved in many useful reasoning tasks, of which
- the following are a small selection:
-\begin_inset Newline newline
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-Goal Impossibility:
-\series default
- Given a goal 
-\begin_inset Formula $G$
-\end_inset
-
-, establish that there is no legal situation in which that goal is achieved:
-\begin_inset Formula \[
-\Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow\neg G(s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-Goal Futility:
-\series default
- Given a goal 
-\begin_inset Formula $G$
-\end_inset
-
- and situation 
-\begin_inset Formula $\sigma$
-\end_inset
-
-, establish that the goal cannot be achieved in any legal future of 
-\begin_inset Formula $\sigma$
-\end_inset
-
-:
-\begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\leq_{Legal}s\rightarrow\neg G(s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Note how this differs from goal impossibility: while the agent may have
- initially been able to achieve its goal, the actions that have subsequently
- been performed have rendered the goal unachievable.
- Agents would be well advised to avoid such situations.
-\begin_inset Newline newline
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-Checking State Constraints:
-\series default
- Given a state constraint 
-\begin_inset Formula $SC$
-\end_inset
-
-, show that the constraint holds in every legal situation:
-\begin_inset Formula \[
-\Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow SC(s)\]
-
-\end_inset
-
- This can be seen as a variant of goal impossibility, by showing that the
- constraint can never be violated.
-\begin_inset Newline newline
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-Need for Cooperation:
-\series default
- Given an agent 
-\begin_inset Formula $agt$
-\end_inset
-
-, goal 
-\begin_inset Formula $G$
-\end_inset
-
- and situation 
-\begin_inset Formula $\sigma$
-\end_inset
-
-, establish that no sequence of actions performed by that agent can achieve
- the goal.
- Suppose we define 
-\begin_inset Formula $MyAction$
-\end_inset
-
- to identify the agent's own actions:
-\begin_inset Formula \[
-MyAction(a,s)\,\isdef\, actor(a)=agt\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Then the appropriate query is:
-\begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\leq_{MyAction}s\rightarrow\neg G(s)\]
-
-\end_inset
-
- If this is the case, the agent will need to seek cooperation from another
- agent in order to achieve its goal.
-\begin_inset Newline newline
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-
-\series bold
-Knowledge with Hidden Actions:
-\series default
- An agent reasoning about its own knowledge in asynchronous domains must
- account for arbitrarily-long sequences of hidden actions.
- To establish that it knows 
-\begin_inset Formula $\phi$
-\end_inset
-
-, it must establish that 
-\begin_inset Formula $\phi$
-\end_inset
-
- cannot become false through a sequence of hidden actions:
-\begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\leq_{Hidden}s\rightarrow\phi[s]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Unfortunately, persistence queries do not meet the criteria for regressable
- formulae found in Definition 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "def:Background:Regressable-Formulae"
-
-\end_inset
-
-, since they quantify over situation terms.
- Such queries therefore cannot be handled using the standard regression
- operator.
- Indeed, since universal quantification over situation terms requires the
- use of a second order induction axiom, current systems needing to answer
- such queries must resort to second-order theorem proving.
- This is hardly an attractive prospect for effective automated reasoning.
 \end_layout
 
 \begin_layout Section
