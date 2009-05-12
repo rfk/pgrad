@@ -179,8 +179,8 @@ We develop a new automated reasoning technique for the situation calculus
  that can handle queries containing universal quantification over situation
  terms.
  Although such queries arise naturally in many important reasoning tasks,
- the situation calculus includes a second-order induction axiom which makes
- them difficult to answer.
+ they are difficult to automate in the situation calculus due to the presence
+ of a second-order induction axiom.
  We show how to reduce queries about property persistence, a common type
  of universally-quantified query, to an equivalent form that does not quantify
  over situations and is thus amenable to existing automated reasoning techniques.
@@ -206,17 +206,17 @@ key "reiter91frameprob,shapiro02casl,giacomo04sem_delib_indigolog,ghaderi07sc_jo
 \end_inset
 
 .
- A key contributor to the success of the formalism is that it combines a
- powerful modelling language built on first-order logic with techinques
- for effective automated reasoning.
+ A major contributor to the success of the formalism is that it combines
+ a powerful modelling language built on first-order logic with easily implementa
+ble techinques for effective automated reasoning.
 \end_layout
 
 \begin_layout Standard
-Much of the important foundational work on the situation calculus has been
- managing this tradeoff between expressivity and effectiveness.
- The foundational axioms of the situation calculus include an induction
- axiom to define the structure of situations terms, so answering arbitrary
- queries requires reasoning in second-oder logic 
+A key challenge when working with the situation calculus is managing this
+ balance between expressivity and effectiveness.
+ An induction axiom is required to properly to define the structure of situation
+s terms, so answering arbitrary queries requires reasoning in second-oder
+ logic and is prohibitively expensive in general 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Reiter93proving"
@@ -224,34 +224,50 @@ key "Reiter93proving"
 \end_inset
 
 .
- Much of the work on implementing systems with the situation calculus has
- been on reducing the number of axioms required to answer a given query,
- to allow more efficient reasoning - for example, queries that contain only
- 
+ However, by restricting queries to certain syntactic forms it is possible
+ obtain much more effective reasoning procedures -- for example, queries
+ restricted to 
 \emph on
 existential
 \emph default
  quantification over situation terms can be answered using only first-order
- logic.
- 
+ logic 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+, while queries uniform in a ground situation term can be answered with
+ special-purpose techniques such as the regression operator 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "reiter91frameprob"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
-Unfortunately there are many reasoning tasks that require universal quantificati
-on over situations, for which the situation caluclus currently offers no
- effective reasoning tools.
- One of the most basic is determining that a goal is impossible -- that
- is, that all possible situations fail to satisfy the goal.
+However, there are many important reasoning tasks that require 
+\emph on
+universal
+\emph default
+ quantification over situation terms, for which the situation caluclus currently
+ offers no effective reasoning tools.
+ One simple example is the problem of goal impossibility -- estabishing
+ that all possible situations fail to satisfy a goal.
  In this paper we study a subset of universally-quantified queries which
  we refer to as 
 \emph on
-persistence queries
+property persistence queries
 \emph default
 : under a particular situation calculus theory 
 \begin_inset Formula $\mathcal{D}$
 \end_inset
 
-, and given some property 
+, and given some formula 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -275,23 +291,13 @@ persistence queries
 
 The need for second-order logic has traditionally limited automated reasoning
  about such queries.
- We introduce a new approach that is similar in spirit to the regression
- operator of 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "reiter91frameprob"
-
+ We introduce a new approach to property persistence that is similar in
+ spirit to the standard regression operator, defining a meta-level operator
+ 
+\begin_inset Formula $\PstD$
 \end_inset
 
-: define an operator that transforms a formula 
-\begin_inset Formula $\phi$
-\end_inset
-
- into a formula 
-\begin_inset Formula $\PstD(\phi)$
-\end_inset
-
-, such that 
+ such that 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -316,11 +322,16 @@ persistence condition
 \begin_inset Formula $\phi$
 \end_inset
 
-, and show how to calculate it in a form suitable for effective automated
- reasoning.
- The resulting formula can then be used in combination with standard regression-
-based reasoning techniques, allowing the inductive component of the reasoning
- to be 
+ and show how to calculate it as a fixpoint of applications of the regression
+ operator; crucially, this calculation requires only first-order logic and
+ a limited set of axioms, and the resulting formula is guaranteed to be
+ in a form amenable to existing automated reasoning techniques.
+\end_layout
+
+\begin_layout Standard
+The result is a powerful new technique for exploring sophisticated domain
+ properties in the situation calculus.
+ It allows second-order aspects of the theory to be 
 \begin_inset Quotes eld
 \end_inset
 
@@ -328,42 +339,36 @@ factored out
 \begin_inset Quotes erd
 \end_inset
 
- and approached using a special-purpose reasoning algorithm.
- 
-\end_layout
-
-\begin_layout Standard
-The persistence condition is shown to be a fixpoint of applications of the
- regression operator.
- The technique is sound and complete, and provably terminates in several
- interesting cases.
- It provides a powerful new tools for verififying sophisticated domain propertie
-s while taking advantage of the full representational power of the situation
+ of queries and handled using a special-purpose algorithm.
+ The technique is sound and complete for property persistence queries, and
+ the fixpoint calculation provably terminates in several interesting cases.
+ Perhaps most importantly, it builds upon and integrates well with the current
+ standard techniques for effective automated reasoning, so our technique
+ can be used directly in existing theories and systems based on the situation
  calculus.
 \end_layout
 
 \begin_layout Standard
-A preliminary version of this paper as appeared as 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "kelly07sc_persistence"
+The paper now proceeds with a brief review of the situation calculus and
+ its existing techniques for effective automated reasoning, before formally
+ definining the persistence condition and establishing its effectiveness
+ as a reasoning technique.
+ We demonstrate the new possibilities enabled by our research with an example
+ of reasoning about goal impossibility in a simple domain, a problem previously
+ beyond the reach of automated reasoning in the situation calculus.
+\end_layout
+
+\begin_layout Standard
+Readers familiar with the situation calculus are nontheless encouraged to
+ review the background material in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Persistence:Background"
 
 \end_inset
 
-; this revised edition includes extended and additional proofs, a more comprehen
-sive discussion of the termination properties of our algorithm, and a detailed
- example of our technique in action.
-\end_layout
-
-\begin_layout Standard
-The paper proceeds with a review of the situation calculus and techniques
- for effective automated reasoning, before formally definiing the persistence
- condition and demonstrating its use with a short example.
-\end_layout
-
-\begin_layout Standard
-Readers familiar with the situation calculus should note some modified notation:
- the unique names axioms 
+, as it contains some small notational changes compared to the standard
+ account: the unique names axioms 
 \begin_inset Formula $\Dt_{una}$
 \end_inset
 
@@ -402,6 +407,19 @@ future situations
 
 ; and we use the single-step variant of the regression operator, with correspond
 ing definitions of regressable formulae.
+\end_layout
+
+\begin_layout Standard
+A preliminary version of this paper has previously appeared as 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "kelly07sc_persistence"
+
+\end_inset
+
+; this revised edition includes extended and additional proofs, a more comprehen
+sive discussion of the termination properties of our algorithm, and a detailed
+ example of our technique in action.
 \end_layout
 
 \begin_layout Section
@@ -514,9 +532,8 @@ Object
 \emph on
 Fluents
 \emph default
- are predicates or functions that represent properties of the world that
- may change between situations, and so take a situation term as their final
- argument.
+ are predicates representing properties of the world that may change between
+ situations, and so take a situation term as their final argument.
  Predicates and functions that do not take a situation term are called 
 \emph on
 rigid
@@ -541,6 +558,13 @@ primitive fluent
 Situation
 \noun default
 .
+\end_layout
+
+\begin_layout Standard
+For the sake of clarity we will not consider functional fluents in this
+ paper; this is a common simplifying assumption in the situation calculus
+ literature and does not result in a loss of generality.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -703,9 +727,8 @@ The meta-variable
 
  to represent a uniform formula with the situation argument removed from
  all its fluents.
- Note that these are strictly meta-level operations, corresponding to possibly
- quite complex sentences from the underlying logic.
- They are 
+ These are strictly meta-level operations corresponding to possibly quite
+ complex sentences from the underlying logic; they are 
 \emph on
 not
 \emph default
@@ -950,7 +973,7 @@ key "pirri99contributions_sitcalc"
 
  where a separate axiom specifies the preconditions for each individual
  action type.
- The single-axiom approach used in this paper embodies a domain-closure
+ The single-axiom approach used in this paper embodies a domain closure
  assumption on the 
 \noun on
 Action
@@ -1059,7 +1082,7 @@ The relation
 \begin_inset Formula $s$
 \end_inset
 
- and is defined as follows:
+:
 \begin_inset Formula \begin{gather*}
 \neg(s\sqsubset S_{0})\\
 s\sqsubset do(a,s')\equiv s\sqsubseteq s'\end{gather*}
@@ -1140,7 +1163,7 @@ key "pirri99contributions_sitcalc"
 \end_inset
 
 .
- Note that we suppress the action and situation arguments to the action
+ Note that we suppress the action and situation arguments of the action
  description predicate in order to simplify the presentation.
 \end_layout
 
@@ -1276,8 +1299,8 @@ In words, a persistence query states that
 \end_inset
 
 .
- Queries of this form are involved in many useful reasoning tasks, of which
- the following are a small selection:
+ Such queries are involved in many useful reasoning tasks; the following
+ are a small selection:
 \begin_inset Newline newline
 \end_inset
 
@@ -1295,7 +1318,7 @@ Goal Impossibility:
 
 , establish that there is no legal situation in which that goal is achieved:
 \begin_inset Formula \[
-\Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow\neg G(s)\]
+\Dt\models\forall s:\, S_{0}\leq_{Poss}s\rightarrow\neg G(s)\]
 
 \end_inset
 
@@ -1321,7 +1344,7 @@ Goal Futility:
 
 :
 \begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\leq_{Legal}s\rightarrow\neg G(s)\]
+\Dt\models\forall s:\,\sigma\leq_{Poss}s\rightarrow\neg G(s)\]
 
 \end_inset
 
@@ -1329,10 +1352,10 @@ Goal Futility:
 \end_layout
 
 \begin_layout Standard
-Note how this differs from goal impossibility: while the agent may have
- initially been able to achieve its goal, the actions that have subsequently
- been performed have rendered the goal unachievable.
- Agents would be well advised to avoid such situations.
+Note how this differs from goal impossibility: while the goal may have initially
+ been achievable, the actions that have subsequently been performed have
+ rendered the goal unachievable.
+ Detecting and avoiding such situations could be a very important task.
 \begin_inset Newline newline
 \end_inset
 
@@ -1350,7 +1373,7 @@ Checking State Constraints:
 
 , show that the constraint holds in every legal situation:
 \begin_inset Formula \[
-\Dt\models\forall s:\, S_{0}\leq_{Legal}s\rightarrow SC(s)\]
+\Dt\models\forall s:\, S_{0}\leq_{Poss}s\rightarrow SC(s)\]
 
 \end_inset
 
@@ -1415,7 +1438,14 @@ Then the appropriate query is:
 Knowledge with Hidden Actions:
 \series default
  An agent reasoning about its own knowledge in asynchronous domains must
- account for arbitrarily-long sequences of hidden actions.
+ account for arbitrarily-long sequences of hidden actions 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "vanBentham06tree_of_knowledge,kelly07sc_know_obs"
+
+\end_inset
+
+.
  To establish that it knows 
 \begin_inset Formula $\phi$
 \end_inset
@@ -1434,10 +1464,30 @@ Knowledge with Hidden Actions:
 \end_layout
 
 \begin_layout Standard
-While the situation calculus makes it straigtforward to express such queries,
- it currently offers no tools to answer them effectively.
- In the following section we review these tools and why they are inadequate
- for this purpose.
+In Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Example:"
+
+\end_inset
+
+ we will explore a more detailed example using the 
+\begin_inset Quotes eld
+\end_inset
+
+gold thief
+\begin_inset Quotes erd
+\end_inset
+
+ domain, where the task is to establish that the gold cannot be stolen without
+ the thief being detected.
+ While the situation calculus makes it straigtforward to 
+\emph on
+express
+\emph default
+ queries such as these, it offers no tools for answering them effectively.
+ The difficulty, as we shall explore in the next section, stems from the
+ use of a second-order induction axiom to defie the set of all situations.
 \end_layout
 
 \begin_layout Section
@@ -1587,9 +1637,8 @@ situation reasoning
 \end_layout
 
 \begin_layout Standard
-Even given the use of regression to reduce the number of axioms required,
- reasoning still requires first-order logic and is thus only semi-decidable
- in general.
+Even given these restricted query forms, reasoning still requires first-order
+ logic and is thus only semi-decidable in general.
  Practical systems implemented on top of the situation calculus typically
  enforce additional restrictions on the domain in order to gain decidability.
 \end_layout
@@ -1709,15 +1758,15 @@ key "scherl03sc_knowledge"
 \end_inset
 
  which operates one action at a time.
- We use the single-step variant because it is the more expressive of the
- two -- while it is straightforward to define the single-pass operator in
- terms of the single-step operator, the reverse is not the case.
+ We use the single-step variant as it is the more expressive of the two
+ -- while it is straightforward to define the single-pass operator in terms
+ of the single-step operator, the reverse is not the case.
 \end_layout
 
 \begin_layout Standard
-Regression is only defined for a certain class of formulae, the 
+Regression is only defined for formulae that are 
 \emph on
-regressable formulae
+regressable
 \emph default
 .
 \end_layout
@@ -1856,17 +1905,11 @@ Operator Let
 \end_layout
 
 \begin_layout Standard
-We have omitted some technical details here, such as the handling of functional
- fluents; consult 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "pirri99contributions_sitcalc"
-
+The key point here is that each application of 
+\begin_inset Formula $\Reg_{\Dt}$
 \end_inset
 
- for the details.
- The key point is that each application of the regression operator replaces
- action description predicates with their definitions from 
+ replaces action description predicates with their definitions from 
 \begin_inset Formula $\Dt_{ad}$
 \end_inset
 
@@ -1895,18 +1938,9 @@ unwinding
 \end_layout
 
 \begin_layout Standard
-Since 
-\begin_inset Formula $\Dt$
-\end_inset
-
- is fixed, we will henceforth drop the subscript and simply write 
-\begin_inset Formula $\Reg$
-\end_inset
-
- for the regression operator.
- When dealing with situation-suppressed uniform formulae, we will use a
- two-argument operator 
-\begin_inset Formula $\Reg(\phi,a)$
+When dealing with situation-suppressed uniform formulae, we will use a two-argum
+ent operator 
+\begin_inset Formula $\Reg_{\Dt}(\phi,a)$
 \end_inset
 
  to indicate the regression of 
@@ -1919,13 +1953,13 @@ Since
 
 .
  It should be read as a shorthand for 
-\begin_inset Formula $\Reg(\phi[do(a,s)])^{-1}$
+\begin_inset Formula $\Reg_{\Dt}(\phi[do(a,s)])^{-1}$
 \end_inset
 
  using the situation-suppression operator from Section 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "sec:Background:SC:Notation"
+reference "sec:Persistence:Background"
 
 \end_inset
 
@@ -1938,12 +1972,12 @@ Let us briefly state some important properties of the regression operator.
 \end_layout
 
 \begin_layout Proposition
-Let 
+For 
 \begin_inset Formula $\varphi$
 \end_inset
 
- be a regressable formula, then 
-\begin_inset Formula $\Dt\,\models\,\varphi\,\equiv\,\Reg(\varphi)$
+ a regressable formula, 
+\begin_inset Formula $\Dt\,\models\,\varphi\,\equiv\,\Reg_{\Dt}(\varphi)$
 \end_inset
 
  
@@ -1954,7 +1988,7 @@ Any formula uniform in
 \begin_inset Formula $do(a,s)$
 \end_inset
 
- is regressable, and the resulting formula is uniform in 
+ is regressable, and the resulting formula will always be uniform in 
 \begin_inset Formula $s$
 \end_inset
 
@@ -1962,16 +1996,16 @@ Any formula uniform in
 \end_layout
 
 \begin_layout Proposition
-Let 
+For 
 \begin_inset Formula $\phi$
 \end_inset
 
- be uniform in 
+ uniform in 
 \begin_inset Formula $do(a,s)$
 \end_inset
 
-, then 
-\begin_inset Formula $\Reg(\phi)$
+, 
+\begin_inset Formula $\Reg_{\Dt}(\phi)$
 \end_inset
 
  is uniform in 
@@ -1983,11 +2017,11 @@ Let
 
 \begin_layout Standard
 Let 
-\begin_inset Formula $\Reg^{*}$
+\begin_inset Formula $\Reg_{\Dt}^{*}$
 \end_inset
 
  denote repeated applications of 
-\begin_inset Formula $\Reg$
+\begin_inset Formula $\Reg_{\Dt}$
 \end_inset
 
  until the formula remains unchanged.
@@ -1996,11 +2030,11 @@ Let
 \end_layout
 
 \begin_layout Proposition
-Let 
+For 
 \begin_inset Formula $\phi$
 \end_inset
 
- be uniform in 
+ uniform in 
 \emph on
 
 \begin_inset Formula $do([a_{1}\dots a_{n}],S_{0})$
@@ -2008,8 +2042,8 @@ Let
 
 ,
 \emph default
- then 
-\begin_inset Formula $\Reg^{*}(\phi)$
+ 
+\begin_inset Formula $\Reg_{\Dt}^{*}(\phi)$
 \end_inset
 
  is uniform in 
@@ -2031,7 +2065,7 @@ projection problem
 \end_inset
 
  holds in a given future situation, it suffices to determine whether 
-\begin_inset Formula $\Reg^{*}(\phi)$
+\begin_inset Formula $\Reg_{\Dt}^{*}(\phi)$
 \end_inset
 
  holds in the initial situation.
@@ -2069,8 +2103,8 @@ key "levesque97golog,pirri99contributions_sitcalc"
 
 \end_inset
 
- and there are techniques to avoid exponential growth of the query in some
- cases 
+ and there are techniques to ameliorate the resulting increase in query
+ size 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "vandtmarsh07optimal_regression"
@@ -2086,8 +2120,8 @@ Inductive Reasoning
 
 \begin_layout Standard
 While there is a rich and diverse literature base for the situation calculus,
- there appears to have been little work on reasoning about universally quantifie
-d queries.
+ there appears to have been little work on queries that universally quantifiy
+ over situation terms, such as those we are interested in in this paper.
  
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -2095,10 +2129,9 @@ key "Reiter93proving"
 
 \end_inset
 
- has shown why the induction axiom is necessary to prove statements that
- universally quantify over situation terms; this work demonstrates the use
- of the axiom in manual proofs, but offers no procedure for answering such
- queries automatically.
+ has shown why the induction axiom cannot in general be eliminated when
+ proving such statements, demonstrating the use of the axiom in manual proofs
+ but offering no procedure for answering such queries automatically.
 \end_layout
 
 \begin_layout Standard
@@ -2253,8 +2286,8 @@ levels
 This is a direct consequence of the induction axiom for situations, which
  restricts situations to be constructed by performing some countable number
  of actions in the initial situation.
- This result captures an important intuition about situation terms that
- is fundamental to the operation of our approach.
+ We will not use this result directly, but it captures an important intuition
+ about situation terms that is fundamental to the operation of our approach.
 \end_layout
 
 \begin_layout Section
@@ -2269,10 +2302,14 @@ name "sec:Persistence:Condition"
 \end_layout
 
 \begin_layout Standard
-To implement practical systems that can perform persistence queries, we
- clearly need to transform the query into a form suitable for effective
- automated reasoning.
- Our approach is to transform a property persistence query at 
+To enable the use of persistence queries in practical systems, we clearly
+ need a more effective reasoning technique than open-ended second order
+ theorem proving.
+ Our approach is inspired by the success of Reiter's regression technique:
+ use a meta-level operator to transform the query into one that is easier
+ to answer.
+ Specifically, our technique transforms a property persistence query at
+ 
 \begin_inset Formula $\sigma$
 \end_inset
 
@@ -2280,13 +2317,11 @@ To implement practical systems that can perform persistence queries, we
 \begin_inset Formula $\sigma$
 \end_inset
 
-.
- This transformed query can then be handled effectively using the standard
- regression operator.
+ -- a much simpler query which can be approached using existing techniques.
 \end_layout
 
 \begin_layout Standard
-To achieve this we need some transformation of a property 
+Formally, we seek a method for transforming a uniform formula 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -2373,9 +2408,9 @@ Defining
 \begin_inset Formula $\Pst_{\Dt}$
 \end_inset
 
- to be independent of the initial world state allows an agent to calculate
- it regardless of what (if anything) is known about the actual state of
- the world -- after all, an agent may not know all the details of 
+ to be independent of the initial world state allows it to be calculated
+ regardless of what (if anything) is known about the actual state of the
+ world -- after all, a situated agent may not know all the details of 
 \begin_inset Formula $\Dt_{S_{0}}$
 \end_inset
 
@@ -2449,7 +2484,7 @@ Note that
 \begin_inset Formula $\Pst_{\Dt}^{1}$
 \end_inset
 
- is a literal encoding of the requirement 
+ is equivalent to the following literal encoding of the requirement 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2465,21 +2500,25 @@ Note that
 \begin_inset Quotes erd
 \end_inset
 
-, using the standard regression operator 
-\begin_inset Formula $\Reg_{\Dt}$
-\end_inset
-
- and the situation-suppression operator 
-\begin_inset Formula $\phi^{-1}$
-\end_inset
-
- to produce a situation-suppressed uniform formula.
- Without the use of regression, the definition would appear as follows:
+:
 \begin_inset Formula \[
 \PstDI(\phi,\alpha)[s]\,\equiv\,\phi[s]\,\wedge\,\forall a:\,\alpha[a,s]\,\rightarrow\,\phi[do(a,s)]\]
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+The use of 
+\begin_inset Formula $\Reg_{\Dt}$
+\end_inset
+
+ and 
+\begin_inset Formula $\phi^{-1}$
+\end_inset
+
+ allow our definition to produce a situation-suppressed uniform formula.
  Since 
 \begin_inset Formula $\alpha$
 \end_inset
@@ -3492,7 +3531,7 @@ reference "thm:p(pn)-equiv-p"
 \end_layout
 
 \begin_layout Standard
-This theorem legitimates the use of the persistence condition for reasoning
+This theorem legitemises the use of the persistence condition for reasoning
  about property persistence queries -- for any persistence query at situation
  
 \begin_inset Formula $\sigma$
@@ -4035,6 +4074,18 @@ reference "alg:calc_p"
 \end_layout
 
 \begin_layout Standard
+TODO: function-free theories are 
+\begin_inset Quotes eld
+\end_inset
+
+essentially propositional
+\begin_inset Quotes erd
+\end_inset
+
+ and are in a similar boat
+\end_layout
+
+\begin_layout Standard
 Alternately, suppose all successor state axioms and action description predicate
 s have the following restricted form, where the terms in 
 \begin_inset Formula $\vars y$
@@ -4336,6 +4387,242 @@ Of course, we also inherit the potential disadvantage of the regression
  of the resulting reasoning task.
 \end_layout
 
+\begin_layout Section
+Examples
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Example:"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To demonstrate the applicability of our technique, this section shows some
+ simple examples.
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Quotes eld
+\end_inset
+
+Gold Thief
+\begin_inset Quotes erd
+\end_inset
+
+ domain
+\end_layout
+
+\begin_layout Standard
+As a detailed example of our technique in action, consider a domain in which
+ a thief who is trying to steal some gold from a safe.
+ There is a light in the room, and a security camera that will detect the
+ thief's actions as long as the light is on.
+ The safe can be open or closed, and it is possible for the thief to crack
+ the safe if the light is on.
+ For the complete axioms of this domain, see Appendix 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "apdx:Axioms"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+As the owners of the gold, we want to ensure that the thief cannot steal
+ the gold (the fluent 
+\begin_inset Formula $Stolen$
+\end_inset
+
+) through a series of actions that are not detected by the security camera
+ (the action description predictae 
+\begin_inset Formula $Undet$
+\end_inset
+
+) .
+ That is, given the current situation 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, we want to establish that:
+\begin_inset Formula \[
+\Dt\models\forall s:\,\sigma\leq_{Undet}s\,\rightarrow\,\neg Stolen(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By the definition of the persistence condition, this is equivalent to:
+\begin_inset Formula \[
+\Dt\models\PstD(\neg Stolen,Undet)[\sigma]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To answer this query we will employ Algorithm 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "alg:calc_p"
+
+\end_inset
+
+, calculating 
+\begin_inset Formula $\PstDN n$
+\end_inset
+
+ for successively larger values of 
+\begin_inset Formula $n$
+\end_inset
+
+ until the series converges to a fixpoint.
+ The case of 
+\begin_inset Formula $n=0$
+\end_inset
+
+ is trivial:
+\begin_inset Formula \[
+\PstDN 0(\neg Stolen,Undet)[s]\,=\,\neg Stolen(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\begin_inset Formula $n=1$
+\end_inset
+
+ case is given by definition 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "def:persists-depth-n"
+
+\end_inset
+
+ as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\PstDN 1(\dots)[s]=\neg Stolen(s)\wedge\forall a:\,\Reg(Undet(a,s))\rightarrow\Reg(\neg Stolen(do(a,s)))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Expanding the 
+\begin_inset Formula $\forall a$
+\end_inset
+
+ quantifier over each of the three actions in this domain we obtain:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{multline*}
+\PstDN 1(\dots)[s]=\neg Stolen(s)\,\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s)))\\
+\wedge\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s)))\\
+\wedge\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s)))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Applying regression and simplifying the result produces:
+\begin_inset Formula \[
+\PstDN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Intuitively, this indicates that the gold cannot be stolen by a single undetecte
+d action if the safe is not open (since it would first have to be cracked)
+ or the light is not on (since the action would be detected).
+ Since this is clearly not entailed by the 
+\begin_inset Formula $\PstDN 0$
+\end_inset
+
+ case, we must continue to the 
+\begin_inset Formula $n=2$
+\end_inset
+
+ case.
+ Again applying definition 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "def:persists-depth-n"
+
+\end_inset
+
+ and expanding out each individual action, we get:
+\begin_inset Formula \begin{multline*}
+\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s))\\
+\wedge[\neg SafeOpen(do(takeGold,s))\vee LightOn(do(takeGold,s))])\\
+\wedge\,\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s))\\
+\wedge[\neg SafeOpen(do(crackSafe,s))\vee LightOn(do(crackSafe,s))])\\
+\wedge\,\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s))\\
+\wedge[\neg SafeOpen(do(toggleLight(s))\vee LightOn(do(toggleLight,s))])\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Performing the regression and simplifying down, we eventually obtain:
+\begin_inset Formula \[
+\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge[\neg SafeOpen(s)\vee LightOn(s)]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We have clearly satisfied the termination condition of Algorithm 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "alg:calc_p"
+
+\end_inset
+
+, since 
+\begin_inset Formula $\PstDN 1\rightarrow\PstDN 2$
+\end_inset
+
+ , and have thus successfully calculated the persistence condition:
+\begin_inset Formula \[
+\PstD(\neg Stolen,Undet)=\neg Stolen\wedge\left[\neg SafeOpen\vee LightOn\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Since this is a uniform formula, we can determine whether the gold is safe
+ at any given situation using standard regression techniques.
+ In particular, we could determine whether the gold is safe in the initial
+ situation.
+\end_layout
+
 \begin_layout Subsection
 Applications
 \end_layout
@@ -4546,7 +4833,7 @@ name "sec:Persistence:Conclusion"
 
 \begin_layout Standard
 In this paper we have developed an algorithm that transforms property persistenc
-e queries, a very general and useful class of situation calculus query,
+e queries, a quite general and useful class of situation calculus query,
  to a form that is amenable to standard techniques for effective reasoning
  in the situation calculus.
  The algorithm replaces a second-order induction axiom with a meta-level
@@ -4570,16 +4857,17 @@ Our approach generalises previous work on universally-quantified queries
 \end_layout
 
 \begin_layout Standard
-Most importantly for the remainder of this thesis, we have 
+Perhaps most importantly for the wider situation calculus community, we
+ have 
 \emph on
 factored out
 \emph default
  the inductive reasoning required to answer these queries.
  Work on increasing the effectiveness of this inductive reasoning, and on
  guaranteeing a terminating calculation in stronger classes of action theory,
- can now proceed independently from the development of formalisms that utilise
+ can proceed independently from the development of formalisms that utilise
  persistence queries.
- We will henceforth use 
+ Subsequent theories can use 
 \begin_inset Formula $\PstD$
 \end_inset
 
@@ -4591,12 +4879,15 @@ black box
 \begin_inset Quotes erd
 \end_inset
 
- operator to formulate regression rules within our framework, dropping the
- explicit 
-\begin_inset Formula $\Dt$
+ operator to formulate regression rules, as demonstrated in our own work
+ on knowledge 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "kelly07sc_know_obs"
+
 \end_inset
 
- subscript as we do for the regression operator.
+.
 \begin_inset Newline newline
 \end_inset
 
@@ -5131,6 +5422,13 @@ Gold Theif
 \end_inset
 
  Domain
+\begin_inset CommandInset label
+LatexCommand label
+name "apdx:Axioms"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -5184,7 +5482,22 @@ Undet(a,s)\equiv Poss(a,s)\,\wedge\, a\neq toggleLight\,\wedge\neg LightOn(s)\en
 \end_layout
 
 \begin_layout Section
-An Example
+Complete Calculation for the 
+\begin_inset Quotes eld
+\end_inset
+
+Gold Thief
+\begin_inset Quotes erd
+\end_inset
+
+ domain
+\begin_inset CommandInset label
+LatexCommand label
+name "apdx:complete-example"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
