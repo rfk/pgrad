@@ -6,7 +6,7 @@
 \begin_preamble
 \usepackage{algorithm}
 \usepackage{algorithmic}
-
+\biboptions{sort}
 \journal{Artificial Intelligence}
 \end_preamble
 \options preprint,12pt
@@ -185,8 +185,8 @@ We develop a new automated reasoning technique for the situation calculus
  of universally-quantified query, to an equivalent form that does not quantify
  over situations and is thus amenable to existing automated reasoning techniques.
  The algorithm for doing so replaces induction with a meta-level fixpoint
- calculation; crucially, this calculation utilizes only first-order reasoning
- with a limited number of axioms.
+ calculation; crucially, this calculation utilises only first-order reasoning
+ with a limited set of axioms.
  The result is a powerful new tool for verifying sophisticated domain properties
  in the situation calculus.
 \end_layout
@@ -208,15 +208,15 @@ key "reiter91frameprob,shapiro02casl,giacomo04sem_delib_indigolog,ghaderi07sc_jo
 .
  A major contributor to the success of the formalism is that it combines
  a powerful modelling language built on first-order logic with easily implementa
-ble techinques for effective automated reasoning.
+ble techniques for effective automated reasoning.
 \end_layout
 
 \begin_layout Standard
 A key challenge when working with the situation calculus is managing this
  balance between expressivity and effectiveness.
- An induction axiom is required to properly to define the structure of situation
-s terms, so answering arbitrary queries requires reasoning in second-oder
- logic and is prohibitively expensive in general 
+ An induction axiom is used to define the structure of situations terms,
+ so answering arbitrary queries requires reasoning in second-order logic
+ and is prohibitively expensive in general 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "Reiter93proving"
@@ -224,22 +224,22 @@ key "Reiter93proving"
 \end_inset
 
 .
- However, by restricting queries to certain syntactic forms it is possible
+ But if queries are restricted to certain syntactic forms, it is possible
  obtain much more effective reasoning procedures -- for example, queries
  restricted to 
 \emph on
 existential
 \emph default
- quantification over situation terms can be answered using only first-order
- logic 
+ quantification over situations can be answered using only first-order logic
+ 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "pirri99contributions_sitcalc"
 
 \end_inset
 
-, while queries uniform in a ground situation term can be answered with
- special-purpose techniques such as the regression operator 
+, while queries containing only ground situation terms permit special-purpose
+ techniques such as regression 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "reiter91frameprob"
@@ -254,9 +254,9 @@ However, there are many important reasoning tasks that require
 \emph on
 universal
 \emph default
- quantification over situation terms, for which the situation caluclus currently
+ quantification over situation terms, for which the situation calculus currently
  offers no effective reasoning tools.
- One simple example is the problem of goal impossibility -- estabishing
+ One simple example is the problem of goal impossibility -- establishing
  that all possible situations fail to satisfy a goal.
  In this paper we study a subset of universally-quantified queries which
  we refer to as 
@@ -292,7 +292,7 @@ property persistence queries
 The need for second-order logic has traditionally limited automated reasoning
  about such queries.
  We introduce a new approach to property persistence that is similar in
- spirit to the standard regression operator, defining a meta-level operator
+ spirit to the standard regression operator, by defining a meta-level operator
  
 \begin_inset Formula $\PstD$
 \end_inset
@@ -314,7 +314,7 @@ The need for second-order logic has traditionally limited automated reasoning
 \end_inset
 
 .
- We term this the 
+ We term the resulting formula the 
 \emph on
 persistence condition
 \emph default
@@ -324,14 +324,15 @@ persistence condition
 
  and show how to calculate it as a fixpoint of applications of the regression
  operator; crucially, this calculation requires only first-order logic and
- a limited set of axioms, and the resulting formula is guaranteed to be
- in a form amenable to existing automated reasoning techniques.
+ a limited set of axioms.
+ The persistence condition is also guaranteed to be in a form amenable to
+ existing automated reasoning techniques.
 \end_layout
 
 \begin_layout Standard
 The result is a powerful new technique for exploring sophisticated domain
  properties in the situation calculus.
- It allows second-order aspects of the theory to be 
+ It allows some second-order aspects of the theory to be 
 \begin_inset Quotes eld
 \end_inset
 
@@ -349,26 +350,42 @@ factored out
 \end_layout
 
 \begin_layout Standard
-The paper now proceeds with a brief review of the situation calculus and
- its existing techniques for effective automated reasoning, before formally
- definining the persistence condition and establishing its effectiveness
- as a reasoning technique.
- We demonstrate the new possibilities enabled by our research with an example
- of reasoning about goal impossibility in a simple domain, a problem previously
- beyond the reach of automated reasoning in the situation calculus.
+A preliminary version of this paper has previously appeared as 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "kelly07sc_persistence"
+
+\end_inset
+
+; this extended edition includes more detailed and additional proofs, a
+ more comprehensive discussion of the termination properties of our algorithm,
+ and a detailed example of how the persistence condition can be used to
+ reason about goal impossibility -- a deceptively simple task which is nonethele
+ss outside the scope of existing reasoning techniques.
 \end_layout
 
 \begin_layout Standard
-Readers familiar with the situation calculus are nontheless encouraged to
- review the background material in Section 
+The paper now proceeds with a brief review of the situation calculus, before
+ formally defining the persistence condition and establishing its effectiveness
+ as a reasoning tool.
+ Readers familiar with the situation calculus are still encouraged to review
+ the background material in Sections 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Persistence:Background"
 
 \end_inset
 
-, as it contains some small notational changes compared to the standard
- account: the unique names axioms 
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Effective-Reasoning"
+
+\end_inset
+
+, as we make some conservative extensions to the standard notation that
+ greatly simplify the development of our approach: the unique names axioms
+ 
 \begin_inset Formula $\Dt_{una}$
 \end_inset
 
@@ -407,19 +424,6 @@ future situations
 
 ; and we use the single-step variant of the regression operator, with correspond
 ing definitions of regressable formulae.
-\end_layout
-
-\begin_layout Standard
-A preliminary version of this paper has previously appeared as 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "kelly07sc_persistence"
-
-\end_inset
-
-; this revised edition includes extended and additional proofs, a more comprehen
-sive discussion of the termination properties of our algorithm, and a detailed
- example of our technique in action.
 \end_layout
 
 \begin_layout Section
@@ -485,9 +489,8 @@ The language
 \begin_inset Formula $\Lsit$
 \end_inset
 
- of the situation calculus is a many-sorted language of first-order logic
- with equality, augmented with a second-order induction axiom, containing
- the following disjoint sorts:
+ of the situation calculus is a many-sorted language of second-order logic
+ with equality, containing the following disjoint sorts:
 \end_layout
 
 \begin_layout Itemize
@@ -528,6 +531,13 @@ Object
 \end_layout
 
 \begin_layout Standard
+\begin_inset space \thinspace{}
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 
 \emph on
 Fluents
@@ -558,10 +568,7 @@ primitive fluent
 Situation
 \noun default
 .
-\end_layout
-
-\begin_layout Standard
-For the sake of clarity we will not consider functional fluents in this
+ For the sake of clarity we will not consider functional fluents in this
  paper; this is a common simplifying assumption in the situation calculus
  literature and does not result in a loss of generality.
  
@@ -627,6 +634,10 @@ key "pirri99contributions_sitcalc"
 \end_inset
 
  defined in the usual manner.
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -708,8 +719,6 @@ The meta-variable
 \end_inset
 
  is used throughout to refer to an arbitrary uniform formula.
- Since they represent some aspect of the state of the world, it is frequently
- useful to evaluate a uniform formula at several different situation terms.
  The notation 
 \begin_inset Formula $\phi[s']$
 \end_inset
@@ -718,21 +727,23 @@ The meta-variable
 \begin_inset Formula $s'$
 \end_inset
 
- inserted into all its fluents, repalcing whatever situation term was previously
- there.
- We may also completely suppress the situation term to simplify the presentation
-, using 
+ inserted into all its fluents, replacing whatever situation term was previously
+ there, while 
 \begin_inset Formula $\phi^{-1}$
 \end_inset
 
- to represent a uniform formula with the situation argument removed from
- all its fluents.
- These are strictly meta-level operations corresponding to possibly quite
- complex sentences from the underlying logic; they are 
+ represents a uniform formula with the situation argument removed from all
+ its fluents.
+ Note that these are simply syntactic shorthands designed to keep the presentati
+on clean and readable -- they are 
 \emph on
 not
 \emph default
  terms or operators from the logic itself.
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -795,8 +806,8 @@ Theory A basic action theory, denoted
 \end_layout
 
 \begin_layout Standard
-These axioms must satisfy some simple consistency criteria to constitute
- a valid domain description 
+These axioms must satisfy some simple consistency criteria in order to constitut
+e a valid domain description 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "pirri99contributions_sitcalc"
@@ -804,29 +815,12 @@ key "pirri99contributions_sitcalc"
 \end_inset
 
 .
- This is a conservative extension of the definition used by 
-\begin_inset CommandInset citation
-LatexCommand citeauthor
-key "pirri99contributions_sitcalc"
-
-\end_inset
-
-, intended to simplify the details of our forthcoming development.
-\begin_inset Newline newline
-\end_inset
-
-
+ This is a conservative extension of the standard definition of a basic
+ action theory, intended to simplify the details of our forthcoming development.
 \end_layout
 
 \begin_layout Standard
 The axiom set 
-\begin_inset Formula $\Dt_{bg}$
-\end_inset
-
- contains all the situation-independent facts about the domain, and must
- include a set of unique names axioms to ensure that action terms with different
- names or different arguments are in fact different.
- The set 
 \begin_inset Formula $\Dt_{S_{0}}$
 \end_inset
 
@@ -834,12 +828,28 @@ The axiom set
 \begin_inset Formula $S_{0}$
 \end_inset
 
-, stating what holds before any actions have been performed.
- 
-\begin_inset Newline newline
+ that describe the initial state of the world, while the set 
+\begin_inset Formula $\Dt_{bg}$
 \end_inset
 
+ contains all the situation-independent facts about the domain.
+ Standard notation includes situation-independent facts in 
+\begin_inset Formula $\Dt_{S_{0}}$
+\end_inset
 
+, but our upcoming definitions require that they be separate.
+ 
+\begin_inset Formula $\Dt_{bg}$
+\end_inset
+
+ includes the standard unique names axioms for actions 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "pirri99contributions_sitcalc"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -901,10 +911,6 @@ Here
 \end_inset
 
 .
-\begin_inset Newline newline
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -964,22 +970,21 @@ key "scherl03sc_knowledge"
 \end_layout
 
 \begin_layout Standard
-Note that this is a departure from the standard approach of 
+Note that this is a departure from the standard notion, where a separate
+ axiom specifies the preconditions for each individual action type 
 \begin_inset CommandInset citation
-LatexCommand citet
+LatexCommand citep
 key "pirri99contributions_sitcalc"
 
 \end_inset
 
- where a separate axiom specifies the preconditions for each individual
- action type.
- The single-axiom approach used in this paper embodies a domain closure
- assumption on the 
+.
+ The single-axiom approach used here embodies a domain closure assumption
+ on the 
 \noun on
 Action
 \noun default
- sort.
- It is necessary when reasoning about formulae that universally quantify
+ sort, and is necessary when reasoning about formulae that universally quantify
  over actions 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -993,12 +998,7 @@ key "savelli06sc_quantum_levels,vassos08progression_future_queries"
 \begin_layout Standard
 For convenience we will allow action description predicates to be defined
  in terms of other action description predicates; as long as these definitions
- are well-founded they can be expanded out to a definition that uses only
- uniform formulae.
-\begin_inset Newline newline
-\end_inset
-
-
+ are well-founded they can be expanded out to reference only primitive fluents.
 \end_layout
 
 \begin_layout Standard
@@ -1023,46 +1023,18 @@ The foundational axioms
 \begin_inset Formula $do(a,s)$
 \end_inset
 
- constructing the successor situation resulting when the action 
+ constructing the situation that results from performing action 
 \begin_inset Formula $a$
 \end_inset
 
- is performed in 
+ in situaion 
 \begin_inset Formula $s$
 \end_inset
 
-; all situations thus produced are distinct:
-\begin_inset Formula \[
-do(a_{1},s_{1})=do(a_{2},s_{2})\,\rightarrow\, a_{1}=a_{2}\,\wedge\, s_{1}=s_{2}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-We abbreviate the performance of several successive actions by writing:
+.
+ We abbreviate the performance of several successive actions by writing:
 \begin_inset Formula \[
 do([a_{1},\dots,a_{n}],s)\,\isdef\, do(a_{n},do(\dots,do(a_{1},s)))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-There is also a second-order induction axiom asserting that all situations
- must be constructed in this way, which is needed to prove statements that
- universally quantify over situations 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "Reiter93proving"
-
-\end_inset
-
-:
-\begin_inset Formula \[
-\forall P:\,\left[P(S_{0})\wedge\forall s,a:\,\left(P(s)\rightarrow P(do(a,s))\right)\right]\,\rightarrow\,\forall s:\, P(s)\]
 
 \end_inset
 
@@ -1121,6 +1093,9 @@ in the future of
 \end_inset
 
 , with the following definitions:
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 \neg\left(s<_{\alpha}S_{0}\right)\\
 s<_{\alpha}do(a,s')\equiv s\leq_{\alpha}s'\wedge\alpha(a,s')\end{gather*}
@@ -1167,6 +1142,30 @@ key "pirri99contributions_sitcalc"
  description predicate in order to simplify the presentation.
 \end_layout
 
+\begin_layout Standard
+Finally, a second-order induction axiom is used to assert that all situations
+ must be constructed by performing a finite sequence of actions:
+\begin_inset Formula \[
+\forall P:\,\left[P(S_{0})\wedge\forall s,a:\,\left(P(s)\rightarrow P(do(a,s))\right)\right]\,\rightarrow\,\forall s:\, P(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This axiom is the only second-order sentence in a basic action theory, and
+ is vital to the proper semantics of statements that universally quantify
+ over situation terms 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Reiter93proving"
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Section
 Property Persistence Queries
 \begin_inset CommandInset label
@@ -1180,8 +1179,8 @@ name "sec:Persistence:Definitions"
 
 \begin_layout Standard
 With this notation in hand, let us now formally define the kinds of query
- that will be approached in this paper.
- Given some property 
+ that are of interest in this paper.
+ Given some uniform formula 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -1212,8 +1211,7 @@ property persistence query
 
 \begin_layout Standard
 More generally, one may wish to limit the futures under consideration to
- those brought about by actions satisfying a certain action description
- predicate 
+ those brought about by actions satisfying a certain predicate 
 \begin_inset Formula $\alpha$
 \end_inset
 
@@ -1221,8 +1219,8 @@ More generally, one may wish to limit the futures under consideration to
 \begin_inset Formula $\leq_{\alpha}$
 \end_inset
 
- macro.
- We thus have the following definition of a persistence query:
+ relation.
+ We thus have the following definition of a property persistence query:
 \end_layout
 
 \begin_layout Labelled Definition
@@ -1353,8 +1351,7 @@ Goal Futility:
 
 \begin_layout Standard
 Note how this differs from goal impossibility: while the goal may have initially
- been achievable, the actions that have subsequently been performed have
- rendered the goal unachievable.
+ been achievable, subsequent actions have rendered the goal unachievable.
  Detecting and avoiding such situations could be a very important task.
 \begin_inset Newline newline
 \end_inset
@@ -1402,8 +1399,8 @@ Need for Cooperation:
 \begin_inset Formula $\sigma$
 \end_inset
 
-, establish that no sequence of actions performed by that agent can achieve
- the goal.
+, establish that no sequence of actions performed by that agent only can
+ achieve the goal.
  Suppose we define 
 \begin_inset Formula $MyAction$
 \end_inset
@@ -1437,8 +1434,8 @@ Then the appropriate query is:
 \series bold
 Knowledge with Hidden Actions:
 \series default
- An agent reasoning about its own knowledge in asynchronous domains must
- account for arbitrarily-long sequences of hidden actions 
+ An agent reasoning about its own knowledge in an asynchronous domain must
+ take into account arbitrarily-long sequences of hidden actions 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "vanBentham06tree_of_knowledge,kelly07sc_know_obs"
@@ -1454,7 +1451,7 @@ key "vanBentham06tree_of_knowledge,kelly07sc_know_obs"
 \begin_inset Formula $\phi$
 \end_inset
 
- cannot become false through a sequence of hidden actions:
+ cannot become false through such a sequence:
 \begin_inset Formula \[
 \Dt\models\forall s:\,\sigma\leq_{Hidden}s\rightarrow\phi[s]\]
 
@@ -1464,14 +1461,14 @@ key "vanBentham06tree_of_knowledge,kelly07sc_know_obs"
 \end_layout
 
 \begin_layout Standard
-In Section 
+As a more detailed example, which we will revisit in Section 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Example:"
 
 \end_inset
 
- we will explore a more detailed example using the 
+, consider the following 
 \begin_inset Quotes eld
 \end_inset
 
@@ -1479,19 +1476,29 @@ gold thief
 \begin_inset Quotes erd
 \end_inset
 
- domain, where the task is to establish that the gold cannot be stolen without
- the thief being detected.
- While the situation calculus makes it straigtforward to 
+ domain.
+\end_layout
+
+\begin_layout Standard
+While the situation calculus makes it straightforward to 
 \emph on
 express
 \emph default
- queries such as these, it offers no tools for answering them effectively.
+ property persistence queries such as these, it currently offers no tools
+ for answering them effectively.
  The difficulty, as we shall explore in the next section, stems from the
- use of a second-order induction axiom to defie the set of all situations.
+ use of a second-order induction axiom to define the set of all situations.
 \end_layout
 
 \begin_layout Section
 Effective Reasoning
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Effective-Reasoning"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1499,11 +1506,7 @@ An important feature of the situation calculus is the existence of effective
  reasoning procedures for certain types of query.
  These are generally based on syntactic manipulation of a query into a form
  that is more amenable to automated reasoning, for example because it can
- be proven without using some of the axioms from 
-\begin_inset Formula $\Dt$
-\end_inset
-
-.
+ be proven without using some of the axioms from the basic action theory.
 \end_layout
 
 \begin_layout Standard
@@ -1518,35 +1521,35 @@ In the general case, answering a query about a basic action theory
 
 \end_inset
 
- This is clearly problematic for effective automated reasoning, but fortunately
- there exist particular syntactic forms for which some of the axioms in
- 
+ This is clearly problematic for effective automated reasoning.
+ Fortunately, restricting the syntactic form of queries can permit us to
+ discard some axioms from 
 \begin_inset Formula $\Dt$
 \end_inset
 
- are not required.
+ and make automated reasoning easier.
 \end_layout
 
 \begin_layout Standard
-If a query only performs 
-\emph on
-existential
-\emph default
- quantification over situation terms, it can be answered without the induction
- axiom (denoted 
-\begin_inset Formula $I$
-\end_inset
-
-) and thus using only first-order logic (FOL) 
+A core result of 
 \begin_inset CommandInset citation
-LatexCommand citep
+LatexCommand citet
 key "pirri99contributions_sitcalc"
 
 \end_inset
 
-:
+ is that if a query performs only 
+\emph on
+existential
+\emph default
+ quantification over situations, then it can be answered without the induction
+ axiom (denoted 
+\begin_inset Formula $I$
+\end_inset
+
+) and thus using only first-order logic (FOL):
 \begin_inset Formula \[
-\Dt\models_{SOL}\exists s:\,\psi(s)\,\,\,\,\mathrm{iff}\,\,\,\,\Dt-\{I\}\models_{FOL}\exists s:\,\psi(s)\]
+\Dt\models_{SOL}\exists s:\,\psi(s)\,\,\,\,\,\,\mathrm{iff}\,\,\,\,\,\,\Dt-\{I\}\models_{FOL}\exists s:\,\psi(s)\]
 
 \end_inset
 
@@ -1637,80 +1640,21 @@ situation reasoning
 \end_layout
 
 \begin_layout Standard
-Even given these restricted query forms, reasoning still requires first-order
- logic and is thus only semi-decidable in general.
- Practical systems implemented on top of the situation calculus typically
- enforce additional restrictions on the domain in order to gain decidability.
-\end_layout
-
-\begin_layout Standard
-A common restriction is to assume that the 
-\noun on
-Action
-\noun default
- and 
-\noun on
-Object
-\noun default
- domains are finite.
- This allows quantification over these variables to be replaced with finite
- conjunctions or disjunctions, essentially 
-\begin_inset Quotes eld
-\end_inset
-
-propositionalising
-\begin_inset Quotes erd
-\end_inset
-
- the domain 
+While few useful queries happen to precisely match these restricted forms,
+ it is possible to answer quite broad classes of query by 
+\emph on
+transforming
+\emph default
+ them into such a form.
+ This insight is at the heart of the principle tool for effective reasoning
+ in the situation calculus: regression 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "giacomo99impl_robots,reiter01kia,levesque04krr_book"
+key "reiter91frameprob"
 
 \end_inset
 
-.
- Both static domain and initial situation reasoning can then be performed
- using propositional logic, which is decidable.
- This may also be combined with special-purpose decision procedures for
- particular objects in the domain, such as deciding linear constraints over
- the integers or reals 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "reiter96sc_nat_conc,reiter01kia"
 
-\end_inset
-
-.
-\end_layout
-
-\begin_layout Standard
-A similar, but slightly less onerous restriction, is to ensure that the
- construction of function terms is well-founded 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "levesque04krr_book"
-
-\end_inset
-
-.
- This prevents building the arbitrarily-nested terms from the Herbrand universe
- that cause non-termination in first-order theorem provers, again gaining
- decidability.
-\end_layout
-
-\begin_layout Standard
-Recent work by 
-\begin_inset CommandInset citation
-LatexCommand citet
-key "yu07twovar_sitcalc"
-
-\end_inset
-
- has shown how to model some situation calculus domains using to the two-variabl
-e fragment of first-order logic.
- Since this fragment is decidable in general, both static domain and initial
- situation reasoning are decidable in such domains.
 \end_layout
 
 \begin_layout Subsection
@@ -1718,23 +1662,22 @@ Regression
 \end_layout
 
 \begin_layout Standard
-The principle tool for effective reasoning in the situation calculus is
- the regression meta-operator 
+The regression meta-operator 
 \begin_inset Formula $\Reg_{\Dt}$
 \end_inset
 
-, a syntactic manipulation that encodes the preconditions and effects of
- actions into the query itself, meaning fewer axioms are needed for the
+ is a syntactic manipulation that encodes the preconditions and effects
+ of actions into the query itself, meaning fewer axioms are needed for the
  final reasoning task 
 \begin_inset CommandInset citation
 LatexCommand citep
-key "pirri99contributions_sitcalc"
+key "reiter91frameprob,pirri99contributions_sitcalc"
 
 \end_inset
 
 .
  The idea is to reduce a query about some future situation to a query about
- the initial situation only.
+ the initial situation only, which is much easier to answer.
 \end_layout
 
 \begin_layout Standard
@@ -1758,17 +1701,15 @@ key "scherl03sc_knowledge"
 \end_inset
 
  which operates one action at a time.
- We use the single-step variant as it is the more expressive of the two
- -- while it is straightforward to define the single-pass operator in terms
- of the single-step operator, the reverse is not the case.
+ We use the single-step variant as it is the more expressive of the two;
+ the single-pass operator can be seen as the transitive closure of the single-st
+ep operator.
 \end_layout
 
 \begin_layout Standard
 Regression is only defined for formulae that are 
 \emph on
-regressable
-\emph default
-.
+regressable:
 \end_layout
 
 \begin_layout Labelled Definition
@@ -1839,12 +1780,11 @@ Regressable formulae are more general than uniform formulae.
 \end_layout
 
 \begin_layout Standard
-The regression operator is then defined using a series of 
+The regression operator is defined using a series of 
 \emph on
 regression rules
 \emph default
- such as those shown below, which mirror the structural definition of regressabl
-e formulae.
+ such as those shown below, mirroring the structure of regressable formulae:
 \end_layout
 
 \begin_layout Labelled Definition
@@ -1935,35 +1875,6 @@ unwinding
 \end_inset
 
 , it is left unchanged.
-\end_layout
-
-\begin_layout Standard
-When dealing with situation-suppressed uniform formulae, we will use a two-argum
-ent operator 
-\begin_inset Formula $\Reg_{\Dt}(\phi,a)$
-\end_inset
-
- to indicate the regression of 
-\begin_inset Formula $\phi$
-\end_inset
-
- over the action 
-\begin_inset Formula $a$
-\end_inset
-
-.
- It should be read as a shorthand for 
-\begin_inset Formula $\Reg_{\Dt}(\phi[do(a,s)])^{-1}$
-\end_inset
-
- using the situation-suppression operator from Section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Background"
-
-\end_inset
-
-.
 \end_layout
 
 \begin_layout Standard
@@ -2068,12 +1979,7 @@ projection problem
 \begin_inset Formula $\Reg_{\Dt}^{*}(\phi)$
 \end_inset
 
- holds in the initial situation.
- As discussed above, queries uniform in 
-\begin_inset Formula $S_{0}$
-\end_inset
-
- are much easier to answer.
+ holds in the initial situation, a much simpler query to answer.
  The axioms 
 \begin_inset Formula $\Dt_{ad}$
 \end_inset
@@ -2103,8 +2009,8 @@ key "levesque97golog,pirri99contributions_sitcalc"
 
 \end_inset
 
- and there are techniques to ameliorate the resulting increase in query
- size 
+, particularly when combined with techniques to overcome the resulting increase
+ in query size 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "vandtmarsh07optimal_regression"
@@ -2114,14 +2020,21 @@ key "vandtmarsh07optimal_regression"
 .
 \end_layout
 
+\begin_layout Standard
+Unfortunately, this powerful technqiue cannot be applied to formular that
+ are not regressable -- and since they contain universal quantification
+ over situation terms, property persistence queries fall squarely into this
+ category.
+\end_layout
+
 \begin_layout Subsection
 Inductive Reasoning
 \end_layout
 
 \begin_layout Standard
 While there is a rich and diverse literature base for the situation calculus,
- there appears to have been little work on queries that universally quantifiy
- over situation terms, such as those we are interested in in this paper.
+ there appears to have been little work on queries that universally quantify
+ over situation terms.
  
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -2131,23 +2044,39 @@ key "Reiter93proving"
 
  has shown why the induction axiom cannot in general be eliminated when
  proving such statements, demonstrating the use of the axiom in manual proofs
- but offering no procedure for answering such queries automatically.
+ but offering no automated procedure.
 \end_layout
 
 \begin_layout Standard
-Other work considering queries that universally quantify over situations
- focuses exclusively on verifying state constraints.
- These are uniform formulae that must hold in every possible situation,
- a highly specialised form of the more general persistence queries we define
- in this paper.
- The work of 
+Other work on universally-quantified queries focuses on highly specialised
+ applications, such as verifying state constraints 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "Lin94-StateConstraints,bertossi96automating"
+
+\end_inset
+
+ or studying properties of ConGolog programs 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "ternovska97congolog_fixpoint,ternovska02congolog_model_checker,classen08golog_properties"
+
+\end_inset
+
+.
+ While these works have produced useful results, they are typically intended
+ as stand-alone techniques rather than general reasoning tools for the situation
+ calculus.
+\end_layout
+
+\begin_layout Standard
 \begin_inset CommandInset citation
 LatexCommand citet
 key "Lin94-StateConstraints"
 
 \end_inset
 
- shows that the induction axiom can be 
+ have shown that the induction axiom can be 
 \begin_inset Quotes eld
 \end_inset
 
@@ -2156,6 +2085,9 @@ compiled away
 \end_inset
 
  when verifying a state constraint, by means of the following equivalence:
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 \Dt\,\models\,\phi[S_{0}]\rightarrow\left(\forall s:\, S_{0}\leq s\rightarrow\phi[s]\right)\\
 \mathit{iff}\\
@@ -2167,14 +2099,13 @@ compiled away
 \begin_inset Formula $\Dt_{una}$
 \end_inset
 
- here performs the same role as our background axioms 
+ here is equivalent our background axioms 
 \begin_inset Formula $\Dt_{bg}$
 \end_inset
 
- but contains only the unique names axioms for actions.
- Verification of a state constraint can thus be reduced to reasoning about
- a universally quantified uniform formula using only the static background
- theory, a comparatively straightforward reasoning task which we call 
+.
+ Verification of a state constraint can thus be reduced to the comparatively
+ straightforward task of 
 \emph on
 static domain reasoning
 \emph default
@@ -2191,27 +2122,10 @@ key "bertossi96automating"
 \end_layout
 
 \begin_layout Standard
-However, there are many issues that are not addressed by work specific to
- state constraints.
- What if we are interested in the future of some arbitrary situation 
-\begin_inset Formula $\sigma$
-\end_inset
+\begin_inset Note Greyedout
+status open
 
-, rather than only 
-\begin_inset Formula $S_{0}$
-\end_inset
-
-? What if want to restrict future actions according to an arbitrary action
- description predicate? Can we integrate a method for handling universally-quant
-ified queries with existing regression techniques? Our treatment of property
- persistence can provide a concrete basis for these considerations, and
- is hence significantly more general than this existing work.
-\end_layout
-
-\begin_layout Standard
-Another field that deals with induction over situations is the verification
- of ConGolog programs.
- 
+\begin_layout Plain Layout
 \begin_inset CommandInset citation
 LatexCommand citet
 key "ternovska97congolog_fixpoint"
@@ -2219,8 +2133,8 @@ key "ternovska97congolog_fixpoint"
 \end_inset
 
  show how to formulate various safety, liveness, and starvation properties
- of a ConGolog program as fixpoint queries in second-order logic.
- A preliminary model-checker capable of verifying these properties is described
+ of a ConGolog program as fixpoint queries in second-order logic, and a
+ preliminary model-checker capable of verifying these properties is described
  in 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -2245,16 +2159,27 @@ key "classen08golog_properties"
  iterative fixpoint computation similar to the one we propose in this paper.
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
-As we shall see, property persistence queries are equivalent to a particular
- kind of safety property of a ConGolog program, so our work is in some ways
- less general than that described above.
- This means, however, that we can be more specific in our algorithm and
- approach.
- These ConGolog verifiers are designed to operate in isolation, while we
- seek a method of handling universally-quantified queries that can integrate
- directly with the existing meta-theoretical reasoning machinery of the
- situation calculus, in particular with the regression operator.
+However, there are many issues that are not addressed by work dedicated
+ to these specific areas.
+ What if we are interested in the future of some arbitrary situation 
+\begin_inset Formula $\sigma$
+\end_inset
+
+, rather than only 
+\begin_inset Formula $S_{0}$
+\end_inset
+
+? What if restrict future actions according to an arbitrary action description
+ predicate? Can we integrate a method for handling universally-quantified
+ queries with existing regression techniques? Our treatment of property
+ persistence can provide a concrete basis for these considerations, and
+ is hence significantly more general than existing work.
 \end_layout
 
 \begin_layout Standard
@@ -2907,7 +2832,7 @@ We next formalise some basic relationships between
 \begin_inset Formula $\Pst_{\Dt}^{n}$
 \end_inset
 
-.
+:
 \end_layout
 
 \begin_layout Lemma
@@ -3307,7 +3232,7 @@ reference "lem:p-implies-pn"
 
 \end_inset
 
- this implication is an equivalence, yielding equation (
+ this is an equivalence, yielding equation (
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "eqn:pn_equiv_persists"
@@ -3322,7 +3247,7 @@ The
 \emph on
 only if
 \emph default
- direction is a straightforward reversal of this reasoning: 
+ direction is a straightforward reversal of this reasoning process: 
 \begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
 \end_inset
 
@@ -3505,8 +3430,7 @@ monotone decreasing
 \begin_inset Formula $\phi$
 \end_inset
 
-, which can be determined by transfinite iteration of the application of
- 
+, which can be found by transfinite iteration of applications of 
 \begin_inset Formula $\PstDI$
 \end_inset
 
@@ -3518,7 +3442,7 @@ reference "thm:p(pn)-equiv-p"
 
 \end_inset
 
-, this fixpoint is the equivalence class of 
+ this fixpoint is the equivalence class of 
 \begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
 \end_inset
 
@@ -3531,7 +3455,7 @@ reference "thm:p(pn)-equiv-p"
 \end_layout
 
 \begin_layout Standard
-This theorem legitemises the use of the persistence condition for reasoning
+This theorem legitimises the use of the persistence condition for reasoning
  about property persistence queries -- for any persistence query at situation
  
 \begin_inset Formula $\sigma$
@@ -3624,6 +3548,12 @@ reference "alg:calc_p"
 \end_inset
 
  presents an iterative procedure for doing just that.
+ Note that the calculation of 
+\begin_inset Formula $\Pst_{\Dt}^{1}(\phi,\alpha)$
+\end_inset
+
+ is a straightforward syntactic transformation, so we do not present an
+ algorithm for it.
 \end_layout
 
 \begin_layout Standard
@@ -3825,15 +3755,6 @@ end{algorithmic}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-Note that the calculation of 
-\begin_inset Formula $\Pst_{\Dt}^{1}(\phi,\alpha)$
-\end_inset
-
- is a straightforward syntactic transformation, so we do not present an
- algorithm for it.
 \end_layout
 
 \begin_layout Subsection
@@ -4439,7 +4360,7 @@ As the owners of the gold, we want to ensure that the thief cannot steal
 \end_inset
 
 ) through a series of actions that are not detected by the security camera
- (the action description predictae 
+ (the action description predicate 
 \begin_inset Formula $Undet$
 \end_inset
 
@@ -5417,7 +5338,7 @@ Axioms for the
 \begin_inset Quotes eld
 \end_inset
 
-Gold Theif
+Gold Thief
 \begin_inset Quotes erd
 \end_inset
 
@@ -5588,7 +5509,7 @@ Some straightforward simplifications can be applied at this stage.
 \begin_inset Formula $\forall a$
 \end_inset
 
- quanification can be replaced with a finite conjunction:
+ quantification can be replaced with a finite conjunction:
 \end_layout
 
 \begin_layout Standard
