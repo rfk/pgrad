@@ -61,27 +61,17 @@
 
  
 \begin_inset FormulaMacro
-\newcommand{\Reg}{\mathcal{R}}
+\newcommand{\Reg}{\mathcal{R}_{\Dt}}
 \end_inset
 
  
 \begin_inset FormulaMacro
-\newcommand{\Pst}{\mathcal{P}}
+\newcommand{\Pst}{\mathcal{P}_{\Dt}}
 \end_inset
 
  
 \begin_inset FormulaMacro
 \newcommand{\vars}[1]{\bar{#1}}
-\end_inset
-
- 
-\begin_inset FormulaMacro
-\newcommand{\PstD}{\Pst_{\Dt}}
-\end_inset
-
- 
-\begin_inset FormulaMacro
-\newcommand{\PstDI}{\Pst_{\Dt}^{1}}
 \end_inset
 
  
@@ -96,7 +86,7 @@
 
 
 \begin_inset FormulaMacro
-\newcommand{\PstDN}[1]{\mathcal{P}_{\mathcal{D}}^{#1}}
+\newcommand{\PstN}[1]{\Pst^{#1}}
 \end_inset
 
 
@@ -226,12 +216,8 @@ key "Reiter93proving"
 .
  But if queries are restricted to certain syntactic forms, it is possible
  obtain much more effective reasoning procedures -- for example, queries
- restricted to 
-\emph on
-existential
-\emph default
- quantification over situations can be answered using only first-order logic
- 
+ restricted to existential quantification over situations can be answered
+ using only first-order logic 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "pirri99contributions_sitcalc"
@@ -294,7 +280,7 @@ The need for second-order logic has traditionally limited automated reasoning
  We introduce a new approach to property persistence that is similar in
  spirit to the standard regression operator, by defining a meta-level operator
  
-\begin_inset Formula $\PstD$
+\begin_inset Formula $\Pst$
 \end_inset
 
  such that 
@@ -306,7 +292,7 @@ The need for second-order logic has traditionally limited automated reasoning
 \end_inset
 
  if and only if 
-\begin_inset Formula $\PstD(\phi)$
+\begin_inset Formula $\Pst(\phi)$
 \end_inset
 
  holds at 
@@ -340,7 +326,7 @@ factored out
 \begin_inset Quotes erd
 \end_inset
 
- of queries and handled using a special-purpose algorithm.
+ and handled using a special-purpose algorithm.
  The technique is sound and complete for property persistence queries, and
  the fixpoint calculation provably terminates in several interesting cases.
  Perhaps most importantly, it builds upon and integrates well with the current
@@ -357,19 +343,19 @@ key "kelly07sc_persistence"
 
 \end_inset
 
-; this extended edition includes more detailed and additional proofs, a
- more comprehensive discussion of the termination properties of our algorithm,
- and a detailed example of how the persistence condition can be used to
- reason about goal impossibility -- a deceptively simple task which is nonethele
-ss outside the scope of existing reasoning techniques.
+; this revised edition includes extended and additional proofs, a more comprehen
+sive discussion of the termination properties of our algorithm, and a detailed
+ example of how the persistence condition can be used to reason about goal
+ impossibility -- a deceptively simple task which is nonetheless beyond
+ the reach of existing reasoning techniques.
 \end_layout
 
 \begin_layout Standard
 The paper now proceeds with a brief review of the situation calculus, before
  formally defining the persistence condition and establishing its effectiveness
  as a reasoning tool.
- Readers familiar with the situation calculus are still encouraged to review
- the background material in Sections 
+ Readers familiar with the situation calculus are encouraged to review the
+ background material in Sections 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Persistence:Background"
@@ -728,18 +714,13 @@ The meta-variable
 \end_inset
 
  inserted into all its fluents, replacing whatever situation term was previously
- there, while 
-\begin_inset Formula $\phi^{-1}$
-\end_inset
-
- represents a uniform formula with the situation argument removed from all
- its fluents.
- Note that these are simply syntactic shorthands designed to keep the presentati
-on clean and readable -- they are 
+ there.
+ Note that this is simply a syntactic shorthands designed to keep the presentati
+on clean and readable -- it is 
 \emph on
 not
 \emph default
- terms or operators from the logic itself.
+ an operation from the logic itself.
 \begin_inset Newline newline
 \end_inset
 
@@ -1027,7 +1008,7 @@ The foundational axioms
 \begin_inset Formula $a$
 \end_inset
 
- in situaion 
+ in situation 
 \begin_inset Formula $s$
 \end_inset
 
@@ -1170,7 +1151,7 @@ key "Reiter93proving"
 Property Persistence Queries
 \begin_inset CommandInset label
 LatexCommand label
-name "sec:Persistence:Definitions"
+name "sec:Persistence-Queries"
 
 \end_inset
 
@@ -1461,6 +1442,13 @@ key "vanBentham06tree_of_knowledge,kelly07sc_know_obs"
 \end_layout
 
 \begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 As a more detailed example, which we will revisit in Section 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -1468,24 +1456,116 @@ reference "sec:Example:"
 
 \end_inset
 
-, consider the following 
-\begin_inset Quotes eld
-\end_inset
-
-gold thief
-\begin_inset Quotes erd
-\end_inset
-
- domain.
+, consider a domain in which a thief may try to steal some gold from a safe.
+ There is a light in the room, and a security camera that will detect the
+ thief's actions as long as the light is on.
+ The safe can be open or closed, but the gold can only be stolen if the
+ safe is open.
+ It is possible for the thief to crack the safe and force it open, but only
+ if the light is on.
+ 
 \end_layout
 
 \begin_layout Standard
-While the situation calculus makes it straightforward to 
+The actions in this domain are 
+\begin_inset Formula $takeGold$
+\end_inset
+
+, 
+\begin_inset Formula $crackSafe$
+\end_inset
+
+ and 
+\begin_inset Formula $toggleLight$
+\end_inset
+
+, the primitive fluents are 
+\begin_inset Formula $SafeOpen$
+\end_inset
+
+, 
+\begin_inset Formula $LightOn$
+\end_inset
+
+ and 
+\begin_inset Formula $Stolen$
+\end_inset
+
+, and the action description predicates include the standard 
+\begin_inset Formula $Poss(a,s)$
+\end_inset
+
+ and and a custom predicate 
+\begin_inset Formula $Undet(a,s)$
+\end_inset
+
+ indicating that action 
+\begin_inset Formula $a$
+\end_inset
+
+ would not be detected by the security camera.
+ The complete axioms can be found in Appendix 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "apdx:Axioms"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+As the owners of the gold, we would like to ensure that the thief cannot
+ steal it.
+ Unfortunately this is not possible, as nothing prevents him from simply
+ cracking the safe and taking the gold.
+ We can, however, ensure that the thief cannot take steal the gold 
 \emph on
-express
+undetected.
+
 \emph default
- property persistence queries such as these, it currently offers no tools
- for answering them effectively.
+ Formally, we want to establish that 
+\begin_inset Quotes eld
+\end_inset
+
+no sequence of undetected actions results in the gold being stolen
+\begin_inset Quotes erd
+\end_inset
+
+:
+\begin_inset Formula \[
+\Dt\,\models\,\forall s:\, S_{0}\leq_{Undet}s\,\rightarrow\,\neg Stolen(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+Intuitively, this will be the case as long as the gold is not already stolen,
+ and either the light is on (so the thief's actions will be detected) or
+ the safe is closed (so the thief must switch on the light to crack it):
+\begin_inset Formula \[
+\Dt_{bg}\cup\Dt_{S_{0}}\,\models\,\neg Stolen(S_{0})\wedge\left[\neg SafeOpen(S_{0})\vee LightOn(S_{0})\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+A manual proof of this simple domain property is straightforward, but it
+ is beyond the reach of the standard automated reasoning tools of the situation
+ calculus.
  The difficulty, as we shall explore in the next section, stems from the
  use of a second-order induction axiom to define the set of all situations.
 \end_layout
@@ -1504,25 +1584,23 @@ name "sec:Effective-Reasoning"
 \begin_layout Standard
 An important feature of the situation calculus is the existence of effective
  reasoning procedures for certain types of query.
- These are generally based on syntactic manipulation of a query into a form
- that is more amenable to automated reasoning, for example because it can
- be proven without using some of the axioms from the basic action theory.
-\end_layout
-
-\begin_layout Standard
-In the general case, answering a query about a basic action theory 
+ In the general case, answering a query about a basic action theory 
 \begin_inset Formula $\Dt$
 \end_inset
 
  is a theorem-proving task in second-order logic (denoted SOL) due to the
- induction axiom included in the foundational axioms:
+ induction axiom:
 \begin_inset Formula \[
 \Dt\models_{SOL}\psi\]
 
 \end_inset
 
- This is clearly problematic for effective automated reasoning.
- Fortunately, restricting the syntactic form of queries can permit us to
+ 
+\end_layout
+
+\begin_layout Standard
+This is clearly problematic for effective automated reasoning.
+ Fortunately, restricting the syntactic form of queries can allow us to
  discard some axioms from 
 \begin_inset Formula $\Dt$
 \end_inset
@@ -1548,8 +1626,10 @@ existential
 \end_inset
 
 ) and thus using only first-order logic (FOL):
-\begin_inset Formula \[
-\Dt\models_{SOL}\exists s:\,\psi(s)\,\,\,\,\,\,\mathrm{iff}\,\,\,\,\,\,\Dt-\{I\}\models_{FOL}\exists s:\,\psi(s)\]
+\begin_inset Formula \begin{gather*}
+\Dt\models_{SOL}\exists s:\,\psi(s)\\
+\mathrm{iff}\\
+\Dt-\{I\}\models_{FOL}\exists s:\,\psi(s)\end{gather*}
 
 \end_inset
 
@@ -1595,26 +1675,27 @@ Since the axioms in
 \begin_inset Formula $\phi$
 \end_inset
 
- will be entailed for all 
+ will hold for all 
 \begin_inset Formula $s$
 \end_inset
 
- if and only if it is entailed for some 
+ if and only if it holds for some 
 \begin_inset Formula $s$
 \end_inset
 
 .
  This is a major improvement because universal quantification over situation
  terms usually requires the second-order induction axiom.
- Their work has shown that this requirement can be circumvented in some
- cases.
+ Their work has shown that induction can be circumvented in some cases.
 \end_layout
 
 \begin_layout Standard
 Simpler still are queries uniform in the initial situation, which can be
  answered using only first-order logic and a limited set of axioms:
-\begin_inset Formula \[
-\Dt\models_{SOL}\phi[S_{0}]\,\,\,\,\,\mathit{\mathrm{iff}}\,\,\,\,\,\Dt_{S_{0}}\cup\Dt_{bg}\models_{FOL}\phi[S_{0}]\]
+\begin_inset Formula \begin{gather*}
+\Dt\models_{SOL}\phi[S_{0}]\\
+\mathrm{iff}\\
+\Dt_{S_{0}}\cup\Dt_{bg}\models_{FOL}\phi[S_{0}]\end{gather*}
 
 \end_inset
 
@@ -1647,14 +1728,7 @@ transforming
 \emph default
  them into such a form.
  This insight is at the heart of the principle tool for effective reasoning
- in the situation calculus: regression 
-\begin_inset CommandInset citation
-LatexCommand citep
-key "reiter91frameprob"
-
-\end_inset
-
-
+ in the situation calculus: regression.
 \end_layout
 
 \begin_layout Subsection
@@ -1663,7 +1737,7 @@ Regression
 
 \begin_layout Standard
 The regression meta-operator 
-\begin_inset Formula $\Reg_{\Dt}$
+\begin_inset Formula $\Reg$
 \end_inset
 
  is a syntactic manipulation that encodes the preconditions and effects
@@ -1702,8 +1776,8 @@ key "scherl03sc_knowledge"
 
  which operates one action at a time.
  We use the single-step variant as it is the more expressive of the two;
- the single-pass operator can be seen as the transitive closure of the single-st
-ep operator.
+ the single-pass operator can be trivially constructed as the transitive
+ closure of the single-step operator.
 \end_layout
 
 \begin_layout Standard
@@ -1826,18 +1900,18 @@ Operator Let
 \end_inset
 
 , denoted 
-\begin_inset Formula $\Reg_{\Dt}(\phi)$
+\begin_inset Formula $\Reg(\phi)$
 \end_inset
 
 , is defined according to the following structural rules:
 \begin_inset Formula \begin{gather*}
-\Reg_{\Dt}(\varphi_{1}\wedge\varphi_{2})\,\isdef\,\Reg_{\Dt}(\varphi_{1})\wedge\Reg_{\Dt}(\varphi_{2})\\
-\Reg_{\Dt}(\exists x:\,\varphi)\,\isdef\,\exists x:\,\Reg_{\Dt}(\varphi)\\
-\Reg_{\Dt}(\neg\varphi)\,\isdef\,\neg\Reg_{\Dt}(\varphi)\\
-\Reg_{\Dt}(\alpha(\vars{\tau},a,\sigma))\,\isdef\,\Reg_{\Dt}(\Pi_{\alpha}(\vars{\tau},a,\sigma))\\
-\Reg_{\Dt}(F(\vars{\tau},do(a,\sigma)))\,\isdef\,\Phi_{F}(\vars{\tau},a,\sigma)\\
-\Reg_{\Dt}(F(\vars{\tau},s))\,\isdef\, F(\vars{\tau},s)\\
-\Reg_{\Dt}(F(\vars{\tau},S_{0}))\,\isdef\, F(\vars{\tau},S_{0})\end{gather*}
+\Reg(\varphi_{1}\wedge\varphi_{2})\,\isdef\,\Reg(\varphi_{1})\wedge\Reg(\varphi_{2})\\
+\Reg(\exists x:\,\varphi)\,\isdef\,\exists x:\,\Reg(\varphi)\\
+\Reg(\neg\varphi)\,\isdef\,\neg\Reg(\varphi)\\
+\Reg(\alpha(\vars{\tau},a,\sigma))\,\isdef\,\Reg(\Pi_{\alpha}(\vars{\tau},a,\sigma))\\
+\Reg(F(\vars{\tau},do(a,\sigma)))\,\isdef\,\Phi_{F}(\vars{\tau},a,\sigma)\\
+\Reg(F(\vars{\tau},s))\,\isdef\, F(\vars{\tau},s)\\
+\Reg(F(\vars{\tau},S_{0}))\,\isdef\, F(\vars{\tau},S_{0})\end{gather*}
 
 \end_inset
 
@@ -1846,7 +1920,7 @@ Operator Let
 
 \begin_layout Standard
 The key point here is that each application of 
-\begin_inset Formula $\Reg_{\Dt}$
+\begin_inset Formula $\Reg$
 \end_inset
 
  replaces action description predicates with their definitions from 
@@ -1888,7 +1962,7 @@ For
 \end_inset
 
  a regressable formula, 
-\begin_inset Formula $\Dt\,\models\,\varphi\,\equiv\,\Reg_{\Dt}(\varphi)$
+\begin_inset Formula $\Dt\,\models\,\varphi\,\equiv\,\Reg(\varphi)$
 \end_inset
 
  
@@ -1916,7 +1990,7 @@ For
 \end_inset
 
 , 
-\begin_inset Formula $\Reg_{\Dt}(\phi)$
+\begin_inset Formula $\Reg(\phi)$
 \end_inset
 
  is uniform in 
@@ -1928,11 +2002,11 @@ For
 
 \begin_layout Standard
 Let 
-\begin_inset Formula $\Reg_{\Dt}^{*}$
+\begin_inset Formula $\Reg^{*}$
 \end_inset
 
  denote repeated applications of 
-\begin_inset Formula $\Reg_{\Dt}$
+\begin_inset Formula $\Reg$
 \end_inset
 
  until the formula remains unchanged.
@@ -1954,7 +2028,7 @@ For
 ,
 \emph default
  
-\begin_inset Formula $\Reg_{\Dt}^{*}(\phi)$
+\begin_inset Formula $\Reg^{*}(\phi)$
 \end_inset
 
  is uniform in 
@@ -1976,7 +2050,7 @@ projection problem
 \end_inset
 
  holds in a given future situation, it suffices to determine whether 
-\begin_inset Formula $\Reg_{\Dt}^{*}(\phi)$
+\begin_inset Formula $\Reg^{*}(\phi)$
 \end_inset
 
  holds in the initial situation, a much simpler query to answer.
@@ -2009,7 +2083,7 @@ key "levesque97golog,pirri99contributions_sitcalc"
 
 \end_inset
 
-, particularly when combined with techniques to overcome the resulting increase
+, particularly when combined with techniques to limit the resulting increase
  in query size 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -2021,10 +2095,21 @@ key "vandtmarsh07optimal_regression"
 \end_layout
 
 \begin_layout Standard
-Unfortunately, this powerful technqiue cannot be applied to formular that
- are not regressable -- and since they contain universal quantification
- over situation terms, property persistence queries fall squarely into this
- category.
+Unfortunately, this powerful technique cannot be applied to formulae that
+ are not regressable.
+ Its operation depends crucially on knowing how many actions there are in
+ each situation term, so that each action can be 
+\begin_inset Quotes eld
+\end_inset
+
+unwound
+\begin_inset Quotes erd
+\end_inset
+
+ from the query in turn.
+ Queries that universally quantify over situations, such as the property
+ persistence queries of interest in this paper, fall squarely outside the
+ reach of standard regression techniques.
 \end_layout
 
 \begin_layout Subsection
@@ -2085,13 +2170,10 @@ compiled away
 \end_inset
 
  when verifying a state constraint, by means of the following equivalence:
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 \Dt\,\models\,\phi[S_{0}]\rightarrow\left(\forall s:\, S_{0}\leq s\rightarrow\phi[s]\right)\\
 \mathit{iff}\\
-\Dt_{una}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(Poss(a,s))\,\rightarrow\,\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
+\Dt_{una}\models\forall s,a:\,\phi[s]\wedge\Reg(Poss(a,s))\,\rightarrow\,\Reg(\phi[do(a,s)])\end{gather*}
 
 \end_inset
 
@@ -2099,7 +2181,7 @@ compiled away
 \begin_inset Formula $\Dt_{una}$
 \end_inset
 
- here is equivalent our background axioms 
+ here is equivalent to our background axioms 
 \begin_inset Formula $\Dt_{bg}$
 \end_inset
 
@@ -2122,19 +2204,17 @@ key "bertossi96automating"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Greyedout
-status open
-
-\begin_layout Plain Layout
+Formulating various safety, liveness and starvation properties of ConGolog
+ programs also requires universal quantification over situations.
+ 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "ternovska97congolog_fixpoint"
 
 \end_inset
 
- show how to formulate various safety, liveness, and starvation properties
- of a ConGolog program as fixpoint queries in second-order logic, and a
- preliminary model-checker capable of verifying these properties is described
+ show how to re-cast these properties as fixpoint queries in second-order
+ logic, and a preliminary model-checker capable of verifying them is described
  in 
 \begin_inset CommandInset citation
 LatexCommand citep
@@ -2150,23 +2230,13 @@ key "classen08golog_properties"
 
 \end_inset
 
- develop a logic of ConGolog programs in 
-\begin_inset Formula $\mathcal{ES}$
-\end_inset
-
-, a variant of the situation calculus based on modal logic.
- They demonstrate that properties of a program can be verified using an
- iterative fixpoint computation similar to the one we propose in this paper.
-\end_layout
-
-\end_inset
-
-
+ have developed a logic of ConGolog programs based on an iterative fixpoint
+ computation similar to the one we propose in this paper.
 \end_layout
 
 \begin_layout Standard
-However, there are many issues that are not addressed by work dedicated
- to these specific areas.
+However, there are many issues that are not addressed by these highly specialise
+d works.
  What if we are interested in the future of some arbitrary situation 
 \begin_inset Formula $\sigma$
 \end_inset
@@ -2175,8 +2245,8 @@ However, there are many issues that are not addressed by work dedicated
 \begin_inset Formula $S_{0}$
 \end_inset
 
-? What if restrict future actions according to an arbitrary action description
- predicate? Can we integrate a method for handling universally-quantified
+? What if we restrict future actions according to an arbitrary action descriptio
+n predicate? Can we integrate a method for handling universally-quantified
  queries with existing regression techniques? Our treatment of property
  persistence can provide a concrete basis for these considerations, and
  is hence significantly more general than existing work.
@@ -2255,7 +2325,7 @@ Formally, we seek a method for transforming a uniform formula
 \end_inset
 
  into a uniform formula 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  that is true at precisely the situations in which 
@@ -2296,7 +2366,7 @@ Condition The persistence condition of
 \end_inset
 
 , denoted 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
 , is a uniform formula that is equivalent to the persistence of 
@@ -2321,7 +2391,7 @@ name "def:persistence-condition"
 
 
 \begin_inset Formula \[
-\Dt-\Dt_{S_{0}}\models\forall s:\,\left(\Pst_{\Dt}(\phi,\alpha)[s]\,\equiv\,\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\]
+\Dt-\Dt_{S_{0}}\models\forall s:\,\left(\Pst(\phi,\alpha)[s]\,\equiv\,\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\]
 
 \end_inset
 
@@ -2330,7 +2400,7 @@ name "def:persistence-condition"
 
 \begin_layout Standard
 Defining 
-\begin_inset Formula $\Pst_{\Dt}$
+\begin_inset Formula $\Pst$
 \end_inset
 
  to be independent of the initial world state allows it to be calculated
@@ -2385,7 +2455,7 @@ Depth
 \end_inset
 
  when the formula 
-\begin_inset Formula $\Pst_{\Dt}^{1}(\phi,\alpha)[s]$
+\begin_inset Formula $\PstN 1(\phi,\alpha)[s]$
 \end_inset
 
  holds, as defined by:
@@ -2397,7 +2467,7 @@ name "def:persists-depth-n"
 
 
 \begin_inset Formula \[
-\Pst_{\Dt}^{1}(\phi,\alpha)\,\isdef\,\phi^{-1}\,\wedge\,\forall a:\,\Reg_{\Dt}(\alpha[a,s])^{-1}\rightarrow\Reg_{\Dt}(\phi[do(a,s)])^{-1}\]
+\PstN 1(\phi,\alpha)[s]\,\isdef\,\phi[s]\,\wedge\,\forall a:\,\Reg(\alpha[a,s])\rightarrow\Reg(\phi[do(a,s)])\]
 
 \end_inset
 
@@ -2406,7 +2476,7 @@ name "def:persists-depth-n"
 
 \begin_layout Standard
 Note that 
-\begin_inset Formula $\Pst_{\Dt}^{1}$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  is equivalent to the following literal encoding of the requirement 
@@ -2427,7 +2497,7 @@ Note that
 
 :
 \begin_inset Formula \[
-\PstDI(\phi,\alpha)[s]\,\equiv\,\phi[s]\,\wedge\,\forall a:\,\alpha[a,s]\,\rightarrow\,\phi[do(a,s)]\]
+\PstN 1(\phi,\alpha)[s]\,\equiv\,\phi[s]\,\wedge\,\forall a:\,\alpha[a,s]\,\rightarrow\,\phi[do(a,s)]\]
 
 \end_inset
 
@@ -2435,16 +2505,7 @@ Note that
 \end_layout
 
 \begin_layout Standard
-The use of 
-\begin_inset Formula $\Reg_{\Dt}$
-\end_inset
-
- and 
-\begin_inset Formula $\phi^{-1}$
-\end_inset
-
- allow our definition to produce a situation-suppressed uniform formula.
- Since 
+Since 
 \begin_inset Formula $\alpha$
 \end_inset
 
@@ -2453,16 +2514,20 @@ The use of
 \end_inset
 
  is a uniform formula, the expressions 
-\begin_inset Formula $\Reg_{\Dt}(\alpha[a,s])^{-1}$
+\begin_inset Formula $\Reg(\alpha[a,s])$
 \end_inset
 
  and 
-\begin_inset Formula $\Reg(\phi[do(a,s)])^{-1}$
+\begin_inset Formula $\Reg(\phi[do(a,s)])$
 \end_inset
 
- are always defined and always produce uniform formulae.
+ are always defined and the resulting formula is always uniform in 
+\begin_inset Formula $s$
+\end_inset
+
+.
  Successive applications of 
-\begin_inset Formula $\Pst_{\Dt}^{1}$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  can then assert persistence to greater depths:
@@ -2502,13 +2567,13 @@ N For any
 \end_inset
 
  when the formula 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)[s]$
+\begin_inset Formula $\PstN n(\phi,\alpha)[s]$
 \end_inset
 
  holds, as defined by:
 \begin_inset Formula \begin{gather*}
-\Pst_{\Dt}^{0}(\phi,\alpha)\,\isdef\,\phi\\
-\Pst_{\Dt}^{n}(\phi,\alpha)\,\isdef\,\Pst_{\Dt}^{1}(\Pst_{D}^{n-1}(\phi,\alpha),\alpha)\end{gather*}
+\PstN 0(\phi,\alpha)\,\isdef\,\phi\\
+\PstN n(\phi,\alpha)\,\isdef\,\PstN 1(\PstN{n-1}(\phi,\alpha),\alpha)\end{gather*}
 
 \end_inset
 
@@ -2517,27 +2582,23 @@ N For any
 
 \begin_layout Standard
 The following theorem confirms that 
-\begin_inset Formula $\Pst_{\Dt}^{n}$
+\begin_inset Formula $\PstN n$
 \end_inset
 
- operates according to this intuition -- that for any sequence of actions
- of length 
-\begin_inset Formula $i=0$
-\end_inset
-
- to 
-\begin_inset Formula $i=n$
+ operates according to this intuition -- for any sequence of actions of
+ length 
+\begin_inset Formula $i\leq n$
 \end_inset
 
 , if each action satisfies 
 \begin_inset Formula $\alpha$
 \end_inset
 
- in the situation it is executed in, then 
+ when it is executed, then 
 \begin_inset Formula $\phi$
 \end_inset
 
- will hold after executing those actions.
+ will hold after performing those actions.
 \end_layout
 
 \begin_layout Theorem
@@ -2546,7 +2607,7 @@ For any
 \end_inset
 
 , 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  holds in 
@@ -2582,7 +2643,7 @@ name "thm:PstN-works"
 
 
 \begin_inset Formula \begin{multline*}
-\Dt\,\models\,\Pst_{\Dt}^{n}(\phi,\alpha)[\sigma]\,\equiv\,\\
+\Dt\,\models\,\PstN n(\phi,\alpha)[\sigma]\,\equiv\,\\
 \bigwedge_{i\leq n}\forall a_{1},\dots,a_{i}:\,\left(\bigwedge_{j\leq i}\alpha[a_{j},do([a_{1},\dots,a_{j-1}],\sigma)]\,\,\rightarrow\,\,\phi[do([a_{1},\dots,a_{i}],\sigma)]\right)\end{multline*}
 
 \end_inset
@@ -2602,12 +2663,12 @@ By induction on the natural numbers.
 
  by definition.
  For the inductive case, we expand the definition of 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)[\sigma]$
+\begin_inset Formula $\PstN n(\phi,\alpha)[\sigma]$
 \end_inset
 
  to get the following for the LHS:
 \begin_inset Formula \[
-\Pst_{\Dt}^{n-1}(\phi,\alpha)[\sigma]\wedge\forall a:\,\Reg_{\Dt}(\alpha[a,\sigma])\rightarrow\Reg_{\Dt}(\Pst_{\Dt}^{n-1}(\phi,\alpha)[do(a,\sigma)])\]
+\PstN{n-1}(\phi,\alpha)[\sigma]\wedge\forall a:\,\Reg(\alpha[a,\sigma])\rightarrow\Reg(\PstN{n-1}(\phi,\alpha)[do(a,\sigma)])\]
 
 \end_inset
 
@@ -2616,7 +2677,7 @@ By induction on the natural numbers.
 
 \begin_layout Proof Sketch
 Substituting for 
-\begin_inset Formula $\Pst_{\Dt}^{n-1}$
+\begin_inset Formula $\PstN{n-1}$
 \end_inset
 
  using the inductive hypothesis gives us a conjunction ranging over 
@@ -2657,21 +2718,21 @@ reference "sec:Detailed-Proofs"
 
 \begin_layout Standard
 The 
-\begin_inset Formula $\Pst_{\Dt}^{n}$
+\begin_inset Formula $\PstN n$
 \end_inset
 
  operator thus allows us to express the persistence of a formula to any
  given depth using a simple syntactic translation based on regression.
  Intuitively, one would expect 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  to be some sort of fixpoint of 
-\begin_inset Formula $\Pst_{\Dt}^{1}(\phi,\alpha)$
+\begin_inset Formula $\PstN 1(\phi,\alpha)$
 \end_inset
 
 , since 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  must imply persistence up to any depth.
@@ -2681,16 +2742,12 @@ The
 \end_layout
 
 \begin_layout Standard
-We begin by adapting two existing results involving induction from the situation
- calculus literature, so that they operate with our generalised 
+We begin with two straightforward generalisations of results from the situation
+ calculus literature, adapting them to our 
 \begin_inset Formula $\leq_{\alpha}$
 \end_inset
 
- notation and can be based at situations other than 
-\begin_inset Formula $S_{0}$
-\end_inset
-
-.
+ notation:
 \end_layout
 
 \begin_layout Proposition
@@ -2752,7 +2809,7 @@ name "prop:a-order-reduction"
 \begin_inset Formula \begin{gather*}
 \Dt-\Dt_{S_{0}}\models\forall s:\,\phi[s]\rightarrow\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\\
 \mathrm{iff}\\
-\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
+\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg(\alpha[a,s])\rightarrow\Reg(\phi[do(a,s)])\end{gather*}
 
 \end_inset
 
@@ -2776,7 +2833,7 @@ reference "prop:a-order-induction"
 \end_inset
 
 .
- The details of this generalisation can be found in Appendix 
+ The details of this proof are reproduced in Appendix 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "sec:Detailed-Proofs"
@@ -2825,11 +2882,11 @@ if
 
 \begin_layout Standard
 We next formalise some basic relationships between 
-\begin_inset Formula $\Pst_{\Dt}$
+\begin_inset Formula $\Pst$
 \end_inset
 
  and 
-\begin_inset Formula $\Pst_{\Dt}^{n}$
+\begin_inset Formula $\PstN n$
 \end_inset
 
 :
@@ -2861,7 +2918,7 @@ name "lem:p-equiv-p(pn)"
 
 
 \begin_inset Formula \[
-\Dt-\Dt_{S_{0}}\models\forall s:\,\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\,\equiv\,\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\Pst_{D}^{n}(\phi,\alpha)[s']\right)\]
+\Dt-\Dt_{S_{0}}\models\forall s:\,\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\,\equiv\,\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\PstN n(\phi,\alpha)[s']\right)\]
 
 \end_inset
 
@@ -2874,7 +2931,7 @@ name "lem:p-equiv-p(pn)"
 \end_inset
 
  iff 
-\begin_inset Formula $\,\Pst_{\Dt}^{n}[\phi,\alpha]$
+\begin_inset Formula $\,\PstN n[\phi,\alpha]$
 \end_inset
 
  persists under 
@@ -2887,7 +2944,7 @@ name "lem:p-equiv-p(pn)"
 
 \begin_layout Proof
 Since 
-\begin_inset Formula $\Pst_{\Dt}^{n}[\phi,\alpha]$
+\begin_inset Formula $\PstN n[\phi,\alpha]$
 \end_inset
 
  implies 
@@ -2916,7 +2973,7 @@ For the base case, assume that
 \end_inset
 
  persists but 
-\begin_inset Formula $\Pst_{\Dt}^{1}(\phi,\alpha)$
+\begin_inset Formula $\PstN 1(\phi,\alpha)$
 \end_inset
 
  does not, then we must have some 
@@ -2928,12 +2985,12 @@ For the base case, assume that
 \end_inset
 
  and 
-\begin_inset Formula $\neg\Pst_{\Dt}^{1}(\phi,\alpha)[s']$
+\begin_inset Formula $\neg\PstN 1(\phi,\alpha)[s']$
 \end_inset
 
 .
  By the definition of 
-\begin_inset Formula $\Pst_{\Dt}^{1}$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
 , this means that:
@@ -2984,20 +3041,20 @@ Since
 
 \begin_layout Proof
 For the inductive case, assume that 
-\begin_inset Formula $\Pst_{\Dt}^{n-1}(\phi,\alpha)$
+\begin_inset Formula $\PstN{n-1}(\phi,\alpha)$
 \end_inset
 
  persists but 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  does not.
  By definition we have 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)=\Pst_{\Dt}^{1}(\Pst_{\Dt}^{n-1}(\phi,\alpha),\phi)$
+\begin_inset Formula $\PstN n(\phi,\alpha)=\PstN 1(\PstN{n-1}(\phi,\alpha),\phi)$
 \end_inset
 
 , and we repeat the base case proof using 
-\begin_inset Formula $\phi'=\Pst_{\Dt}^{n-1}(\phi,\alpha)$
+\begin_inset Formula $\phi'=\PstN{n-1}(\phi,\alpha)$
 \end_inset
 
  in place of 
@@ -3034,7 +3091,7 @@ name "lem:p-implies-pn"
 
 
 \begin_inset Formula \[
-\Dt-\Dt_{S_{0}}\models\forall s:\,\left(\Pst_{\Dt}(\phi,\alpha)[s]\rightarrow\Pst_{\Dt}^{n}(\phi,\alpha)[s]\right)\]
+\Dt-\Dt_{S_{0}}\models\forall s:\,\left(\Pst(\phi,\alpha)[s]\rightarrow\PstN n(\phi,\alpha)[s]\right)\]
 
 \end_inset
 
@@ -3042,7 +3099,7 @@ name "lem:p-implies-pn"
 \end_layout
 
 \begin_layout Proof
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  implies the persistence of 
@@ -3066,7 +3123,7 @@ reference "lem:p-equiv-p(pn)"
 \end_inset
 
  we have that 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  persists at 
@@ -3075,7 +3132,7 @@ reference "lem:p-equiv-p(pn)"
 
  .
  Since the persistence of 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  at 
@@ -3083,7 +3140,7 @@ reference "lem:p-equiv-p(pn)"
 \end_inset
 
  implies that 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  holds at 
@@ -3096,18 +3153,18 @@ reference "lem:p-equiv-p(pn)"
 
 \begin_layout Standard
 We are now equipped to prove the major theorem of this paper: that if 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  implies 
-\begin_inset Formula $\Pst_{\Dt}^{n+1}(\phi,\alpha)$
+\begin_inset Formula $\PstN{n+1}(\phi,\alpha)$
 \end_inset
 
 , then 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
- is the persistence condition for 
+ is equivalent to the persistence condition for 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -3144,9 +3201,9 @@ name "thm:p(pn)-equiv-p"
 
 
 \begin_inset Formula \begin{gather}
-\Dt_{bg}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\Pst_{\Dt}^{n+1}(\phi,\alpha)[s]\label{eqn:pn_persists}\\
+\Dt_{bg}\models\forall s:\,\PstN n(\phi,\alpha)[s]\rightarrow\PstN{n+1}(\phi,\alpha)[s]\label{eqn:pn_persists}\\
 \mathit{\mathrm{iff}}\nonumber \\
-\Dt-\Dt_{s_{0}}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\equiv\Pst_{\Dt}(\phi,\alpha)[s]\label{eqn:pn_equiv_persists}\end{gather}
+\Dt-\Dt_{s_{0}}\models\forall s:\,\PstN n(\phi,\alpha)[s]\equiv\Pst(\phi,\alpha)[s]\label{eqn:pn_equiv_persists}\end{gather}
 
 \end_inset
 
@@ -3166,14 +3223,14 @@ reference "eqn:pn_persists"
 \end_inset
 
  using the definition of 
-\begin_inset Formula $\Pst_{\Dt}^{1}$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  to get the equivalent form:
 \begin_inset Formula \begin{gather*}
-\Dt_{bg}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\Pst_{\Dt}^{1}(\Pst_{\Dt}^{n}(\phi,\alpha),\alpha)[s]\\
-\Dt_{bg}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\left(\Pst_{\Dt}^{n}(\phi,\alpha)[s]\wedge\forall a:\,\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\right)\\
-\Dt_{bg}\models\forall s,a:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\wedge\forall a:\,\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
+\Dt_{bg}\models\forall s:\,\PstN n(\phi,\alpha)[s]\rightarrow\PstN 1(\PstN n(\phi,\alpha),\alpha)[s]\\
+\Dt_{bg}\models\forall s:\,\PstN n(\phi,\alpha)[s]\rightarrow\left(\PstN n(\phi,\alpha)[s]\wedge\forall a:\,\Reg(\alpha[a,s])\rightarrow\Reg(\phi[do(a,s)])\right)\\
+\Dt_{bg}\models\forall s,a:\,\PstN n(\phi,\alpha)[s]\wedge\forall a:\,\Reg(\alpha[a,s])\rightarrow\Reg(\phi[do(a,s)])\end{gather*}
 
 \end_inset
 
@@ -3192,7 +3249,7 @@ reference "eqn:pn_persists"
 \end_inset
 
  thus lets us conclude that 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  persists under 
@@ -3216,12 +3273,12 @@ reference "lem:p-equiv-p(pn)"
 \end_inset
 
 , which is equivalent to 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  by definition, giving:
 \begin_inset Formula \[
-\Dt-\Dt_{s_{0}}\models\forall s:\,\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\Pst_{\Dt}(\phi,\alpha)[s]\]
+\Dt-\Dt_{s_{0}}\models\forall s:\,\PstN n(\phi,\alpha)[s]\rightarrow\Pst(\phi,\alpha)[s]\]
 
 \end_inset
 
@@ -3248,7 +3305,7 @@ The
 only if
 \emph default
  direction is a straightforward reversal of this reasoning process: 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  implies the persistence of 
@@ -3256,7 +3313,7 @@ only if
 \end_inset
 
 , which implies the persistence of 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
 , which yields equation (
@@ -3279,7 +3336,7 @@ reference "prop:a-order-reduction"
 
 \begin_layout Standard
 Since 
-\begin_inset Formula $\Dt_{bg}\models\Pst_{\Dt}^{n+1}(\phi,\alpha)\rightarrow\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\Dt_{bg}\models\PstN{n+1}(\phi,\alpha)\rightarrow\PstN n(\phi,\alpha)$
 \end_inset
 
  by definition, equation (
@@ -3290,11 +3347,11 @@ reference "eqn:pn_persists"
 \end_inset
 
 ) identifies 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  as a fixpoint of the 
-\begin_inset Formula $\Pst_{\Dt}^{1}$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  operator, as our initial intuition suggested.
@@ -3327,7 +3384,7 @@ Given a uniform formula
 \end_inset
 
 , the persistence condition 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  always exists, and is unique up to equivalence under the static background
@@ -3393,7 +3450,7 @@ Let
 \end_inset
 
 , 
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  is a function whose domain and range are the elements of 
@@ -3405,11 +3462,11 @@ Let
 
 \begin_layout Proof
 By definition, we have that 
-\begin_inset Formula $\PstDI(\phi,\alpha)\,\rightarrow\,\phi$
+\begin_inset Formula $\PstN 1(\phi,\alpha)\,\rightarrow\,\phi$
 \end_inset
 
 , and 
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  is thus a 
@@ -3422,7 +3479,7 @@ monotone decreasing
 
 .
  By the constructive proof of Tarski's fixpoint theorem, 
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  must have a unique greatest fixpoint less than the equivalence class of
@@ -3431,7 +3488,7 @@ monotone decreasing
 \end_inset
 
 , which can be found by transfinite iteration of applications of 
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
 .
@@ -3443,7 +3500,7 @@ reference "thm:p(pn)-equiv-p"
 \end_inset
 
  this fixpoint is the equivalence class of 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  under 
@@ -3482,16 +3539,16 @@ Of course, it remains to actually calculate the persistence condition for
 
 .
  The definition of 
-\begin_inset Formula $\PstD(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
- as a fixpoint suggests that it can be calculated by iterative approximation,
- which we discuss in the next section.
+ as a fixpoint suggests that it can be calculated by a simple iterative
+ approximation.
 \end_layout
 
 \begin_layout Section
 Calculating 
-\begin_inset Formula $\PstD$
+\begin_inset Formula $\Pst$
 \end_inset
 
 
@@ -3506,7 +3563,7 @@ name "sec:Persistence:Calculating"
 
 \begin_layout Standard
 Since we can easily calculate 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  for any 
@@ -3514,7 +3571,7 @@ Since we can easily calculate
 \end_inset
 
 , we have a straightforward algorithm for determining 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
 : search for an 
@@ -3523,16 +3580,16 @@ Since we can easily calculate
 
  such that
 \begin_inset Formula \[
-\Dt_{bg}\models\forall s:\,\left(\Pst_{\Dt}^{n}(\phi,\alpha)[s]\rightarrow\Pst_{\Dt}^{n+1}(\phi,\alpha)[s]\right)\]
+\Dt_{bg}\models\forall s:\,\left(\PstN n(\phi,\alpha)[s]\rightarrow\PstN{n+1}(\phi,\alpha)[s]\right)\]
 
 \end_inset
 
  Since we expect 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  to be simpler than 
-\begin_inset Formula $\Pst_{\Dt}^{n+1}(\phi,\alpha)$
+\begin_inset Formula $\PstN{n+1}(\phi,\alpha)$
 \end_inset
 
 , we should look for the smallest such 
@@ -3549,7 +3606,7 @@ reference "alg:calc_p"
 
  presents an iterative procedure for doing just that.
  Note that the calculation of 
-\begin_inset Formula $\Pst_{\Dt}^{1}(\phi,\alpha)$
+\begin_inset Formula $\PstN 1(\phi,\alpha)$
 \end_inset
 
  is a straightforward syntactic transformation, so we do not present an
@@ -3568,7 +3625,7 @@ status collapsed
 
 \begin_layout Plain Layout
 Calculate 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
 
@@ -3630,7 +3687,7 @@ STATE
 \end_inset
 
  
-\begin_inset Formula $\mathtt{pn1}\Leftarrow\Pst_{\Dt}^{1}(\mathtt{pn},\alpha)$
+\begin_inset Formula $\mathtt{pn1}\Leftarrow\PstN 1(\mathtt{pn},\alpha)$
 \end_inset
 
  
@@ -3703,7 +3760,7 @@ STATE
 \end_inset
 
  
-\begin_inset Formula $\mathtt{pn1}\Leftarrow\Pst_{\Dt}^{1}[\mathtt{pn},\alpha]$
+\begin_inset Formula $\mathtt{pn1}\Leftarrow\PstN 1[\mathtt{pn},\alpha]$
 \end_inset
 
  
@@ -3813,7 +3870,7 @@ reference "eqn:pn_persists"
 \end_inset
 
 ) holds when 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  is unsatisfiable for any situation, as it appears in the antecedent of
@@ -3848,7 +3905,7 @@ reference "thm:p(pn)-equiv-p"
 
  is an equivalence, the persistence condition is always the fixpoint of
  
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
 .
@@ -3859,10 +3916,18 @@ reference "thm:p-always-exists"
 
 \end_inset
 
- this fixpoint always exists and can be calculated by transfinite iteration.
+ this fixpoint always exists, is unique up to equivalence, and can be calculated
+ by transfinite iteration.
  Therefore, the only source of incompleteness in our algorithm will be failure
  to terminate.
- Algorithm 
+\end_layout
+
+\begin_layout Subsection
+Termination
+\end_layout
+
+\begin_layout Standard
+Algorithm 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "alg:calc_p"
@@ -3921,21 +3986,21 @@ Indeed, it is straightforward to construct a fluent for which the algorithm
  be vacuously true, the sequence of iterations produced by our algorithm
  would be:
 \begin_inset Formula \begin{gather*}
-\Pst_{\Dt}^{1}(F(x,s))\equiv F(x,s)\wedge F(suc(x),s)\\
-\Pst_{\Dt}^{2}(F(x,s))\equiv F(x,s)\wedge F(suc(x),s)\wedge F(suc(suc(x)),s)\\
+\PstN 1(F(x,s))\equiv F(x,s)\wedge F(suc(x),s)\\
+\PstN 2(F(x,s))\equiv F(x,s)\wedge F(suc(x),s)\wedge F(suc(suc(x)),s)\\
 \vdots\\
-\Pst_{\Dt}^{n}(F(x,s))\equiv\bigwedge_{i=0}^{i=n}F(suc^{i}(x),s)\end{gather*}
+\PstN n(F(x,s))\equiv\bigwedge_{i=0}^{i=n}F(suc^{i}(x),s)\end{gather*}
 
 \end_inset
 
  The persistence condition in this case is clearly: 
 \begin_inset Formula \[
-\Pst_{\Dt}(F(x,s))\equiv\forall y:\, x\leq y\rightarrow F(y,s)\]
+\Pst(F(x,s))\equiv\forall y:\, x\leq y\rightarrow F(y,s)\]
 
 \end_inset
 
  While this is equivalent to the infinite conjunction produced as the limit
- of iteration in our algorithm, it will not be found after any finite number
+ of iteration in our algorithm, it won't be found after any finite number
  of steps.
 \end_layout
 
@@ -3948,7 +4013,7 @@ reference "thm:p-always-exists"
 \end_inset
 
 , 
-\begin_inset Formula $\Pst_{\Dt}^{1}$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  operates over the boolean lattice of equivalence classes of formulae uniform
@@ -3992,18 +4057,19 @@ reference "alg:calc_p"
 
  can be done using propositional logic, meaning it is decidable and so providing
  a strong termination guarantee.
-\end_layout
+ Similar termination guarantees would also hold for 
+\emph on
+effectively propositional
+\emph default
+ fragments of first-order logic, such as the function-free or Bernays-Schönfinke
+l class 
+\begin_inset CommandInset citation
+LatexCommand citep
+key "navarro08effectively_propsitional"
 
-\begin_layout Standard
-TODO: function-free theories are 
-\begin_inset Quotes eld
 \end_inset
 
-essentially propositional
-\begin_inset Quotes erd
-\end_inset
-
- and are in a similar boat
+.
 \end_layout
 
 \begin_layout Standard
@@ -4051,7 +4117,7 @@ ADP(\vars x,a,s)\,\equiv\,\bigwedge_{i=1}^{n}a=a_{i}(\vars y)\wedge\Pi_{ADP}(\va
 
 \begin_layout Standard
 Under such theories, applications of 
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  will introduce no new terms into the query, apart from finitely many action
@@ -4061,7 +4127,7 @@ Under such theories, applications of
 
 .
  The range of 
-\begin_inset Formula $\PstDI$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  applied to 
@@ -4073,8 +4139,8 @@ Under such theories, applications of
 \begin_inset Formula $s$
 \end_inset
 
-, again guaranteed well-foundedness and terminating calculation of 
-\begin_inset Formula $\Pst_{\Dt}$
+, again guaranteeing a terminating calculation of 
+\begin_inset Formula $\Pst$
 \end_inset
 
 .
@@ -4083,13 +4149,12 @@ Under such theories, applications of
 \begin_layout Standard
 Of course this is a very strong restriction on the structure of the theory,
  as the successor state axioms are not able to contain any quantifiers.
- It does demonstrate, however, that certain syntactical restrictions on
- 
+ It does demonstrate, however, that certain syntactic restrictions on 
 \begin_inset Formula $\Dt$
 \end_inset
 
  are able to guarantee terminating calculation of 
-\begin_inset Formula $\Pst_{\Dt}$
+\begin_inset Formula $\Pst$
 \end_inset
 
 .
@@ -4128,8 +4193,8 @@ F(\vars x,do(a,s))\,\equiv\,\Phi_{F}^{+}(\vars x,a)\,\vee\,\left(F(\vars x,s)\,\
 \end_layout
 
 \begin_layout Standard
-The effects of an action are thus independent of the situation it is performed
- in.
+The effects of an action are thus independent of the situation in which
+ it is performed.
  
 \begin_inset CommandInset citation
 LatexCommand citet
@@ -4153,7 +4218,7 @@ From a slightly different perspective, suppose that
 \end_inset
 
 , so that 
-\begin_inset Formula $\PstD(\phi,\alpha)\equiv\bot$
+\begin_inset Formula $\Pst(\phi,\alpha)\equiv\bot$
 \end_inset
 
 .
@@ -4195,7 +4260,7 @@ reference "alg:calc_p"
 \end_inset
 
  will determine 
-\begin_inset Formula $\PstD(\phi,\alpha)\equiv\bot$
+\begin_inset Formula $\Pst(\phi,\alpha)\equiv\bot$
 \end_inset
 
  within finitely many iterations.
@@ -4217,7 +4282,7 @@ key "yu07twovar_sitcalc"
 \end_layout
 
 \begin_layout Standard
-The important point here is not that we can guarantee completeness in general,
+The important point here is not that we can guarantee termination in general,
  but that we have precisely characterised the inductive reasoning necessary
  to answer property persistence queries, and shown that it can always be
  replaced by the evaluation of a uniform formula at the situation in question.
@@ -4255,7 +4320,7 @@ First and foremost, we avoid the need for the second-order induction axiom.
  All the reasoning tasks can be performed using standard first-order reasoning,
  for which there are high-quality automated provers.
  Second, the calculation of 
-\begin_inset Formula $\Pst_{\Dt}$
+\begin_inset Formula $\Pst$
 \end_inset
 
  performs only 
@@ -4272,7 +4337,7 @@ reference "sec:Persistence:Background"
  is a comparatively straightforward task which can be made decidable under
  certain conditions.
  Third, 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)[\sigma]$
+\begin_inset Formula $\Pst(\phi,\alpha)[\sigma]$
 \end_inset
 
  is in a form amenable to regression, a standard tool for effective reasoning
@@ -4295,7 +4360,7 @@ reference "sec:Persistence:Background"
 \begin_layout Standard
 Of course, we also inherit the potential disadvantage of the regression
  operator: the length of 
-\begin_inset Formula $\Pst_{\Dt}(\phi,\alpha)$
+\begin_inset Formula $\Pst(\phi,\alpha)$
 \end_inset
 
  may be exponential in the length of 
@@ -4320,245 +4385,17 @@ name "sec:Example:"
 \end_layout
 
 \begin_layout Standard
-To demonstrate the applicability of our technique, this section shows some
- simple examples.
-\end_layout
-
-\begin_layout Subsection
-The 
-\begin_inset Quotes eld
-\end_inset
-
-Gold Thief
-\begin_inset Quotes erd
-\end_inset
-
- domain
-\end_layout
-
-\begin_layout Standard
-As a detailed example of our technique in action, consider a domain in which
- a thief who is trying to steal some gold from a safe.
- There is a light in the room, and a security camera that will detect the
- thief's actions as long as the light is on.
- The safe can be open or closed, and it is possible for the thief to crack
- the safe if the light is on.
- For the complete axioms of this domain, see Appendix 
+To demonstrate the applicability of our technique, consider again the example
+ persistence queries given in Section
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "apdx:Axioms"
+reference "sec:Persistence-Queries"
 
 \end_inset
 
 .
-\end_layout
-
-\begin_layout Standard
-As the owners of the gold, we want to ensure that the thief cannot steal
- the gold (the fluent 
-\begin_inset Formula $Stolen$
-\end_inset
-
-) through a series of actions that are not detected by the security camera
- (the action description predicate 
-\begin_inset Formula $Undet$
-\end_inset
-
-) .
- That is, given the current situation 
-\begin_inset Formula $\sigma$
-\end_inset
-
-, we want to establish that:
-\begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\leq_{Undet}s\,\rightarrow\,\neg Stolen(s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-By the definition of the persistence condition, this is equivalent to:
-\begin_inset Formula \[
-\Dt\models\PstD(\neg Stolen,Undet)[\sigma]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-To answer this query we will employ Algorithm 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "alg:calc_p"
-
-\end_inset
-
-, calculating 
-\begin_inset Formula $\PstDN n$
-\end_inset
-
- for successively larger values of 
-\begin_inset Formula $n$
-\end_inset
-
- until the series converges to a fixpoint.
- The case of 
-\begin_inset Formula $n=0$
-\end_inset
-
- is trivial:
-\begin_inset Formula \[
-\PstDN 0(\neg Stolen,Undet)[s]\,=\,\neg Stolen(s)\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-The 
-\begin_inset Formula $n=1$
-\end_inset
-
- case is given by definition 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "def:persists-depth-n"
-
-\end_inset
-
- as:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \[
-\PstDN 1(\dots)[s]=\neg Stolen(s)\wedge\forall a:\,\Reg(Undet(a,s))\rightarrow\Reg(\neg Stolen(do(a,s)))\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Expanding the 
-\begin_inset Formula $\forall a$
-\end_inset
-
- quantifier over each of the three actions in this domain we obtain:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula \begin{multline*}
-\PstDN 1(\dots)[s]=\neg Stolen(s)\,\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s)))\\
-\wedge\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s)))\\
-\wedge\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s)))\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Applying regression and simplifying the result produces:
-\begin_inset Formula \[
-\PstDN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Intuitively, this indicates that the gold cannot be stolen by a single undetecte
-d action if the safe is not open (since it would first have to be cracked)
- or the light is not on (since the action would be detected).
- Since this is clearly not entailed by the 
-\begin_inset Formula $\PstDN 0$
-\end_inset
-
- case, we must continue to the 
-\begin_inset Formula $n=2$
-\end_inset
-
- case.
- Again applying definition 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "def:persists-depth-n"
-
-\end_inset
-
- and expanding out each individual action, we get:
-\begin_inset Formula \begin{multline*}
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
-\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s))\\
-\wedge[\neg SafeOpen(do(takeGold,s))\vee LightOn(do(takeGold,s))])\\
-\wedge\,\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s))\\
-\wedge[\neg SafeOpen(do(crackSafe,s))\vee LightOn(do(crackSafe,s))])\\
-\wedge\,\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s))\\
-\wedge[\neg SafeOpen(do(toggleLight(s))\vee LightOn(do(toggleLight,s))])\end{multline*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Performing the regression and simplifying down, we eventually obtain:
-\begin_inset Formula \[
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge[\neg SafeOpen(s)\vee LightOn(s)]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-We have clearly satisfied the termination condition of Algorithm 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "alg:calc_p"
-
-\end_inset
-
-, since 
-\begin_inset Formula $\PstDN 1\rightarrow\PstDN 2$
-\end_inset
-
- , and have thus successfully calculated the persistence condition:
-\begin_inset Formula \[
-\PstD(\neg Stolen,Undet)=\neg Stolen\wedge\left[\neg SafeOpen\vee LightOn\right]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Since this is a uniform formula, we can determine whether the gold is safe
- at any given situation using standard regression techniques.
- In particular, we could determine whether the gold is safe in the initial
- situation.
-\end_layout
-
-\begin_layout Subsection
-Applications
-\end_layout
-
-\begin_layout Standard
-The persistence condition is readily applicable to the example persistence
- query problems given in Section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "sec:Persistence:Definitions"
-
-\end_inset
-
-.
- All of the transformed queries can then be answered using standard regression.
+ The persistence condition is readily applicable to each example, and the
+ transformed queries can then be answered using standard regression.
 \begin_inset Newline newline
 \end_inset
 
@@ -4576,7 +4413,7 @@ Goal Impossibility:
 
 , establish that there is no legal situation in which that goal is satisfied:
 \begin_inset Formula \[
-\Dt\,\models\,\Pst_{\Dt}(\neg G,Poss)[S_{0}]\]
+\Dt\,\models\,\Pst(\neg G,Poss)[S_{0}]\]
 
 \end_inset
 
@@ -4612,7 +4449,7 @@ Goal Futility:
 
 :
 \begin_inset Formula \[
-\Dt\,\models\,\Pst_{\Dt}(\neg G,Poss)[\sigma]\]
+\Dt\,\models\,\Pst(\neg G,Poss)[\sigma]\]
 
 \end_inset
 
@@ -4640,7 +4477,7 @@ Checking State Constraints:
 
 , show that the constraint holds in every legal situation:
 \begin_inset Formula \[
-\Dt\,\models\,\Pst_{\Dt}(SC,Poss)[S_{0}]\]
+\Dt\,\models\,\Pst(SC,Poss)[S_{0}]\]
 
 \end_inset
 
@@ -4657,7 +4494,7 @@ always
 
 \begin_layout Standard
 \begin_inset Formula \[
-\Dt_{bg}\models\phi\equiv\Pst_{\Dt}(\phi,Poss)\]
+\Dt_{bg}\models\phi\equiv\Pst(\phi,Poss)\]
 
 \end_inset
 
@@ -4666,15 +4503,15 @@ always
 
 \begin_layout Standard
 If this equivalence does not hold then 
-\begin_inset Formula $\Pst_{\Dt}(\phi,Poss)$
+\begin_inset Formula $\Pst(\phi,Poss)$
 \end_inset
 
  indicates the additional conditions that are necessary to ensure that 
 \begin_inset Formula $\phi$
 \end_inset
 
- persists, which may be used to adjust the action theory to enforce the
- constraint.
+ persists, which may be useful for adjusting the action theory to enforce
+ the constraint.
  This particular application has strong parallels to the approach to state
  constraints developed by 
 \begin_inset CommandInset citation
@@ -4707,10 +4544,10 @@ Need for Cooperation:
 \begin_inset Formula $\sigma$
 \end_inset
 
-, establish that no sequence of actions performed by that agent can achieve
- the goal:
+, establish that no sequence of actions performed by that agent only can
+ achieve the goal:
 \begin_inset Formula \[
-\Dt\models\Pst_{\Dt}(\neg G,MyAction)[\sigma]\]
+\Dt\models\Pst(\neg G,MyAction)[\sigma]\]
 
 \end_inset
 
@@ -4722,23 +4559,272 @@ Need for Cooperation:
 \series bold
 Knowledge with Hidden Actions:
 \series default
- In recent work 
+ In recent work we have developed a regression rule for knowledge that uses
+ the persistence condition to account for arbitrarily-long sequences of
+ hidden actions 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "kelly07sc_know_obs"
 
 \end_inset
 
- we have developed a regression rule for knowledge that uses the persistence
- condition to account for arbitrarily-long sequences of hidden actions.
+.
  While the details of this formulation are outside the scope of the current
  paper, the general form of the regression rule is:
 \begin_inset Formula \[
-\Reg_{\Dt}(\Knows(\phi,do(a,s)))\isdef\Knows(\Reg_{\Dt}(\Pst_{\Dt}(\phi,Hidden),a),s)\]
+\Reg(\Knows(\phi,do(a,s)))\isdef\Knows(\Reg(\Pst(\phi,Hidden)[do(a,s)]),s)\]
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+This highlights an important benefit of our approach -- it integrates well
+ with existing reasoning techniques.
+ Since 
+\begin_inset Formula $\Pst(\phi,\alpha)$
+\end_inset
+
+ is guaranteed to exist and be unique, it can be used to 
+\begin_inset Quotes eld
+\end_inset
+
+factor out
+\begin_inset Quotes erd
+\end_inset
+
+ the inductive reasoning and produce a regression rule for formulae that
+ universally quantify over situations.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As a detailed example of our technique in action, consider again the 
+\begin_inset Quotes eld
+\end_inset
+
+gold thief
+\begin_inset Quotes erd
+\end_inset
+
+ domain as described in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Persistence-Queries"
+
+\end_inset
+
+ and axiomatised in Appendix 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "apdx:Axioms"
+
+\end_inset
+
+.
+ We want to establish that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \[
+\Dt\,\models\,\forall s:\, S_{0}\leq_{Undet}s\,\rightarrow\,\neg Stolen(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By the definition of the persistence condition, this is equivalent to:
+\begin_inset Formula \[
+\Dt\models\Pst(\neg Stolen,Undet)[\sigma]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To answer this query we will employ Algorithm 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "alg:calc_p"
+
+\end_inset
+
+, calculating 
+\begin_inset Formula $\PstN n$
+\end_inset
+
+ for successively larger values of 
+\begin_inset Formula $n$
+\end_inset
+
+ until the series converges to a fixpoint.
+ Full details of this calculation can be found in Appendix 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "apdx:complete-example"
+
+\end_inset
+
+; we present only the major results below.
+ The case of 
+\begin_inset Formula $n=0$
+\end_inset
+
+ is trivial:
+\begin_inset Formula \[
+\PstN 0(\neg Stolen,Undet)[s]\,=\,\neg Stolen(s)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The 
+\begin_inset Formula $n=1$
+\end_inset
+
+ case is given by definition 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "def:persists-depth-n"
+
+\end_inset
+
+ as:
+\begin_inset Formula \[
+\PstN 1(\dots)[s]=\neg Stolen(s)\wedge\forall a:\,\Reg(Undet(a,s))\rightarrow\Reg(\neg Stolen(do(a,s)))\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Expanding the 
+\begin_inset Formula $\forall a$
+\end_inset
+
+ quantifier over each of the three actions in this domain we obtain:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula \begin{multline*}
+\PstN 1(\dots)[s]=\neg Stolen(s)\,\\
+\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s)))\\
+\wedge\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s)))\\
+\wedge\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s)))\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Applying regression and simplifying produces the final result:
+\begin_inset Formula \[
+\PstN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Intuitively, this indicates that the gold cannot be stolen by a single undetecte
+d action if the safe is not open (since it would first have to be cracked)
+ or the light is not on (since the action would be detected).
+ Since this is clearly not entailed by the 
+\begin_inset Formula $\PstN 0$
+\end_inset
+
+ case, we must continue to the 
+\begin_inset Formula $n=2$
+\end_inset
+
+ case.
+ Again applying definition 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "def:persists-depth-n"
+
+\end_inset
+
+ and expanding out each individual action, we get:
+\begin_inset Formula \begin{multline*}
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s))\\
+\wedge[\neg SafeOpen(do(takeGold,s))\vee LightOn(do(takeGold,s))])\\
+\wedge\,\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s))\\
+\wedge[\neg SafeOpen(do(crackSafe,s))\vee LightOn(do(crackSafe,s))])\\
+\wedge\,\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s))\\
+\wedge[\neg SafeOpen(do(toggleLight(s))\vee LightOn(do(toggleLight,s))])\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Performing the regression and simplifying down, we eventually obtain:
+\begin_inset Formula \[
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge[\neg SafeOpen(s)\vee LightOn(s)]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We have clearly satisfied the termination condition of Algorithm 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "alg:calc_p"
+
+\end_inset
+
+, since 
+\begin_inset Formula $\PstN 1\rightarrow\PstN 2$
+\end_inset
+
+ , and have thus successfully calculated the persistence condition:
+\begin_inset Formula \[
+\Pst(\neg Stolen,Undet)=\neg Stolen\wedge\left[\neg SafeOpen\vee LightOn\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Checking whether the gold is safe is now a simple matter of reasoning about
+ the initial situation:
+\begin_inset Formula \[
+\Dt\,\models\,\neg Stolen(S_{0})\wedge\left[\neg SafeOpen(S_{0})\vee LightOn(S_{0})\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+With 
+\begin_inset Formula $\Pst(\neg Stolen,Undet)$
+\end_inset
+
+ in hand, we can also perform more sophisticated reasoning about the safety
+ of the gold -- for example, we can check whether a proposed action would
+ jeopardise the safety of the gold and refuse to perform the action if so.
 \end_layout
 
 \begin_layout Section
@@ -4755,12 +4841,13 @@ name "sec:Persistence:Conclusion"
 \begin_layout Standard
 In this paper we have developed an algorithm that transforms property persistenc
 e queries, a quite general and useful class of situation calculus query,
- to a form that is amenable to standard techniques for effective reasoning
+ into a form that is amenable to standard techniques for effective reasoning
  in the situation calculus.
  The algorithm replaces a second-order induction axiom with a meta-level
  fixpoint calculation based on iterative application of the standard regression
  operator.
- It is shown to be correct, and also complete in some interesting cases.
+ It is shown to be sound and complete, and terminates in several interesting
+ cases.
 \end_layout
 
 \begin_layout Standard
@@ -4788,11 +4875,11 @@ factored out
  guaranteeing a terminating calculation in stronger classes of action theory,
  can proceed independently from the development of formalisms that utilise
  persistence queries.
- Subsequent theories can use 
-\begin_inset Formula $\PstD$
+ Subsequent applications can use the 
+\begin_inset Formula $\Pst$
 \end_inset
 
- as a kind of 
+ operator as a kind of 
 \begin_inset Quotes eld
 \end_inset
 
@@ -4800,8 +4887,8 @@ black box
 \begin_inset Quotes erd
 \end_inset
 
- operator to formulate regression rules, as demonstrated in our own work
- on knowledge 
+ for dealing with persistence queries, for example to formulate regression
+ rules as in our own work on knowledge 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "kelly07sc_know_obs"
@@ -4809,10 +4896,6 @@ key "kelly07sc_know_obs"
 \end_inset
 
 .
-\begin_inset Newline newline
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -4824,7 +4907,7 @@ reference "sec:Persistence:Background"
 \end_inset
 
 , our use of fixpoints in this paper has much in common with the study of
- properties of ConGolog programs by 
+ properties of ConGolog programs 
 \begin_inset CommandInset citation
 LatexCommand citep
 key "ternovska97congolog_fixpoint,classen08golog_properties"
@@ -4832,47 +4915,19 @@ key "ternovska97congolog_fixpoint,classen08golog_properties"
 \end_inset
 
 .
- Indeed, a property persistence query is equivalent to a safety query stating
- that the property 
-\begin_inset Formula $\phi$
-\end_inset
-
- never becomes false during execution of the following program:
-\begin_inset Formula \[
-\delta_{P\alpha}\isdef\left(\pi(a,\,\alpha[a]?\,;\, a)\right)^{*}\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Formally:
-\begin_inset Formula \begin{gather*}
-\Dt\,\models\,\forall s:\,\sigma\leq_{\alpha}s\,\rightarrow\,\phi[s]\\
-\mathrm{iff}\\
-\Dt\cup\Dt_{golog}\,\models\,\forall s,\delta:\, Trans^{*}(\delta_{P\alpha},\sigma,\delta,s)\,\rightarrow\,\phi[s]\end{gather*}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Since we intend to use persistence queries as part of a larger reasoning
- apparatus, rather than as a stand-alone query, we cannot directly leverage
- the existing work on verifying ConGolog programs.
- However, given the similarity between the approaches, we are confident
- that advances in reasoning effectively about ConGolog programs will also
- advance our ability to effectively answer persistence queries.
+ Indeed, that we are able to replace an induction axiom with a fixpoint
+ calculation should come as no surprise; the important point is that this
+ fixpoint exists, but that it can be calculated using quite restricted kinds
+ of reasoning and in a way that integrates naturally with existing reasoning
+ tools such as regression.
+ Given the underlying similarities, we are confident that ongoing advances
+ in reasoning effectively about ConGolog programs will also advance our
+ ability to effectively answer persistence queries.
 \end_layout
 
 \begin_layout Standard
 This paper has thus significantly increased the scope of queries that can
- be posed when building systems upon the situation calculus.
- In the coming papers, the persistence condition operator will allow us
- to factor out certain inductive aspects of reasoning, treating them as
- separate, well-defined components of the overall reasoning machinery.
+ be posed within automated reasoning systems built upon the situation calculus.
 \end_layout
 
 \begin_layout Section
@@ -4899,7 +4954,7 @@ reference "thm:PstN-works"
 \end_inset
 
 , 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)$
+\begin_inset Formula $\PstN n(\phi,\alpha)$
 \end_inset
 
  holds in 
@@ -4928,7 +4983,7 @@ reference "thm:PstN-works"
 
 :
 \begin_inset Formula \begin{multline*}
-\Dt\,\models\,\Pst_{\Dt}^{n}(\phi,\alpha)[\sigma]\,\equiv\,\\
+\Dt\,\models\,\PstN n(\phi,\alpha)[\sigma]\,\equiv\,\\
 \bigwedge_{i\leq n}\forall a_{1},\dots,a_{i}:\,\left(\bigwedge_{j\leq i}\alpha[a_{j},do([a_{1},\dots,a_{j-1}],\sigma)]\,\,\rightarrow\,\,\phi[do([a_{1},\dots,a_{i}],\sigma)]\right)\end{multline*}
 
 \end_inset
@@ -4948,12 +5003,13 @@ By induction on the natural numbers.
 
  by definition.
  For the inductive case, we expand the definition of 
-\begin_inset Formula $\Pst_{\Dt}^{n}(\phi,\alpha)[\sigma]$
+\begin_inset Formula $\PstN n(\phi,\alpha)[\sigma]$
 \end_inset
 
  to get the following for the LHS:
 \begin_inset Formula \[
-\Pst_{\Dt}^{n-1}(\phi,\alpha)[\sigma]\wedge\forall a:\,\Reg_{\Dt}(\alpha[a,\sigma])\rightarrow\Reg_{\Dt}(\Pst_{\Dt}^{n-1}(\phi,\alpha)[do(a,\sigma)])\]
+\PstN{n-1}(\phi,\alpha)[\sigma]\wedge\forall a:\,\Reg(\alpha[a,\sigma])\rightarrow\Reg(\PstN{n-1}(\phi,\alpha)[do(a,\sigma)])\]
+ 
 
 \end_inset
 
@@ -4962,7 +5018,7 @@ By induction on the natural numbers.
 
 \begin_layout Proof
 By the inductive hypothesis we can equate 
-\begin_inset Formula $\Pst_{\Dt}^{n-1}(\phi,\alpha)[\sigma]$
+\begin_inset Formula $\PstN{n-1}(\phi,\alpha)[\sigma]$
 \end_inset
 
  in this LHS with all but the 
@@ -4973,7 +5029,7 @@ By the inductive hypothesis we can equate
  If we also drop the regression operators we are left with the following
  to establish:
 \begin_inset Formula \begin{multline*}
-\Dt\,\models\,\forall a:\,\alpha[a,\sigma]\rightarrow\Pst_{\Dt}^{n-1}(\phi,\alpha)[do(a,\sigma)]\,\equiv\,\\
+\Dt\,\models\,\forall a:\,\alpha[a,\sigma]\rightarrow\PstN{n-1}(\phi,\alpha)[do(a,\sigma)]\,\equiv\,\\
 \forall a_{1},\dots,a_{n}:\,\left(\bigwedge_{j\leq n}\alpha[a_{j},do([a_{1},\dots,a_{j-1}],\sigma)]\,\,\rightarrow\,\,\phi[do([a_{1},\dots,a_{n}],\sigma)]\right)\end{multline*}
 
 \end_inset
@@ -4983,7 +5039,7 @@ By the inductive hypothesis we can equate
 
 \begin_layout Proof
 We can again use the inductive hypothesis on 
-\begin_inset Formula $\Pst_{\Dt}^{n-1}$
+\begin_inset Formula $\PstN{n-1}$
 \end_inset
 
  in the LHS of this equivalence.
@@ -5068,7 +5124,7 @@ name "lem:a-order-reduction-lemma"
 \mathrm{if}\\
 \Sigma\cup\Dt_{bg}\cup\Dt_{ssa}\cup\Dt_{ad}\cup\{\phi[S_{0}]\}\models\forall s:\, S_{0}\leq_{\alpha}s\rightarrow\phi[s]\\
 \mathrm{then}\\
-\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
+\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg(\alpha[a,s])\rightarrow\Reg(\phi[do(a,s)])\end{gather*}
 
 \end_inset
 
@@ -5085,10 +5141,7 @@ key "Lin94-StateConstraints"
 
  using our modified notation.
  We repeat the details of the proof below for convenience.
-\end_layout
-
-\begin_layout Proof
-Begin by assuming the antecedent:
+ Begin by assuming the antecedent:
 \begin_inset Formula \begin{equation}
 \Sigma\cup\Dt_{bg}\cup\Dt_{ssa}\cup\Dt_{ad}\cup\{\phi[S_{0}]\}\models\forall s:\, S_{0}\leq_{\alpha}s\rightarrow\phi[s]\label{eq:pst-at-s0}\end{equation}
 
@@ -5113,12 +5166,12 @@ Let
 
  are variable assignments for situation and action variables respectively,
  such that 
-\begin_inset Formula $M,\mu_{s},\mu_{a}\models\phi[s]\wedge\Reg_{\Dt}(\alpha[a,s])$
+\begin_inset Formula $M,\mu_{s},\mu_{a}\models\phi[s]\wedge\Reg(\alpha[a,s])$
 \end_inset
 
 .
  We show that 
-\begin_inset Formula $M,\mu_{s},\mu_{a}\models\Reg_{\Dt}(\phi[do(a,s)])$
+\begin_inset Formula $M,\mu_{s},\mu_{a}\models\Reg(\phi[do(a,s)])$
 \end_inset
 
 .
@@ -5226,7 +5279,7 @@ reference "eq:pst-at-s0"
 \end_inset
 
  the regression operator can be employed to yield 
-\begin_inset Formula $M',\mu_{a}\models\Reg_{\Dt}(\phi[do(a,s)])$
+\begin_inset Formula $M',\mu_{a}\models\Reg(\phi[do(a,s)])$
 \end_inset
 
 .
@@ -5239,12 +5292,12 @@ reference "eq:pst-at-s0"
 \end_inset
 
  in 
-\begin_inset Formula $\Reg_{\Dt}(\phi[do(a,s)])$
+\begin_inset Formula $\Reg(\phi[do(a,s)])$
 \end_inset
 
 , so we obtain:
 \begin_inset Formula \[
-M',\mu_{a}\models\Reg_{\Dt}(\phi[do(a,S_{0})])\,\,\mathrm{iff}\,\, M,\mu_{s},\mu_{a}\models\Reg_{\Dt}(\phi[do(a,s)])\]
+M',\mu_{a}\models\Reg(\phi[do(a,S_{0})])\,\,\,\,\,\mathrm{iff}\,\,\,\,\, M,\mu_{s},\mu_{a}\models\Reg(\phi[do(a,s)])\]
 
 \end_inset
 
@@ -5280,7 +5333,7 @@ reference "prop:a-order-reduction"
 \begin_inset Formula \begin{gather*}
 \Dt-\Dt_{S_{0}}\models\forall s:\,\phi[s]\rightarrow\left(\forall s':\, s\leq_{\alpha}s'\rightarrow\phi[s']\right)\\
 \mathrm{iff}\\
-\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg_{\Dt}(\alpha[a,s])\rightarrow\Reg_{\Dt}(\phi[do(a,s)])\end{gather*}
+\Dt_{bg}\models\forall s,a:\,\phi[s]\wedge\Reg(\alpha[a,s])\rightarrow\Reg(\phi[do(a,s)])\end{gather*}
 
 \end_inset
 
@@ -5353,6 +5406,85 @@ name "apdx:Axioms"
 \end_layout
 
 \begin_layout Standard
+This section gives the axioms used for the 
+\begin_inset Quotes eld
+\end_inset
+
+gold thief
+\begin_inset Quotes erd
+\end_inset
+
+ example domain in Sections 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Persistence-Queries"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Example:"
+
+\end_inset
+
+.
+ In this domain a thief may try to steal some gold from a safe.
+ There is a light in the room, and a security camera that will detect the
+ thief's actions as long as the light is on.
+ The safe can be open or closed, but the gold can only be stolen if the
+ safe is open.
+ It is possible for the thief to crack the safe and force it open, but only
+ if the light is on.
+ 
+\end_layout
+
+\begin_layout Standard
+The actions in this domain are 
+\begin_inset Formula $takeGold$
+\end_inset
+
+, 
+\begin_inset Formula $crackSafe$
+\end_inset
+
+ and 
+\begin_inset Formula $toggleLight$
+\end_inset
+
+, the primitive fluents are 
+\begin_inset Formula $SafeOpen$
+\end_inset
+
+, 
+\begin_inset Formula $LightOn$
+\end_inset
+
+ and 
+\begin_inset Formula $Stolen$
+\end_inset
+
+, and the action description predicates include the standard 
+\begin_inset Formula $Poss(a,s)$
+\end_inset
+
+ and and a custom predicate 
+\begin_inset Formula $Undet(a,s)$
+\end_inset
+
+ indicating that action 
+\begin_inset Formula $a$
+\end_inset
+
+ would not be detected by the security camera.
+\end_layout
+
+\begin_layout Standard
+The successor state axioms 
+\begin_inset Formula $\Dt_{ssa}$
+\end_inset
+
+ consist of the following sentences:
 \begin_inset Formula \begin{gather*}
 Stolen(do(takeGold,s))\equiv\top\\
 Stolen(do(crackSafe,s))\equiv Stolen(s)\\
@@ -5361,9 +5493,6 @@ Stolen(do(toggleLight,s))\equiv Stolen(s)\end{gather*}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 SafeOpen(do(takeGold,s))\equiv SafeOpen(s)\\
 SafeOpen(do(crackSafe,s))\equiv\top\\
@@ -5372,9 +5501,6 @@ SafeOpen(do(toggleLight,s))\equiv SafeOpen(s)\end{gather*}
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{gather*}
 LightOn(do(takeGold,s))\equiv LightOn(s)\\
 LightOn(do(crackSafe,s))\equiv LightOn(s)\\
@@ -5386,6 +5512,11 @@ LightOn(do(toggleLight,s))\equiv\neg LightOn(s)\end{gather*}
 \end_layout
 
 \begin_layout Standard
+The action description predicates in 
+\begin_inset Formula $\Dt_{ad}$
+\end_inset
+
+ are defined by the following:
 \begin_inset Formula \begin{gather*}
 Poss(takeGold,s)\equiv SafeOpen(s)\\
 Poss(crackSafe,s)\equiv LightOn(s)\\
@@ -5400,6 +5531,18 @@ Undet(a,s)\equiv Poss(a,s)\,\wedge\, a\neq toggleLight\,\wedge\neg LightOn(s)\en
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The background theory 
+\begin_inset Formula $\Dt_{bg}$
+\end_inset
+
+ is empty, and the initial situation axioms 
+\begin_inset Formula $\Dt_{S_{0}}$
+\end_inset
+
+ are not specified since they are not used in the discussion.
 \end_layout
 
 \begin_layout Section
@@ -5422,17 +5565,29 @@ name "apdx:complete-example"
 \end_layout
 
 \begin_layout Standard
-As an example of our technique in action, consider a thief who is trying
- to steal some gold from a safe.
- The thief's actions will be detected by a security camera.
- As the owners of the gold, we want to establish that the thief cannot steal
- it without being detected - that is, given the current situation 
-\begin_inset Formula $\sigma$
+This section presents complete details of the calculation of 
+\begin_inset Formula $\Pst$
 \end_inset
 
-, we want to establish that:
+ for the 
+\begin_inset Quotes eld
+\end_inset
+
+gold thief
+\begin_inset Quotes erd
+\end_inset
+
+ example as outlined in Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Example:"
+
+\end_inset
+
+.
+ We need to calculate:
 \begin_inset Formula \[
-\Dt\models\forall s:\,\sigma\leq_{Undet}s\,\rightarrow\,\neg Stolen(s)\]
+\Pst(\neg Stolen,Undet)[\sigma]\]
 
 \end_inset
 
@@ -5440,17 +5595,7 @@ As an example of our technique in action, consider a thief who is trying
 \end_layout
 
 \begin_layout Standard
-By the definition of the persistence condition, this is equivalent to:
-\begin_inset Formula \[
-\Dt\models\Pst(\neg Stolen,Undet)[\sigma]\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-To calculate the persistence condition we follow Algorithm 
+To calculate this persistence condition we follow Algorithm 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "alg:calc_p"
@@ -5458,7 +5603,7 @@ reference "alg:calc_p"
 \end_inset
 
 , calculating 
-\begin_inset Formula $\PstDN n$
+\begin_inset Formula $\PstN n$
 \end_inset
 
  for successively larger values of 
@@ -5472,7 +5617,7 @@ reference "alg:calc_p"
 
  is trivial:
 \begin_inset Formula \[
-\PstDN 0(\neg Stolen,Undet)[s]\,=\,\neg Stolen(s)\]
+\PstN 0(\neg Stolen,Undet)[s]\,=\,\neg Stolen(s)\]
 
 \end_inset
 
@@ -5492,11 +5637,8 @@ reference "def:persists-depth-n"
 \end_inset
 
  as:
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \[
-\PstDN 1(\dots)[s]=\neg Stolen(s)\wedge\forall a:\,\Reg(Undet(a,s))\rightarrow\Reg(\neg Stolen(do(a,s)))\]
+\PstN 1(\dots)[s]=\neg Stolen(s)\wedge\forall a:\,\Reg(Undet(a,s))\rightarrow\Reg(\neg Stolen(do(a,s)))\]
 
 \end_inset
 
@@ -5510,11 +5652,9 @@ Some straightforward simplifications can be applied at this stage.
 \end_inset
 
  quantification can be replaced with a finite conjunction:
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{multline*}
-\PstDN 1(\dots)[s]=\neg Stolen(s)\,\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s)))\\
+\PstN 1(\dots)[s]=\neg Stolen(s)\,\\
+\wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s)))\\
 \wedge\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s)))\\
 \wedge\Reg(Undet(toggleLight,s))\rightarrow\Reg(\neg Stolen(do(toggleLight,s)))\end{multline*}
 
@@ -5545,13 +5685,10 @@ From the domain axioms we know that
 \begin_inset Formula $\neg Stolen$
 \end_inset
 
- we obtain the following result:
-\end_layout
-
-\begin_layout Standard
+ we thus obtain the following result:
 \begin_inset Formula \begin{multline*}
-\PstDN 1(\dots)[s]=\neg Stolen(s)\,\wedge\,\Reg(Undet(takeGold,s))\rightarrow\neg\top\\
-\wedge\Reg(Undet(crackSafe,s))\rightarrow\neg Stolen(s)\\
+\PstN 1(\dots)[s]=\neg Stolen(s)\,\wedge\,\Reg(Undet(takeGold,s))\rightarrow\neg\top\\
+\shoveright{\wedge\Reg(Undet(crackSafe,s))\rightarrow\neg Stolen(s)}\\
 \wedge\Reg(Undet(toggleCam,s))\rightarrow\neg Stolen(s)\end{multline*}
 
 \end_inset
@@ -5570,7 +5707,7 @@ Since the conjunction already contains
 
 \begin_layout Standard
 \begin_inset Formula \[
-\PstDN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\neg\Reg(Undet(takeGold,s))\]
+\PstN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\neg\Reg(Undet(takeGold,s))\]
 
 \end_inset
 
@@ -5579,12 +5716,12 @@ Since the conjunction already contains
 
 \begin_layout Standard
 Performing the remaining regression, we obtain the final result for 
-\begin_inset Formula $\PstDN 1$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
 :
 \begin_inset Formula \[
-\PstDN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\]
+\PstN 1(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\]
 
 \end_inset
 
@@ -5593,7 +5730,7 @@ Performing the remaining regression, we obtain the final result for
 
 \begin_layout Standard
 Since this is clearly not entailed by the 
-\begin_inset Formula $\PstDN 0$
+\begin_inset Formula $\PstN 0$
 \end_inset
 
  case, we must continue to the 
@@ -5609,8 +5746,11 @@ reference "def:persists-depth-n"
 \end_inset
 
  and expanding out each individual action, we get:
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula \begin{multline*}
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
 \wedge\,\Reg(Undet(takeGold,s))\rightarrow\Reg(\neg Stolen(do(takeGold,s))\\
 \wedge[\neg SafeOpen(do(takeGold,s))\vee LightOn(do(takeGold,s))])\\
 \wedge\,\Reg(Undet(crackSafe,s))\rightarrow\Reg(\neg Stolen(do(crackSafe,s))\\
@@ -5625,15 +5765,12 @@ reference "def:persists-depth-n"
 
 \begin_layout Standard
 Applying similar simplifications to the 
-\begin_inset Formula $\PstDN 1$
+\begin_inset Formula $\PstN 1$
 \end_inset
 
  case, we can obtain:
-\end_layout
-
-\begin_layout Standard
 \begin_inset Formula \begin{multline*}
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
 \wedge\,\Reg(Undet(takeGold,s))\rightarrow\neg\top\wedge[\neg SafeOpen(s)\vee LightOn(s)]\\
 \wedge\,\Reg(Undet(crackSafe,s))\rightarrow\neg Stolen(s)\wedge[\neg\top\vee LightOn(s)]\\
 \wedge\,\Reg(Undet(toggleLight,s))\rightarrow\neg Stolen(s)\wedge[\neg SafeOpen(s)\vee\neg LightOn(s)]\end{multline*}
@@ -5646,7 +5783,7 @@ Applying similar simplifications to the
 \begin_layout Standard
 Further simplifying:
 \begin_inset Formula \begin{multline*}
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
 \wedge\,\neg\Reg(Undet(takeGold,s))\\
 \wedge\,[\neg\Reg(Undet(toggleLight,s))\vee\neg SafeOpen(s)\vee\neg LightOn(s)]\end{multline*}
 
@@ -5658,15 +5795,19 @@ Further simplifying:
 \begin_layout Standard
 Now performing the second regression:
 \begin_inset Formula \begin{multline*}
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
-\wedge\,\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge\left[\neg SafeOpen(s)\vee LightOn(s)\right]\\
+\shoveright{\wedge\,\left[\neg SafeOpen(s)\vee LightOn(s)\right]}\\
 \wedge\,[\neg\bot\vee\neg SafeOpen(s)\vee\neg LightOn(s)]\end{multline*}
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+Further simplification gives:
 \begin_inset Formula \[
-\PstDN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge[\neg SafeOpen(s)\vee LightOn(s)]\]
+\PstN 2(\dots)[s]\,=\,\neg Stolen(s)\wedge[\neg SafeOpen(s)\vee LightOn(s)]\]
 
 \end_inset
 
@@ -5682,13 +5823,13 @@ reference "alg:calc_p"
 \end_inset
 
 , since 
-\begin_inset Formula $\PstDN 1\rightarrow\PstDN 2$
+\begin_inset Formula $\PstN 1\rightarrow\PstN 2$
 \end_inset
 
  .
  We have thus successfully calculated the persistence condition:
 \begin_inset Formula \[
-\PstD(\neg Stolen,Undet)=\neg Stolen\wedge\left[\neg SafeOpen\vee LightOn\right]\]
+\Pst(\neg Stolen,Undet)=\neg Stolen\wedge\left[\neg SafeOpen\vee LightOn\right]\]
 
 \end_inset
 
